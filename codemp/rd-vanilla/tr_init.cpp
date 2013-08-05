@@ -875,6 +875,11 @@ void R_ScreenShotMME_f (void) {
 	char checkname[MAX_OSPATH] = {0};
 	int stereo = 0;
 
+	if (!Q_stricmp(mme_screenShotFormat->string, "jpg")) {
+		R_ScreenShot_f();	//currently we are unable to capture jpeg with motion blur :(
+		return;
+	}
+
 	if( ri.Cmd_Argc() == 2 )
 	{
 		if( !strcmp( ri.Cmd_Argv(1), "left") )
