@@ -175,6 +175,7 @@ XCVAR_DEF( mov_chaseRange,						"20",					NULL,					CVAR_ARCHIVE )
 //XCVAR_DEF( mov_captureCamera,					"0",					NULL,					CVAR_ARCHIVE )
 //XCVAR_DEF( mov_captureName,					"",						NULL,					CVAR_TEMP )
 XCVAR_DEF( mov_captureFPS,						"25",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( mov_fragsOnly,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( fx_Vibrate,							"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( fx_vfps,								"1000",					NULL,					CVAR_ARCHIVE )	//teh's fix for laggy effects
 

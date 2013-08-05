@@ -4380,6 +4380,12 @@ void CG_CenterPrint( const char *str, int y, int charWidth ) {
 	int		i = 0;
 	//[/BugFix19]
 
+	if( mov_fragsOnly.integer ) {
+		char sKilledStr[256];
+		trap_SP_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
+		if(strncmp(str,sKilledStr,strlen(sKilledStr))!=0)return;
+	}	
+
 	Q_strncpyz( cg.centerPrint, str, sizeof(cg.centerPrint) );
 
 	cg.centerPrintTime = cg.time;
@@ -4439,6 +4445,12 @@ static void CG_DrawCenterString( void ) {
 	trap_R_SetColor( color );
 
 	start = cg.centerPrint;
+
+	if( mov_fragsOnly.integer != 0 ) {
+		char sKilledStr[256];
+		trap_SP_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
+		if(strncmp(cg.centerPrint,sKilledStr,strlen(sKilledStr))!=0)return;
+	}
 
 	y = cg.centerPrintY - cg.centerPrintLines * BIGCHAR_HEIGHT / 2;
 
@@ -8173,6 +8185,14 @@ void CG_Draw2D( void ) {
 		//		Clear the fall vector to avoid that.
 		gCGHasFallVector = qfalse;
 		VectorClear( gCGFallVector );
+		return;
+	}
+
+	if ( mov_fragsOnly.integer != 0 ) {
+		vec4_t hcolor = {0, 0, 0, 0};
+		if(!cg.renderingThirdPerson)CG_DrawZoomMask();
+		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+		CG_DrawCenterString();
 		return;
 	}
 
