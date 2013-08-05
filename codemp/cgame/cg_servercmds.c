@@ -844,10 +844,12 @@ static void CG_ConfigStringModified( void ) {
 		//rww - removed and replaced with CS_G2BONES
 // Ghoul2 Insert end
 	} else if ( num >= CS_SOUNDS && num < CS_SOUNDS+MAX_SOUNDS ) {
-		if ( str[0] != '*' ) {	// player specific sounds don't register here
+		//sometimes it sends null sound and game crashes when playing backward
+		//commenting this helps to avoid crash, is that trap necessary? did some tests: works fine
+/*		if ( str[0] != '*' ) {	// player specific sounds don't register here
 			cgs.gameSounds[ num-CS_SOUNDS] = trap_S_RegisterSound( str );
 		}
-		else if (str[1] == '$')
+		else */if (str[1] == '$')
 		{ //an NPC soundset
 			CG_PrecacheNPCSounds(str);
 		}
