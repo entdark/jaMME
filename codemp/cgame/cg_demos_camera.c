@@ -1,3 +1,5 @@
+// Copyright (C) 2009 Sjoerd van der Berg ( harekiet @ gmail.com )
+
 #include "cg_demos.h" 
 
 void cameraPointMatch( const demoCameraPoint_t *point, int mask, const demoCameraPoint_t *match[4] ) {

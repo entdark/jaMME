@@ -1,3 +1,5 @@
+// Copyright (C) 2009 Sjoerd van der Berg ( harekiet @ gmail.com )
+
 #include "cg_demos.h" 
 #include "../../ui/menudef.h"
 #include "../ui/keycodes.h"
@@ -125,6 +127,7 @@ static struct {
 		demoChasePoint_t *point;
 	} chase;
 /*	struct {
+		float *color;
 		float *origin, *angles, *color, *size;
 		int *flags;
 		demoEffectPoint_t *point;
@@ -208,6 +211,68 @@ static int hudGetChecked( hudItem_t *item, vec4_t color ) {
 		return demo.effect.active->active;
 */	}
 	return 0;
+}
+
+static void hudToggleButton( hudItem_t *item, int change ) {
+	if (!change)
+		return;
+	switch ( item->handler ) {
+	case hudCamSmoothAngles:
+		if ( change < 0 ) {
+			if ( demo.camera.smoothAngles > 0)
+				demo.camera.smoothAngles--;
+			else
+				demo.camera.smoothAngles = angleLast - 1;
+		} else {
+			if ( demo.camera.smoothAngles < angleLast - 1)
+				demo.camera.smoothAngles++;
+			else
+				demo.camera.smoothAngles = 0;
+		}
+		return;
+	case hudCamSmoothPos:
+		if ( change < 0 ) {
+			if ( demo.camera.smoothPos > 0)
+				demo.camera.smoothPos--;
+			else
+				demo.camera.smoothPos = posLast - 1;
+		} else {
+			if ( demo.camera.smoothPos < posLast - 1)
+				demo.camera.smoothPos++;
+			else
+				demo.camera.smoothPos = 0;
+		}
+		return;
+	}
+}
+
+static void hudToggleChecked( hudItem_t *item ) {
+	switch ( item->handler ) {
+	case hudCamCheckPos:
+		hud.cam.flags[0] ^= CAM_ORIGIN;
+		break;
+	case hudCamCheckAngles:
+		hud.cam.flags[0] ^= CAM_ANGLES;
+		break;
+	case hudCamCheckFov:
+		hud.cam.flags[0] ^= CAM_FOV;
+		break;
+/*	case hudEffectCheckPos:
+		hud.effect.flags[0] ^= EFFECT_ORIGIN;
+		break;
+	case hudEffectCheckAngles:
+		hud.effect.flags[0] ^= EFFECT_ANGLES;
+		break;
+	case hudEffectCheckSize:
+		hud.effect.flags[0] ^= EFFECT_SIZE;
+		break;
+	case hudEffectCheckColor:
+		hud.effect.flags[0] ^= EFFECT_COLOR;
+		break;
+	case hudEffectCheckActive:
+		demo.effect.active->active 	= !demo.effect.active->active;
+		break;
+*/	}
 }
 
 static float *hudGetFloat( hudItem_t *item ) {
@@ -393,7 +458,7 @@ static void hudGetHandler( hudItem_t *item, char *buf, int bufSize ) {
 	}
 }
 
-/*
+/*	//only effects required typing text and we don't use them
 static void hudGetText( hudItem_t *item, char *buf, int bufSize, qboolean edit ) {
 	demoEffectParent_t *parent = demo.effect.active;
 	int i;
@@ -435,7 +500,103 @@ static void hudGetText( hudItem_t *item, char *buf, int bufSize, qboolean edit )
 		break;
 	}
 }
+
+static void hudSetText( hudItem_t *item, const char *buf ) {
+	int i, val;
+	demoEffectParent_t *parent = demo.effect.active;
+	
+	switch ( item->handler ) {
+	case hudEffectScript:
+		if (!parent)
+			break;
+		Q_strncpyz( parent->scriptName, buf, sizeof( parent->scriptName ));
+		parent->script = trap_FX_Register( parent->scriptName );
+		break;
+	case hudEffectShader:
+		if (!parent)
+			break;
+		Q_strncpyz( parent->shaderName, buf, sizeof( parent->shaderName ));
+		parent->shader = trap_R_RegisterShader( parent->shaderName );
+		break;
+	case hudEffectModel:
+		if (!parent)
+			break;
+		Q_strncpyz( parent->modelName, buf, sizeof( parent->modelName ));
+		parent->model = trap_R_RegisterModel( parent->modelName );
+		break;
+	case hudEffectColor:
+		if (!hud.effect.color)
+			return;
+		for (i = 0;i<6;i++) {
+            int readHex;
+			char c = buf[i];
+			if ( c >= '0' && c<= '9') {
+                readHex = c - '0';
+			} else if ( c >= 'a' && c<= 'f') {
+				readHex = 0xa + c - 'a';
+			} else if ( c >= 'A' && c<= 'F') {
+				readHex = 0xa + c - 'A';
+			} else {
+				return;
+			}
+			if ( i & 1) {
+				val|= readHex;
+				hud.effect.color[i >> 1] = val * (1 / 255.0f);
+			} else {
+				val = readHex << 4;
+			}
+		}
+		break;
+	case hudScriptInit:
+		if (!hud.scriptPoint )
+			break;
+		Q_strncpyz( hud.scriptPoint->init, buf, sizeof( hud.scriptPoint->init ) );
+		break;
+	case hudScriptRun:
+		if (!hud.scriptPoint )
+			break;
+		Q_strncpyz( hud.scriptPoint->run, buf, sizeof( hud.scriptPoint->run ) );
+		break;
+	}
+}
 */
+static float hudItemWidth( hudItem_t *item  ) {
+	char buf[512];
+	float w, *f;
+
+	w = item->textLen * HUD_TEXT_WIDTH;
+	switch (item->type ) {
+	case hudTypeHandler:
+	case hudTypeButton:
+		hudGetHandler( item, buf, sizeof(buf) );
+		w += strlen( buf ) * HUD_TEXT_WIDTH;
+		break;
+/*	case hudTypeText:
+		hudGetText( item, buf, sizeof(buf), qfalse );
+		w += strlen( buf ) * HUD_TEXT_WIDTH;
+		break;
+*/	case hudTypeValue:
+		Com_sprintf( buf, sizeof( buf ), HUD_FLOAT, item->value[0]);
+		w += strlen( buf ) * HUD_TEXT_WIDTH;
+		break;
+	case hudTypeFloat:
+		f = hudGetFloat( item );
+		if (!f)
+			break;
+		Com_sprintf( buf, sizeof( buf ), HUD_FLOAT, f[0] );
+		w += strlen( buf ) * HUD_TEXT_WIDTH;
+		break;
+	case hudTypeCheck:
+		w += HUD_TEXT_WIDTH;
+		break;
+	case hudTypeCvar:
+		trap_Cvar_VariableStringBuffer( item->cvar, buf, sizeof( buf ));
+		w += strlen( buf ) * HUD_TEXT_WIDTH;
+		break;
+	}
+	return w;
+}
+
 static void hudDrawItem( hudItem_t *item ) {
 	char buf[512];
 	int checked;
@@ -453,7 +614,7 @@ static void hudDrawItem( hudItem_t *item ) {
 		if ( demo.serverTime & 512 ) {
 			float x = item->x + (item->textLen + hud.edit.cursor) * HUD_TEXT_WIDTH;
 			float y = item->y;
-			if ( /*trap_Key_GetOverstrikeMode()*/ 1) {
+			if ( trap_Key_GetOverstrikeMode()) {
 				CG_FillRect( x, y + HUD_TEXT_SPACING - 3 , HUD_TEXT_WIDTH, 3, colorRed );
 			} else {
 				CG_FillRect( x, y , HUD_TEXT_WIDTH, HUD_TEXT_SPACING, colorRed );
@@ -486,11 +647,11 @@ static void hudDrawItem( hudItem_t *item ) {
 		hudGetHandler( item, buf, sizeof( buf ));
 		hudDrawText( x, y, buf, colorWhite );
 		break;
-	case hudTypeText:
-//		hudGetText( item, buf, sizeof(buf), qfalse );
+/*	case hudTypeText:
+		hudGetText( item, buf, sizeof(buf), qfalse );
 		hudDrawText( x, y, buf, colorWhite );
 		break;
-	case hudTypeValue:
+*/	case hudTypeValue:
 		Com_sprintf( buf, sizeof( buf ), HUD_FLOAT, item->value[0] );
 		hudDrawText( x, y, buf, colorWhite );
 		break;
@@ -507,7 +668,7 @@ static void hudDrawItem( hudItem_t *item ) {
 		break;
 	case hudTypeCheck:
 		checked = hudGetChecked( item, colorWhite );
-		CG_DrawPic( x, y, HUD_TEXT_WIDTH, HUD_TEXT_SPACING, checked ? 
+		CG_DrawPic( x + 5*cgs.widthRatioCoef, y + 2, HUD_TEXT_WIDTH, HUD_TEXT_SPACING, checked ? 
 			demo.media.switchOn : demo.media.switchOff ); 
 		break;
 	}
@@ -644,12 +805,12 @@ void hudDraw( void ) {
 
 	if ( hud.keyCatcher & KEYCATCH_CGAME ) {
 		float x,y,w,h;
-		x = hud.cursorX - 16;
-		y = hud.cursorY - 16;
+		x = hud.cursorX;
+		y = hud.cursorY;
 		w = 32;
 		h = 32;
-		CG_AdjustFrom640( &x, &y, &w, &h );
-		trap_R_DrawStretchPic( x,y,w,h, 0,0,1,1, demo.media.mouseCursor );
+//		CG_AdjustFrom640( &x, &y, &w, &h );
+		trap_R_DrawStretchPic( x,y,w*cgs.widthRatioCoef,h, 0,0,1,1, demo.media.mouseCursor );
 	} else {
 		hud.edit.item = 0;
 	}
@@ -710,6 +871,16 @@ static void hudAddText( float x, float y, int showMask, const char *text, int ha
 	hudItem_t *item = hudAddItem( x, y, showMask, text );
 	item->handler = handler;
 	item->type = hudTypeText;
+}
+
+void hudToggleInput(void) {
+	int oldCatcher = trap_Key_GetCatcher();
+	if ( oldCatcher & KEYCATCH_CGAME ) {
+		oldCatcher &= ~(KEYCATCH_CGAME | KEYCATCH_CGAMEEXEC );
+	} else {
+		oldCatcher |= (KEYCATCH_CGAME | KEYCATCH_CGAMEEXEC );
+	}
+	trap_Key_SetCatcher( oldCatcher );
 }
 
 void hudInitTables(void) {
@@ -792,4 +963,171 @@ void hudInitTables(void) {
 	hudAddCvar(   0,  17, MASK_LINE_HUD, "MusicFile:", "mov_musicFile" );
 	hudAddCvar(   0,  18, MASK_LINE_HUD, "MusicStart:", "mov_musicStart" );
 
+}
+
+static hudItem_t *hudItemAt( float x, float y ) {
+	int i;
+	for ( i = 0; i< hudItemsUsed; i++ ) {
+		float w, h;
+		hudItem_t *item = hudItems + i;
+		if ((hud.showMask & item->showMask) != item->showMask )
+			continue;
+		if ( item->x > x || item->y > y )
+			continue;
+		w = x - item->x;
+		h = y - item->y;
+		if ( h > HUD_TEXT_HEIGHT )
+			continue;
+		if ( w > hudItemWidth( item ))
+			continue;
+		return item;
+	}
+	return 0;
+}
+
+
+static void hudEditItem( hudItem_t *item, const char *buf ) {
+	float *f;
+	switch ( item->type ) {
+	case hudTypeFloat:
+		f = hudGetFloat( item );
+		if (!f)
+			return;
+		*f = atof( buf );
+		break;
+	case hudTypeValue:
+		item->value[0] = atof( buf );
+		break;
+	case hudTypeCvar:
+		trap_Cvar_Set( item->cvar, buf );
+		break;
+/*	case hudTypeText:
+		hudSetText( item, buf );
+		break;
+*/	}
+}
+
+qboolean CG_KeyEvent(int key, qboolean down) {
+	int catchMask;
+	int len;
+
+	if (!down)
+		return qfalse;
+
+	catchMask = trap_Key_GetCatcher();
+
+	len = strlen( hud.edit.line );
+	if ( key == A_MOUSE1 ) {
+		hudItem_t *item;
+
+		item = hudItemAt( hud.cursorX, hud.cursorY );
+		hud.edit.item = 0;
+		if ( item ) {
+			float *f;
+			switch ( item->type ) {
+			case hudTypeValue:
+				Com_sprintf( hud.edit.line, sizeof( hud.edit.line ), HUD_FLOAT, item->value[0] );
+				hud.edit.cursor = strlen( hud.edit.line );
+				hud.edit.item = item;
+				trap_Key_SetCatcher( KEYCATCH_CGAME | (catchMask &~KEYCATCH_CGAMEEXEC));
+				break;
+			case hudTypeCvar:
+				trap_Cvar_VariableStringBuffer( item->cvar, hud.edit.line, sizeof( hud.edit.line ));
+				hud.edit.cursor = strlen( hud.edit.line );
+				hud.edit.item = item;
+				trap_Key_SetCatcher( KEYCATCH_CGAME | (catchMask &~KEYCATCH_CGAMEEXEC));
+				break;
+			case hudTypeFloat:
+				f = hudGetFloat( item );
+				if (!f)
+					break;
+				Com_sprintf( hud.edit.line, sizeof( hud.edit.line ), HUD_FLOAT, *f );
+				hud.edit.cursor = strlen( hud.edit.line );
+				hud.edit.item = item;
+				trap_Key_SetCatcher( KEYCATCH_CGAME | (catchMask &~KEYCATCH_CGAMEEXEC));
+				break;
+/*			case hudTypeText:
+				hudGetText( item, hud.edit.line, sizeof( hud.edit.line ), qtrue );
+				hud.edit.cursor = strlen( hud.edit.line );
+				hud.edit.item = item;
+				trap_Key_SetCatcher( KEYCATCH_CGAME | (catchMask &~KEYCATCH_CGAMEEXEC));
+				break;
+*/			case hudTypeButton:
+				hudToggleButton( item, 1 );
+				break;
+			case hudTypeCheck:
+				hudToggleChecked( item );
+				break;
+			}
+		}
+		return qtrue;
+	//Further keypresses only handled when waiting for input
+	} else if ( catchMask & KEYCATCH_CGAMEEXEC ) {
+		return qfalse;
+	} else if ( key == A_DELETE || key == A_KP_PERIOD ) {
+		if ( hud.edit.cursor < len ) {
+			memmove( hud.edit.line + hud.edit.cursor, 
+				hud.edit.line + hud.edit.cursor + 1, len - hud.edit.cursor );
+		}
+	} else if ( key == A_CURSOR_RIGHT || key == A_KP_6 ) {
+		if ( hud.edit.cursor < len ) {
+			hud.edit.cursor++;
+		}
+	} else if ( key == A_CURSOR_LEFT || key == A_KP_4 ) {
+		if ( hud.edit.cursor > 0 ) {
+			hud.edit.cursor--;
+		}
+	} else if ( key == A_HOME || key == A_KP_7 || ( tolower(key) == 'a' && trap_Key_IsDown( A_CTRL ) ) ) {
+		hud.edit.cursor = 0;
+	} else if ( key == A_END || key == A_KP_1 || ( tolower(key) == 'e' && trap_Key_IsDown( A_CTRL ) ) ) {
+		hud.edit.cursor = len;
+	} else if ( key == A_TAB) {
+		hud.edit.item = 0;
+		trap_Key_SetCatcher( trap_Key_GetCatcher() & ~(KEYCATCH_CGAME|KEYCATCH_CGAMEEXEC) );
+	} else if ( key == A_INSERT || key == A_KP_0 ) {
+		trap_Key_SetOverstrikeMode( !trap_Key_GetOverstrikeMode() );
+	} else if ( key == A_ENTER || key == A_KP_ENTER ) {
+		hudEditItem( hud.edit.item, hud.edit.line );
+		hud.edit.item = 0;
+		trap_Key_SetCatcher( catchMask | KEYCATCH_CGAME  | KEYCATCH_CGAMEEXEC );
+	} else if ( key & K_CHAR_FLAG ) {
+		key &= ~K_CHAR_FLAG;
+		if ( key == 'h' - 'a' + 1 )	{	// ctrl-h is backspace
+			if ( hud.edit.cursor > 0 ) {
+				memmove( hud.edit.line + hud.edit.cursor - 1, 
+					hud.edit.line + hud.edit.cursor, len + 1 - hud.edit.cursor );
+				hud.edit.cursor--;
+			} 
+		} else if ( key == 'a' - 'a' + 1 ) {	// ctrl-a is home
+			hud.edit.cursor = 0;
+		} else if ( key== 'e' - 'a' + 1 ) {	// ctrl-e is end
+			hud.edit.cursor = len;
+		} else if ( key >= 32 &&  len < sizeof( hud.edit.line) - 1 ) {
+			if ( trap_Key_GetOverstrikeMode() ) {	
+				memmove( hud.edit.line + hud.edit.cursor + 1, hud.edit.line + hud.edit.cursor, len + 1 - hud.edit.cursor );
+			}
+			hud.edit.line[hud.edit.cursor] = key;
+			if ( hud.edit.cursor < sizeof( hud.edit.line) - 1)
+				hud.edit.cursor++;
+			hud.edit.line[len + 1] = 0;
+		} else {
+			return qfalse;
+		}
+	}
+	return qtrue;
+}
+
+void CG_MouseEvent(int dx, int dy) {
+	// update mouse screen position
+	hud.cursorX += dx;
+	if (hud.cursorX < 0)
+		hud.cursorX = 0;
+	else if (hud.cursorX > SCREEN_WIDTH)
+		hud.cursorX = SCREEN_WIDTH;
+
+	hud.cursorY += dy;
+	if (hud.cursorY < 0)
+		hud.cursorY = 0;
+	else if (hud.cursorY > SCREEN_HEIGHT)
+		hud.cursorY = SCREEN_HEIGHT;
 }

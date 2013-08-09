@@ -1934,6 +1934,7 @@ typedef struct {
 #define	KEYCATCH_UI					0x0002
 #define	KEYCATCH_MESSAGE		0x0004
 #define	KEYCATCH_CGAME			0x0008
+#define	KEYCATCH_CGAMEEXEC		0x2000
 
 
 // sound channels

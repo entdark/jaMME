@@ -1703,6 +1703,11 @@ Ghoul2 Insert End
 
 	case CG_MME_SEEKTIME:
 		return demoSeek( args[1] );
+	case CG_KEY_GETOVERSTRIKEMODE:
+		return Key_GetOverstrikeMode();
+	case CG_KEY_SETOVERSTRIKEMODE:
+		Key_SetOverstrikeMode( (qboolean)args[1] );
+		return 0;
 	default:
 	        assert(0); // bk010102
 		Com_Error( ERR_DROP, "Bad cgame system trap: %ld", (long int) args[0] );

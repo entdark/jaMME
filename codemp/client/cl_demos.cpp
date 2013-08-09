@@ -1,13 +1,18 @@
+// Copyright (C) 2006 Sjoerd van der Berg
+//
+// cl_demos.c -- Enhanced demo player and server demo recorder
+
 #include "client.h"
 #include "../server/server.h"
 #include "cl_demos.h"
+#include "qcommon/game_version.h"
 
 static demo_t			demo;
 static byte				demoBuffer[128*1024];
 static entityState_t	demoNullEntityState;
 static playerState_t	demoNullPlayerState;
 
-static const char *demoHeader = /*Q3_VERSION_CONSOLE*/ "Demo";
+static const char *demoHeader = JK_VERSION "Demo";
 
 static void demoFrameAddString( demoString_t *string, int num, const char *newString) {
 	int			dataLeft, len;

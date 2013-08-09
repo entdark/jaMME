@@ -540,11 +540,15 @@ void trap_Key_SetCatcher( int catcher ) {
 int trap_Key_GetKey( const char *binding ) {
 	return Q_syscall( CG_KEY_GETKEY, binding );
 }
-/*
+
 qboolean trap_Key_GetOverstrikeMode( void ) {
-	return syscall( CG_KEY_GETOVERSTRIKEMODE );
+	return Q_syscall( CG_KEY_GETOVERSTRIKEMODE );
 }
-*/
+
+void trap_Key_SetOverstrikeMode( qboolean state ) {
+	Q_syscall( CG_KEY_SETOVERSTRIKEMODE, state );
+}
+
 int trap_PC_AddGlobalDefine( char *define ) {
 	return Q_syscall( CG_PC_ADD_GLOBAL_DEFINE, define );
 }

@@ -178,6 +178,7 @@ XCVAR_DEF( mov_captureFPS,						"25",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_fragsOnly,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( fx_Vibrate,							"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( fx_vfps,								"1000",					NULL,					CVAR_ARCHIVE )	//teh's fix for laggy effects
+XCVAR_DEF( fx_disruptTime,						"150",					NULL,					CVAR_ARCHIVE )	//from smod
 
 /*XCVAR_DEF( mme_aviFormat,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mme_jpegQuality,						"90",					NULL,					CVAR_ARCHIVE )

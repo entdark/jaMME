@@ -1,3 +1,5 @@
+// Copyright (C) 2009 Sjoerd van der Berg ( harekiet @ gmail.com )
+
 #include "bg_demos.h"
 #include "cg_local.h"
 #include "cg_demos_math.h"
@@ -113,7 +115,7 @@ typedef struct demoMain_s {
 	demoViewType_t	viewType;
 	vec_t			viewFov;
 	int				viewTarget;
-	float			viewFocus;
+//	float			viewFocus;
 	demoEditType_t	editType;
 
 	vec3_t		cmdDeltaAngles;
@@ -187,7 +189,7 @@ void chaseDraw( int time, float timeFraction );
 void demoDrawCrosshair( void );
 
 void hudInitTables(void);
-//void hudToggleInput(void);
+void hudToggleInput(void);
 void hudDraw(void);
 const char *demoTimeString( int time );
 

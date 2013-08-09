@@ -650,9 +650,9 @@ void CG_DrawHealth( menuDef_t *menuHUD )
 		trap_R_SetColor( calcColor);
 
 		CG_DrawPic( 
-			focusItem->window.rect.x,
+			focusItem->window.rect.x*cgs.widthRatioCoef,
 			focusItem->window.rect.y,
-			focusItem->window.rect.w, 
+			focusItem->window.rect.w*cgs.widthRatioCoef, 
 			focusItem->window.rect.h, 
 			focusItem->window.background
 			);
@@ -668,11 +668,11 @@ void CG_DrawHealth( menuDef_t *menuHUD )
 		trap_R_SetColor( focusItem->window.foreColor );	
 
 		CG_DrawNumField (
-			focusItem->window.rect.x, 
+			focusItem->window.rect.x*cgs.widthRatioCoef, 
 			focusItem->window.rect.y, 
 			3, 
 			ps->stats[STAT_HEALTH], 
-			focusItem->window.rect.w, 
+			focusItem->window.rect.w*cgs.widthRatioCoef, 
 			focusItem->window.rect.h, 
 			NUM_FONT_SMALL,
 			qfalse);
@@ -737,9 +737,9 @@ void CG_DrawArmor( menuDef_t *menuHUD )
 			if (cg.HUDArmorFlag)
 			{
 				CG_DrawPic( 
-					focusItem->window.rect.x,
+					focusItem->window.rect.x*cgs.widthRatioCoef,
 					focusItem->window.rect.y,
-					focusItem->window.rect.w, 
+					focusItem->window.rect.w*cgs.widthRatioCoef, 
 					focusItem->window.rect.h, 
 					focusItem->window.background
 					);
@@ -748,9 +748,9 @@ void CG_DrawArmor( menuDef_t *menuHUD )
 		else 
 		{
 				CG_DrawPic( 
-					focusItem->window.rect.x,
+					focusItem->window.rect.x*cgs.widthRatioCoef,
 					focusItem->window.rect.y,
-					focusItem->window.rect.w, 
+					focusItem->window.rect.w*cgs.widthRatioCoef, 
 					focusItem->window.rect.h, 
 					focusItem->window.background
 					);
@@ -767,11 +767,11 @@ void CG_DrawArmor( menuDef_t *menuHUD )
 		trap_R_SetColor( focusItem->window.foreColor );	
 
 		CG_DrawNumField (
-			focusItem->window.rect.x, 
+			focusItem->window.rect.x*cgs.widthRatioCoef, 
 			focusItem->window.rect.y, 
 			3, 
 			ps->stats[STAT_ARMOR], 
-			focusItem->window.rect.w, 
+			focusItem->window.rect.w*cgs.widthRatioCoef, 
 			focusItem->window.rect.h, 
 			NUM_FONT_SMALL,
 			qfalse);
@@ -852,9 +852,9 @@ static void CG_DrawSaberStyle( centity_t *cent, menuDef_t *menuHUD)
 			trap_R_SetColor( colorTable[CT_WHITE] );
 
 			CG_DrawPic( 
-				focusItem->window.rect.x,
+				640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef,
 				focusItem->window.rect.y,
-				focusItem->window.rect.w, 
+				focusItem->window.rect.w*cgs.widthRatioCoef, 
 				focusItem->window.rect.h, 
 				focusItem->window.background
 				);
@@ -871,9 +871,9 @@ static void CG_DrawSaberStyle( centity_t *cent, menuDef_t *menuHUD)
 			trap_R_SetColor( colorTable[CT_WHITE] );
 
 			CG_DrawPic( 
-				focusItem->window.rect.x,
+				640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef,
 				focusItem->window.rect.y,
-				focusItem->window.rect.w, 
+				focusItem->window.rect.w*cgs.widthRatioCoef, 
 				focusItem->window.rect.h, 
 				focusItem->window.background
 				);
@@ -888,9 +888,9 @@ static void CG_DrawSaberStyle( centity_t *cent, menuDef_t *menuHUD)
 			trap_R_SetColor( colorTable[CT_WHITE] );
 
 			CG_DrawPic( 
-				focusItem->window.rect.x,
+				640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef,
 				focusItem->window.rect.y,
-				focusItem->window.rect.w, 
+				focusItem->window.rect.w*cgs.widthRatioCoef, 
 				focusItem->window.rect.h, 
 				focusItem->window.background
 				);
@@ -954,7 +954,7 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 		trap_R_SetColor( colorTable[CT_YELLOW] );
 		if (focusItem)
 		{
-			UI_DrawProportionalString(focusItem->window.rect.x, focusItem->window.rect.y, "--", NUM_FONT_SMALL, focusItem->window.foreColor);
+			UI_DrawProportionalString(640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef, focusItem->window.rect.y, "--", NUM_FONT_SMALL, focusItem->window.foreColor);
 		}
 	}
 	else
@@ -1002,11 +1002,11 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 			value =ps->ammo[weaponData[cent->currentState.weapon].ammoIndex];
 
 			CG_DrawNumField (
-				focusItem->window.rect.x, 
+				640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef, 
 				focusItem->window.rect.y, 
 				3, 
 				value, 
-				focusItem->window.rect.w, 
+				focusItem->window.rect.w*cgs.widthRatioCoef, 
 				focusItem->window.rect.h, 
 				NUM_FONT_SMALL,
 				qfalse);
@@ -1040,9 +1040,9 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 		trap_R_SetColor( calcColor);
 
 		CG_DrawPic( 
-			focusItem->window.rect.x,
+			640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef,
 			focusItem->window.rect.y,
-			focusItem->window.rect.w, 
+			focusItem->window.rect.w*cgs.widthRatioCoef, 
 			focusItem->window.rect.h, 
 			focusItem->window.background
 			);
@@ -1150,9 +1150,9 @@ void CG_DrawForcePower( menuDef_t *menuHUD )
 		trap_R_SetColor( calcColor);
 
 		CG_DrawPic( 
-			focusItem->window.rect.x,
+			640 - (640 - (float)focusItem->window.rect.x)*cgs.widthRatioCoef,
 			focusItem->window.rect.y,
-			focusItem->window.rect.w, 
+			focusItem->window.rect.w*cgs.widthRatioCoef, 
 			focusItem->window.rect.h, 
 			focusItem->window.background
 			);
@@ -1168,11 +1168,11 @@ void CG_DrawForcePower( menuDef_t *menuHUD )
 		trap_R_SetColor( focusItem->window.foreColor );	
 
 		CG_DrawNumField (
-			focusItem->window.rect.x, 
+			640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef, 
 			focusItem->window.rect.y, 
 			3, 
 			cg.snap->ps.fd.forcePower, 
-			focusItem->window.rect.w, 
+			focusItem->window.rect.w*cgs.widthRatioCoef, 
 			focusItem->window.rect.h, 
 			NUM_FONT_SMALL,
 			qfalse);
@@ -1201,10 +1201,10 @@ void CG_DrawHUD(centity_t	*cent)
 
 		if (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
 		{
-			UI_DrawProportionalString( x+16, y+40, va( "%i", cg.snap->ps.stats[STAT_HEALTH] ),
+			UI_DrawProportionalString( (x+16)*cgs.widthRatioCoef, y+40, va( "%i", cg.snap->ps.stats[STAT_HEALTH] ),
 				UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_HUD_RED] );
 
-			UI_DrawProportionalString( x+18+14, y+40+14, va( "%i", cg.snap->ps.stats[STAT_ARMOR] ),
+			UI_DrawProportionalString( (x+18+14)*cgs.widthRatioCoef, y+40+14, va( "%i", cg.snap->ps.stats[STAT_ARMOR] ),
 				UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_HUD_GREEN] );
 
 			if (cg.snap->ps.weapon == WP_SABER)
@@ -1285,7 +1285,7 @@ void CG_DrawHUD(centity_t	*cent)
 				CG_DrawPic( 
 					focusItem->window.rect.x, 
 					focusItem->window.rect.y, 
-					focusItem->window.rect.w, 
+					focusItem->window.rect.w*cgs.widthRatioCoef, 
 					focusItem->window.rect.h, 
 					focusItem->window.background 
 					);			
@@ -1349,7 +1349,7 @@ void CG_DrawHUD(centity_t	*cent)
 				if (focusItem)
 				{
 					UI_DrawScaledProportionalString(
-						focusItem->window.rect.x, 
+						640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef - 17, 
 						focusItem->window.rect.y, 
 						scoreStr, 
 						UI_RIGHT|UI_DROPSHADOW, 
@@ -1366,7 +1366,7 @@ void CG_DrawHUD(centity_t	*cent)
 				CG_DrawPic( 
 					focusItem->window.rect.x, 
 					focusItem->window.rect.y, 
-					focusItem->window.rect.w, 
+					focusItem->window.rect.w*cgs.widthRatioCoef, 
 					focusItem->window.rect.h, 
 					focusItem->window.background 
 					);			
@@ -1379,7 +1379,7 @@ void CG_DrawHUD(centity_t	*cent)
 				CG_DrawPic( 
 					focusItem->window.rect.x, 
 					focusItem->window.rect.y, 
-					focusItem->window.rect.w, 
+					focusItem->window.rect.w*cgs.widthRatioCoef, 
 					focusItem->window.rect.h, 
 					focusItem->window.background 
 					);			
@@ -2756,7 +2756,7 @@ static void CG_DrawPickupItem( void ) {
 		{
 			CG_RegisterItemVisuals( value );
 			trap_R_SetColor( fadeColor );
-			CG_DrawPic( 573, 320, ICON_SIZE, ICON_SIZE, cg_items[ value ].icon );
+			CG_DrawPic( 640 - (640 - 573)*cgs.widthRatioCoef, 320, ICON_SIZE*cgs.widthRatioCoef, ICON_SIZE, cg_items[ value ].icon );
 			trap_R_SetColor( NULL );
 		}
 	}
@@ -3145,8 +3145,10 @@ CG_DrawRadar
 //#define RADAR_RANGE				2500
 float	cg_radarRange = 2500.0f;
 
+//ATTENTION: objects on radar are still stretched and don't match their positions. fix it
+
 #define RADAR_RADIUS			60
-#define RADAR_X					(580 - RADAR_RADIUS)
+#define RADAR_X					(640 - (640 - 580)*cgs.widthRatioCoef - RADAR_RADIUS*cgs.widthRatioCoef)
 //#define RADAR_Y					10 //dynamic based on passed Y val
 #define RADAR_CHAT_DURATION		6000
 static int radarLockSoundDebounceTime = 0;
@@ -3167,6 +3169,7 @@ float CG_DrawRadar ( float y )
 	float			arrowBaseScale;
 	float			zScale;
 	int				xOffset = 0;
+	int				radar_x;
 
 	if (!cg.snap)
 	{
@@ -3190,11 +3193,13 @@ float CG_DrawRadar ( float y )
 		return y;
 	}
 
+	radar_x = 640 - (640 - (580 - RADAR_RADIUS)) * cgs.widthRatioCoef;
+
 	// Draw the radar background image
 	color[0] = color[1] = color[2] = 1.0f;
 	color[3] = 0.6f;
 	trap_R_SetColor ( color );
-	CG_DrawPic( RADAR_X + xOffset, y, RADAR_RADIUS*2, RADAR_RADIUS*2, cgs.media.radarShader );
+	CG_DrawPic( /*RADAR_X*/radar_x + xOffset, y, RADAR_RADIUS*2*cgs.widthRatioCoef, RADAR_RADIUS*2, cgs.media.radarShader );
 
 	//Always green for your own team.
 	VectorCopy ( g_color_table[ColorIndex(COLOR_GREEN)], teamColor );
@@ -3253,7 +3258,7 @@ float CG_DrawRadar ( float y )
 					qhandle_t shader;
 					vec4_t    color;
 
-					x = (float)RADAR_X + (float)RADAR_RADIUS + (float)sin (angle) * distance;
+					x = (float)/*RADAR_X*/radar_x + ((float)RADAR_RADIUS + (float)sin (angle) * distance)*cgs.widthRatioCoef;
 					ly = y + (float)RADAR_RADIUS + (float)cos (angle) * distance;
 
 					arrowBaseScale = 9.0f;
@@ -3359,7 +3364,7 @@ float CG_DrawRadar ( float y )
 						}
 
 						trap_R_SetColor ( color );
-						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale, arrowBaseScale, shader );
+						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale*cgs.widthRatioCoef, arrowBaseScale, shader );
 					}
 				}
 				break;
@@ -3373,7 +3378,7 @@ float CG_DrawRadar ( float y )
 						float  x;
 						float  ly;
 			
-						x = (float)RADAR_X + (float)RADAR_RADIUS + (float)sin (angle) * distance;
+						x = (float)/*RADAR_X*/radar_x + ((float)RADAR_RADIUS + (float)sin (angle) * distance)*cgs.widthRatioCoef;
 						ly = y + (float)RADAR_RADIUS + (float)cos (angle) * distance;
 
 						arrowBaseScale = 9.0f;
@@ -3423,7 +3428,7 @@ float CG_DrawRadar ( float y )
 						{
 							trap_R_SetColor ( NULL );
 						}
-						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale, arrowBaseScale, cent->m_pVehicle->m_pVehicleInfo->radarIconHandle );
+						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale*cgs.widthRatioCoef, arrowBaseScale, cent->m_pVehicle->m_pVehicleInfo->radarIconHandle );
 					}
 				}
 				break; //maybe do something?
@@ -3475,7 +3480,7 @@ float CG_DrawRadar ( float y )
 						}
 						distance = (actualDist/RADAR_ASTEROID_RANGE)*RADAR_RADIUS;
 
-						x = (float)RADAR_X + (float)RADAR_RADIUS + (float)sin (angle) * distance;
+						x = (float)/*RADAR_X*/radar_x + ((float)RADAR_RADIUS + (float)sin (angle) * distance)*cgs.widthRatioCoef;
 						ly = y + (float)RADAR_RADIUS + (float)cos (angle) * distance;
 						
 						if ( asteroidScale > 3.0f )
@@ -3525,7 +3530,7 @@ float CG_DrawRadar ( float y )
 						}
 
 						trap_R_SetColor ( asteroidColor );
-						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale, arrowBaseScale, trap_R_RegisterShaderNoMip( "gfx/menus/radar/asteroid" ) );
+						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale*cgs.widthRatioCoef, arrowBaseScale, trap_R_RegisterShaderNoMip( "gfx/menus/radar/asteroid" ) );
 					}
 				}
 				break;
@@ -3538,7 +3543,7 @@ float CG_DrawRadar ( float y )
 					float  x;
 					float  ly;
 		
-					x = (float)RADAR_X + (float)RADAR_RADIUS + (float)sin (angle) * distance;
+					x = (float)/*RADAR_X*/radar_x + ((float)RADAR_RADIUS + (float)sin (angle) * distance)*cgs.widthRatioCoef;
 					ly = y + (float)RADAR_RADIUS + (float)cos (angle) * distance;
 
 					arrowBaseScale = 3.0f;
@@ -3627,7 +3632,7 @@ float CG_DrawRadar ( float y )
 					{
 						trap_R_SetColor ( NULL );
 					}
-					CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale, arrowBaseScale, cgs.media.mAutomapRocketIcon );
+					CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale*cgs.widthRatioCoef, arrowBaseScale, cgs.media.mAutomapRocketIcon );
 				}
 				break;
 
@@ -3691,9 +3696,9 @@ float CG_DrawRadar ( float y )
 				arrow_w = arrowBaseScale * RADAR_RADIUS / 128;
 				arrow_h = arrowBaseScale * RADAR_RADIUS / 128;
 
-				CG_DrawRotatePic2( RADAR_X + RADAR_RADIUS + sin (angle) * distance + xOffset,
+				CG_DrawRotatePic2( /*RADAR_X*/radar_x + (RADAR_RADIUS + sin (angle) * distance + xOffset)*cgs.widthRatioCoef,
 								   y + RADAR_RADIUS + cos (angle) * distance, 
-								   arrow_w, arrow_h, 
+								   arrow_w*cgs.widthRatioCoef, arrow_h, 
 								   (360 - cent->lerpAngles[YAW]) + cg.predictedPlayerState.viewangles[YAW], cgs.media.mAutomapPlayerIcon );
 				break;
 			}
@@ -3706,7 +3711,7 @@ float CG_DrawRadar ( float y )
 	arrow_h = arrowBaseScale * RADAR_RADIUS / 128;
 
 	trap_R_SetColor ( colorWhite );
-	CG_DrawRotatePic2( RADAR_X + RADAR_RADIUS + xOffset, y + RADAR_RADIUS, arrow_w, arrow_h, 
+	CG_DrawRotatePic2( /*RADAR_X*/radar_x + (RADAR_RADIUS + xOffset)*cgs.widthRatioCoef, y + RADAR_RADIUS, arrow_w*cgs.widthRatioCoef, arrow_h, 
 					   0, cgs.media.mAutomapPlayerIcon );
 
 	return y+(RADAR_RADIUS*2);
@@ -4077,7 +4082,7 @@ static void CG_DrawReward( void ) {
 	if ( cg.rewardCount[0] >= 10 ) {
 		y = 56;
 		x = 320 - ICON_SIZE/2;
-		CG_DrawPic( x, y, ICON_SIZE-4, ICON_SIZE-4, cg.rewardShader[0] );
+		CG_DrawPic( x, y, (ICON_SIZE-4)*cgs.widthRatioCoef, ICON_SIZE-4, cg.rewardShader[0] );
 		Com_sprintf(buf, sizeof(buf), "%d", cg.rewardCount[0]);
 		x = ( SCREEN_WIDTH - SMALLCHAR_WIDTH * CG_DrawStrlen( buf ) ) / 2;
 		CG_DrawStringExt( x, y+ICON_SIZE, buf, color, qfalse, qtrue,
@@ -4088,10 +4093,10 @@ static void CG_DrawReward( void ) {
 		count = cg.rewardCount[0];
 
 		y = 56;
-		x = 320 - count * ICON_SIZE/2;
+		x = 320 - count * (ICON_SIZE/2)*cgs.widthRatioCoef;
 		for ( i = 0 ; i < count ; i++ ) {
-			CG_DrawPic( x, y, ICON_SIZE-4, ICON_SIZE-4, cg.rewardShader[0] );
-			x += ICON_SIZE;
+			CG_DrawPic( x, y, (ICON_SIZE-4)*cgs.widthRatioCoef, ICON_SIZE-4, cg.rewardShader[0] );
+			x += ICON_SIZE*cgs.widthRatioCoef;
 		}
 	}
 	trap_R_SetColor( NULL );
@@ -5208,9 +5213,9 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 		hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
 	}
 
-	chX = x + cg.refdef.x + 0.5 * (640 - w);
+	chX = x + cg.refdef.x + 0.5 * (640 - w*cgs.widthRatioCoef);
 	chY = y + cg.refdef.y + 0.5 * (480 - h);
-	trap_R_DrawStretchPic( chX, chY, w, h, 0, 0, 1, 1, hShader );
+	trap_R_DrawStretchPic( chX, chY, w*cgs.widthRatioCoef, h, 0, 0, 1, 1, hShader );
 
 	//draw a health bar directly under the crosshair if we're looking at something
 	//that takes damage
@@ -5263,9 +5268,9 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 		w *= 2.0f;
 		h *= 2.0f;
 
-		trap_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (640 - w), 
+		trap_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (640 - w*cgs.widthRatioCoef), 
 			y + cg.refdef.y + 0.5 * (480 - h), 
-			w, h, 0, 0, 1, 1, cgs.media.forceCoronaShader );
+			w*cgs.widthRatioCoef, h, 0, 0, 1, 1, cgs.media.forceCoronaShader );
 	}
 
 	//Raz: Was missing this
@@ -5716,8 +5721,8 @@ static void CG_DrawActivePowers(void)
 		if ((cg.snap->ps.fd.forcePowersActive & (1 << forcePowerSorted[i])) &&
 			CG_IsDurationPower(forcePowerSorted[i]))
 		{
-			CG_DrawPic( startx, starty, endx, endy, cgs.media.forcePowerIcons[forcePowerSorted[i]]);
-			startx += (icon_size+2); //+2 for spacing
+			CG_DrawPic( startx, starty, endx*cgs.widthRatioCoef, endy, cgs.media.forcePowerIcons[forcePowerSorted[i]]);
+			startx += (icon_size+2)*cgs.widthRatioCoef; //+2 for spacing
 			if ((startx+icon_size) >= SCREEN_WIDTH-80)
 			{
 				startx = icon_size*2+16;
@@ -7160,14 +7165,14 @@ void CG_DrawFlagStatus()
 	if (CG_YourTeamHasFlag())
 	{
 		//CG_DrawPic( startDrawPos, 330, ico_size, ico_size, theirFlagShader );
-		CG_DrawPic( 2, 330-startDrawPos, ico_size, ico_size, theirFlagShader );
+		CG_DrawPic( 7, 330-startDrawPos, ico_size*cgs.widthRatioCoef, ico_size, theirFlagShader );
 		startDrawPos += ico_size+2;
 	}
 
 	if (CG_OtherTeamHasFlag())
 	{
 		//CG_DrawPic( startDrawPos, 330, ico_size, ico_size, myFlagTakenShader );
-		CG_DrawPic( 2, 330-startDrawPos, ico_size, ico_size, myFlagTakenShader );
+		CG_DrawPic( 7, 330-startDrawPos, ico_size*cgs.widthRatioCoef, ico_size, myFlagTakenShader );
 	}
 }
 
@@ -8193,6 +8198,9 @@ void CG_Draw2D( void ) {
 		if(!cg.renderingThirdPerson)CG_DrawZoomMask();
 		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 		CG_DrawCenterString();
+		if (mov_fragsOnly.integer == 2) {
+			CG_DrawReward();
+		}
 		return;
 	}
 

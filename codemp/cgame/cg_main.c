@@ -197,8 +197,8 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 		CG_KeyEvent(arg0, arg1);
 		return 0;
 	case CG_MOUSE_EVENT:
-		cgDC.cursorx = cgs.cursorX;
-		cgDC.cursory = cgs.cursorY;
+//		cgDC.cursorx = cgs.cursorX;
+//		cgDC.cursory = cgs.cursorY;
 		CG_MouseEvent(arg0, arg1);
 		return 0;
 	case CG_EVENT_HANDLING:
@@ -3081,6 +3081,8 @@ Ghoul2 Insert End
 	trap_R_GetDistanceCull(&cg.distanceCull);
 
 	CG_ParseEntitiesFromString();
+
+	cgs.widthRatioCoef = (640.0*cgs.glconfig.vidHeight) / (480.0*cgs.glconfig.vidWidth);
 
 	//Raz: warn for poor settings
 	trap_Cvar_VariableStringBuffer( "rate", buf, sizeof( buf ) );

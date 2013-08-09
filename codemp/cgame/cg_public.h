@@ -342,6 +342,7 @@ Ghoul2 Insert Start
 	CG_MME_MUSIC,
 
 	CG_KEY_GETOVERSTRIKEMODE,
+	CG_KEY_SETOVERSTRIKEMODE,
 /*
 Ghoul2 Insert End
 */

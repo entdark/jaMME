@@ -722,7 +722,7 @@ void CG_OwnerDraw(float x, float y, float w, float h, float text_x, float text_y
   }
 #endif
 }
-
+/*
 void CG_MouseEvent(int x, int y) {
 	int n;
 
@@ -732,7 +732,7 @@ void CG_MouseEvent(int x, int y) {
 		return;
 	}
 	*/
-
+/*
 	cgs.cursorX+= x;
 	if (cgs.cursorX < 0)
 		cgs.cursorX = 0;
@@ -760,7 +760,7 @@ void CG_MouseEvent(int x, int y) {
 	}
 
 }
-
+*/
 /*
 ==================
 CG_HideTeamMenus
@@ -806,7 +806,7 @@ void CG_EventHandling(int type) {
 }
 
 
-
+/*
 void CG_KeyEvent(int key, qboolean down) {
 
 	if (!down) {
@@ -837,7 +837,7 @@ void CG_KeyEvent(int key, qboolean down) {
 		}
 	}
 }
-
+*/
 int CG_ClientNumFromName(const char *p) {
 	int i;
 	for (i = 0; i < cgs.maxclients; i++) {

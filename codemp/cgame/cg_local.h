@@ -810,8 +810,6 @@ typedef struct {
 	qboolean	hyperspace;				// true if prediction has hit a trigger_teleport
 	playerState_t	predictedPlayerState;
 	playerState_t	predictedVehicleState;
-
-	playerState_t	truePredictedPlayerState;	//teh's playstate prrdictor
 	
 	//centity_t		predictedPlayerEntity;
 	//rww - I removed this and made it use cg_entities[clnum] directly.
@@ -1645,6 +1643,8 @@ typedef struct {
 	int					numMiscStaticModels;
 	cg_staticmodel_t	miscStaticModels[MAX_STATIC_MODELS];
 
+	float widthRatioCoef;	//to make 2Ds be not stretched
+
 } cgs_t;
 
 typedef struct siegeExtended_s
@@ -1692,7 +1692,8 @@ void CG_UpdateCvars( void );
 int CG_CrosshairPlayer( void );
 int CG_LastAttacker( void );
 void CG_LoadMenus(const char *menuFile);
-void CG_KeyEvent(int key, qboolean down);
+//void CG_KeyEvent(int key, qboolean down);
+qboolean CG_KeyEvent(int key, qboolean down);
 void CG_MouseEvent(int x, int y);
 void CG_EventHandling(int type);
 void CG_RankRunFrame( void );
@@ -2245,8 +2246,8 @@ qboolean	trap_Key_IsDown( int keynum );
 int			trap_Key_GetCatcher( void );
 void		trap_Key_SetCatcher( int catcher );
 int			trap_Key_GetKey( const char *binding );
-
-//qboolean	trap_Key_GetOverstrikeMode( void );
+qboolean	trap_Key_GetOverstrikeMode( void );
+void		trap_Key_SetOverstrikeMode( qboolean state );
 
 void		BG_CycleInven(playerState_t *ps, int direction);
 int			BG_ProperForceIndex(int power);

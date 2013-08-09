@@ -1,3 +1,7 @@
+// Copyright (C) 2005 Eugene Bujak.
+//
+// cl_mme.c -- Movie Maker's Edition client-side work
+
 #include "client.h"
 
 //extern cvar_t *cl_avidemo;

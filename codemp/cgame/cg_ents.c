@@ -1802,6 +1802,7 @@ Ghoul2 Insert End
 		else
 		{
 			int i = 0;
+			vec3_t forwardDir, beamOrgDir;
 
 			VectorMA( ent.origin, 6.6f, ent.axis[0], beamOrg );// forward
 			beamID = cgs.effects.tripmineLaserFX;
@@ -1818,7 +1819,34 @@ Ghoul2 Insert End
 				}
 			}
 
-			trap_FX_PlayEffectID( beamID, beamOrg, cent->currentState.pos.trDelta, -1, -1 );
+			AngleVectors ( cg.refdef.viewangles, forwardDir, NULL, NULL );
+			VectorNormalize(forwardDir);
+			VectorSubtract(beamOrg,cg.refdef.vieworg,beamOrgDir);
+			VectorNormalize(beamOrgDir);
+
+			if (DotProduct(forwardDir, beamOrgDir) < 0) {
+				vec3_t beamEnd;
+				trace_t trace;
+
+				VectorMA( beamOrg, 5000, cent->currentState.pos.trDelta, beamEnd );
+				CG_Trace( &trace, beamOrg, NULL, NULL, beamEnd, -1, CONTENTS_SOLID );
+
+				if (trace.fraction < 1.0f) {
+					vec3_t opossiteDir;                    
+
+					VectorCopy(trace.endpos, beamEnd);
+					VectorScale(cent->currentState.pos.trDelta,-1,opossiteDir);
+
+					// draw opposite direction
+					trap_FX_PlayEffectID( beamID, beamEnd, opossiteDir, -1, -1 );
+				} else {
+					// not found any obsticle, draw in original direction
+					trap_FX_PlayEffectID( beamID, beamOrg, cent->currentState.pos.trDelta, -1, -1 );
+				}
+			} else {
+				// original direction
+				trap_FX_PlayEffectID( beamID, beamOrg, cent->currentState.pos.trDelta, -1, -1 );
+			}
 		}
 	}
 /*

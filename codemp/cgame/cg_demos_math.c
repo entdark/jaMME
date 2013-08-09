@@ -1,3 +1,5 @@
+// Copyright (C) 2009 Sjoerd van der Berg ( harekiet @ gmail.com )
+
 #include "bg_demos.h"
 #include "cg_demos.h" 
 

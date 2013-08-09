@@ -1522,7 +1522,7 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 
 		// escape always gets out of CGAME stuff
 		if (Key_GetCatcher( ) & KEYCATCH_CGAME) {
-			Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_CGAME );
+			Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_CGAME|KEYCATCH_CGAMEEXEC );
 			VM_Call (cgvm, CG_EVENT_HANDLING, CGAME_EVENT_NONE);
 			return;
 		}
@@ -1567,18 +1567,29 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 	// distribute the key down event to the apropriate handler
 	if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) {
 		Console_Key( key );
-	} else if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
+		return;
+	}
+	if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
 		if ( uivm ) {
 			VM_Call( uivm, UI_KEY_EVENT, key, down );
 		} 
-	} else if ( Key_GetCatcher( ) & KEYCATCH_CGAME ) {
-		if ( cgvm ) {
-			VM_Call( cgvm, CG_KEY_EVENT, key, down );
-		} 
-	} else if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE ) {
+	}
+	if ( cgvm && (Key_GetCatcher( ) & KEYCATCH_CGAME) ) {
+		qboolean ret = (qboolean)VM_Call( cgvm, CG_KEY_EVENT, key, down );
+		if ( Key_GetCatcher( ) & KEYCATCH_CGAMEEXEC )  {
+			if ( ret )
+				return;
+		} else {
+			return;
+		}
+	}
+	if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE ) {
 		Message_Key( key );
-	} else if ( cls.state == CA_DISCONNECTED ) {
+		return;
+	}
+	if ( cls.state == CA_DISCONNECTED ) {
 		Console_Key( key );
+		return;
 	} else {
 		// send the bound action
 		kb = kg.keys[ keynames[key].upper ].binding;
@@ -1672,6 +1683,10 @@ void CL_CharEvent( int key ) {
 	else if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE ) 
 	{
 		Field_CharEvent( &chatField, key );
+	}
+	else if ( Key_GetCatcher( ) & KEYCATCH_CGAME && cgvm ) 
+	{
+		VM_Call( cgvm, CG_KEY_EVENT, key | K_CHAR_FLAG, qtrue );
 	}
 	else if ( cls.state == CA_DISCONNECTED )
 	{

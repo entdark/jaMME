@@ -790,7 +790,7 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 	weaponInfo_t	*weapon;
 	float	cgFov = cg_fov.value;
 	//temp value, delete when fix first person weapon problem for other clients
-	playerState_t *ps = &cg.predictedPlayerState;
+//	playerState_t *ps = &cg.predictedPlayerState;
 
 	if (cgFov < 1)
 	{

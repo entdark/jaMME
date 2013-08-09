@@ -100,33 +100,33 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	{
 		if( largeFormat )
 		{
-			CG_DrawFlagModel( iconx, y - ( 32 - BIGCHAR_HEIGHT ) / 2, 32, 32, TEAM_FREE, qfalse );
+			CG_DrawFlagModel( iconx, y - ( 32 - BIGCHAR_HEIGHT ) / 2, 32*cgs.widthRatioCoef, 32, TEAM_FREE, qfalse );
 		}
 		else
 		{
-			CG_DrawFlagModel( iconx, y, 16, 16, TEAM_FREE, qfalse );
+			CG_DrawFlagModel( iconx, y, 16*cgs.widthRatioCoef, 16, TEAM_FREE, qfalse );
 		}
 	}
 	else if ( ci->powerups & ( 1 << PW_REDFLAG ) )
 	{
 		if( largeFormat )
 		{
-			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_RED, qfalse );
+			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale*cgs.widthRatioCoef, 32*cgs.screenYScale, TEAM_RED, qfalse );
 		}
 		else
 		{
-			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_RED, qfalse );
+			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale*cgs.widthRatioCoef, 32*cgs.screenYScale, TEAM_RED, qfalse );
 		}
 	}
 	else if ( ci->powerups & ( 1 << PW_BLUEFLAG ) )
 	{
 		if( largeFormat )
 		{
-			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_BLUE, qfalse );
+			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale*cgs.widthRatioCoef, 32*cgs.screenYScale, TEAM_BLUE, qfalse );
 		}
 		else
 		{
-			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale, 32*cgs.screenYScale, TEAM_BLUE, qfalse );
+			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale*cgs.widthRatioCoef, 32*cgs.screenYScale, TEAM_BLUE, qfalse );
 		}
 	}
 	else if (cgs.gametype == GT_POWERDUEL &&
@@ -134,11 +134,13 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	{
 		if (ci->duelTeam == DUELTEAM_LONE)
 		{
-			CG_DrawPic ( iconx, y, 32, 32, trap_R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_lone" ) );
+			//need to test in power duel demo
+			CG_DrawPic ( iconx, y, 32*cgs.widthRatioCoef, 32, trap_R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_lone" ) );
 		}
 		else
 		{
-			CG_DrawPic ( iconx, y, 32, 32, trap_R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_double" ) );
+			//need to test in power duel demo
+			CG_DrawPic ( iconx, y, 32*cgs.widthRatioCoef, 32, trap_R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_double" ) );
 		}
 	}
 	else if (cgs.gametype == GT_SIEGE)
@@ -149,7 +151,8 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 
 			if (scl->classShader)
 			{
-				CG_DrawPic (iconx, y, largeFormat?24:12, largeFormat?24:12, scl->classShader);
+				//need to test in siege demo
+				CG_DrawPic (iconx, y, largeFormat?24:12*cgs.widthRatioCoef, largeFormat?24:12, scl->classShader);
 			}
 		}
 	}

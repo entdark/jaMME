@@ -1,3 +1,5 @@
+// Copyright (C) 2009 Sjoerd van der Berg ( harekiet @ gmail.com )
+
 #include "cg_demos.h" 
 
 static float demoExecScale( usercmd_t *cmd , float speed) {

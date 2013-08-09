@@ -1,3 +1,5 @@
+// Copyright (C) 2009 Sjoerd van der Berg ( harekiet @ gmail.com )
+
 #include "cg_demos.h" 
 
 void demoSaveLine( fileHandle_t fileHandle, const char *fmt, ... ) {

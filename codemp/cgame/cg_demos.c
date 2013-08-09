@@ -1,3 +1,5 @@
+// Copyright (C) 2009 Sjoerd van der Berg ( harekiet @ gmail.com )
+
 #include "cg_demos.h"
 #include "cg_lights.h"
 
@@ -118,9 +120,10 @@ static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
 int demoSetupView( void) {
 	centity_t *cent = 0;
 	vec3_t forward;
+	qboolean zoomFix;	//to see disruptor zoom when we are chasing a player
 
 	cg.playerCent = 0;
-	demo.viewFocus = 0;
+//	demo.viewFocus = 0;
 	demo.viewTarget = -1;
 
 	switch (demo.viewType) {
@@ -144,9 +147,11 @@ int demoSetupView( void) {
 				}
 				VectorCopy( cg.refdef.vieworg, demo.viewOrigin );
 				VectorCopy( cg.refdef.viewangles, demo.viewAngles );
+				zoomFix = qtrue;
 			} else {
 				VectorCopy( cent->lerpOrigin, demo.viewOrigin );
 				VectorCopy( cent->lerpAngles, demo.viewAngles );
+				zoomFix = qfalse;
 			}
 			demo.viewFov = cg_fov.value;
 		} else {
@@ -157,6 +162,7 @@ int demoSetupView( void) {
 			demo.viewFov = cg_fov.value;
 			demo.viewTarget = demo.chase.target;
 			cg.renderingThirdPerson = qtrue;
+			zoomFix = qfalse;
 		}
 		break;
 	case viewCamera:
@@ -167,6 +173,7 @@ int demoSetupView( void) {
 		demo.viewTarget = demo.camera.target;
 		cg.renderingThirdPerson = qtrue;
 		cameraMove();
+		zoomFix = qfalse;
 		break;
 	default:
 		return 0;
@@ -187,7 +194,7 @@ int demoSetupView( void) {
 	}
 	VectorCopy( demo.viewOrigin, cg.refdef.vieworg );
 	AnglesToAxis( demo.viewAngles, cg.refdef.viewaxis );
-
+/*	//we don't use viewFocus
 	if ( demo.viewTarget >= 0 ) {
 		centity_t* targetCent = demoTargetEntity( demo.viewTarget );
 		if ( targetCent ) {
@@ -197,7 +204,7 @@ int demoSetupView( void) {
 			demo.viewFocus = DotProduct( cg.refdef.viewaxis[0], targetOrigin ) - DotProduct( cg.refdef.viewaxis[0], cg.refdef.vieworg  );
 		}
 	}
-
+*/
 	cg.refdef.width = cgs.glconfig.vidWidth*cg_viewsize.integer/100;
 	cg.refdef.width &= ~1;
 
@@ -206,9 +213,10 @@ int demoSetupView( void) {
 
 	cg.refdef.x = (cgs.glconfig.vidWidth - cg.refdef.width)/2;
 	cg.refdef.y = (cgs.glconfig.vidHeight - cg.refdef.height)/2;
-
-	cg.refdef.fov_x = demo.viewFov;
-	cg.refdef.fov_y = atan2( cg.refdef.height, (cg.refdef.width / tan( demo.viewFov / 360 * M_PI )) ) * 360 / M_PI;
+	if (!zoomFix) {
+		cg.refdef.fov_x = demo.viewFov;
+		cg.refdef.fov_y = atan2( cg.refdef.height, (cg.refdef.width / tan( demo.viewFov / 360 * M_PI )) ) * 360 / M_PI;
+	}
 }
 
 extern snapshot_t *CG_ReadNextSnapshot( void );
@@ -301,13 +309,6 @@ void demoAddViewPos( const char *baseName, const vec3_t origin, const vec3_t ang
 extern float cg_linearFogOverride;      // cg_view.c
 extern float cg_radarRange;             // cg_draw.c
 extern qboolean cg_rangedFogging;
-
-static void swapPlayerstates( ) {
-	playerState_t tmp;
-	tmp = cg.predictedPlayerState;
-	cg.predictedPlayerState = cg.truePredictedPlayerState;
-	cg.truePredictedPlayerState = tmp;
-}
 
 void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	int deltaTime;
@@ -616,8 +617,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	if ( demo.viewType == viewChase && cg.playerCent && ( cg.playerCent->currentState.number < MAX_CLIENTS ) ) {
 		CG_Draw2D();
-	} else {//if (cg_draw2D.integer) {
-		CG_DrawUpperRight();	//doesn't work :C why?
+	} else if (cg_draw2D.integer) {
+		CG_DrawFPS( 0 );
 	}
 
 	CG_DrawActive( stereoView );
@@ -850,6 +851,7 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("pause");
 	trap_AddCommand("capture");
 	trap_AddCommand("hudInit");
+	trap_AddCommand("hudToggle");
 	trap_AddCommand("line");
 	trap_AddCommand("save");
 	trap_AddCommand("load");
@@ -857,6 +859,9 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("-seek");
 
 	demo.media.additiveWhiteShader = trap_R_RegisterShader( "mme_additiveWhite" );
+	demo.media.mouseCursor = trap_R_RegisterShaderNoMip( "mme_cursor" );
+	demo.media.switchOn = trap_R_RegisterShaderNoMip( "mme_message_on" );
+	demo.media.switchOff = trap_R_RegisterShaderNoMip( "mme_message_off" );
 
 	trap_SendConsoleCommand("exec mmedemos.cfg\n");
 //	trap_Cvar_Set( "mov_captureName", "" );
@@ -888,6 +893,8 @@ qboolean CG_DemosConsoleCommand( void ) {
 		demoChaseCommand_f();
 	} else if (!Q_stricmp(cmd, "hudInit")) {
 		hudInitTables();
+	} else if (!Q_stricmp(cmd, "hudToggle")) {
+		hudToggleInput();
 	} else if (!Q_stricmp(cmd, "+seek")) {
 		demo.seekEnabled = qtrue;
 	} else if (!Q_stricmp(cmd, "-seek")) {
