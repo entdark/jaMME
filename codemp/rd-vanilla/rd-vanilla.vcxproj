@@ -175,6 +175,7 @@
     <ClCompile Include="tr_cmds.cpp" />
     <ClCompile Include="tr_curve.cpp" />
     <ClCompile Include="tr_font.cpp" />
+    <ClCompile Include="tr_framebuffer.cpp" />
     <ClCompile Include="tr_ghoul2.cpp" />
     <ClCompile Include="tr_image.cpp" />
     <ClCompile Include="tr_init.cpp" />
@@ -183,6 +184,10 @@
     <ClCompile Include="tr_marks.cpp" />
     <ClCompile Include="tr_mesh.cpp" />
     <ClCompile Include="tr_mme.cpp" />
+    <ClCompile Include="tr_mmeOld.cpp" />
+    <ClCompile Include="tr_mmeStereo.cpp" />
+    <ClCompile Include="tr_mme_avi.cpp" />
+    <ClCompile Include="tr_mme_sse2.cpp" />
     <ClCompile Include="tr_model.cpp" />
     <ClCompile Include="tr_noise.cpp" />
     <ClCompile Include="tr_quicksprite.cpp" />
@@ -235,8 +240,10 @@
     <ClInclude Include="tr_landscape.h" />
     <ClInclude Include="tr_local.h" />
     <ClInclude Include="tr_mme.h" />
+    <ClInclude Include="tr_mmeOld.h" />
     <ClInclude Include="tr_quicksprite.h" />
     <ClInclude Include="tr_WorldEffects.h" />
+    <ClInclude Include="wglext.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

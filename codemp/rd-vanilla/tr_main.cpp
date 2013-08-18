@@ -352,7 +352,7 @@ Sets up the modelview matrix for a given viewParm
 */
 void R_RotateForViewer (void) 
 {
-	float	viewerMatrix[16];
+/*	float	viewerMatrix[16];
 	vec3_t	origin;
 
 	memset (&tr.ori, 0, sizeof(tr.ori));
@@ -387,7 +387,8 @@ void R_RotateForViewer (void)
 	// convert from our coordinate system (looking down X)
 	// to OpenGL's coordinate system (looking down -Z)
 	myGlMultMatrix( viewerMatrix, s_flipMatrix, tr.ori.modelMatrix );
-
+*/
+	R_RotateForWorld( &tr.viewParms.ori, &tr.ori );
 	tr.viewParms.world = tr.ori;
 
 }
@@ -1458,4 +1459,44 @@ void R_RenderView (viewParms_t *parms) {
 
 	// draw main system development information (surface outlines, etc)
 	R_DebugGraphics();
+}
+
+void R_RotateForWorld ( const orientationr_t* input, orientationr_t* world ) 
+{
+	float	viewerMatrix[16];
+	const float	*origin = input->origin;
+
+	Com_Memset ( world, 0, sizeof(*world));
+	world->axis[0][0] = 1;
+	world->axis[1][1] = 1;
+	world->axis[2][2] = 1;
+
+	// transform by the camera placement
+	VectorCopy( origin, world->viewOrigin );
+//	VectorCopy( origin, world->viewOrigin );
+
+	viewerMatrix[0] = input->axis[0][0];
+	viewerMatrix[4] = input->axis[0][1];
+	viewerMatrix[8] = input->axis[0][2];
+	viewerMatrix[12] = -origin[0] * viewerMatrix[0] + -origin[1] * viewerMatrix[4] + -origin[2] * viewerMatrix[8];
+
+	viewerMatrix[1] = input->axis[1][0];
+	viewerMatrix[5] = input->axis[1][1];
+	viewerMatrix[9] = input->axis[1][2];
+	viewerMatrix[13] = -origin[0] * viewerMatrix[1] + -origin[1] * viewerMatrix[5] + -origin[2] * viewerMatrix[9];
+
+	viewerMatrix[2] = input->axis[2][0];
+	viewerMatrix[6] = input->axis[2][1];
+	viewerMatrix[10] = input->axis[2][2];
+	viewerMatrix[14] = -origin[0] * viewerMatrix[2] + -origin[1] * viewerMatrix[6] + -origin[2] * viewerMatrix[10];
+
+	viewerMatrix[3] = 0;
+	viewerMatrix[7] = 0;
+	viewerMatrix[11] = 0;
+	viewerMatrix[15] = 1;
+
+	// convert from our coordinate system (looking down X)
+	// to OpenGL's coordinate system (looking down -Z)
+	myGlMultMatrix( viewerMatrix, s_flipMatrix, world->modelMatrix );
+
 }

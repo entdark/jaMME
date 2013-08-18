@@ -376,6 +376,12 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 		r_ext_texture_filter_anisotropic->modified = qfalse;
 	}
 
+	if ( r_anisotropy->modified ) {
+		R_SyncRenderThread();
+		GL_Anisotropy( r_anisotropy->integer );
+		r_anisotropy->modified = qfalse;
+	}
+
 	//
 	// gamma stuff
 	//

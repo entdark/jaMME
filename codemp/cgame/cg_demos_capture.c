@@ -41,12 +41,46 @@ static qboolean captureParseView( BG_XMLParse_t *parse,const char *line, void *d
 	return qtrue;
 }
 
+typedef struct {
+	char name[1024];
+	char value[1024];
+} parseCvar_t;
+
+static qboolean captureParseCvarName( BG_XMLParse_t *parse,const char *line, void *data) {
+	parseCvar_t *cvar = (parseCvar_t *) data;
+	Q_strncpyz( cvar->name, line, sizeof( cvar->name ));
+	return qtrue;
+}
+static qboolean captureParseCvarValue( BG_XMLParse_t *parse,const char *line, void *data) {
+	parseCvar_t *cvar = (parseCvar_t*) data;
+	Q_strncpyz( cvar->value, line, sizeof( cvar->value ));
+	return qtrue;
+}
+
+static qboolean captureParseCvar( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data) {
+	parseCvar_t cvar;
+	static BG_XMLParseBlock_t cvarParseBlock[] = {
+		{"name",	0,		captureParseCvarName },
+		{"value",	0,		captureParseCvarValue },
+		{0, 0, 0}
+	};
+	cvar.name[0] = 0;
+	cvar.value[0] = 0;
+	if (!BG_XMLParse( parse, fromBlock, cvarParseBlock, &cvar )) {
+		return qfalse;
+	}
+	if (cvar.name[0]) {
+		trap_Cvar_Set( cvar.name, cvar.value );
+	}
+	return qtrue;
+}
+
 qboolean captureParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data) {
 	static BG_XMLParseBlock_t captureParseBlock[] = {
 		{"start",	0,					captureParseStart },
 		{"end",		0,					captureParseEnd	},
 		{"view",	0,					captureParseView },
-//		{"cvar",	captureParseCvar,	0 },
+		{"cvar",	captureParseCvar,	0 },
 //		{"client",	captureParseClient,	0 },
 //		{"group",	captureParseGroup,	0 },
 		{0, 0, 0}
@@ -59,20 +93,21 @@ qboolean captureParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fr
 };
 
 void captureSave( fileHandle_t fileHandle ) {
-//	char buf[MAX_STRING_TOKENS];
-//	char *listParse = buf;
+	char buf[MAX_STRING_TOKENS];
+	char *listParse = buf;
 	char *viewString;
-//	char cvarName[1024];
-//	char cvarBuf[1024];
-//	int cvarIndex, i;
+	char cvarName[1024];
+	char cvarBuf[1024];
+	int cvarIndex, i;
 
-/*
+
 	trap_Cvar_VariableStringBuffer( "mov_captureCvars", buf, sizeof( buf ));
 	if (!buf[0]) {
-		trap_SendConsoleCommand( "seta mov_captureCvars \"mov_captureName mov_captureFPS mov_musicFile mov_musicStart mov_captureCamera mov_fragFormat mov_filterMask mov_stencilMask mme_blurFrames mme_blurOverlap mme_blurType mme_depthFocus mme_depthRange mme_screenShotFormat mme_saveStencil mme_saveDepth mme_saveShot mme_saveWav\"" );
+//		trap_SendConsoleCommand( "seta mov_captureCvars \"mov_captureName mov_captureFPS mov_musicFile mov_musicStart mov_captureCamera mov_fragFormat mov_filterMask mov_stencilMask mme_blurFrames mme_blurOverlap mme_blurType mme_depthFocus mme_depthRange mme_screenShotFormat mme_saveStencil mme_saveDepth mme_saveShot mme_saveWav\"" );
+		trap_SendConsoleCommand( "seta mov_captureCvars \"mov_captureName mov_captureFPS mov_captureCamera mme_blurFrames mme_blurOverlap mme_blurType mme_depthFocus mme_depthRange mme_screenShotFormat mme_saveDepth mme_saveShot\"" );
 		trap_Cvar_VariableStringBuffer( "mov_captureCvars", buf, sizeof( buf ));
 	}
-*/
+
 	demoSaveLine( fileHandle, "<capture>\n" );
 	demoSaveLine( fileHandle, "\t<start>%d</start>\n", demo.capture.start );
 	demoSaveLine( fileHandle, "\t<end>%d</end>\n", demo.capture.end );
@@ -94,7 +129,7 @@ void captureSave( fileHandle_t fileHandle ) {
 		demoSaveLine( fileHandle, "\t<view>%s</view>\n", viewString );
 
 	/* Save the select cvar's */
-/*	cvarIndex = 0;
+	cvarIndex = 0;
 	while ( 1 ) {
 		switch (listParse[0]) {
 		case 0:
@@ -118,7 +153,7 @@ void captureSave( fileHandle_t fileHandle ) {
 			break;
 		listParse++;
 	}
-	for (i = 0;i<MAX_CLIENTS;i++) {
+/*	for (i = 0;i<MAX_CLIENTS;i++) {
 		if ( !cgs.clientOverride[i][0])
 			continue;
 		demoSaveLine( fileHandle, "\t<client>\n" );
@@ -329,7 +364,7 @@ void demoCaptureCommand_f(void) {
 			CG_DemosAddLog( "Capture looping stopped too" );
 			demo.loop.total = 0;
 		}
-/*	} else if (!Q_stricmp(cmd, "jpg") || !Q_stricmp(cmd, "tga") || !Q_stricmp(cmd, "png") || !Q_stricmp(cmd, "avi")){
+	} else if (!Q_stricmp(cmd, "jpg") || !Q_stricmp(cmd, "tga") || !Q_stricmp(cmd, "png") || !Q_stricmp(cmd, "avi")){
 		demo.capture.active = qtrue;
 		demo.capture.locked = qfalse;
 		
@@ -357,7 +392,7 @@ void demoCaptureCommand_f(void) {
 	} else if (!Q_stricmp( cmd, "loopstop" )) {
 		demo.loop.start = 0;
 		demo.loop.total = 0;
-*/	} else if (!Q_stricmp(cmd, "jpg") || !Q_stricmp(cmd, "tga") || !Q_stricmp(cmd, "png") || !Q_stricmp(cmd, "avi")) {
+/*	} else if (!Q_stricmp(cmd, "jpg") || !Q_stricmp(cmd, "tga") || !Q_stricmp(cmd, "png") || !Q_stricmp(cmd, "avi")) {
 		if (demo.capture.end <= demo.capture.start) {
 			Com_Printf("capture end is not set or less than capture start\n" );
 			return;
@@ -375,7 +410,7 @@ void demoCaptureCommand_f(void) {
 		}
 		trap_Cvar_Update( &mov_captureFPS );
 //		CG_DemosAddLog( "Capturing at %0.2ffps to %s", mov_captureFPS.value, cmd );
-	} else {
+*/	} else {
 		Com_Printf("capture usage:\n" );
 //		Com_Printf("capture jpg/tga/png/avi fps filename, start capturing to a specific file\n" );
 		Com_Printf("capture lock, lock capturing to the selected range\n");

@@ -555,7 +555,8 @@ void FS_Remove( const char *osPath );
 void FS_HomeRemove( const char *homePath );
 
 qboolean FS_FileExists( const char *file );
-
+FILE *	FS_DirectOpen( const char *name, const char *mode );
+qboolean FS_FileErase( const char *file );
 int		FS_LoadStack();
 
 char   *FS_BuildOSPath( const char *base, const char *game, const char *qpath );

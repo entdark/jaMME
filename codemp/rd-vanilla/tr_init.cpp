@@ -19,6 +19,9 @@
 
 glconfig_t	glConfig;
 glstate_t	glState;
+
+glMMEConfig_t	glMMEConfig;
+
 static void GfxInfo_f( void );
 
 // global now, we share data directly on it.
@@ -33,7 +36,7 @@ cvar_t	*r_detailTextures;
 
 cvar_t	*r_znear;				// near Z clip plane
 cvar_t	*r_zproj;				// z distance of projection plane
-cvar_t	*r_stereoSeparation;	// separation of cameras for stereo rendering
+cvar_t	*r_stereoSeparation;	// separation of cameras for stereo capture
 
 cvar_t	*r_skipBackEnd;
 
@@ -112,6 +115,9 @@ cvar_t	*r_stereo;
 cvar_t	*r_primitives;
 cvar_t	*r_texturebits;
 cvar_t	*r_texturebitslm;
+cvar_t	*r_multiSample;
+cvar_t	*r_multiSampleNvidia;
+cvar_t	*r_anisotropy;
 
 cvar_t	*r_lightmap;
 cvar_t	*r_vertexLight;
@@ -170,7 +176,9 @@ int		max_polyverts;
 
 cvar_t	*r_modelpoolmegs;
 
+cvar_t	*r_backEndMegs;
 
+/*
 //commented cvars = they weren't used in pugmod, but were in q3mme
 //cvar_t	*mme_aviFormat;
 cvar_t	*mme_screenShotFormat;
@@ -204,9 +212,11 @@ cvar_t	*mme_saveShot;
 cvar_t	*mme_saveStencil;
 cvar_t	*mme_saveDepth;
 cvar_t	*mme_screenshotName;
+*/
 
-cvar_t	*mme_ppBloom;
-
+cvar_t	*mme_fps;
+cvar_t	*mme_name;
+cvar_t	*mme_focus;
 
 /*
 Ghoul2 Insert Start
@@ -395,6 +405,10 @@ static void InitOpenGL( void )
 		GL_SetDefaultState();
 		R_Splash();	//get something on screen asap
 		GfxInfo_f();
+		glMMEConfig.glWidth = glConfig.vidWidth;
+		glMMEConfig.glHeight = glConfig.vidHeight;
+
+		R_FrameBuffer_Init();
 	}
 	else
 	{
@@ -872,13 +886,7 @@ void R_ScreenShot_f (void) {
 } 
 
 void R_ScreenShotMME_f (void) {
-	char checkname[MAX_OSPATH] = {0};
 	int stereo = 0;
-
-	if (!Q_stricmp(mme_screenShotFormat->string, "jpg")) {
-		R_ScreenShot_f();	//currently we are unable to capture jpeg with motion blur :(
-		return;
-	}
 
 	if( ri.Cmd_Argc() == 2 )
 	{
@@ -890,12 +898,12 @@ void R_ScreenShotMME_f (void) {
 
 	if(stereo) { 
 		if(stereo == 1) {
-			R_Screenshot_PNG( 0, 0, glConfig.vidWidth, glConfig.vidHeight, checkname );
+			R_MME_Capture( mme_name->string, mme_fps->value, mme_focus->value );
 		} else {
-			R_Screenshot_PNG_Stereo( 0, 0, glConfig.vidWidth, glConfig.vidHeight, checkname );
+			R_MME_CaptureStereo( mme_name->string, mme_fps->value, mme_focus->value );
 		}
 	} else {
-		R_Screenshot_PNG( 0, 0, glConfig.vidWidth, glConfig.vidHeight, checkname );
+		R_MME_Capture( mme_name->string, mme_fps->value, mme_focus->value );
 	}
 
 } 
@@ -1003,6 +1011,7 @@ void GL_SetDefaultState( void )
 	qglEnable(GL_TEXTURE_2D);
 	GL_TextureMode( r_textureMode->string );
 	GL_TexEnv( GL_MODULATE );
+	GL_Anisotropy( r_anisotropy->integer );
 
 	qglShadeModel( GL_SMOOTH );
 	qglDepthFunc( GL_LEQUAL );
@@ -1210,6 +1219,12 @@ void R_Register( void )
 	r_stencilbits						= ri.Cvar_Get( "r_stencilbits",						"8",						CVAR_ARCHIVE|CVAR_LATCH );
 #endif
 	r_depthbits							= ri.Cvar_Get( "r_depthbits",						"0",						CVAR_ARCHIVE|CVAR_LATCH );
+	
+	r_multiSample						= ri.Cvar_Get( "r_multiSample",						"0",						CVAR_ARCHIVE | CVAR_LATCH );
+	r_multiSampleNvidia					= ri.Cvar_Get( "r_multiSampleNvidia",				"0",						CVAR_ARCHIVE | CVAR_LATCH );
+	r_anisotropy						= ri.Cvar_Get( "r_anisotropy",						"0",						CVAR_ARCHIVE );
+	r_backEndMegs						= ri.Cvar_Get( "r_backEndMegs",						"2",						CVAR_ARCHIVE | CVAR_LATCH );
+
 	r_overBrightBits					= ri.Cvar_Get( "r_overBrightBits",					"0",						CVAR_ARCHIVE|CVAR_LATCH );
 	r_mapOverBrightBits					= ri.Cvar_Get( "r_mapOverBrightBits",				"0",						CVAR_ARCHIVE|CVAR_LATCH );
 	r_ignorehwgamma						= ri.Cvar_Get( "r_ignorehwgamma",					"0",						CVAR_ARCHIVE|CVAR_LATCH );
@@ -1338,7 +1353,7 @@ Ghoul2 Insert End
 	r_aviMotionJpegQuality				= ri.Cvar_Get( "r_aviMotionJpegQuality",			"90",						CVAR_ARCHIVE );
 	r_screenshotJpegQuality				= ri.Cvar_Get( "r_screenshotJpegQuality",			"95",						CVAR_ARCHIVE );
 
-
+/*
 	// MME cvars
 //	mme_aviFormat = ri.Cvar_Get ("mme_aviFormat", "0", CVAR_ARCHIVE);
 	mme_jpegQuality = ri.Cvar_Get ("mme_jpegQuality", "90", CVAR_ARCHIVE);
@@ -1374,10 +1389,12 @@ Ghoul2 Insert End
 	mme_saveShot = ri.Cvar_Get ( "mme_saveShot", "1", CVAR_ARCHIVE );
 	mme_workMegs = ri.Cvar_Get ( "mme_workMegs", "128", CVAR_LATCH | CVAR_ARCHIVE );
 	mme_screenshotName = ri.Cvar_Get ( "mme_screenshotName", "shot", CVAR_NORESTART );
+*/
+	mme_fps = ri.Cvar_Get ("mme_fps", "0", CVAR_INTERNAL);
+	mme_name = ri.Cvar_Get ("mme_name", "", CVAR_INTERNAL);
+	mme_focus = ri.Cvar_Get("mme_focus", "0", CVAR_INTERNAL);
 
-	mme_ppBloom = ri.Cvar_Get ( "mme_ppBloom", "0", CVAR_ARCHIVE );
-
-
+	
 	ri.Cvar_CheckRange( r_aviMotionJpegQuality, 10, 100, qtrue );
 	ri.Cvar_CheckRange( r_screenshotJpegQuality, 10, 100, qtrue );
 
@@ -1462,7 +1479,8 @@ void R_Init( void ) {
 	R_Register();
 
 	R_MME_Init();
-
+	R_MME_InitStereo();
+	
 	max_polys = r_maxpolys->integer;
 	if (max_polys < MAX_POLYS)
 		max_polys = MAX_POLYS;
@@ -1477,7 +1495,7 @@ void R_Init( void ) {
 	backEndData->polyVerts = (polyVert_t *) ((char *) ptr + sizeof( *backEndData ) + sizeof(srfPoly_t) * max_polys);
 
 	R_ToggleSmpFrame();
-
+	
 	for(i = 0; i < MAX_LIGHT_STYLES; i++)
 	{
 		RE_SetLightStyle(i, -1);
@@ -1576,9 +1594,13 @@ void RE_Shutdown( qboolean destroyWindow ) {
 	}
 
 	R_MME_Shutdown();
+	R_MME_ShutdownStereo();
 
 	// shut down platform specific OpenGL stuff
 	if ( destroyWindow ) {
+
+		R_FrameBuffer_Shutdown();
+
 		GLimp_Shutdown();
 	}
 
@@ -1861,6 +1883,11 @@ Q_EXPORT refexport_t* QDECL GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.TheGhoul2InfoArray					= TheGhoul2InfoArray;
 	// this is set in R_Init
 	//re.G2VertSpaceServer	= G2VertSpaceServer;
+
+	//mme
+	re.Capture = R_MME_Capture;
+	re.CaptureStereo = R_MME_CaptureStereo;
+	re.BlurInfo = R_MME_BlurInfo;
 
 	return &re;
 }

@@ -391,6 +391,23 @@ typedef struct {
 
 #endif	// !defined _WIN32
 
+typedef struct {
+	int			maxAnisotropy;
+	int			multiSamples;
+	int			glWidth;
+	int			glHeight;
+	qboolean	framebufferObject;
+	qboolean	framebufferMultiSample;
+	qboolean	shaderSupport;
+} glMMEConfig_t;
+
+typedef enum {
+	mmeShotFormatTGA,
+	mmeShotFormatJPG,
+	mmeShotFormatPNG,
+	mmeShotFormatAVI,
+} mmeShotFormat_t;
+
 typedef enum {
 	mmeShotTypeRGB,
 	mmeShotTypeRGBA,

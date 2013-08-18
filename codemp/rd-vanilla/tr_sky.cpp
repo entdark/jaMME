@@ -780,8 +780,8 @@ void RB_StageIteratorSky( void )
 {
 	if ( g_bRenderGlowingObjects )
 		return;
-
-	if ( r_fastsky->integer ) {
+	//mme
+	if (( r_fastsky->integer ) || ( mme_skykey->string[0] != '0' )) {
 		return;
 	}
 

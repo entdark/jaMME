@@ -1995,6 +1995,48 @@ Ghoul2 Insert Start
 Ghoul2 Insert End
 */
 
+	if ( item->giType == IT_TEAM && mov_simpleFlags.integer ) {
+		vec3_t angs;
+
+		memset( &ent, 0, sizeof( ent ) );
+		ent.reType = RT_ORIENTED_QUAD;
+		VectorCopy( cent->lerpOrigin, ent.origin );
+		ent.radius = 28;
+		//ent.customShader = cg_items[es->modelindex].icon;
+
+		if (cgs.gametype == GT_CTF)
+		{
+			if (item->giTag == PW_REDFLAG)
+			{
+				ent.customShader = cgs.media.simpleFlagRed;
+			}
+			else if (item->giTag == PW_BLUEFLAG)
+			{
+				ent.customShader = cgs.media.simpleFlagBlue;
+			}
+		}
+		//instead of cg_items[es->modelindex].icon
+
+		MAKERGBA( ent.shaderRGBA, 255, 255, 255, 200 );
+		ent.origin[2] += 44 + 7.0f * sinf( (float)cg.time / 1000.0f * 1.337 );
+		ent.renderfx |= RF_FORCE_ENT_ALPHA;
+		cent->currentState.apos.trType = TR_LINEAR;
+		VectorSet( cent->currentState.apos.trDelta, 0.0f, 128.0f, 0.0f );
+		BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, angs );
+		angs[2] = 0.0f;
+		AnglesToAxis( angs, ent.axis );
+
+	//	VectorSet( ent.modelScale, 1.0f, 1.0f, 1.337f );
+	//	ScaleModelAxis( &ent );
+
+		// render it, flip it around, render it again
+		trap_R_AddRefEntityToScene( &ent, cent->currentState.number );
+		VectorSet( ent.modelScale, 1.0f, -1.0f, 1.0f );
+		ScaleModelAxis( &ent );
+		trap_R_AddRefEntityToScene( &ent, cent->currentState.number );
+		return;
+	}
+
 	if ( cg_simpleItems.integer && item->giType != IT_TEAM ) {
 		memset( &ent, 0, sizeof( ent ) );
 		ent.reType = RT_SPRITE;

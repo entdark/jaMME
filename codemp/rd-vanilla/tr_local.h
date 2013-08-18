@@ -970,6 +970,8 @@ typedef struct {
 	byte		color2D[4];
 	qboolean	vertexes2D;		// shader needs to be finished
 	trRefEntity_t	entity2D;	// currentEntity will point at this when doing 2D rendering
+	//mme
+	float			sceneZfar;
 } backEndState_t;
 
 /*
@@ -997,6 +999,7 @@ typedef struct {
 											// and every R_MarkFragments call
 
 	int						frameSceneNum;	// zeroed at RE_BeginFrame
+	int						backendSize;
 
 	qboolean				worldMapLoaded;
 	world_t					*world;
@@ -1027,10 +1030,6 @@ typedef struct {
 
 	// Image used to downsample and blur scene to.	- AReis
 	GLuint					blurImage;
-
-	GLuint					m_uiScreenRGB;
-	//bloom, from qfx
-	GLuint					m_uiBlurTexture;
 
 	shader_t				*defaultShader;
 	shader_t				*shadowShader;
@@ -1117,10 +1116,11 @@ void	 R_Images_DeleteImage(image_t *pImage);
 
 
 extern backEndState_t	backEnd;
-extern trGlobals_t	tr;
-extern glconfig_t	glConfig;		// outside of TR since it shouldn't be cleared during ref re-init
-extern glstate_t	glState;		// outside of TR since it shouldn't be cleared during ref re-init
+extern trGlobals_t		tr;
+extern glconfig_t		glConfig;		// outside of TR since it shouldn't be cleared during ref re-init
+extern glstate_t		glState;		// outside of TR since it shouldn't be cleared during ref re-init
 
+extern glMMEConfig_t	glMMEConfig;	// outside of TR since it shouldn't be cleared during ref re-init
 
 //
 // cvars
@@ -1130,7 +1130,7 @@ extern cvar_t	*r_verbose;				// used for verbose debug spew
 
 extern cvar_t	*r_znear;				// near Z clip plane
 extern cvar_t	*r_zproj;				// z distance of projection plane
-extern cvar_t	*r_stereoSeparation;	// separation of cameras for stereo rendering
+extern cvar_t	*r_stereoSeparation;	// separation of cameras for stereo capture
 
 extern cvar_t	*r_stencilbits;			// number of desired stencil bits
 extern cvar_t	*r_depthbits;			// number of desired depth bits
@@ -1141,6 +1141,10 @@ extern cvar_t	*r_texturebits;			// number of desired texture bits
 										// 16 = use 16-bit textures
 										// 32 = use 32-bit textures
 										// all else = error
+extern cvar_t	*r_multiSample;			// Number of multisample pixels
+extern cvar_t	*r_multiSampleNvidia;	// Enable special nvidia multisample modes
+extern cvar_t	*r_anisotropy;			// Anisotropic filtering
+
 extern cvar_t	*r_texturebitslm;		// number of desired lightmap texture bits
 
 extern cvar_t	*r_measureOverdraw;		// enables stencil buffer overdraw measurement
@@ -1267,42 +1271,37 @@ extern	cvar_t	*r_showImages;
 extern	cvar_t	*r_debugSort;
 
 
-//commented cvars = they weren't used in pugmod, but were in q3mme
 //extern	cvar_t	*mme_aviFormat;
-extern	cvar_t	*mme_screenShotFormat;
-extern	cvar_t	*mme_screenShotGamma;
-//extern	cvar_t	*mme_screenShotAlpha;
-extern	cvar_t	*mme_jpegQuality;
-extern	cvar_t	*mme_jpegDownsampleChroma;
-extern	cvar_t	*mme_jpegOptimizeHuffman;
-extern	cvar_t	*mme_tgaCompression;
-extern	cvar_t	*mme_pngCompression;
-extern	cvar_t	*mme_skykey;
-extern	cvar_t	*mme_worldShader;
-//extern	cvar_t	*mme_pip;
-extern	cvar_t	*mme_blurFrames;
-//extern	cvar_t	*mme_blurFrames;
-extern	cvar_t	*mme_blurType;
-extern	cvar_t	*mme_blurOverlap;
-extern	cvar_t	*mme_blurGamma;
-//extern	cvar_t	*mme_blurJitter;
-//extern	cvar_t	*mme_dofFrames;
-//extern	cvar_t	*mme_dofRadius;
-//extern	cvar_t	*mme_cpuSSE2;
-extern	cvar_t	*mme_renderWidth;
-extern	cvar_t	*mme_renderHeight;
-extern	cvar_t	*mme_workMegs;
-extern	cvar_t	*mme_depthFocus;
-extern	cvar_t	*mme_depthRange;
-//extern	cvar_t	*mme_captureName;
-//extern	cvar_t	*mme_saveOverwrite;
-extern	cvar_t	*mme_saveShot;
-extern	cvar_t	*mme_saveStencil;
-extern	cvar_t	*mme_saveDepth;
-extern	cvar_t	*mme_screenshotName;
+//extern	cvar_t	*mme_screenshotName;
 
-extern	cvar_t	*mme_ppBloom;
-
+extern cvar_t	*mme_aviOutput;
+extern cvar_t	*mme_screenShotFormat;
+extern cvar_t	*mme_screenShotGamma;
+extern cvar_t	*mme_screenShotAlpha;
+extern cvar_t	*mme_jpegQuality;
+extern cvar_t	*mme_jpegDownsampleChroma;
+extern cvar_t	*mme_jpegOptimizeHuffman;
+extern cvar_t	*mme_tgaCompression;
+extern cvar_t	*mme_pngCompression;
+extern cvar_t	*mme_skykey;
+extern cvar_t	*mme_worldShader;
+extern cvar_t	*mme_pip;
+extern cvar_t	*mme_renderWidth;
+extern cvar_t	*mme_renderHeight;
+extern cvar_t	*mme_blurFrames;
+extern cvar_t	*mme_blurType;
+extern cvar_t	*mme_blurOverlap;
+extern cvar_t	*mme_blurGamma;
+extern cvar_t	*mme_dofFrames;
+extern cvar_t	*mme_cpuSSE2;
+extern cvar_t	*mme_workMegs;
+extern cvar_t	*mme_depthRange;
+extern cvar_t	*mme_depthFocus;
+extern cvar_t	*mme_captureName;
+extern cvar_t	*mme_saveOverwrite;
+extern cvar_t	*mme_saveStencil;
+extern cvar_t	*mme_saveShot;
+extern cvar_t	*mme_saveDepth;
 
 /*
 Ghoul2 Insert Start
@@ -1353,6 +1352,7 @@ int R_CullPointAndRadius( const vec3_t origin, float radius );
 int R_CullLocalPointAndRadius( const vec3_t origin, float radius );
 
 void R_RotateForEntity( const trRefEntity_t *ent, const viewParms_t *viewParms, orientationr_t *ori );
+void R_RotateForWorld ( const orientationr_t* input, orientationr_t* world );
 
 #ifdef VV_LIGHTING
 void R_SetupEntityLightingGrid( trRefEntity_t *ent );
@@ -1367,6 +1367,7 @@ void	GL_Bind3D( image_t *image );
 void	GL_SetDefaultState (void);
 void	GL_SelectTexture( int unit );
 void	GL_TextureMode( const char *string );
+void	GL_Anisotropy( int level );
 void	GL_CheckErrors( void );
 void	GL_State( unsigned long stateVector );
 void	GL_TexEnv( int env );
@@ -1910,6 +1911,18 @@ typedef struct {
 	qboolean      motionJpeg; 
 } videoFrameCommand_t;
 
+typedef struct {
+	int		commandId;
+	char	name[MAX_OSPATH];
+	float	fps;
+	float	focus;
+} captureCommand_t;
+
+typedef struct commandHeader_s {
+	int		size;
+	int		commandId;
+} commandHeader_t;
+
 typedef enum {
 	RC_END_OF_LIST=0,
 	RC_SET_COLOR,
@@ -1921,7 +1934,9 @@ typedef enum {
 	RC_SWAP_BUFFERS,
 	RC_WORLD_EFFECTS,
 	RC_AUTO_MAP,
-	RC_VIDEOFRAME
+	RC_VIDEOFRAME,
+	RC_CAPTURE,
+	RC_CAPTURE_STEREO,
 } renderCommand_t;
 
 
@@ -1976,13 +1991,6 @@ void RE_SaveJPG(char * filename, int quality, int image_width, int image_height,
 size_t RE_SaveJPGToBuffer(byte *buffer, size_t bufSize, int quality, int image_width, int image_height, byte *image_buffer, int padding);
 void RE_TakeVideoFrame( int width, int height, byte *captureBuffer, byte *encodeBuffer, qboolean motionJpeg );
 int RE_SavePNG( char *filename, byte *buf, size_t width, size_t height, int byteDepth );
-//mme
-int SaveJPG( int quality, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size );
-
-void R_Screenshot_PNG(int x, int y, int width, int height, char *fileName);
-void R_Screenshot_PNG_Stereo(int x, int y, int width, int height, char *fileName);
-void R_MME_Init(void);
-void R_MME_Shutdown(void);
 
 /*
 Ghoul2 Insert Start
@@ -2017,3 +2025,53 @@ void RB_DrawSurfaceSprites( shaderStage_t *stage, shaderCommands_t *input);
 extern refexport_t re;
 
 qboolean ShaderHashTableExists(void);
+
+
+//mme
+int SaveJPG( int quality, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size );
+int SaveTGA( int image_compressed, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size );
+int SavePNG( int compresslevel, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size );
+
+//void R_Screenshot_PNG(int x, int y, int width, int height, char *fileName);
+//void R_Screenshot_PNG_Stereo(int x, int y, int width, int height, char *fileName);
+void R_MME_Init(void);
+void R_MME_InitStereo(void);
+void R_MME_Shutdown(void);
+void R_MME_ShutdownStereo(void);
+void R_MME_TakeShot( void );
+void R_MME_TakeShotStereo( void );
+const void *R_MME_CaptureShotCmd( const void *data );
+const void *R_MME_CaptureShotCmdStereo( const void *data );
+void R_MME_Capture( const char *shotName, float fps, float focus );
+void R_MME_CaptureStereo( const char *shotName, float fps, float focus );
+void R_MME_BlurInfo( int* total, int* index );
+void R_MME_JitterView( float *pixels, float* eyes );
+qboolean R_MME_JitterOrigin( float *x, float *y );
+
+int R_MME_MultiPassNext( );
+int R_MME_MultiPassNextStereo( );
+
+//Framebuffer stuff
+#define FB_FLOAT16 				0x01		//Have a float color buffer
+#define FB_FLOAT32 				0x02		//Have a float color buffer
+#define FB_STENCIL		 		0x04		//Have a stencil buffer
+#define FB_DEPTH		 		0x08		//Have a depth buffer
+#define FB_PACKED				0x10		//Have a packed depth/zbuffer texture
+#define FB_MULTISAMPLE	 		0x20		//Make a multisampled buffer
+
+typedef struct  {
+	GLuint 	fbo;
+	GLuint	color;					//Color in a texture
+	GLuint	packed;					//Packed depth/stencil texture
+	GLuint	depth;					//depth render buffer
+	GLuint	stencil;				//stencil render buffer
+	unsigned int flags;				//the creation flags
+	int		width, height;			//Size of the buffer
+} frameBufferData_t;
+
+void R_FrameBuffer_Init( void );
+void R_FrameBuffer_Shutdown( void );
+void R_FrameBuffer_StartFrame( void );
+void R_FrameBuffer_EndFrame( void );
+//Try to do an fbo blur
+qboolean R_FrameBuffer_Blur( float scale, int frame, int total );

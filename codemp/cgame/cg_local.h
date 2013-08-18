@@ -1102,6 +1102,9 @@ typedef struct {
 	qhandle_t	redFlagModel;
 	qhandle_t	blueFlagModel;
 
+	qhandle_t	simpleFlagRed;
+	qhandle_t	simpleFlagBlue;
+
 	qhandle_t	flagPoleModel;
 	qhandle_t	flagFlapModel;
 
@@ -2311,8 +2314,6 @@ void		trap_RE_InitRendererTerrain( const char *info );
 void		trap_R_WeatherContentsOverride( int contents );
 void		trap_R_WorldEffectCommand(const char *cmd);
 void		trap_WE_AddWeatherZone( const vec3_t mins, const vec3_t maxs );
-
-int			trap_MME_SeekTime( int seekTime );
 
 qboolean	trap_ROFF_Clean( void );
 void		trap_ROFF_UpdateEntities( void );

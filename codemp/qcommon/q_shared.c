@@ -1040,6 +1040,84 @@ void Q_strcat( char *dest, int size, const char *src ) {
 	Q_strncpyz( dest + l1, src, size - l1 );
 }
 
+vec3_t defaultColors[10] =
+{
+	{0.0f, 0.0f, 0.0f},
+	{1.0f, 0.0f, 0.0f},
+	{0.0f, 1.0f, 0.0f},
+	{1.0f, 1.0f, 0.0f},
+	{0.0f, 0.0f, 1.0f},
+	{0.0f, 1.0f, 1.0f},
+	{1.0f, 0.0f, 1.0f},
+	{1.0f, 1.0f, 1.0f},
+	{0.6f, 0.6f, 0.6f},
+	{0.3f, 0.3f, 0.3f},
+};
+
+int Q_parseColor( const char *p, const vec3_t numberColors[10], float *color ) {
+	char c = *p++;
+	if (c >= '0' && c <='9') {
+		if (!color)
+			return 1;
+		memcpy( color, numberColors + c - '0', sizeof( vec3_t ));
+		return 1;
+	} else if ( ( c >= 'a' && c < 'x') || (c >= 'A' && c < 'X') ) {
+		int deg;
+		float angle, v;
+		if (!color)
+			return 1;
+		deg = (((c|32) - 'a') * 360) / 24;
+		angle = (DEG2RAD(deg % 120));
+		v = ((cos(angle) / cos((M_PI / 3) - angle)) + 1) / 3;
+		if ( deg <= 120) {
+			color[0] = v;
+			color[1] = 1-v;
+			color[2] = 0;
+		} else if ( deg <= 240) {
+			color[0] = 0;
+			color[1] = v;
+			color[2] = 1-v;
+		} else {
+			color[0] = 1-v;
+			color[1] = 0;
+			color[2] = v;
+		}
+		return 1;
+	} else if ( c == 'x' || c == 'X' )  {
+		int i;
+		int val;
+		for (i = 0;i<6;i++) {
+            int readHex;
+			c = p[i];
+			if ( c >= '0' && c<= '9') {
+                readHex = c - '0';
+			} else if ( c >= 'a' && c<= 'f') {
+				readHex = 0xa + c - 'a';
+			} else if ( c >= 'A' && c<= 'F') {
+				readHex = 0xa + c - 'A';
+			} else {
+				if (color) {
+					color[0] = color[1] = color[2] = 1.0f;
+				}
+				return 1;
+			}
+			if (!color)
+				continue;
+			if ( i & 1) {
+				val|= readHex;
+				color[i >> 1] = val * (1 / 255.0f);
+			} else {
+				val = readHex << 4;
+			}
+		}
+		return 7;
+	}
+	if (color) {
+		color[0] = color[1] = color[2] = 1.0f;
+	}
+	return 0;
+}
+
 /*
 * Find the first occurrence of find in s.
 */
@@ -1271,6 +1349,28 @@ int QDECL Com_sprintf( char *dest, int size, const char *fmt, ...) {
 		Com_Printf("Com_sprintf: Output length %d too short, require %d bytes.\n", size, len + 1);
 	
 	return len;
+}
+
+void QDECL Com_sprintfOld( char *dest, int size, const char *fmt, ...) {
+	int		len;
+	va_list		argptr;
+	char	bigbuffer[32000];	// big, but small enough to fit in PPC stack
+
+	va_start (argptr,fmt);
+	len = vsprintf (bigbuffer,fmt,argptr);
+	va_end (argptr);
+	if ( len >= sizeof( bigbuffer ) ) {
+		Com_Error( ERR_FATAL, "Com_sprintf: overflowed bigbuffer" );
+	}
+	if (len >= size) {
+		Com_Printf ("Com_sprintf: overflow of %i in %i\n", len, size);
+#ifdef	_DEBUG
+		__asm {
+			int 3;
+		}
+#endif
+	}
+	Q_strncpyz (dest, bigbuffer, size );
 }
 
 /*

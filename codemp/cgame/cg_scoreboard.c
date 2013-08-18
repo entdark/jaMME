@@ -135,12 +135,12 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 		if (ci->duelTeam == DUELTEAM_LONE)
 		{
 			//need to test in power duel demo
-			CG_DrawPic ( iconx, y, 32*cgs.widthRatioCoef, 32, trap_R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_lone" ) );
+			CG_DrawPic ( iconx, y, 16*cgs.widthRatioCoef, 16, trap_R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_lone" ) );
 		}
 		else
 		{
 			//need to test in power duel demo
-			CG_DrawPic ( iconx, y, 32*cgs.widthRatioCoef, 32, trap_R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_double" ) );
+			CG_DrawPic ( iconx, y, 16*cgs.widthRatioCoef, 16, trap_R_RegisterShaderNoMip ( "gfx/mp/pduel_icon_double" ) );
 		}
 	}
 	else if (cgs.gametype == GT_SIEGE)

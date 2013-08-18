@@ -2,6 +2,17 @@
 #include "qcommon/exe_headers.h"
 
 // tr_image.c
+#define SUPPORT_PNG
+
+#ifdef SUPPORT_PNG
+//#include <png.h>
+//#include "png.h"
+#include "libpng/png.h"
+#include "zlib/zlib.h"
+//#pragma comment (lib, "libpng.lib")
+//#pragma comment (lib, "zlib.lib")
+#endif
+
 #include "tr_local.h"
 #include "glext.h"
 
@@ -35,6 +46,7 @@ static unsigned char s_gammatable[256];
 
 int		gl_filter_min = GL_LINEAR_MIPMAP_NEAREST;
 int		gl_filter_max = GL_LINEAR;
+int		gl_anisotropy = 1;
 
 //#define FILE_HASH_SIZE		1024	// actually the shader code still needs this (from another module, great),
 //static	image_t*		hashTable[FILE_HASH_SIZE];
@@ -44,9 +56,16 @@ int		gl_filter_max = GL_LINEAR;
 */
 void R_GammaCorrect( byte *buffer, int bufSize ) {
 	int i;
-
+/*
 	for ( i = 0; i < bufSize; i++ ) {
 		buffer[i] = s_gammatable[buffer[i]];
+	}
+*/
+	for ( i = 0; i < bufSize/4; i++ ) {
+		buffer[i*4+0] = s_gammatable[buffer[i*4+0]];
+		buffer[i*4+1] = s_gammatable[buffer[i*4+1]];
+		buffer[i*4+2] = s_gammatable[buffer[i*4+2]];
+		buffer[i*4+3] = s_gammatable[buffer[i*4+3]];
 	}
 }
 
@@ -136,6 +155,32 @@ void GL_TextureMode( const char *string ) {
 					qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 1.0f);
 				}
 			}
+		}
+	}
+}
+
+void GL_Anisotropy( int level ) {
+	int i;
+	image_t	*glt;
+	image_t *pImage;
+
+	if (!glMMEConfig.maxAnisotropy)
+		return;
+	
+	if ( level < 1)
+		gl_anisotropy = 1;
+	else if ( level > glMMEConfig.maxAnisotropy)
+		gl_anisotropy = glMMEConfig.maxAnisotropy;
+	else 
+		gl_anisotropy = level;
+
+	// change all the existing anisotropy texture objects
+					  R_Images_StartIteration();
+	while ( (pImage = R_Images_GetNextIteration()) != NULL) {
+		glt = pImage;
+		if ( glt->mipmap ) {
+			GL_Bind (glt);
+			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_anisotropy );
 		}
 	}
 }
@@ -764,6 +809,9 @@ done:
 
 	if (mipmap)
 	{
+		if ( gl_anisotropy && glMMEConfig.maxAnisotropy )
+			qglTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, gl_anisotropy );
+
 		qglTexParameterf(uiTarget, GL_TEXTURE_MIN_FILTER, gl_filter_min);
 		qglTexParameterf(uiTarget, GL_TEXTURE_MAG_FILTER, gl_filter_max);
 		if(r_ext_texture_filter_anisotropic->integer>1 && glConfig.maxTextureFilterAnisotropy>0)
@@ -2038,129 +2086,196 @@ static void jpegDest (j_compress_ptr cinfo, byte* outfile, int size)
 	dest->size = size;
 }
 
+int SaveJPG( int quality, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *buffer, int bufSize ) {
+	struct jpeg_compress_struct cinfo;
+	struct jpeg_error_mgr jerr;
+	JSAMPROW row_pointer[1];	/* pointer to JSAMPLE row[s] */
+	my_dest_ptr dest;
+	int row_stride;		/* physical row width in image buffer */
+	size_t outcount;
 
-int SaveJPG( int quality, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size ) {
-  /* This struct contains the JPEG compression parameters and pointers to
-   * working space (which is allocated as needed by the JPEG library).
-   * It is possible to have several such structures, representing multiple
-   * compression/decompression processes, in existence at once.  We refer
-   * to any one struct (and its associated working data) as a "JPEG object".
-   */
-  struct jpeg_compress_struct cinfo;
-  /* This struct represents a JPEG error handler.  It is declared separately
-   * because applications often want to supply a specialized error handler
-   * (see the second half of this file for an example).  But here we just
-   * take the easy way out and use the standard error handler, which will
-   * print a message on stderr and call exit() if compression fails.
-   * Note that this struct must live as long as the main JPEG parameter
-   * struct, to avoid dangling-pointer problems.
-   */
-  struct jpeg_error_mgr jerr;
-  /* More stuff */
-  JSAMPROW row_pointer[1];	/* pointer to JSAMPLE row[s] */
-  int row_stride;		/* physical row width in image buffer */
-  /* Step 1: allocate and initialize JPEG compression object */
+	/* Step 1: allocate and initialize JPEG compression object */
 
-  /* We have to set up the error handler first, in case the initialization
-   * step fails.  (Unlikely, but it could happen if you are out of memory.)
-   * This routine fills in the contents of struct jerr, and returns jerr's
-   * address which we place into the link field in cinfo.
-   */
-  cinfo.err = jpeg_std_error(&jerr);
-  /* Now we can initialize the JPEG compression object. */
-  jpeg_create_compress(&cinfo);
+	cinfo.err = jpeg_std_error(&jerr);
+	cinfo.err->error_exit = R_JPGErrorExit;
+	cinfo.err->output_message = R_JPGOutputMessage;
+	
+	/* Now we can initialize the JPEG compression object. */
+	jpeg_create_compress(&cinfo);
 
-  /* Step 2: specify data destination (eg, a file) */
-  /* Note: steps 2 and 3 can be done in either order. */
+	/* Step 2: specify data destination (eg, a file) */
+	/* Note: steps 2 and 3 can be done in either order. */
 
-  /* Here we use the library-supplied code to send compressed data to a
-   * stdio stream.  You can also write your own code to do something else.
-   * VERY IMPORTANT: use "b" option to fopen() if you are on a machine that
-   * requires it in order to write binary files.
-   */
-  jpegDest(&cinfo, out_buffer, out_size );
+	jpegDest(&cinfo, buffer, bufSize);
 
-  /* Step 3: set parameters for compression */
+	/* Step 3: set parameters for compression */
+	cinfo.image_width = image_width; 	/* image width and height, in pixels */
+	cinfo.image_height = image_height;
+	cinfo.input_components = 3;		/* # of color components per pixel */
+	cinfo.in_color_space = JCS_RGB; 	/* colorspace of input image */
+	jpeg_set_defaults(&cinfo);
+	jpeg_set_quality(&cinfo, quality, TRUE /* limit to baseline-JPEG values */);
 
-  /* First we supply a description of the input image.
-   * Four fields of the cinfo struct must be filled in:
-   */
-  cinfo.image_width = image_width; 	/* image width and height, in pixels */
-  cinfo.image_height = image_height;
-  if ( image_type == mmeShotTypeRGB)	{
-	  cinfo.input_components = 3;		/* # of color components per pixel */
-	  cinfo.in_color_space = JCS_RGB; 	/* colorspace of input image */
-	  row_stride = image_width * 3;
-  } else {
-	  cinfo.input_components = 1;
-	  cinfo.in_color_space = JCS_GRAYSCALE;
-	  row_stride = image_width;
-  }
-  /* Now use the library's routine to set default compression parameters.
-   * (You must set at least cinfo.in_color_space before calling this,
-   * since the defaults depend on the source color space.)
-   */
-  jpeg_set_defaults(&cinfo);
-  /* Now you can set any non-default parameters you wish to.
-   * Here we just illustrate the use of quality (quantization table) scaling:
-   */
-  jpeg_set_quality(&cinfo, quality, TRUE /* limit to baseline-JPEG values */);
-  if (!mme_jpegDownsampleChroma->integer) {
-	  int i;
-	  for (i = 0; i < MAX_COMPONENTS; i++) {
-		  cinfo.comp_info[i].h_samp_factor = 1;
-		  cinfo.comp_info[i].v_samp_factor = 1;
-	  }
-  } else {
-	  int i;
-	  for (i = 0; i < MAX_COMPONENTS; i++) {
-		  if (cinfo.comp_info[i].component_id == 1) {
-			  cinfo.comp_info[i].h_samp_factor = 2;
-			  cinfo.comp_info[i].v_samp_factor = 2;
-			  break;
-		  }
-	  }
-  }
+	/* If quality is set high, disable chroma subsampling */
+	if (quality >= 85) {
+		cinfo.comp_info[0].h_samp_factor = 1;
+		cinfo.comp_info[0].v_samp_factor = 1;
+	}
 
-  if (mme_jpegOptimizeHuffman->integer) cinfo.optimize_coding = 1;
+	/* Step 4: Start compressor */
 
-  /* Step 4: Start compressor */
+	jpeg_start_compress(&cinfo, TRUE);
 
-  /* TRUE ensures that we will write a complete interchange-JPEG file.
-   * Pass TRUE unless you are very sure of what you're doing.
-   */
-  jpeg_start_compress(&cinfo, TRUE);
+	/* Step 5: while (scan lines remain to be written) */
+	/*           jpeg_write_scanlines(...); */
 
-  /* Step 5: while (scan lines remain to be written) */
-  /*           jpeg_write_scanlines(...); */
+	row_stride = image_width * cinfo.input_components;// + padding; /* JSAMPLEs per row in image_buffer */
 
-  /* Here we use the library's state variable cinfo.next_scanline as the
-   * loop counter, so that we don't have to keep track ourselves.
-   * To keep things simple, we pass one scanline per call; you can pass
-   * more if you wish, though.
-   */
+	while (cinfo.next_scanline < cinfo.image_height) {
+		/* jpeg_write_scanlines expects an array of pointers to scanlines.
+		* Here the array is only one element long, but you could pass
+		* more than one scanline at a time if that's more convenient.
+		*/
+		row_pointer[0] = &image_buffer[((cinfo.image_height-1)*row_stride)-cinfo.next_scanline * row_stride];
+		(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
+	}
 
-  while (cinfo.next_scanline < cinfo.image_height) {
-    /* jpeg_write_scanlines expects an array of pointers to scanlines.
-     * Here the array is only one element long, but you could pass
-     * more than one scanline at a time if that's more convenient.
-     */
-    row_pointer[0] = & image_buffer[((cinfo.image_height-1)*row_stride)-cinfo.next_scanline * row_stride];
-    (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-  }
+	/* Step 6: Finish compression */
+	jpeg_finish_compress(&cinfo);
 
-  /* Step 6: Finish compression */
+	dest = (my_dest_ptr) cinfo.dest;
+	outcount = dest->size - dest->pub.free_in_buffer;
 
-  jpeg_finish_compress(&cinfo);
-  /* After finish_compress, we can close the output file. */
-  /* Step 7: release JPEG compression object */
+	/* Step 7: release JPEG compression object */
+	jpeg_destroy_compress(&cinfo);
 
-  /* This is an important step since it will release a good deal of memory. */
-  jpeg_destroy_compress(&cinfo);
-
-  return hackSize;
-  /* And we're done! */
+	/* And we're done! */
+	return outcount;
 }
+
+
+//int SaveJPG( int quality, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size ) {
+//  /* This struct contains the JPEG compression parameters and pointers to
+//   * working space (which is allocated as needed by the JPEG library).
+//   * It is possible to have several such structures, representing multiple
+//   * compression/decompression processes, in existence at once.  We refer
+//   * to any one struct (and its associated working data) as a "JPEG object".
+//   */
+//  struct jpeg_compress_struct cinfo;
+//  /* This struct represents a JPEG error handler.  It is declared separately
+//   * because applications often want to supply a specialized error handler
+//   * (see the second half of this file for an example).  But here we just
+//   * take the easy way out and use the standard error handler, which will
+//   * print a message on stderr and call exit() if compression fails.
+//   * Note that this struct must live as long as the main JPEG parameter
+//   * struct, to avoid dangling-pointer problems.
+//   */
+//  struct jpeg_error_mgr jerr;
+//  /* More stuff */
+//  JSAMPROW row_pointer[1];	/* pointer to JSAMPLE row[s] */
+//  int row_stride;		/* physical row width in image buffer */
+//  /* Step 1: allocate and initialize JPEG compression object */
+//
+//  /* We have to set up the error handler first, in case the initialization
+//   * step fails.  (Unlikely, but it could happen if you are out of memory.)
+//   * This routine fills in the contents of struct jerr, and returns jerr's
+//   * address which we place into the link field in cinfo.
+//   */
+//  cinfo.err = jpeg_std_error(&jerr);
+//  /* Now we can initialize the JPEG compression object. */
+//  jpeg_create_compress(&cinfo);
+//
+//  /* Step 2: specify data destination (eg, a file) */
+//  /* Note: steps 2 and 3 can be done in either order. */
+//
+//  /* Here we use the library-supplied code to send compressed data to a
+//   * stdio stream.  You can also write your own code to do something else.
+//   * VERY IMPORTANT: use "b" option to fopen() if you are on a machine that
+//   * requires it in order to write binary files.
+//   */
+//  jpegDest(&cinfo, out_buffer, out_size );
+//
+//  /* Step 3: set parameters for compression */
+//
+//  /* First we supply a description of the input image.
+//   * Four fields of the cinfo struct must be filled in:
+//   */
+//  cinfo.image_width = image_width; 	/* image width and height, in pixels */
+//  cinfo.image_height = image_height;
+//  if ( image_type == mmeShotTypeRGB)	{
+//	  cinfo.input_components = 3;		/* # of color components per pixel */
+//	  cinfo.in_color_space = JCS_RGB; 	/* colorspace of input image */
+//	  row_stride = image_width * 3;
+//  } else {
+//	  cinfo.input_components = 1;
+//	  cinfo.in_color_space = JCS_GRAYSCALE;
+//	  row_stride = image_width;
+//  }
+//  /* Now use the library's routine to set default compression parameters.
+//   * (You must set at least cinfo.in_color_space before calling this,
+//   * since the defaults depend on the source color space.)
+//   */
+//  jpeg_set_defaults(&cinfo);
+//  /* Now you can set any non-default parameters you wish to.
+//   * Here we just illustrate the use of quality (quantization table) scaling:
+//   */
+//  jpeg_set_quality(&cinfo, quality, TRUE /* limit to baseline-JPEG values */);
+//  if (!mme_jpegDownsampleChroma->integer) {
+//	  int i;
+//	  for (i = 0; i < MAX_COMPONENTS; i++) {
+//		  cinfo.comp_info[i].h_samp_factor = 1;
+//		  cinfo.comp_info[i].v_samp_factor = 1;
+//	  }
+//  } else {
+//	  int i;
+//	  for (i = 0; i < MAX_COMPONENTS; i++) {
+//		  if (cinfo.comp_info[i].component_id == 1) {
+//			  cinfo.comp_info[i].h_samp_factor = 2;
+//			  cinfo.comp_info[i].v_samp_factor = 2;
+//			  break;
+//		  }
+//	  }
+//  }
+//
+//  if (mme_jpegOptimizeHuffman->integer) cinfo.optimize_coding = 1;
+//
+//  /* Step 4: Start compressor */
+//
+//  /* TRUE ensures that we will write a complete interchange-JPEG file.
+//   * Pass TRUE unless you are very sure of what you're doing.
+//   */
+//  jpeg_start_compress(&cinfo, TRUE);
+//
+//  /* Step 5: while (scan lines remain to be written) */
+//  /*           jpeg_write_scanlines(...); */
+//
+//  /* Here we use the library's state variable cinfo.next_scanline as the
+//   * loop counter, so that we don't have to keep track ourselves.
+//   * To keep things simple, we pass one scanline per call; you can pass
+//   * more if you wish, though.
+//   */
+//
+//  while (cinfo.next_scanline < cinfo.image_height) {
+//    /* jpeg_write_scanlines expects an array of pointers to scanlines.
+//     * Here the array is only one element long, but you could pass
+//     * more than one scanline at a time if that's more convenient.
+//     */
+//    row_pointer[0] = & image_buffer[((cinfo.image_height-1)*row_stride)-cinfo.next_scanline * row_stride];
+//    (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
+//  }
+//
+//  /* Step 6: Finish compression */
+//
+//  jpeg_finish_compress(&cinfo);
+//  /* After finish_compress, we can close the output file. */
+//  /* Step 7: release JPEG compression object */
+//
+//  /* This is an important step since it will release a good deal of memory. */
+//  jpeg_destroy_compress(&cinfo);
+//
+//  return hackSize;
+//  /* And we're done! */
+//}
 
 
 /*
@@ -3502,3 +3617,353 @@ void	R_SkinList_f( void ) {
 	}
 	Com_Printf ( "------------------\n");
 }
+
+/*
+============================================================================
+
+MME additions
+
+============================================================================
+*/
+
+static int SaveTGA_RLERGBA(byte *out, const int image_width, const int image_height, const void* image_buffer ) {
+	int y;
+	const unsigned int *inBuf = ( const unsigned int*)image_buffer;
+	int dataSize = 0;
+	
+	for (y=0; y < image_height;y++) {
+		int left = image_width;
+		/* Prepare for the first block and write the first pixel */
+		while ( left > 0 ) {
+			/* Search for a block of similar pixels */
+			int i, block = left > 128 ? 128 : left;
+			unsigned int pixel = inBuf[0];
+			/* Check for rle pixels */
+			for ( i = 1;i < block;i++) {
+				if ( inBuf[i] != pixel)
+					break;
+			}
+			if ( i > 1  ) {
+				out[dataSize++] = 0x80 | ( i - 1);
+				out[dataSize++] = pixel >> 16;
+				out[dataSize++] = pixel >> 8;
+				out[dataSize++] = pixel >> 0;
+				out[dataSize++] = pixel >> 24;
+			} else {
+				int blockStart = dataSize++;
+				/* Write some raw pixels no matter what*/
+				out[dataSize++] = pixel >> 16;
+				out[dataSize++] = pixel >> 8;
+				out[dataSize++] = pixel >> 0;
+				out[dataSize++] = pixel >> 24;
+				pixel = inBuf[1];
+				for ( i = 1;i < block;i++) {
+					if ( inBuf[i+1] == pixel)
+						break;
+					out[dataSize++] = pixel >> 16;
+					out[dataSize++] = pixel >> 8;
+					out[dataSize++] = pixel >> 0;
+					out[dataSize++] = pixel >> 24;
+					pixel = inBuf[i+1];
+				}
+				out[blockStart] = i - 1;
+			}
+			inBuf += i;
+			left -= i;
+		}
+	}
+	return dataSize;
+}
+
+static int SaveTGA_RLERGB(byte *out, const int image_width, const int image_height, const void* image_buffer ) {
+	int y;
+	const byte *inBuf = ( const byte*)image_buffer;
+	int dataSize = 0;
+	
+	for (y=0; y < image_height;y++) {
+		int left = image_width;
+		/* Prepare for the first block and write the first pixel */
+		while ( left > 0 ) {
+			/* Search for a block of similar pixels */
+			int i, block = left > 128 ? 128 : left;
+			unsigned int pixel = inBuf[0] | (inBuf[1] << 8) | (inBuf[2] << 16);
+			/* Check for rle pixels */
+			for ( i = 1;i < block;i++) {
+				unsigned int testPixel = inBuf[i*3+0] | (inBuf[i*3+1] << 8) | (inBuf[i*3+2] << 16);
+				if ( testPixel != pixel)
+					break;
+			}
+			if ( i > 1  ) {
+				out[dataSize++] = 0x80 | ( i - 1);
+				out[dataSize++] = pixel >> 16;
+				out[dataSize++] = pixel >> 8;
+				out[dataSize++] = pixel >> 0;
+			} else {
+				int blockStart = dataSize++;
+				/* Write some raw pixels no matter what*/
+				out[dataSize++] = pixel >> 16;
+				out[dataSize++] = pixel >> 8;
+				out[dataSize++] = pixel >> 0;
+				pixel = inBuf[3] | (inBuf[4] << 8) | (inBuf[5] << 16);
+				for ( i = 1;i < block;i++) {
+					unsigned int testPixel = inBuf[i*3+3] | (inBuf[i*3+4] << 8) | (inBuf[i*3+5] << 16);
+					if ( testPixel == pixel)
+						break;
+					out[dataSize++] = pixel >> 16;
+					out[dataSize++] = pixel >> 8;
+					out[dataSize++] = pixel >> 0;
+					pixel = testPixel;
+				}
+				out[blockStart] = i - 1;
+			}
+			inBuf += i*3;
+			left -= i;
+		}
+	}
+	return dataSize;
+}
+
+static int SaveTGA_RLEGray(byte *out, const int image_width, const int image_height, const void* image_buffer ) {
+	int y;
+	unsigned char *inBuf = (unsigned char*)image_buffer;
+
+	int dataSize = 0;
+
+	for (y=0; y < image_height;y++) {
+		int left = image_width;
+		int diffIndex, diff;
+		unsigned char lastPixel, nextPixel;
+		lastPixel = *inBuf++;
+
+		diff = 0;
+		while (left > 0 ) {
+			int c, n;
+			if (left >= 2) {
+				nextPixel = *inBuf++;
+				if (lastPixel == nextPixel) {
+					if (diff) {
+						out[diffIndex] = diff - 1;
+						diff = 0;
+					}
+					left -= 2;
+					c = left > 126 ? 126 : left;
+					n = 0;
+
+					while (c) {
+						nextPixel = *inBuf++;
+						if (lastPixel != nextPixel)
+							break;
+						c--; n++;
+					}
+					left -= n;
+					out[dataSize++] = 0x80 | (n + 1);
+					out[dataSize++] = lastPixel;
+					lastPixel = nextPixel;
+				} else {
+finalDiff:
+					left--;
+					if (!diff) {
+						diff = 1;
+						diffIndex = dataSize++;
+					} else if (++diff >= 128) {
+						out[diffIndex] = diff - 1;
+						diff = 0;
+					}
+					out[dataSize++] = lastPixel;
+					lastPixel = nextPixel;
+				}
+			} else {
+				goto finalDiff;
+			}
+		}
+		if (diff) {
+			out[diffIndex] = diff - 1;
+		}
+	}
+	return dataSize;
+}
+
+
+/*
+===============
+SaveTGA
+===============
+*/
+int SaveTGA( int image_compressed, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size ) {
+	int i;
+	int imagePixels = image_height * image_width;
+	int filesize = 18;	// header is here by default
+	int bitDepth;
+	byte tgaFormat;
+
+	// Fill in the header
+	switch (image_type) {
+	case mmeShotTypeGray:
+		tgaFormat = 3;
+		bitDepth = 8;
+		break;
+	case mmeShotTypeRGB:
+		bitDepth = 24;
+		tgaFormat = 2;
+		break;
+	case mmeShotTypeRGBA:
+		bitDepth = 32;
+		tgaFormat = 2;
+		break;
+	default:
+		return 0;
+	}
+	if (image_compressed)
+		tgaFormat += 8;
+
+	/* Clear the header */
+	Com_Memset( out_buffer, 0, filesize );
+
+	out_buffer[2] = tgaFormat;
+	out_buffer[12] = image_width & 255;
+	out_buffer[13] = image_width >> 8;
+	out_buffer[14] = image_height & 255;
+	out_buffer[15] = image_height >> 8;
+	out_buffer[16] = bitDepth;
+	//Alpha/Attribute bits whatever
+	out_buffer[17] = bitDepth == 32 ? 8 : 0;
+
+	// Fill output buffer
+	if (!image_compressed) { // Plain memcpy
+		byte *buftemp = out_buffer+filesize;
+		switch (image_type) {
+		case mmeShotTypeRGBA:
+			for (i = 0; i < imagePixels; i++ ) {
+				/* Also handle the RGBA to BGRA conversion here */
+				*buftemp++ = image_buffer[2];
+				*buftemp++ = image_buffer[1];
+				*buftemp++ = image_buffer[0];
+				*buftemp++ = image_buffer[3];
+				image_buffer += 4;
+			}
+			filesize += image_width*image_height*4;
+			break;
+		case mmeShotTypeRGB:
+			for (i = 0; i < imagePixels; i++ ) {
+				/* Also handle the RGB to BGR conversion here */
+				*buftemp++ = image_buffer[2];
+				*buftemp++ = image_buffer[1];
+				*buftemp++ = image_buffer[0];
+				image_buffer += 3;
+			}
+			filesize += image_width*image_height*3;
+			break;
+		case mmeShotTypeGray:
+			/* Stupid copying of data here but oh well */
+			Com_Memcpy( buftemp, image_buffer, image_width*image_height );
+			filesize += image_width*image_height;
+			break;
+		}
+	} else {
+		switch (image_type) {
+		case mmeShotTypeRGB:
+			filesize += SaveTGA_RLERGB(out_buffer+filesize, image_width, image_height, image_buffer );
+			break;
+		case mmeShotTypeRGBA:
+			filesize += SaveTGA_RLERGBA(out_buffer+filesize, image_width, image_height, image_buffer );
+			break;
+		case mmeShotTypeGray:
+			filesize += SaveTGA_RLEGray(out_buffer+filesize, image_width, image_height, image_buffer );
+			break;
+		}
+	}
+	return filesize;
+}
+
+#ifdef SUPPORT_PNG
+typedef struct {
+	char *buffer;
+	unsigned int bufferSize;
+	unsigned int bufferUsed;
+} PNGWriteData_t;
+
+static void PNG_write_data(png_structp png_ptr, png_bytep data, png_size_t length) {
+	PNGWriteData_t *ioData = (PNGWriteData_t *)png_get_io_ptr( png_ptr );
+	if ( ioData->bufferUsed + length < ioData->bufferSize) {
+		Com_Memcpy( ioData->buffer + ioData->bufferUsed, data, length );
+		ioData->bufferUsed += length;
+	}
+}
+
+static void PNG_flush_data(png_structp png_ptr) {
+
+}
+
+/* Save PNG */
+int SavePNG( int compresslevel, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size ) {
+	png_structp png_ptr = 0;
+	png_infop info_ptr = 0;
+	png_bytep *row_pointers = 0;
+	PNGWriteData_t writeData;
+	int i, rowSize;
+
+	writeData.bufferUsed = 0;
+	writeData.bufferSize = out_size;
+	writeData.buffer = (char *)out_buffer;
+	if (!writeData.buffer)
+		goto skip_shot;
+	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,NULL, NULL);
+	if (!png_ptr)
+		goto skip_shot;
+	info_ptr = png_create_info_struct(png_ptr);
+	if (!info_ptr)
+		goto skip_shot;
+
+	/* Finalize the initing of png library */
+    png_set_write_fn(png_ptr, &writeData, PNG_write_data, PNG_flush_data );
+	if (compresslevel < 0 || compresslevel > Z_BEST_COMPRESSION)
+		compresslevel = Z_DEFAULT_COMPRESSION;
+	png_set_compression_level(png_ptr, compresslevel );
+	
+	/* set other zlib parameters */
+	png_set_compression_mem_level(png_ptr, 8);
+	png_set_compression_strategy(png_ptr,Z_DEFAULT_STRATEGY);
+	png_set_compression_window_bits(png_ptr, 15);
+	png_set_compression_method(png_ptr, 8);
+	png_set_compression_buffer_size(png_ptr, 8192);
+	if ( image_type == mmeShotTypeRGB ) {
+		rowSize = image_width*3;
+		png_set_IHDR(png_ptr, info_ptr, image_width, image_height, 8, 
+			PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+		png_write_info(png_ptr, info_ptr );
+	} else if ( image_type == mmeShotTypeRGBA ) {
+		rowSize = image_width*4;
+		png_set_IHDR(png_ptr, info_ptr, image_width, image_height, 8, 
+			PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
+			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+		png_write_info(png_ptr, info_ptr );
+	} else if ( image_type == mmeShotTypeGray ) {
+		rowSize = image_width*1;
+		png_set_IHDR(png_ptr, info_ptr, image_width, image_height, 8, 
+			PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
+			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+		png_write_info(png_ptr, info_ptr );
+	}
+	/*Allocate an array of scanline pointers*/
+	row_pointers=(png_bytep*)malloc(image_height*sizeof(png_bytep));
+	for (i=0;i<image_height;i++) {
+		row_pointers[i]=(image_buffer+(image_height -1 - i )*rowSize );
+	}
+	/*tell the png library what to encode.*/
+	png_write_image(png_ptr, row_pointers);
+	png_write_end(png_ptr, 0);
+
+	//PNG_TRANSFORM_PACKSWAP | PNG_TRANSFORM_STRIP_FILLER
+skip_shot:
+	if (png_ptr)
+		png_destroy_write_struct(&png_ptr, &info_ptr);
+	if (row_pointers)
+		free(row_pointers);
+	return writeData.bufferUsed;
+}
+#else
+void SavePNG(const char * filename, const int compresslevel, const int image_width, const int image_height, const byte *image_buffer, const int image_hasalpha) {
+
+}
+#endif

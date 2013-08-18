@@ -655,6 +655,8 @@ void trap_FX_PlayEffectID( int id, vec3_t org, vec3_t fwd, int vol, int rad )
 		id == cgs.effects.itemCone					  ||
 		id == cgs.effects.mSpawn					  ||
 		id == cgs.effects.mSparks ) {
+			if (fx_vfps.integer <= 0)
+				fx_vfps.integer = 1;
 			if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
 			{
 				doFX = qtrue;
@@ -672,6 +674,8 @@ void trap_FX_PlayEffectID( int id, vec3_t org, vec3_t fwd, int vol, int rad )
 
 void trap_FX_PlayEffectIDFix( int id, vec3_t org, vec3_t fwd, int vol, int rad )
 {
+	if (fx_vfps.integer <= 0)
+		fx_vfps.integer = 1;
 	if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
 	{
 		doFX = qtrue;
@@ -1169,6 +1173,19 @@ void trap_WE_AddWeatherZone( const vec3_t mins, const vec3_t maxs )
 Ghoul2 Insert End
 */
 
+
+
+/* New MME Syscalls */
+
+void trap_MME_Capture( const char *baseName, float fps, float focus ) {
+	Q_syscall( CG_MME_CAPTURE, baseName, PASSFLOAT(fps), PASSFLOAT( focus ) );
+}
+void trap_MME_CaptureStereo( const char *baseName, float fps, float focus ) {
+	Q_syscall( CG_MME_CAPTURE_STEREO, baseName, PASSFLOAT(fps), PASSFLOAT( focus ) );
+}
+void trap_MME_BlurInfo( int* total, int* index ) {
+	Q_syscall( CG_MME_BLURINFO, total, index );
+}
 int trap_MME_SeekTime( int seekTime ) {
 	return Q_syscall( CG_MME_SEEKTIME, seekTime );
 }

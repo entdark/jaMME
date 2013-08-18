@@ -19,12 +19,16 @@
 #include <assert.h>
 #include "tr_local.h"
 
+#include "qcommon/qcommon.h"
+
 #include "resource.h"
 #include "glw_win.h"
 #include "win_local.h"
 #include "qcommon/stringed_ingame.h"
 extern void WG_CheckHardwareGamma( void );
 extern void WG_RestoreGamma( void );
+
+qboolean GLW_CreateWindow( int width, int height, int colorbits, qboolean cdsFullscreen );
 
 typedef enum {
 	RSERR_OK,
@@ -40,6 +44,10 @@ typedef enum {
 #define TRY_PFD_FAIL_HARD	2
 
 #define	WINDOW_CLASS_NAME CLIENT_WINDOW_TITLE
+
+#ifndef MULTISAMPLE_FILTER_HINT_NV		
+#define	MULTISAMPLE_FILTER_HINT_NV                0x8534
+#endif
 
 static void		GLW_InitExtensions( void );
 static rserr_t	GLW_SetMode( int mode, 
@@ -65,6 +73,108 @@ cvar_t	*r_allowSoftwareGL;		// don't abort out if the pixelformat claims softwar
 // Whether the current hardware supports dynamic glows/flares.
 extern bool g_bDynamicGlowSupported;
 
+
+static void GLW_ARB_InitExtensions( void ) {
+	const char *wglExtensions;
+
+	if (!glw_state.hDC || !glw_state.hGLRC)
+		return; 
+
+	if ( qwglGetExtensionsStringARB )
+		return;
+
+	qwglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)qwglGetProcAddress( "wglGetExtensionsStringARB" );
+	
+	if (qwglGetExtensionsStringARB) {
+		wglExtensions = qwglGetExtensionsStringARB( glw_state.hDC );
+	} else {
+		wglExtensions = "";
+	}
+
+	if (strstr( wglExtensions, "WGL_ARB_pixel_format")) {
+		ri.Printf( PRINT_ALL, "...Found WGL_ARB_pixel_format extension\n");
+		qwglGetPixelFormatAttribivARB = (PFNWGLGETPIXELFORMATATTRIBIVARBPROC) qwglGetProcAddress( "wglGetPixelFormatAttribivARB" );
+		qwglGetPixelFormatAttribfvARB = (PFNWGLGETPIXELFORMATATTRIBFVARBPROC) qwglGetProcAddress( "wglGetPixelFormatAttribfvARB" );
+		qwglChoosePixelFormatARB      = (PFNWGLCHOOSEPIXELFORMATARBPROC) qwglGetProcAddress( "wglChoosePixelFormatARB" );
+	}
+	if (strstr( wglExtensions, "WGL_ARB_pbuffer")) {
+		ri.Printf( PRINT_ALL, "...Found WGL_ARB_pbuffer extension\n");
+		qwglCreatePbufferARB          = (PFNWGLCREATEPBUFFERARBPROC) qwglGetProcAddress( "wglCreatePbufferARB" );
+		qwglGetPbufferDCARB           = (PFNWGLGETPBUFFERDCARBPROC) qwglGetProcAddress( "wglGetPbufferDCARB" );
+		qwglReleasePbufferDCARB       = (PFNWGLRELEASEPBUFFERDCARBPROC) qwglGetProcAddress( "wglReleasePbufferDCARB" );
+		qwglDestroyPbufferARB         = (PFNWGLDESTROYPBUFFERARBPROC) qwglGetProcAddress( "wglDestroyPbufferARB" );
+		qwglQueryPbufferARB           = (PFNWGLQUERYPBUFFERARBPROC) qwglGetProcAddress( "wglQueryPbufferARB" );
+	}
+}
+
+static int GLW_ChoosePixelFormatARB( int colorBits, int depthBits, int stencilBits, int samples, int pbuffer, int stereo ) {
+	int *iAttr;
+	int iAttribs[64];
+	int pixelformat;
+	unsigned int matching;
+
+	if (!qwglChoosePixelFormatARB)
+		return 0;
+	if (pbuffer && !qwglCreatePbufferARB)
+		return 0;
+
+	iAttr = iAttribs;
+	if (pbuffer) {
+			*iAttr++ = WGL_PIXEL_TYPE_ARB;
+			*iAttr++ = WGL_TYPE_RGBA_ARB;
+			*iAttr++ = WGL_DRAW_TO_PBUFFER_ARB;
+			*iAttr++ = TRUE;
+#if 0
+			*iAttr++ = WGL_BIND_TO_TEXTURE_RGB_ARB
+			*iAttr++ = TRUE;
+#endif
+			*iAttr++ = WGL_DOUBLE_BUFFER_ARB;
+			*iAttr++ = 0;
+	} else {
+		*iAttr++ = WGL_DRAW_TO_WINDOW_ARB;
+		*iAttr++ = GL_TRUE;
+		*iAttr++ = WGL_DOUBLE_BUFFER_ARB;
+		/* Don't bother with double buffering or multisampling with an active pbuffer */
+		if (glw_state.pbuf.hDC) {
+			samples = 0;
+			*iAttr++ = 0;
+		} else {
+			*iAttr++ = 1;
+		}
+	}
+	*iAttr++ = WGL_ACCELERATION_ARB;
+	*iAttr++ = WGL_FULL_ACCELERATION_ARB;
+	*iAttr++ = WGL_SUPPORT_OPENGL_ARB;
+	*iAttr++ = GL_TRUE;
+
+	*iAttr++ = WGL_COLOR_BITS_ARB;
+	*iAttr++ = colorBits;
+	*iAttr++ = WGL_DEPTH_BITS_ARB;
+	*iAttr++ = depthBits;
+	*iAttr++ = WGL_STENCIL_BITS_ARB;
+	*iAttr++ = stencilBits;
+	*iAttr++ = WGL_AUX_BUFFERS_ARB;
+	*iAttr++ = 0;
+
+	if ( stereo ) {
+		*iAttr++ = WGL_STEREO_ARB;
+		*iAttr++ = GL_TRUE;
+	}
+	if ( samples ) {
+		*iAttr++ = WGL_SAMPLE_BUFFERS_ARB;
+		*iAttr++ = 1;
+		*iAttr++ = WGL_SAMPLES_ARB;
+		*iAttr++ = samples;
+	}
+	*iAttr = 0;
+	qwglChoosePixelFormatARB( glw_state.hDC, iAttribs, 0, 1, &pixelformat, &matching);
+	if (!matching)
+		return 0;
+	else 
+		return pixelformat;
+}
+
+
 // Hack variable for deciding which kind of texture rectangle thing to do (for some
 // reason it acts different on radeon! It's against the spec!).
 bool g_bTextureRectangleHack = false;
@@ -77,6 +187,75 @@ static qboolean GLW_StartDriverAndSetMode( int mode,
 										   qboolean cdsFullscreen )
 {
 	rserr_t err;
+
+
+		if (!qwglGetExtensionsStringARB && ( r_multiSample->integer || ( mme_renderWidth->integer && mme_renderHeight->integer )) ) {
+		if (GLW_CreateWindow( 320, 200, 0, qfalse )) {
+			GLW_ARB_InitExtensions( ) ;
+		}
+	}
+
+	/* If offscreen rendering has been enabled, skip the normal opengl window setup */
+	if (mme_renderWidth->integer > 0 && mme_renderHeight->integer > 0) {
+		int pbufferList[] = {	
+			WGL_TEXTURE_FORMAT_ARB, WGL_TEXTURE_RGB_ARB,
+			WGL_TEXTURE_TARGET_ARB, WGL_TEXTURE_2D_ARB,
+			WGL_MIPMAP_TEXTURE_ARB,	0,
+			0 };
+
+
+		GLint	pixelFormat;
+		int		width, height, samples;
+		int attrib = WGL_SAMPLES_ARB;
+
+chooseAgain:
+		pixelFormat = GLW_ChoosePixelFormatARB( 32, 24, 8, r_multiSample->integer, 1, 0);
+
+		if (!pixelFormat) {
+			if ( r_multiSample->integer ) {
+				ri.Printf( PRINT_ALL, "Can't create pbuffer pixelformat, trying without multisampling\n" );
+				ri.Cvar_Set( "r_multiSample", "0" );
+				goto chooseAgain;
+			} else {
+				ri.Printf( PRINT_ALL, "Can't create pbuffer pixelformat, skipping pbuffer\n" );
+				goto skip_pbuffer;
+			}
+		}
+
+		width = mme_renderWidth->integer;
+		height = mme_renderHeight->integer;
+
+		glw_state.pbuf.buffer = qwglCreatePbufferARB( glw_state.hDC, pixelFormat, width, height, NULL /* pbufferList */ );
+		if (!glw_state.pbuf.buffer) {
+			int error = GetLastError();
+			goto skip_pbuffer;
+		}
+
+		qwglGetPixelFormatAttribivARB( glw_state.hDC, pixelFormat, 0, 1, &attrib, &samples );
+
+		glw_state.pbuf.hDC = qwglGetPbufferDCARB( glw_state.pbuf.buffer );
+		if(!glw_state.pbuf.hDC)
+			goto skip_pbuffer;
+
+		glw_state.pbuf.hGLRC = qwglCreateContext( glw_state.pbuf.hDC );
+		if(!glw_state.pbuf.hGLRC )
+			goto skip_pbuffer;
+			
+		qwglShareLists( glw_state.hGLRC, glw_state.pbuf.hGLRC );
+		//Get the actual pBuffer dimensions
+		qwglQueryPbufferARB( glw_state.pbuf.buffer, WGL_PBUFFER_WIDTH_ARB, &width);
+		qwglQueryPbufferARB( glw_state.pbuf.buffer, WGL_PBUFFER_HEIGHT_ARB, &height);
+
+		ri.Printf(PRINT_ALL, "Pbuffer Created: (%d x %d) samples %d format %d\n", width, height, samples, pixelFormat );
+		glConfig.vidWidth = width;
+		glConfig.vidHeight = height;
+		qwglMakeCurrent( glw_state.pbuf.hDC, glw_state.pbuf.hGLRC );
+//		glConfig.windowAspect = 1;
+		/* Always force on the console with pbuffer drawing */
+//		Sys_ShowConsole( 1, qfalse );
+		return qtrue;
+	}
+skip_pbuffer:
 
 	err = GLW_SetMode( mode, colorbits, cdsFullscreen );
 
@@ -338,6 +517,38 @@ static void GLW_CreatePFD( PIXELFORMATDESCRIPTOR *pPFD, int colorbits, int depth
 static int GLW_MakeContext( PIXELFORMATDESCRIPTOR *pPFD )
 {
 	int pixelformat;
+	PIXELFORMATDESCRIPTOR tempPFD;
+
+
+	glMMEConfig.multiSamples = 0;
+	pixelformat = GLW_ChoosePixelFormatARB( 
+		pPFD->cColorBits, pPFD->cDepthBits, pPFD->cStencilBits, r_multiSample->integer, 0, (pPFD->dwFlags & PFD_STEREO));
+
+	if ( pixelformat ) {
+		int samples;
+		int attrib = WGL_SAMPLES_ARB;
+
+		qwglGetPixelFormatAttribivARB( glw_state.hDC, pixelformat, 0, 1, &attrib, &samples );
+		DescribePixelFormat( glw_state.hDC, pixelformat, sizeof( tempPFD ), &tempPFD );
+
+		if (!SetPixelFormat( glw_state.hDC, pixelformat, &tempPFD )) {
+			ri.Printf( PRINT_ALL, "...SetPixelFormat %d with %d multisampling failed, falling back\n", pixelformat, samples );
+			ri.Printf( PRINT_ALL, "Error code %d\n", GetLastError());
+			glw_state.pixelFormatSet = qfalse;
+		} else {
+			ri.Printf( PRINT_ALL, "...PixelFormat %d with %d multisampling selected\n", pixelformat, samples );
+			*pPFD = tempPFD;
+			glw_state.pixelFormatSet = qtrue;
+			glMMEConfig.multiSamples = samples;
+			if ( samples && r_multiSampleNvidia->integer && !strstr( glConfig.extensions_string, "GL_NV_multisample_filter_hint") ) {
+				qglHint( MULTISAMPLE_FILTER_HINT_NV, GL_NICEST );
+				ri.Printf( PRINT_ALL, "...Nvidia enhanced multisampling enabled\n", pixelformat, samples );
+			} else {
+				qglHint( MULTISAMPLE_FILTER_HINT_NV, GL_DONT_CARE );
+			}
+		}
+	}
+
 
 	//
 	// don't putz around with pixelformat if it's already set (e.g. this is a soft
@@ -377,7 +588,11 @@ static int GLW_MakeContext( PIXELFORMATDESCRIPTOR *pPFD )
 		if ( ( glw_state.hGLRC = qwglCreateContext( glw_state.hDC ) ) == 0 )
 		{
 			Com_Printf ( "failed\n");
-
+			if (r_multiSample->integer) {
+				Com_Printf( "...Trying again without multisampling\n" );
+				ri.Cvar_Set( "r_multiSample", "0" );
+				return TRY_PFD_FAIL_SOFT;
+			}
 			return TRY_PFD_FAIL_HARD;
 		}
 		Com_Printf ("succeeded\n" );
@@ -1518,6 +1733,88 @@ static void GLW_InitExtensions( void )
 		g_bDynamicGlowSupported = false;
 		ri.Cvar_Set( "r_DynamicGlow","0" );
 	}
+
+	//mme
+	if ( strstr( glConfig.extensions_string, "GL_EXT_texture_filter_anisotropic" ) )
+	{
+
+		qglGetIntegerv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &glMMEConfig.maxAnisotropy );
+		if ( glMMEConfig.maxAnisotropy <= 0 ) {
+			ri.Printf( PRINT_ALL, "...GL_EXT_texture_filter_anisotropic not properly supported!\n" );
+		} else {
+			ri.Printf( PRINT_ALL, "...using GL_EXT_texture_filter_anisotropic (max: %d)\n", glMMEConfig.maxAnisotropy );
+		}
+	}
+	else
+	{
+		glMMEConfig.maxAnisotropy = 0;
+		ri.Printf( PRINT_ALL, "...GL_EXT_texture_filter_anisotropic not found\n" );
+	}
+
+	glMMEConfig.framebufferObject = qfalse;
+	glMMEConfig.shaderSupport = qfalse;
+	if ( strstr( glConfig.extensions_string, "GL_EXT_framebuffer_object" ) &&
+			(1 || strstr( glConfig.extensions_string, "GL_ARB_texture_non_power_of_two" )) ) {
+		ri.Printf( PRINT_ALL, "...using GL_EXT_framebuffer_object\n" );
+		glMMEConfig.framebufferObject = qtrue;
+		qglGenFramebuffers = ( void (APIENTRY *  )(GLsizei, GLuint *) ) qwglGetProcAddress( "glGenFramebuffersEXT");
+		qglBindFramebuffer = ( void (APIENTRY *  )(GLenum, GLuint) ) qwglGetProcAddress( "glBindFramebufferEXT");
+		qglGenRenderbuffers = ( void (APIENTRY *  )(GLsizei, GLuint *) ) qwglGetProcAddress( "glGenRenderbuffersEXT");
+		qglBindRenderbuffer = ( void (APIENTRY *  )(GLenum, GLuint) ) qwglGetProcAddress( "glBindRenderbufferEXT");
+		qglRenderbufferStorage = ( void (APIENTRY *  )(GLenum, GLenum, GLsizei, GLsizei) ) qwglGetProcAddress( "glRenderbufferStorageEXT");
+		qglFramebufferRenderbuffer = ( void (APIENTRY *  )(GLenum, GLenum, GLenum, GLuint) ) qwglGetProcAddress( "glFramebufferRenderbufferEXT");
+		qglFramebufferTexture2D = ( void (APIENTRY *  )(GLenum, GLenum, GLenum, GLuint, GLint) ) qwglGetProcAddress( "glFramebufferTexture2DEXT");
+		qglCheckFramebufferStatus = ( GLenum (APIENTRY *)(GLenum) ) qwglGetProcAddress( "glCheckFramebufferStatusEXT");
+		qglDeleteFramebuffers = ( void (APIENTRY * )(GLsizei, const GLuint *) ) qwglGetProcAddress( "glDeleteFramebuffersEXT");
+		qglDeleteRenderbuffers = ( void (APIENTRY * )(GLsizei, const GLuint *) ) qwglGetProcAddress( "glDeleteRenderbuffersEXT");
+	
+		if ( !strstr( glConfig.extensions_string, "GL_ARB_depth_texture" ) )  {
+			ri.Printf( PRINT_WARNING, "WARNING: GL_ARB_depth_texture is missing\n");
+		}
+		if (	!strstr( glConfig.extensions_string, "GL_EXT_packed_depth_stencil" )  || 
+				!strstr( glConfig.extensions_string, "GL_NV_packed_depth_stencil" ) ) {
+			ri.Printf( PRINT_WARNING, "WARNING: packed_depth_stencil is missing\n");
+		}
+	}
+	glMMEConfig.framebufferMultiSample = qfalse;
+	if ( strstr( glConfig.extensions_string, "GL_EXT_framebuffer_multisample") && strstr( glConfig.extensions_string, "GL_EXT_framebuffer_blit")) {
+		qglRenderbufferStorageMultisampleEXT = (void (APIENTRYP) ( GLenum, GLsizei, GLenum, GLsizei, GLsizei ) )qwglGetProcAddress( "glRenderbufferStorageMultisampleEXT" );
+		qglBlitFramebufferEXT = (void (APIENTRYP) ( GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLbitfield, GLenum ) )  qwglGetProcAddress( "glBlitFramebufferEXT" );
+		glMMEConfig.framebufferMultiSample = qfalse;
+	}
+		 		
+
+	//added fragment/vertex program extensions
+	if ( strstr( glConfig.extensions_string, "GL_ARB_fragment_shader" ) && 
+		 strstr( glConfig.extensions_string, "GL_ARB_vertex_program" ) &&
+		 strstr( glConfig.extensions_string, "GL_ARB_vertex_shader" ) &&
+		 strstr( glConfig.extensions_string, "GL_ARB_fragment_program" ) &&
+		 strstr( glConfig.extensions_string, "GL_ARB_shading_language_100" )) 
+	{
+		ri.Printf( PRINT_ALL, "...using GL_ARB_fragment_program\n" );
+		ri.Printf( PRINT_ALL, "...using GL_ARB_vertex_program\n" );
+		ri.Printf( PRINT_ALL, "...using GL_ARB_shading_language_100\n" );
+		glMMEConfig.shaderSupport = qtrue;
+		qglAttachShader = ( void (APIENTRY * ) (GLuint, GLuint) ) qwglGetProcAddress( "glAttachShader");
+		qglBindAttribLocation = ( void (APIENTRY * ) (GLuint, GLuint, const GLchar *) ) qwglGetProcAddress( "glBindAttribLocation");
+		qglCompileShader = ( void (APIENTRY * ) (GLuint) ) qwglGetProcAddress( "glCompileShader");
+		qglCreateProgram = ( GLuint (APIENTRY * ) (void) ) qwglGetProcAddress( "glCreateProgram");
+		qglCreateShader = ( GLuint (APIENTRY * ) (GLenum) ) qwglGetProcAddress( "glCreateShader");
+		qglDeleteProgram = ( void (APIENTRY * ) (GLuint) ) qwglGetProcAddress( "glDeleteProgram");
+		qglDeleteShader = ( void (APIENTRY * ) (GLuint) ) qwglGetProcAddress( "glDeleteShader");
+		qglShaderSource = ( void (APIENTRY * ) (GLuint, GLsizei, const GLchar* *, const GLint *) ) qwglGetProcAddress( "glShaderSource");
+		qglLinkProgram = ( void (APIENTRY * ) (GLuint) ) qwglGetProcAddress( "glLinkProgram");
+		qglUseProgram = ( void (APIENTRY * ) (GLuint) ) qwglGetProcAddress( "glUseProgram");
+		qglGetUniformLocation = ( GLint (APIENTRY * ) (GLuint, const GLchar *) ) qwglGetProcAddress( "glGetUniformLocation");
+		qglUniform1f = ( void (APIENTRY * ) (GLint, GLfloat) ) qwglGetProcAddress( "glUniform1f");
+		qglUniform2f = ( void (APIENTRY * ) (GLint, GLfloat, GLfloat) ) qwglGetProcAddress( "glUniform2f");
+		qglUniform1i = ( void (APIENTRY * ) (GLint, GLint) ) qwglGetProcAddress( "glUniform1i");
+		qglGetProgramiv = ( void (APIENTRY * ) (GLuint, GLenum, GLint *) ) qwglGetProcAddress( "glGetProgramiv");
+		qglGetProgramInfoLog = ( void (APIENTRY * ) (GLuint, GLsizei, GLsizei *, GLchar *) ) qwglGetProcAddress( "glGetProgramInfoLog");
+		qglGetShaderiv = ( void (APIENTRY * ) (GLuint, GLenum, GLint *) ) qwglGetProcAddress( "glGetShaderiv");
+		qglGetShaderInfoLog = ( void (APIENTRY * ) (GLuint, GLsizei, GLsizei *, GLchar *) ) qwglGetProcAddress( "glGetShaderInfoLog");
+	}
+
 }
 
 /*

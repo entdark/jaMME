@@ -23,6 +23,11 @@ extern void CG_DrawSkyBoxPortal(const char *cstr);
 extern qboolean PM_InKnockDown( playerState_t *ps );
 extern void CG_InterpolatePlayerState( qboolean grabAngles );
 
+extern void trap_MME_BlurInfo( int* total, int * index );
+extern void trap_MME_Capture( const char *baseName, float fps, float focus );
+extern void trap_MME_CaptureStereo( const char *baseName, float fps, float focus );
+extern int trap_MME_SeekTime( int seekTime );
+
 static void CG_DemosUpdatePlayer( void ) {
 	demo.oldcmd = demo.cmd;
 	trap_GetUserCmd( trap_GetCurrentCmdNumber(), &demo.cmd );
@@ -123,7 +128,7 @@ int demoSetupView( void) {
 	qboolean zoomFix;	//to see disruptor zoom when we are chasing a player
 
 	cg.playerCent = 0;
-//	demo.viewFocus = 0;
+	demo.viewFocus = 0;
 	demo.viewTarget = -1;
 
 	switch (demo.viewType) {
@@ -134,11 +139,14 @@ int demoSetupView( void) {
 			if ( cent->currentState.number < MAX_CLIENTS ) {
 				cg.playerCent = cent;
 				cg.playerPredicted = cent == &cg_entities[cg.snap->ps.clientNum];
-				if (!cg.playerPredicted ) {
+//				if (!cg.playerPredicted ) {
 					//Make sure lerporigin of playercent is val
-					CG_CalcEntityLerpPositions( cg.playerCent );
-				}
-				cg.renderingThirdPerson = cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0) || cg.playerCent->playerState->weapon == WP_SABER;
+//					CG_CalcEntityLerpPositions( cg.playerCent );
+//				}
+				cg.renderingThirdPerson = (cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0)
+					|| cg.playerCent->playerState->weapon == WP_SABER
+					|| cg.playerCent->playerState->weapon == WP_MELEE)
+					&& cg.predictedPlayerState.zoomMode == 0;
 				CG_DemosCalcViewValues();
 //				CG_CalcViewValues();
 				// first person blend blobs, done after AnglesToAxis
@@ -194,7 +202,7 @@ int demoSetupView( void) {
 	}
 	VectorCopy( demo.viewOrigin, cg.refdef.vieworg );
 	AnglesToAxis( demo.viewAngles, cg.refdef.viewaxis );
-/*	//we don't use viewFocus
+
 	if ( demo.viewTarget >= 0 ) {
 		centity_t* targetCent = demoTargetEntity( demo.viewTarget );
 		if ( targetCent ) {
@@ -204,7 +212,7 @@ int demoSetupView( void) {
 			demo.viewFocus = DotProduct( cg.refdef.viewaxis[0], targetOrigin ) - DotProduct( cg.refdef.viewaxis[0], cg.refdef.vieworg  );
 		}
 	}
-*/
+
 	cg.refdef.width = cgs.glconfig.vidWidth*cg_viewsize.integer/100;
 	cg.refdef.width &= ~1;
 
@@ -314,10 +322,11 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	int deltaTime;
 	qboolean hadSkip;
 	qboolean captureFrame;
-//	float captureFPS;
+	float captureFPS;
 	float frameSpeed;
-//	int blurTotal, blurIndex;
-//	float blurFraction;
+	int blurTotal, blurIndex;
+	float blurFraction;
+	qboolean stereoCaptureSkip = qfalse;
 
 	int inwater;
 	const char *cstr;
@@ -355,6 +364,16 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	}
 
 	captureFrame = demo.capture.active && !demo.play.paused;
+	if ( captureFrame ) {
+		trap_MME_BlurInfo( &blurTotal, &blurIndex );
+		captureFPS = mov_captureFPS.value;
+		if ( blurTotal > 0) {
+			captureFPS *= blurTotal;
+			blurFraction = blurIndex / (float)blurTotal;
+		} else {
+			blurFraction = 0;
+		}
+	}
 
 	/* Forward the demo */
 	deltaTime = serverTime - demo.serverTime;
@@ -372,7 +391,28 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	demo.play.oldTime = demo.play.time;
 
 	/* forward the time a bit till the moment of capture */
-	if ( demo.find ) {	//we don't even use this :s
+	if ( captureFrame && demo.capture.locked && demo.play.time < demo.capture.start) {
+		int left = demo.capture.start - demo.play.time;
+		if ( left > 2000) {
+			left -= 1000;
+			captureFrame = qfalse;
+		} else if (left > 5) {
+			captureFrame = qfalse;
+			left = 5;
+		}
+		demo.play.time += left;
+	} else if ( captureFrame && demo.loop.total && blurTotal ) {
+		float loopFraction = demo.loop.index / (float)demo.loop.total;
+		demo.play.time = demo.loop.start;
+		demo.play.fraction = demo.loop.range * loopFraction;
+		demo.play.time += (int)demo.play.fraction;
+		demo.play.fraction -= (int)demo.play.fraction;
+	} else if (captureFrame) {
+		float frameDelay = 1000.0f / captureFPS;
+		demo.play.fraction += frameDelay * demo.play.speed;
+		demo.play.time += (int)demo.play.fraction;
+		demo.play.fraction -= (int)demo.play.fraction;
+	} else if ( demo.find ) {
 		demo.play.time = demo.play.oldTime + 20;
 		demo.play.fraction = 0;
 		if ( demo.play.paused )
@@ -383,9 +423,38 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		demo.play.fraction = delta - (int)delta;
 	}
 
-	demo.play.lastTime = demo.play.time;
+	//that is used for music, we don't have that (yet)
+//	demo.play.lastTime = demo.play.time;
 
-	lineAt( demo.play.time, demo.play.fraction, &demo.line.time, &cg.timeFraction, &frameSpeed );
+	if ( demo.loop.total && captureFrame && blurTotal ) {
+		//Delay till we hit the right part at the start
+		int time;
+		float timeFraction;
+		if ( demo.loop.lineDelay && !blurIndex ) {
+			time = demo.loop.start - demo.loop.lineDelay;
+			timeFraction = 0;
+			if ( demo.loop.lineDelay > 8 )
+				demo.loop.lineDelay -= 8;
+			else
+				demo.loop.lineDelay = 0;
+			captureFrame = qfalse;
+		} else {
+			if ( blurIndex == blurTotal - 1 ) {
+				//We'll restart back to the start again
+				demo.loop.lineDelay = 2000;
+				if ( ++demo.loop.index >= demo.loop.total ) {
+					demo.loop.total = 0;
+				}
+			}
+			time = demo.loop.start;
+			timeFraction = demo.loop.range * blurFraction;
+		}
+		time += (int)timeFraction;
+		timeFraction -= (int)timeFraction;
+		lineAt( time, timeFraction, &demo.line.time, &cg.timeFraction, &frameSpeed );
+	} else {
+		lineAt( demo.play.time, demo.play.fraction, &demo.line.time, &cg.timeFraction, &frameSpeed );
+	}
 
 	/* Set the correct time */
 	cg.time = trap_MME_SeekTime( demo.line.time );
@@ -532,7 +601,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		CG_PowerupTimerSounds();
 		CG_AddViewWeapon( &cg.predictedPlayerState  );
 	} else if ( cg.playerCent && cg.playerCent->currentState.number < MAX_CLIENTS )  {
-		CG_AddViewWeapon( &cg.predictedPlayerState );
+//		CG_AddViewWeapon( &cg.predictedPlayerState );
 //		CG_AddViewWeaponDirect( cg.playerCent );	//uncomment when fixed, now all clieants have weapon from recorded client
 	}
 
@@ -618,13 +687,14 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	if ( demo.viewType == viewChase && cg.playerCent && ( cg.playerCent->currentState.number < MAX_CLIENTS ) ) {
 		CG_Draw2D();
 	} else if (cg_draw2D.integer) {
-		CG_DrawFPS( 0 );
+//		CG_DrawFPS( 0 );
+		CG_DrawUpperRight();
 	}
 
 	CG_DrawActive( stereoView );
 
 	CG_DrawAutoMap();
-
+/*
 	if (demo.capture.locked) {
 		static qboolean captureStarted = qfalse;
 		if (demo.play.time >= demo.capture.start && demo.play.time <= demo.capture.end && captureFrame ) {
@@ -659,20 +729,49 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 			}
 		}
 	}
+*/
+	if (captureFrame) {
+		char fileName[MAX_OSPATH];
+		float stereo = CG_Cvar_Get("r_stereoSeparation");
+		Com_sprintf( fileName, sizeof( fileName ), "capture/%s/%s", mme_demoFileName.string, mov_captureName.string );
+		if (stereo == 0) {
+			trap_MME_Capture( fileName, captureFPS, demo.viewFocus );
+		} else {
+			//we can capture stereo 3d only through cl_main
+			trap_Cvar_Set("cl_mme_name", fileName);
+			trap_Cvar_Set("cl_mme_fps", va( "%f", captureFPS ));
+			trap_Cvar_Set("cl_mme_focus", va( "%f", demo.viewFocus ));
+			trap_Cvar_Set("mme_name", fileName);
+			trap_Cvar_Set("mme_fps", va( "%f", captureFPS ));
+			trap_Cvar_Set("mme_focus", va( "%f", demo.viewFocus ));
+			trap_Cvar_Set("cl_mme_capture", "1");
 
+		}
+//		trap_Cvar_Set("cl_aviFrameRate", va( "%f", mov_captureFPS.value ));	//CL_AVI
+//		trap_SendConsoleCommand( "video" );
+		if ( mov_captureCamera.integer )
+			demoAddViewPos( fileName, demo.viewOrigin, demo.viewAngles, demo.viewFov );
+	} else {
+		trap_Cvar_Set("cl_mme_capture", "0");
+		if (demo.editType)
+			demoDrawCrosshair();
+		hudDraw();
+	}
+
+/*
 	if (!captureFrame) {
 		if (demo.editType)
 			demoDrawCrosshair();
 		hudDraw();
 	}
-/*
+*/
 	if ( demo.capture.active && demo.capture.locked && demo.play.time > demo.capture.end  ) {
 		Com_Printf( "Capturing ended\n" );
 		if (demo.autoLoad) {
 			trap_SendConsoleCommand( "disconnect\n" );
 		} 
 		demo.capture.active = qfalse;
-	}*/
+	}
 }
 
 void CG_DemosAddLog(const char *fmt, ...) {
@@ -809,6 +908,7 @@ void demoPlaybackInit(void) {
 //	char projectFile[MAX_OSPATH];
 
 	demo.initDone = qtrue;
+	demo.autoLoad = qfalse;
 	demo.play.time = 0;
 	demo.play.lastTime = 0;
 	demo.play.fraction = 0;
@@ -823,6 +923,8 @@ void demoPlaybackInit(void) {
 	demo.line.offset = 0;
 	demo.line.speed = 1.0f;
 	demo.line.points = 0;
+
+	demo.loop.total = 0;
 
 	demo.editType = editCamera;
 	demo.viewType = viewChase;
@@ -864,7 +966,7 @@ void demoPlaybackInit(void) {
 	demo.media.switchOff = trap_R_RegisterShaderNoMip( "mme_message_off" );
 
 	trap_SendConsoleCommand("exec mmedemos.cfg\n");
-//	trap_Cvar_Set( "mov_captureName", "" );
+	trap_Cvar_Set( "mov_captureName", "" );
 }
 
 qboolean CG_DemosConsoleCommand( void ) {

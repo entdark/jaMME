@@ -52,6 +52,11 @@ cvar_t	*cl_aviFrameRate;
 cvar_t	*cl_aviMotionJpeg;
 cvar_t	*cl_forceavidemo;
 
+cvar_t	*cl_mme_capture;
+cvar_t	*cl_mme_fps;
+cvar_t	*cl_mme_name;
+cvar_t	*cl_mme_focus;
+
 cvar_t	*cl_freelook;
 cvar_t	*cl_sensitivity;
 
@@ -2342,6 +2347,35 @@ void CL_Frame ( int msec ) {
 		}
 	}
 
+	if (cl_mme_capture->integer) {
+//		CL_CaptureStereo(cl_mme_name->string, cl_mme_fps->value, cl_mme_focus->value);
+		float stereoSep;
+		
+		stereoSep = Cvar_VariableValue( "r_stereoSeparation" );
+		if (stereoSep != 0) {
+			if (stereoSep > 0)
+				stereoSep = -stereoSep;
+
+			Cvar_SetValue("r_stereoSeparation", stereoSep);
+			SCR_UpdateScreen();
+			re.Capture( cl_mme_name->string, cl_mme_fps->value, cl_mme_focus->value );
+//			Cbuf_ExecuteText( EXEC_NOW, "screenshot_mme left\n" );
+
+			stereoSep = -stereoSep;
+
+			Cvar_SetValue("r_stereoSeparation", stereoSep);
+			SCR_UpdateScreen();
+			re.CaptureStereo( cl_mme_name->string, cl_mme_fps->value, cl_mme_focus->value  );
+//			Cbuf_ExecuteText( EXEC_NOW, "screenshot_mme right\n" );
+		} else {
+//			re.Capture( cl_mme_name->string, cl_mme_fps->value, cl_mme_focus->value  );
+		}
+		msec = (1000 / abs(cl_mme_fps->integer)) * com_timescale->value;
+		if (msec == 0) {
+			msec = 1;
+		}
+	}
+
 	// save the msec before checking pause
 	cls.realFrametime = msec;
 
@@ -2415,6 +2449,27 @@ void CL_Frame ( int msec ) {
 	cls.framecount++;
 }
 
+void CL_CaptureStereo ( const char *shotName, float fps, float focus ) {
+	float stereoSep;
+		
+	stereoSep = Cvar_VariableValue( "r_stereoSeparation" );
+	if (stereoSep != 0) {
+		if (stereoSep > 0)
+			stereoSep = -stereoSep;
+
+		Cvar_SetValue("r_stereoSeparation", stereoSep);
+		SCR_UpdateScreen();
+		re.Capture( shotName, fps, focus );
+
+		stereoSep = -stereoSep;
+
+		Cvar_SetValue("r_stereoSeparation", stereoSep);
+		SCR_UpdateScreen();
+		re.CaptureStereo( shotName, fps, focus  );
+	} else {
+		re.Capture( shotName, fps, focus  );
+	}
+}
 
 //============================================================================
 
@@ -2623,8 +2678,11 @@ void CL_InitRef( void ) {
 	ri.FS_FOpenFileWrite = FS_FOpenFileWrite;
 	ri.FS_FOpenFileByMode = FS_FOpenFileByMode;
 	ri.FS_FileExists = FS_FileExists;
+	ri.FS_DirectOpen = FS_DirectOpen;
+	ri.FS_FileErase = FS_FileErase;
 	ri.FS_FileIsInPAK = FS_FileIsInPAK;
 	ri.FS_ListFiles = FS_ListFiles;
+	ri.FS_Seek = FS_Seek;
 	ri.FS_Write = FS_Write;
 	ri.FS_WriteFile = FS_WriteFile;
 	ri.CM_BoxTrace = CM_BoxTrace;
@@ -2835,6 +2893,11 @@ void CL_Init( void ) {
 	cl_aviFrameRate = Cvar_Get ("cl_aviFrameRate", "25", CVAR_ARCHIVE);
 	cl_aviMotionJpeg = Cvar_Get ("cl_aviMotionJpeg", "1", CVAR_ARCHIVE);
 	cl_forceavidemo = Cvar_Get ("cl_forceavidemo", "0", 0);
+
+	cl_mme_capture = Cvar_Get ("cl_mme_capture", "0", CVAR_INTERNAL);
+	cl_mme_fps = Cvar_Get ("cl_mme_fps", "0", CVAR_INTERNAL);
+	cl_mme_name = Cvar_Get ("cl_mme_name", "", CVAR_INTERNAL);
+	cl_mme_focus = Cvar_Get("cl_mme_focus", "0", CVAR_INTERNAL);
 
 	rconAddress = Cvar_Get ("rconAddress", "", 0);
 

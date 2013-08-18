@@ -228,6 +228,11 @@ typedef struct {
 	int					(*SavePNG)								( char *filename, byte *buf, size_t width, size_t height, int byteDepth );
 
 	IGhoul2InfoArray &	(*TheGhoul2InfoArray)					( void );
+
+	//mme
+	void				(*Capture)								( const char *baseName, float fps, float focus );
+	void				(*CaptureStereo)								( const char *baseName, float fps, float focus );
+	void				(*BlurInfo)								( int* total, int* index );
 } refexport_t;
 
 //
@@ -276,8 +281,11 @@ typedef struct {
 	fileHandle_t	(*FS_FOpenFileWrite)				( const char *qpath );
 	int				(*FS_FOpenFileByMode)				( const char *qpath, fileHandle_t *f, fsMode_t mode );
 	qboolean		(*FS_FileExists)					( const char *file );
+	FILE *			(*FS_DirectOpen)					( const char *name, const char *mode );
+	qboolean		(*FS_FileErase)						( const char *file );
 	int				(*FS_FileIsInPAK)					( const char *filename, int *pChecksum );
 	char **			(*FS_ListFiles)						( const char *directory, const char *extension, int *numfiles );
+	int				(*FS_Seek)							( fileHandle_t f, long offset, int origin );
 	int				(*FS_Write)							( const void *buffer, int len, fileHandle_t f );
 	void			(*FS_WriteFile)						( const char *qpath, const void *buffer, int size );
 	void			(*CM_BoxTrace)						( trace_t *results, const vec3_t start, const vec3_t end, const vec3_t mins, const vec3_t maxs, clipHandle_t model, int brushmask, int capsule );

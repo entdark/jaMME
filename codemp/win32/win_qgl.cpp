@@ -19,6 +19,8 @@ void QGL_EnableLogging( qboolean enable );
 
 int ( WINAPI * qwglSwapIntervalEXT)( int interval );
 
+const char *( WINAPI * qwglGetExtensionsStringARB) (HDC);
+
 BOOL  ( WINAPI * qwglCopyContext)(HGLRC, HGLRC, UINT);
 HGLRC ( WINAPI * qwglCreateContext)(HDC);
 HGLRC ( WINAPI * qwglCreateLayerContext)(HDC, int);
@@ -379,6 +381,40 @@ void ( APIENTRY * qglVertex4sv )(const GLshort *v);
 void ( APIENTRY * qglVertexPointer )(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
 void ( APIENTRY * qglViewport )(GLint x, GLint y, GLsizei width, GLsizei height);
 
+//added framebuffer extensions
+void (APIENTRY * qglGenFramebuffers )(GLsizei, GLuint *);
+void (APIENTRY * qglBindFramebuffer )(GLenum, GLuint);
+void (APIENTRY * qglGenRenderbuffers )(GLsizei, GLuint *);
+void (APIENTRY * qglBindRenderbuffer )(GLenum, GLuint);
+void (APIENTRY * qglRenderbufferStorage )(GLenum, GLenum, GLsizei, GLsizei);
+void (APIENTRY * qglFramebufferRenderbuffer )(GLenum, GLenum, GLenum, GLuint);
+void (APIENTRY * qglFramebufferTexture2D )(GLenum, GLenum, GLenum, GLuint, GLint);
+GLenum (APIENTRY * qglCheckFramebufferStatus )(GLenum);
+void (APIENTRY * qglDeleteFramebuffers )(GLsizei, const GLuint *);
+void (APIENTRY * qglDeleteRenderbuffers )(GLsizei, const GLuint *);
+
+void (APIENTRY * qglRenderbufferStorageMultisampleEXT ) ( GLenum target, GLsizei samples, GLenum internalformat, GLsizei width , GLsizei height );
+void (APIENTRY * qglBlitFramebufferEXT )( GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter );
+
+//added fragment/vertex program extensions
+void (APIENTRYP qglAttachShader) (GLuint, GLuint);
+void (APIENTRYP qglBindAttribLocation) (GLuint, GLuint, const GLchar *);
+void (APIENTRYP qglCompileShader) (GLuint);
+GLuint (APIENTRYP qglCreateProgram) (void);
+GLuint (APIENTRYP qglCreateShader) (GLenum);
+void (APIENTRYP qglDeleteProgram) (GLuint);
+void (APIENTRYP qglDeleteShader) (GLuint);
+void (APIENTRYP qglShaderSource) (GLuint, GLsizei, const GLchar* *, const GLint *);
+void (APIENTRYP qglLinkProgram) (GLuint);
+void (APIENTRYP qglUseProgram) (GLuint);	
+GLint (APIENTRYP qglGetUniformLocation) (GLuint, const GLchar *);
+void (APIENTRYP qglUniform1f) (GLint, GLfloat);
+void (APIENTRYP qglUniform2f) (GLint, GLfloat, GLfloat);
+void (APIENTRYP qglUniform1i) (GLint, GLint);
+void (APIENTRYP qglGetProgramiv) (GLuint, GLenum, GLint *);
+void (APIENTRYP qglGetProgramInfoLog) (GLuint, GLsizei, GLsizei *, GLchar *);
+void (APIENTRYP qglGetShaderiv) (GLuint, GLenum, GLint *);
+void (APIENTRYP qglGetShaderInfoLog) (GLuint, GLsizei, GLsizei *, GLchar *);
 
 
 static void ( APIENTRY * dllAccum )(GLenum op, GLfloat value);

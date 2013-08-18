@@ -3975,7 +3975,7 @@ static void CG_DrawPowerupIcons(int y)
 					icoShader = trap_R_RegisterShader( item->icon );
 				}
 
-				CG_DrawPic( (640-(ico_size*1.1)) + xOffset, y, ico_size, ico_size, icoShader );
+				CG_DrawPic( (640-(ico_size*1.1)*cgs.widthRatioCoef) + xOffset, y, ico_size*cgs.widthRatioCoef, ico_size, icoShader );
 	
 				y += ico_size;
 

@@ -292,10 +292,10 @@ static qboolean cameraAnglesAt( int time, float timeFraction, vec3_t angles) {
 			QuatFromAnglesClosest( tempAngles, q2, q3 );
 			times[3] = times[2] - (times[2] - times[1]);
 		}
-		controlQuats(q0, q1, q2, q3, quats);
+//		controlQuats(q0, q1, q2, q3, quats);
 		// QuatTimeSpline is much smoother and looks cooler though it can interpolate extra angles and this is not cool
-		QuatTimeSpline( lerp, times, quats, qr );
-//		QuatSquad( lerp, q0, q1, q2, q3, qr );
+//		QuatTimeSpline( lerp, times, quats, qr );
+		QuatSquad( lerp, q0, q1, q2, q3, qr );
 		QuatToAngles( qr, angles );
 	}
 	return qtrue;

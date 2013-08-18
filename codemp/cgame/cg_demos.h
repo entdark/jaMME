@@ -115,7 +115,7 @@ typedef struct demoMain_s {
 	demoViewType_t	viewType;
 	vec_t			viewFov;
 	int				viewTarget;
-//	float			viewFocus;
+	float			viewFocus;
 	demoEditType_t	editType;
 
 	vec3_t		cmdDeltaAngles;
@@ -134,6 +134,7 @@ typedef struct demoMain_s {
 	demofindType_t find;
 	qboolean	seekEnabled;
 	qboolean	initDone;
+	qboolean	autoLoad;
 	demoLog_t	log;
 } demoMain_t;
 

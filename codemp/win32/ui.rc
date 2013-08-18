@@ -71,12 +71,12 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "OpenJK Contributors"
-            VALUE "FileDescription", "OpenJK UI"
+            VALUE "Comments", "jaMME Contributors"
+            VALUE "FileDescription", "JA User Interface DLL"
             VALUE "FileVersion", VERSION_STRING
             VALUE "InternalName", "ui"
             VALUE "OriginalFilename", "ui.dll"
-            VALUE "ProductName", "OpenJK"
+            VALUE "ProductName", "Jedi Knight®: Jedi Academy (MP)"
             VALUE "ProductVersion", VERSION_STRING
         END
     END

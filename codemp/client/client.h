@@ -381,6 +381,12 @@ extern	cvar_t	*cl_avidemo;
 extern	cvar_t	*cl_aviFrameRate;
 extern	cvar_t	*cl_aviMotionJpeg;
 
+extern	cvar_t	*cl_mme_capture;
+extern	cvar_t	*cl_mme_fps;
+extern	cvar_t	*cl_mme_name;
+extern	cvar_t	*cl_mme_focus;
+
+
 extern	cvar_t	*cl_activeAction;
 
 extern	cvar_t	*cl_allowDownload;
@@ -450,6 +456,8 @@ int CL_ServerStatus( char *serverAddress, char *serverStatusString, int maxLen )
 qboolean CL_CheckPaused(void);
 
 void CL_WriteAudio( const byte *pcmBuffer, int size );
+
+void CL_CaptureStereo ( const char *shotName, float fps, float focus );
 
 //
 // cl_input

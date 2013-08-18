@@ -221,6 +221,14 @@ void FS_HomeRemove( const char *homePath ) {
 			fs_gamedir, homePath ) );
 }
 
+FILE * FS_DirectOpen( const char *name, const char *mode ) {
+	char *testpath;
+
+	testpath = FS_BuildOSPath( fs_homepath->string, fs_gamedir, name );
+
+	return fopen( testpath, mode );
+}
+
 /*
 ================
 FS_FileExists
@@ -244,6 +252,15 @@ qboolean FS_FileExists( const char *file )
 		return qtrue;
 	}
 	return qfalse;
+}
+
+qboolean FS_FileErase( const char *file )
+{
+	char *testpath;
+
+	testpath = FS_BuildOSPath( fs_homepath->string, fs_gamedir, file );
+
+	return (qboolean)(_unlink( testpath ) == 0);
 }
 
 /*

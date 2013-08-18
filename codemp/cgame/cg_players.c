@@ -4440,21 +4440,65 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 
 	ent.hModel = hModel;
 
-	ent.modelScale[0] = 0.5;
-	ent.modelScale[1] = 0.5;
-	ent.modelScale[2] = 0.5;
-	ScaleModelAxis(&ent);
+	if ( mov_simpleFlags.integer ) {
+		vec3_t angs;
+		int team = 0;
 
-	/*
-	if (cent->currentState.number == cg.snap->ps.clientNum)
-	{ //If we're the current client (in third person), render the flag on our back transparently
+		ent.modelScale[0] = 0.5;
+		ent.modelScale[1] = -0.5;//0.5;//edited by ent; raz0r's simple flag
+		ent.modelScale[2] = 0.5;
+		ScaleModelAxis(&ent);
+			
+		ent.reType = RT_ORIENTED_QUAD;
+
+		team = cgs.clientinfo[cent->currentState.number].team;
+
+		if (cgs.gametype == GT_CTF)
+		{
+			if (team == TEAM_RED)
+			{
+				ent.customShader = cgs.media.simpleFlagBlue;
+			}
+			else
+			{
+				ent.customShader = cgs.media.simpleFlagRed;
+			}
+		}
+		ent.shaderRGBA[0] = ent.shaderRGBA[1] = ent.shaderRGBA[2] = 255;
+		ent.shaderRGBA[3] = 200;
+		ent.radius = 32;
+		/* works wrong :s
+		VectorCopy( cent->currentState.angles, angs );
+		angs[2] = 0.0f;
+		AnglesToAxis( angs, ent.axis );
+		*/
+		ent.origin[2] += 17;
 		ent.renderfx |= RF_FORCE_ENT_ALPHA;
-		ent.shaderRGBA[3] = 100;
-	}
-	*/
-	//FIXME: Not doing this at the moment because sorting totally messes up
 
-	trap_R_AddRefEntityToScene( &ent );
+		trap_R_AddRefEntityToScene( &ent, cent->currentState.number );
+		ent.modelScale[0] = 1.0;
+		ent.modelScale[1] = -1.0;
+		ent.modelScale[2] = 1.0;
+		ScaleModelAxis( &ent );
+	//	trap_R_AddRefEntityToScene( &ent );
+		trap_R_AddRefEntityToScene( &ent, cent->currentState.number );
+	} else {
+		ent.modelScale[0] = 0.5;
+		ent.modelScale[1] = 0.5;
+		ent.modelScale[2] = 0.5;
+		ScaleModelAxis(&ent);
+
+		/*
+		if (cent->currentState.number == cg.snap->ps.clientNum)
+		{ //If we're the current client (in third person), render the flag on our back transparently
+			ent.renderfx |= RF_FORCE_ENT_ALPHA;
+			ent.shaderRGBA[3] = 100;
+		}
+		*/
+		//FIXME: Not doing this at the moment because sorting totally messes up
+
+		trap_R_AddRefEntityToScene( &ent );
+	}
 }
 
 
@@ -4858,6 +4902,8 @@ static void CG_ForcePushBlur( vec3_t org, centity_t *cent )
 	{
 		localEntity_t	*ex;
 
+		if (fx_vfps.integer <= 0)
+			fx_vfps.integer = 1;
 		if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
 		{
 			doFX = qtrue;

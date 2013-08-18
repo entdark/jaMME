@@ -1341,6 +1341,9 @@ extern	vec4_t		colorDkGrey;
 extern	vec4_t		colorLtBlue;
 extern	vec4_t		colorDkBlue;
 
+extern vec3_t defaultColors[10];
+int Q_parseColor( const char *p, const vec3_t numberColors[10], float *color );
+
 #define Q_COLOR_ESCAPE	'^'
 // you MUST have the last bit on here about colour strings being less than 7 or taiwanese strings register as colour!!!!
 #define Q_IsColorString(p)	( p && *(p) == Q_COLOR_ESCAPE && *((p)+1) && *((p)+1) != Q_COLOR_ESCAPE && *((p)+1) <= '7' && *((p)+1) >= '0' )
@@ -1654,6 +1657,7 @@ void Parse3DMatrix (const char **buf_p, int z, int y, int x, float *m);
 int Com_HexStrToInt( const char *str );
 
 int	QDECL Com_sprintf (char *dest, int size, const char *fmt, ...);
+void	QDECL Com_sprintfOld (char *dest, int size, const char *fmt, ...);
 
 
 // mode parm for FS_FOpenFile

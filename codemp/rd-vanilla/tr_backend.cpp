@@ -431,9 +431,78 @@ static void RB_Hyperspace( void ) {
 }
 
 
+static void SetFinalProjection( void ) {
+	float	xmin, xmax, ymin, ymax;
+	float	width, height, depth;
+	float	zNear, zFar;
+	float	dx, dy;
+	vec2_t	pixelJitter, eyeJitter;
+	
+	//
+	// set up projection matrix
+	//
+	zNear	= r_znear->value;
+	zFar	= backEnd.viewParms.zFar;
+
+	ymax = zNear * tan( backEnd.viewParms.fovY * M_PI / 360.0f );
+	ymin = -ymax;
+
+	xmax = zNear * tan( backEnd.viewParms.fovX * M_PI / 360.0f );
+	xmin = -xmax;
+
+	width = xmax - xmin;
+	height = ymax - ymin;
+	depth = zFar - zNear;
+
+	pixelJitter[0] = pixelJitter[1] = 0;
+	eyeJitter[0] = eyeJitter[1] = 0;
+	/* Jitter the view */
+	R_MME_JitterView( pixelJitter, eyeJitter );
+
+	dx = ( pixelJitter[0]*width ) / backEnd.viewParms.viewportWidth;
+	dy = ( pixelJitter[1]*height ) / backEnd.viewParms.viewportHeight;
+	dx += eyeJitter[0];
+	dy += eyeJitter[1];
+
+	xmin += dx; xmax += dx;
+	ymin += dy; ymax += dy;
+
+	qglMatrixMode(GL_PROJECTION);
+	qglPushMatrix();
+	qglLoadIdentity();
+	qglFrustum( xmin, xmax, ymin, ymax, zNear, zFar );
+	qglGetFloatv(GL_PROJECTION_MATRIX, backEnd.viewParms.projectionMatrix );
+	qglPopMatrix();
+
+#if 0
+	backEnd.viewParms.projectionMatrix[0] = 2 * zNear / width;
+	backEnd.viewParms.projectionMatrix[4] = 0;
+	backEnd.viewParms.projectionMatrix[8] = ( xmax + xmin ) / width;	// normally 0
+	backEnd.viewParms.projectionMatrix[12] = 0;
+
+	backEnd.viewParms.projectionMatrix[1] = 0;
+	backEnd.viewParms.projectionMatrix[5] = 2 * zNear / height;
+	backEnd.viewParms.projectionMatrix[9] = ( ymax + ymin ) / height;	// normally 0
+	backEnd.viewParms.projectionMatrix[13] = 0;
+
+	backEnd.viewParms.projectionMatrix[2] = 0;
+	backEnd.viewParms.projectionMatrix[6] = 0;
+	backEnd.viewParms.projectionMatrix[10] = -( zFar + zNear ) / depth;
+	backEnd.viewParms.projectionMatrix[14] = -2 * zFar * zNear / depth;
+
+	backEnd.viewParms.projectionMatrix[3] = 0;
+	backEnd.viewParms.projectionMatrix[7] = 0;
+	backEnd.viewParms.projectionMatrix[11] = -1;
+	backEnd.viewParms.projectionMatrix[15] = 0;
+#endif
+}
+
 void SetViewportAndScissor( void ) {
 	qglMatrixMode(GL_PROJECTION);
+
+//	SetFinalProjection();
 	qglLoadMatrixf( backEnd.viewParms.projectionMatrix );
+
 	qglMatrixMode(GL_MODELVIEW);
 
 	// set the window clipping
@@ -473,10 +542,11 @@ void RB_BeginDrawingView (void) {
 	SetViewportAndScissor();
 
 	// ensures that depth writes are enabled for the depth clear
-	GL_State( GLS_DEFAULT );
+//	GL_State( GLS_DEFAULT );
+	GL_State( GLS_DEFAULT | GLS_DEPTHTEST_DISABLE );
 
 	// clear relevant buffers
-	if ( r_measureOverdraw->integer || r_shadows->integer == 2 || tr_stencilled )
+	if ( r_measureOverdraw->integer || r_shadows->integer == 2 || tr_stencilled /*|| mme_saveStencil->integer*/)
 	{
 		clearBits |= GL_STENCIL_BUFFER_BIT;
 		tr_stencilled = false;
@@ -486,12 +556,18 @@ void RB_BeginDrawingView (void) {
 	{
 		if ( backEnd.refdef.rdflags & RDF_SKYBOXPORTAL )
 		{	// portal scene, clear whatever is necessary
-			if (r_fastsky->integer || (backEnd.refdef.rdflags & RDF_NOWORLDMODEL) )
-			{	// fastsky: clear color
-				// try clearing first with the portal sky fog color, then the world fog color, then finally a default
+			if (mme_skykey->string[0] != '0') {
+				vec3_t skyColor;
 				clearBits |= GL_COLOR_BUFFER_BIT;
+				Q_parseColor( mme_skykey->string, defaultColors, skyColor );
+				qglClearColor( skyColor[0], skyColor[1], skyColor[2], 1.0f );
+			} else  if (r_fastsky->integer || (backEnd.refdef.rdflags & RDF_NOWORLDMODEL) ) {
+				// fastsky: clear color
+				// try clearing first with the portal sky fog color, then the world fog color, then finally a default
+//				clearBits |= GL_COLOR_BUFFER_BIT;
 				//rwwFIXMEFIXME: Clear with fog color if there is one
 				qglClearColor ( 0.5, 0.5, 0.5, 1.0 );
+				clearBits |= GL_COLOR_BUFFER_BIT;
 			} 
 		}
 	}
@@ -1555,41 +1631,6 @@ const void *RB_RotatePic2 ( const void *data )
 	return (const void *)(cmd + 1);
 }
 
-//left for future glsl, I hope :s (from qfx)
-static void RenderFSQ( int wide, int tall ) {
-	float screenWidth = (float)wide;
-	float screenHeight = (float)tall;
-
-	qglBegin( GL_QUADS );
-		qglTexCoord2f( 0, screenHeight );
-		qglVertex2f( 0, 0 );
-		qglTexCoord2f( screenWidth, screenHeight );
-		qglVertex2f( screenWidth, 0 );
-		qglTexCoord2f( screenWidth, 0 );
-		qglVertex2f( screenWidth, screenHeight );
-		qglTexCoord2f( 0, 0 );
-		qglVertex2f( 0, screenHeight );
-	qglEnd();
-}
-
-static void RenderScaledFSQ( int wide, int tall, int wide2, int tall2 ) {
-	float screenWidth = (float)wide;
-	float screenHeight = (float)tall;
-	float screenWidth2 = (float)wide2;
-	float screenHeight2 = (float)tall2;
-
-	qglBegin( GL_QUADS );
-		qglTexCoord2f( 0, screenHeight2 );
-		qglVertex2f( 0, 0 );
-		qglTexCoord2f( screenWidth2, screenHeight2 );
-		qglVertex2f( screenWidth, 0 );
-		qglTexCoord2f( screenWidth2, 0 );
-		qglVertex2f( screenWidth, screenHeight );
-		qglTexCoord2f( 0, 0 );
-		qglVertex2f( 0, screenHeight );
-	qglEnd();
-}
-
 /*
 =============
 RB_DrawSurfs
@@ -1608,6 +1649,36 @@ const void	*RB_DrawSurfs( const void *data ) {
 
 	backEnd.refdef = cmd->refdef;
 	backEnd.viewParms = cmd->viewParms;
+
+	//mme
+	//Jitter the camera origin
+	if ( !backEnd.viewParms.isPortal && !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL) ) {
+		int i;
+		float x, y;
+		if ( R_MME_JitterOrigin( &x, &y ) ) {
+			orientationr_t* or = &backEnd.viewParms.ori;
+			orientationr_t* world = &backEnd.viewParms.world;
+
+//			VectorScale( or->axis[0], 0.5, or->axis[0] );
+//			VectorScale( or->axis[1], 0.3, or->axis[1] );
+//			VectorScale( or->axis[2], 0.8, or->axis[2] );
+			VectorMA( or->origin, x, or->axis[1], or->origin );
+			VectorMA( or->origin, y, or->axis[2], or->origin );
+//			or->origin[2] += 4000;
+//			or->origin[2] += 0.1 * x;
+			R_RotateForWorld( or, world );
+			for ( i = 0; i < 16; i++ ) {
+				int r = (rand() & 0xffff ) - 0x4000;
+				//world->modelMatrix[i] *= (0.9 + r * 0.0001);
+				//or->modelMatrix[i] *= (0.9 + r * 0.0001);
+			}
+		} else { 	
+			for ( i = 0; i < 16; i++ ) {
+//				int r = (rand() & 0xffff ) - 0x4000;
+//				backEnd.viewParms.world.modelMatrix[i] *= (0.9 + r * 0.0001);
+			}
+		}
+	}
 
 	RB_RenderDrawSurfList( cmd->drawSurfs, cmd->numDrawSurfs );
 
@@ -1677,51 +1748,7 @@ const void	*RB_DrawSurfs( const void *data ) {
 		// Draw the glow additively over the screen.
 		RB_DrawGlowOverlay(); 
 	}
-/*
-	if (mme_ppBloom->integer) {
-		int screenWidth = glConfig.vidWidth;
-		int screenHeight = glConfig.vidHeight;
-		int blurTexWidth = glConfig.vidWidth >> 1;
-		int blurTexHeight = glConfig.vidHeight >> 1;
-		float m_varBloomDarkenPower = 3.0f;	//MAKE IT CVAR LATER
-		int m_varBloomNumSteps = 8;	//MAKE IT CVAR LATER
-		float m_varBloomCombineScale = 1.5f;	//MAKE IT CVAR LATER
 
-		qglBindTexture( GL_TEXTURE_RECTANGLE_EXT, tr.m_uiScreenRGB ); 
-		qglCopyTexSubImage2D( GL_TEXTURE_RECTANGLE_EXT, 0, 0, 0, 0, 0, glConfig.vidWidth, glConfig.vidHeight );
-
-		// darken screen
-		tr.m_pBloomDarkenShader->Bind();//not completed
-		tr.m_pBloomDarkenShader->SetParameter4f( 0, m_varBloomDarkenPower, 0, 0, 0 );//not completed
-		RenderScaledFSQ( blurTexWidth, blurTexHeight, screenWidth, screenHeight );
-		qglBindTexture( GL_TEXTURE_RECTANGLE_EXT, tr.m_uiBlurTexture );
-		qglCopyTexSubImage2D( GL_TEXTURE_RECTANGLE_EXT, 0, 0, 0, 0, 0, blurTexWidth, blurTexHeight );
-
-		// blur darkened texture
-		tr.m_pBloomBlurShader->Bind();
-		for ( int i = 0; i < m_varBloomNumSteps; i++ ) {
-			tr.m_pBloomBlurShader->SetParameter4f( 0, 1, 0, 0, 0 );
-			RenderFSQ( blurTexWidth, blurTexHeight );
-			qglCopyTexSubImage2D( GL_TEXTURE_RECTANGLE_EXT, 0, 0, 0, 0, 0, blurTexWidth, blurTexHeight );
-
-			tr.m_pBloomBlurShader->SetParameter4f( 0, 0, 1, 0, 0 );
-			RenderFSQ( blurTexWidth, blurTexHeight );
-			qglCopyTexSubImage2D( GL_TEXTURE_RECTANGLE_EXT, 0, 0, 0, 0, 0, blurTexWidth, blurTexHeight );
-		}
-
-		// combine normal and blurred scenes
-		tr.m_pBloomCombineShader->Bind();
-		tr.m_pBloomCombineShader->SetParameter4f( 0, m_varBloomCombineScale, 0, 0, 0 );
-		qglBindTexture( GL_TEXTURE_RECTANGLE_EXT, tr.m_uiScreenRGB );
-		qglActiveTextureARB( GL_TEXTURE1_ARB );
-		qglBindTexture( GL_TEXTURE_RECTANGLE_EXT, tr.m_uiBlurTexture );
-		qglActiveTextureARB( GL_TEXTURE0_ARB );
-		RenderFSQ( screenWidth, screenHeight );
-
-		// unbind shader
-		tr.m_pBloomCombineShader->Unbind();
-	}
-*/
 	return (const void *)(cmd + 1);
 }
 
@@ -1738,6 +1765,8 @@ const void	*RB_DrawBuffer( const void *data ) {
 	cmd = (const drawBufferCommand_t *)data;
 
 	qglDrawBuffer( cmd->buffer );
+
+	R_FrameBuffer_StartFrame();
 
 	// clear screen for debugging
 	if (tr.world && tr.world->globalFog != -1)
@@ -1872,6 +1901,11 @@ const void	*RB_SwapBuffers( const void *data ) {
 
 	cmd = (const swapBuffersCommand_t *)data;
 
+	if ( r_stereoSeparation->value == 0) {
+		if ( R_MME_MultiPassNext() ) {
+			return (const void *)-1;
+		}
+	}
 	// we measure overdraw by reading back the stencil buffer and
 	// counting up the number of increments that have happened
 	if ( r_measureOverdraw->integer ) {
@@ -1893,6 +1927,11 @@ const void	*RB_SwapBuffers( const void *data ) {
     if ( !glState.finishCalled ) {
         qglFinish();
 	}
+	/* Allow MME to take a screenshot */
+	if ( r_stereoSeparation->value == 0) {
+		R_MME_TakeShot( );
+	}
+	R_FrameBuffer_EndFrame();
 
     GLimp_LogComment( "***************** RB_SwapBuffers *****************\n\n\n" );
 
@@ -1924,6 +1963,11 @@ const void	*RB_WorldEffects( const void *data )
 	return (const void *)(cmd + 1);
 }
 
+const void	*RB_IncDataCapture( const void *data ) {
+	const captureCommand_t *cmd = (const captureCommand_t *)data;
+	return (const void *)(cmd + 1);
+}
+
 /*
 ====================
 RB_ExecuteRenderCommands
@@ -1933,14 +1977,15 @@ smp extensions, or asyncronously by another thread.
 ====================
 */
 extern const void *R_DrawWireframeAutomap(const void *data); //tr_world.cpp
-void RB_ExecuteRenderCommands( const void *data ) {
+void RB_ExecuteRenderCommands( const void *oldData ) {
 	int		t1, t2;
+	const void* data;
 
 	t1 = ri.Milliseconds()*ri.Cvar_VariableValue( "timescale" );
-
+again:
+	data = oldData;
 	while ( 1 ) {
 		data = PADP(data, sizeof(void *));
-
 		switch ( *(const int *)data ) {
 		case RC_SET_COLOR:
 			data = RB_SetColor( data );
@@ -1962,6 +2007,8 @@ void RB_ExecuteRenderCommands( const void *data ) {
 			break;
 		case RC_SWAP_BUFFERS:
 			data = RB_SwapBuffers( data );
+			if ( (int)data == -1)
+				goto again;
 			break;
 		case RC_VIDEOFRAME:
 			data = RB_TakeVideoFrameCmd( data );
@@ -1971,6 +2018,13 @@ void RB_ExecuteRenderCommands( const void *data ) {
 			break;
 		case RC_AUTO_MAP:
 			data = R_DrawWireframeAutomap(data);
+			break;
+		case RC_CAPTURE:
+			if (r_stereoSeparation->value == 0) {
+				data = R_MME_CaptureShotCmd( data );
+			} else {
+				data = RB_IncDataCapture( data );
+			}
 			break;
 		case RC_END_OF_LIST:
 		default:

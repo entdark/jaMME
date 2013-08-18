@@ -14,7 +14,12 @@ typedef struct
 	HGLRC   hGLRC;			// handle to GL rendering context
 
 	HINSTANCE hinstOpenGL;	// HINSTANCE for the OpenGL library
-
+	struct {
+		HPBUFFERARB		buffer;
+		HDC				hDC;		// handle to device context
+		HGLRC			hGLRC;		// handle to GL rendering context
+		int				width, height;
+	} pbuf;
 	qboolean allowdisplaydepthchange;
 	qboolean pixelFormatSet;
 
