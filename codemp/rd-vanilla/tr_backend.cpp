@@ -500,7 +500,9 @@ static void SetFinalProjection( void ) {
 void SetViewportAndScissor( void ) {
 	qglMatrixMode(GL_PROJECTION);
 
-//	SetFinalProjection();
+	if (r_stereoSeparation->value == 0) {
+		SetFinalProjection();
+	}
 	qglLoadMatrixf( backEnd.viewParms.projectionMatrix );
 
 	qglMatrixMode(GL_MODELVIEW);
@@ -1655,7 +1657,7 @@ const void	*RB_DrawSurfs( const void *data ) {
 	if ( !backEnd.viewParms.isPortal && !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL) ) {
 		int i;
 		float x, y;
-		if ( R_MME_JitterOrigin( &x, &y ) ) {
+		if ( R_MME_JitterOrigin( &x, &y ) && r_stereoSeparation->value == 0) {
 			orientationr_t* or = &backEnd.viewParms.ori;
 			orientationr_t* world = &backEnd.viewParms.world;
 
@@ -1672,12 +1674,12 @@ const void	*RB_DrawSurfs( const void *data ) {
 				//world->modelMatrix[i] *= (0.9 + r * 0.0001);
 				//or->modelMatrix[i] *= (0.9 + r * 0.0001);
 			}
-		} else { 	
-			for ( i = 0; i < 16; i++ ) {
+		}// else { 	
+//			for ( i = 0; i < 16; i++ ) {
 //				int r = (rand() & 0xffff ) - 0x4000;
 //				backEnd.viewParms.world.modelMatrix[i] *= (0.9 + r * 0.0001);
-			}
-		}
+//			}
+//		}
 	}
 
 	RB_RenderDrawSurfList( cmd->drawSurfs, cmd->numDrawSurfs );

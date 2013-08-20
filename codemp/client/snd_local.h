@@ -2,6 +2,9 @@
 
 // snd_local.h -- private sound definations
 
+#include "../qcommon/q_shared.h"
+#include "../qcommon/qcommon.h"
+
 #define sboolean int //rww - argh (in SP qboolean type is merely #define'd as an int, but I do not want to do that for MP over the whole base)
 
 #include "snd_public.h"

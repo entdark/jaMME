@@ -54,3 +54,9 @@ sfxHandle_t	S_RegisterSound( const char *sample );
 extern qboolean s_shutUp;
 
 void S_FreeAllSFXMem(void);
+
+// MME
+void S_MMERecord( const char *baseName, float deltaTime );
+void S_MMEWavClose( void );
+void S_MMEUpdate( float scale, const byte *pcmBuffer, int size );
+//void S_MMEMusic( const char *musicName, float time, float length );

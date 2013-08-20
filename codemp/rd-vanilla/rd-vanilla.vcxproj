@@ -187,6 +187,7 @@
     <ClCompile Include="tr_mmeOld.cpp" />
     <ClCompile Include="tr_mmeStereo.cpp" />
     <ClCompile Include="tr_mme_avi.cpp" />
+    <ClCompile Include="tr_mme_common.cpp" />
     <ClCompile Include="tr_mme_sse2.cpp" />
     <ClCompile Include="tr_model.cpp" />
     <ClCompile Include="tr_noise.cpp" />

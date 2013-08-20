@@ -704,6 +704,8 @@ void *Hunk_Alloc( int size, ha_pref preference );
 #define Com_Memset memset
 #define Com_Memcpy memcpy
 
+#define Snd_Memset Com_Memset
+
 #define CIN_system	1
 #define CIN_loop	2
 #define	CIN_hold	4

@@ -279,6 +279,7 @@ typedef struct {
 	void			(*FS_FCloseFile)					( fileHandle_t f );
 	int				(*FS_FOpenFileRead)					( const char *qpath, fileHandle_t *file, qboolean uniqueFILE );
 	fileHandle_t	(*FS_FOpenFileWrite)				( const char *qpath );
+	fileHandle_t	(*FS_FDirectOpenFileWrite)			( const char *filename, const char *mode );
 	int				(*FS_FOpenFileByMode)				( const char *qpath, fileHandle_t *f, fsMode_t mode );
 	qboolean		(*FS_FileExists)					( const char *file );
 	FILE *			(*FS_DirectOpen)					( const char *name, const char *mode );

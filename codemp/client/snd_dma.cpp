@@ -2738,6 +2738,7 @@ void S_Update( void ) {
 	int			i;
 	int			total;
 	channel_t	*ch;
+//	float		scale;
 
 	if ( !s_soundStarted || s_soundMuted ) {
 		return;
@@ -2775,6 +2776,9 @@ void S_Update( void ) {
 
 	// mix some sound
 	S_Update_();
+
+//	scale = 1.0f;
+//	S_MMEUpdate( scale );
 }
 
 void S_GetSoundtime(void)

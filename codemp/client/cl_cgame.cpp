@@ -1710,7 +1710,7 @@ Ghoul2 Insert End
 		return 0;
 	case CG_MME_CAPTURE:
 		re.Capture( (char *)VMA(1), VMF(2), VMF(3) );
-//		S_MMERecord( VMA(1), 1.0f / VMF(2) );
+		S_MMERecord( (char *)VMA(1), 1.0f / VMF(2) );
 		return 0;
 	case CG_MME_CAPTURE_STEREO:
 		re.CaptureStereo( (char *)VMA(1), VMF(2), VMF(3) );

@@ -189,7 +189,7 @@ static qboolean GLW_StartDriverAndSetMode( int mode,
 	rserr_t err;
 
 
-		if (!qwglGetExtensionsStringARB && ( r_multiSample->integer || ( mme_renderWidth->integer && mme_renderHeight->integer )) ) {
+	if (!qwglGetExtensionsStringARB && ( r_multiSample->integer || ( mme_renderWidth->integer && mme_renderHeight->integer )) ) {
 		if (GLW_CreateWindow( 320, 200, 0, qfalse )) {
 			GLW_ARB_InitExtensions( ) ;
 		}
@@ -675,7 +675,8 @@ static qboolean GLW_InitDriver( int colorbits )
 	//
 	// first attempt: r_colorbits, depthbits, and r_stencilbits
 	//
-	if ( !glw_state.pixelFormatSet )
+//	if ( !glw_state.pixelFormatSet )
+	if ( !glw_state.pixelFormatSet || qwglChoosePixelFormatARB )
 	{
 		GLW_CreatePFD( &pfd, colorbits, depthbits, stencilbits, (qboolean)r_stereo->integer );
 		if ( ( tpfd = GLW_MakeContext( &pfd ) ) != TRY_PFD_SUCCESS )
@@ -2102,6 +2103,26 @@ void GLimp_Shutdown( void )
 
 //		Com_Printf ("...wglMakeCurrent( NULL, NULL ): %s\n", success[retVal] );
 	}
+
+
+	if ( glw_state.pbuf.hGLRC )
+	{
+		retVal = qwglDeleteContext( glw_state.pbuf.hGLRC ) != 0;
+		glw_state.pbuf.hGLRC = NULL;
+	}
+
+	if ( glw_state.pbuf.hDC )
+	{
+		retVal = qwglReleasePbufferDCARB( glw_state.pbuf.buffer, glw_state.pbuf.hDC ) != 0;
+		glw_state.pbuf.hDC = NULL;
+	}
+
+	if ( glw_state.pbuf.buffer )
+	{
+		retVal = qwglDestroyPbufferARB( glw_state.pbuf.buffer ) != 0;
+		glw_state.pbuf.buffer = NULL;
+	}
+
 
 	// delete HGLRC
 	if ( glw_state.hGLRC )

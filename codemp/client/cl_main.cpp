@@ -830,6 +830,7 @@ void CL_Disconnect( qboolean showMainMenu ) {
 	}
 
 	SCR_StopCinematic ();
+	S_MMEWavClose();
 	S_ClearSoundBuffer();
 
 	// send a disconnect message to the server
@@ -2676,6 +2677,7 @@ void CL_InitRef( void ) {
 	ri.FS_FCloseFile = FS_FCloseFile;
 	ri.FS_FOpenFileRead = FS_FOpenFileRead;
 	ri.FS_FOpenFileWrite = FS_FOpenFileWrite;
+	ri.FS_FDirectOpenFileWrite = FS_FDirectOpenFileWrite;
 	ri.FS_FOpenFileByMode = FS_FOpenFileByMode;
 	ri.FS_FileExists = FS_FileExists;
 	ri.FS_DirectOpen = FS_DirectOpen;
@@ -2985,7 +2987,7 @@ void CL_Init( void ) {
 
 
 	// MME cvars
-//	mme_saveWav = Cvar_Get ("mme_saveWav", "0", CVAR_ARCHIVE );
+	mme_saveWav = Cvar_Get ("mme_saveWav", "0", CVAR_ARCHIVE );
 //	mme_anykeystopsdemo = Cvar_Get ("mme_anykeystopsdemo", "0", CVAR_ARCHIVE );
 //	mme_gameOverride = Cvar_Get ("mme_gameOverride", "", 0 );
 	mme_demoConvert = Cvar_Get ("mme_demoConvert", "1", CVAR_ARCHIVE );

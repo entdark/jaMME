@@ -9,7 +9,7 @@
 
 // MME cvars
 //cvar_t	*mme_anykeystopsdemo;
-//cvar_t	*mme_saveWav;
+cvar_t	*mme_saveWav;
 //cvar_t	*mme_gameOverride;
 cvar_t	*mme_demoConvert;
 cvar_t	*mme_demoSmoothen;

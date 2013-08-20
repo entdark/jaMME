@@ -401,7 +401,7 @@ extern	cvar_t	*cl_consoleKeys;
 
 // MME cvars
 //extern	cvar_t	*mme_anykeystopsdemo;
-//extern	cvar_t	*mme_saveWav;
+extern	cvar_t	*mme_saveWav;
 //extern	cvar_t	*mme_gameOverride;
 extern	cvar_t	*mme_demoConvert;
 extern	cvar_t	*mme_demoSmoothen;

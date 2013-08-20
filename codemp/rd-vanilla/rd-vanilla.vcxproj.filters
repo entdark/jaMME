@@ -126,6 +126,7 @@
     <ClCompile Include="tr_mme_sse2.cpp" />
     <ClCompile Include="tr_mmeStereo.cpp" />
     <ClCompile Include="tr_mme_avi.cpp" />
+    <ClCompile Include="tr_mme_common.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\jpeg-8c\jconfig.h" />

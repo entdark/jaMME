@@ -499,6 +499,9 @@
     <ClCompile Include="client\cl_mme.cpp">
       <Filter>Client</Filter>
     </ClCompile>
+    <ClCompile Include="client\snd_mme.cpp">
+      <Filter>Client</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\OpenAL\al.h">
@@ -934,6 +937,9 @@
       <Filter>Zlib</Filter>
     </ClInclude>
     <ClInclude Include="client\cl_demos.h">
+      <Filter>Client</Filter>
+    </ClInclude>
+    <ClInclude Include="client\snd_mix.h">
       <Filter>Client</Filter>
     </ClInclude>
   </ItemGroup>

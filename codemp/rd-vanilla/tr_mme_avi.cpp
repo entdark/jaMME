@@ -152,129 +152,13 @@ void aviClose( mmeAviFile_t *aviFile ) {
 		ri.FS_Write( index, 16, aviFile->f );
 	}
 //	fseek( aviFile->file, 0, SEEK_SET );
-	ri.FS_Seek(aviFile->f, 0, SEEK_SET);
+//	ri.FS_Seek(aviFile->f, 0, SEEK_SET);
+	ri.FS_Seek(aviFile->f, 0, FS_SEEK_SET);
 //	fwrite( &avi_header, 1, AVI_HEADER_SIZE, aviFile->file );
-	ri.FS_Write( avi_header, AVI_HEADER_SIZE, aviFile->f );
+	ri.FS_Write( &avi_header, AVI_HEADER_SIZE, aviFile->f );
 //	fclose( aviFile->file );
 	ri.FS_FCloseFile(aviFile->f);
 	Com_Memset( aviFile, 0, sizeof( *aviFile ));
-}
-
-void aviBeginHeader( char *avi_header, mmeAviFile_t *aviFile ) {
-//	char avi_header[AVI_HEADER_SIZE];
-	char index[16];
-	int main_list, nmain, njunk;
-	int header_pos=0;
-	int framePos, i;
-	qboolean storeMJPEG = (qboolean)0;//aviFile->format;
-
-//	if (!aviFile->file)
-//		return;
-	Com_Memset( avi_header, 0, sizeof( avi_header ));
-
-#define AVIOUT4(_S_) memcpy(&avi_header[header_pos],_S_,4);header_pos+=4;
-#define AVIOUTw(_S_) aviWrite16(&avi_header[header_pos], _S_);header_pos+=2;
-#define AVIOUTd(_S_) aviWrite32(&avi_header[header_pos], _S_);header_pos+=4;
-	/* Try and write an avi header */
-	AVIOUT4("RIFF");                    // Riff header 
-	AVIOUTd(AVI_HEADER_SIZE + aviFile->written - 8 + aviFile->frames * 16);
-	AVIOUT4("AVI ");
-	AVIOUT4("LIST");                    // List header
-	main_list = header_pos;
-	AVIOUTd(0);				            // TODO size of list
-	AVIOUT4("hdrl");
-	AVIOUT4("avih");
-	AVIOUTd(56);                         /* # of bytes to follow */
-	AVIOUTd(1000000 / aviFile->fps );    /* Microseconds per frame */
-	AVIOUTd(0);
-	AVIOUTd(0);                         /* PaddingGranularity (whatever that might be) */
-	AVIOUTd(0x110);                     /* Flags,0x10 has index, 0x100 interleaved */
-	AVIOUTd( aviFile->frames );		    /* TotalFrames */
-	AVIOUTd(0);                         /* InitialFrames */
-	AVIOUTd(1);                         /* Stream count */
-	AVIOUTd(0);                         /* SuggestedBufferSize */
-	AVIOUTd(aviFile->width);	        /* Width */
-	AVIOUTd(aviFile->height);		    /* Height */
-	AVIOUTd(0);                         /* TimeScale:  Unit used to measure time */
-	AVIOUTd(0);                         /* DataRate:   Data rate of playback     */
-	AVIOUTd(0);                         /* StartTime:  Starting time of AVI data */
-	AVIOUTd(0);                         /* DataLength: Size of AVI data chunk    */
-
-	/* Video stream list */
-	AVIOUT4("LIST");
-	AVIOUTd(4 + 8 + 56 + 8 + 40);       /* Size of the list */
-	AVIOUT4("strl");
-	/* video stream header */
-    AVIOUT4("strh");
-	AVIOUTd(56);                        /* # of bytes to follow */
-	AVIOUT4("vids");                    /* Type */
-	if ( aviFile->format == 1) { /* Handler */
-		AVIOUT4("MJPG");      		    
-	} else {
-		AVIOUTd(0);
-	}
-	AVIOUTd(0);                         /* Flags */
-	AVIOUTd(0);                         /* Reserved, MS says: wPriority, wLanguage */
-	AVIOUTd(0);                         /* InitialFrames */
-	AVIOUTd(1000000);                   /* Scale */
-	AVIOUTd(1000000 * aviFile->fps);    /* Rate: Rate/Scale == samples/second */
-	AVIOUTd(0);                         /* Start */
-	AVIOUTd(aviFile->frames);           /* Length */
-	AVIOUTd(0);                         /* SuggestedBufferSize */
-	AVIOUTd(~0);                        /* Quality */
-	AVIOUTd(0);                         /* SampleSize */
-	AVIOUTd(0);                         /* Frame */
-	AVIOUTd(0);                         /* Frame */
-	/* The video stream format */
-	AVIOUT4("strf");
-	AVIOUTd(40);                        /* # of bytes to follow */
-	AVIOUTd(40);                        /* Size */
-	AVIOUTd(aviFile->width);            /* Width */
-	AVIOUTd(aviFile->height);           /* Height */
-	AVIOUTw(1);							/* Planes */
-	if (!storeMJPEG && aviFile->type == mmeShotTypeGray ) {
-		AVIOUTw(8);						/* BitCount */
-	} else {
-		AVIOUTw(24);					/* BitCount */
-	}
-	if ( storeMJPEG ) { /* Compression */
-		AVIOUT4("MJPG");      		    
-	} else {
-		AVIOUTd(0);
-	}
-	AVIOUTd(aviFile->width * aviFile->height*3);  /* SizeImage (in bytes?) */
-	AVIOUTd(0);                  /* XPelsPerMeter */
-	AVIOUTd(0);                  /* YPelsPerMeter */
-	if ( !storeMJPEG && aviFile->type == mmeShotTypeGray ) {
-		AVIOUTd(255);			 /* colorUsed */
-	} else {
-		AVIOUTd(0);				 /* colorUsed */
-	}
-	AVIOUTd(0);                  /* ClrImportant: Number of colors important */
-	if ( !storeMJPEG && aviFile->type == mmeShotTypeGray ) {
-		for(i = 0;i<255;i++) {
-			avi_header[header_pos++] = i;
-			avi_header[header_pos++] = i;
-			avi_header[header_pos++] = i;
-			avi_header[header_pos++] = 0;
-		}
-	}
-	nmain = header_pos - main_list - 4;
-	/* Finish stream list, i.e. put number of bytes in the list to proper pos */
-	njunk = AVI_HEADER_SIZE - 8 - 12 - header_pos;
-	AVIOUT4("JUNK");
-	AVIOUTd(njunk);
-	if ( header_pos > AVI_HEADER_SIZE) {
-		ri.Error( ERR_FATAL, "Avi Header too large\n" );
-	}
-	/* Fix the size of the main list */
-	header_pos = main_list;
-	AVIOUTd(nmain);
-	header_pos = AVI_HEADER_SIZE - 12;
-	AVIOUT4("LIST");
-	AVIOUTd(aviFile->written+4); /* Length of list in bytes */
-	AVIOUT4("movi");
-	/* First add the index table to the end */
 }
 
 qboolean aviOpen( mmeAviFile_t *aviFile, const char *name, mmeShotType_t type, int width, int height, float fps) {
@@ -298,17 +182,10 @@ qboolean aviOpen( mmeAviFile_t *aviFile, const char *name, mmeShotType_t type, i
 		Com_Printf( "Max avi segments reached\n");
 		return qfalse;
 	}
-	aviFile->width = width;
-	aviFile->height = height;
-	aviFile->fps = fps;
-	aviFile->frames = 0;
-	aviFile->written = 0;
-	aviFile->format = mme_aviFormat->integer;
-	aviFile->type = type;
-	aviBeginHeader(aviHeader, aviFile);
+
 	ri.FS_WriteFile( fileName, aviHeader, AVI_HEADER_SIZE );
 //	aviFile->file = ri.FS_DirectOpen( fileName, "w+b" );
-	aviFile->f = ri.FS_FOpenFileWrite( fileName );
+	aviFile->f = ri.FS_FDirectOpenFileWrite( fileName, "w+b");//ri.FS_FOpenFileWrite( fileName );
 //	if (!aviFile->file) {
 	if (!aviFile->f) {
 		Com_Printf( "Failed to open %s for avi output\n", fileName );
