@@ -14,16 +14,16 @@ cvar_t	*mme_saveWav;
 cvar_t	*mme_demoConvert;
 cvar_t	*mme_demoSmoothen;
 cvar_t	*mme_demoFileName;
-//cvar_t	*mme_demoStartProject;
-//cvar_t	*mme_demoListQuit;
-/*
+cvar_t	*mme_demoStartProject;
+cvar_t	*mme_demoListQuit;
+
 void CL_MME_CheckCvarChanges(void) {
 	
-	if (cl_avidemo->modified) {
-		cl_avidemo->modified = qfalse;
-		clc.aviDemoRemain = 0;
-	}
+//	if (cl_avidemo->modified) {
+//		cl_avidemo->modified = qfalse;
+//		clc.aviDemoRemain = 0;
+//	}
 	if ( cls.state == CA_DISCONNECTED)
 		CL_DemoListNext_f();
 }
-*/
+

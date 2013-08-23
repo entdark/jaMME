@@ -745,7 +745,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 			trap_Cvar_Set("mme_fps", va( "%f", captureFPS ));
 			trap_Cvar_Set("mme_focus", va( "%f", demo.viewFocus ));
 			trap_Cvar_Set("cl_mme_capture", "1");
-
 		}
 //		trap_Cvar_Set("cl_aviFrameRate", va( "%f", mov_captureFPS.value ));	//CL_AVI
 //		trap_SendConsoleCommand( "video" );
@@ -758,13 +757,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		hudDraw();
 	}
 
-/*
-	if (!captureFrame) {
-		if (demo.editType)
-			demoDrawCrosshair();
-		hudDraw();
-	}
-*/
 	if ( demo.capture.active && demo.capture.locked && demo.play.time > demo.capture.end  ) {
 		Com_Printf( "Capturing ended\n" );
 		if (demo.autoLoad) {
@@ -905,7 +897,7 @@ static void demoSeekCommand_f(void) {
 }
 
 void demoPlaybackInit(void) {
-//	char projectFile[MAX_OSPATH];
+	char projectFile[MAX_OSPATH];
 
 	demo.initDone = qtrue;
 	demo.autoLoad = qfalse;
@@ -967,6 +959,27 @@ void demoPlaybackInit(void) {
 
 	trap_SendConsoleCommand("exec mmedemos.cfg\n");
 	trap_Cvar_Set( "mov_captureName", "" );
+	trap_Cvar_VariableStringBuffer( "mme_demoStartProject", projectFile, sizeof( projectFile ));
+	if (projectFile[0]) {
+		trap_Cvar_Set( "mme_demoStartProject", "" );
+		demo.autoLoad = demoProjectLoad( projectFile );
+		if (demo.autoLoad) {
+			if (!demo.capture.start && !demo.capture.end) {
+				trap_Error( "Loaded project file with empty capture range\n");
+			}
+			/* Check if the project had a cvar for the name else use project */
+			if (!mov_captureName.string[0]) {
+				trap_Cvar_Set( "mov_captureName", projectFile );
+				trap_Cvar_Update( &mov_captureName );
+			}
+			trap_SendConsoleCommand("exec mmelist.cfg\n");
+			demo.play.time = demo.capture.start - 1000;
+			demo.capture.locked = qtrue;
+			demo.capture.active = qtrue;
+		} else {
+			trap_Error( va("Couldn't load project %s\n", projectFile ));
+		}
+	}
 }
 
 qboolean CG_DemosConsoleCommand( void ) {

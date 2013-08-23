@@ -3,6 +3,10 @@
 //Anything above this #include will be ignored by the compiler
 #include "qcommon/exe_headers.h"
 #include "qcommon.h"
+#include <vector>
+#include <algorithm>
+
+typedef std::vector<cvar_t *> cvarvec_t;
 
 cvar_t		*cvar_vars = NULL;
 cvar_t		*cvar_cheats;
@@ -942,6 +946,10 @@ void Cvar_Reset_f( void ) {
 	Cvar_Reset( Cmd_Argv( 1 ) );
 }
 
+bool CvarSort(const cvar_t *cv1, const cvar_t *cv2) {
+	return Q_stricmp(cv1->name, cv2->name) < 0;
+}
+
 /*
 ============
 Cvar_WriteVariables
@@ -951,7 +959,7 @@ with the archive flag set to qtrue.
 ============
 */
 void Cvar_WriteVariables( fileHandle_t f ) {
-	cvar_t	*var;
+/*	cvar_t	*var;
 	char	buffer[1024];
 
 	for (var = cvar_vars ; var ; var = var->next) {
@@ -976,6 +984,41 @@ void Cvar_WriteVariables( fileHandle_t f ) {
 			}
 			FS_Write( buffer, strlen( buffer ), f );
 		}
+	}
+*/
+	cvarvec_t cvar_vec;
+	for (cvar_t *var = cvar_vars ; var ; var = var->next) {
+		if( !var->name )
+			continue;
+
+		if( var->flags & CVAR_ARCHIVE ) {
+			cvar_vec.push_back(var);
+		}
+	}
+
+	std::sort(cvar_vec.begin(), cvar_vec.end(), CvarSort);
+
+	cvarvec_t::const_iterator itr;
+	char buffer[1024];
+	for (itr = cvar_vec.begin(); itr != cvar_vec.end(); ++itr)
+	{
+		// write the latched value, even if it hasn't taken effect yet
+		if ( (*itr)->latchedString ) {
+			if( strlen( (*itr)->name ) + strlen( (*itr)->latchedString ) + 10 > sizeof( buffer ) ) {
+				Com_Printf( S_COLOR_YELLOW "WARNING: value of variable "
+						"\"%s\" too long to write to file\n", (*itr)->name );
+				continue;
+			}
+			Com_sprintf (buffer, sizeof(buffer), "seta %s \"%s\"\n", (*itr)->name, (*itr)->latchedString);
+		} else {
+			if( strlen( (*itr)->name ) + strlen( (*itr)->string ) + 10 > sizeof( buffer ) ) {
+				Com_Printf( S_COLOR_YELLOW "WARNING: value of variable "
+						"\"%s\" too long to write to file\n", (*itr)->name );
+				continue;
+			}
+			Com_sprintf (buffer, sizeof(buffer), "seta %s \"%s\"\n", (*itr)->name, (*itr)->string);
+		}
+		FS_Write( buffer, strlen( buffer ), f );
 	}
 }
 

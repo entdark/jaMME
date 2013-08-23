@@ -7,6 +7,15 @@
 #include "cl_demos.h"
 #include "qcommon/game_version.h"
 
+#define DEMOLISTSIZE 1024
+
+typedef struct {
+	char demoName[ MAX_OSPATH ];
+	char projectName[ MAX_OSPATH ];
+} demoListEntry_t;
+
+static demoListEntry_t	demoList[DEMOLISTSIZE];
+static int				demoListIndex, demoListCount;
 static demo_t			demo;
 static byte				demoBuffer[128*1024];
 static entityState_t	demoNullEntityState;
@@ -1035,5 +1044,103 @@ void CL_MMEDemo_f( void ) {
 		demoPlay( Cmd_Argv( 2 ) );
 	} else {
 		Com_Printf("That does not compute...%s\n", cmd );
+	}
+}
+
+void CL_DemoList_f(void) {
+	int len, i;
+	char *buf;
+	char word[MAX_OSPATH];
+	int	index;
+	qboolean readName;
+	qboolean haveQuote;
+
+	demoListCount = 0;
+	demoListIndex = 0;
+	haveQuote = qfalse;
+
+	if (Cmd_Argc() < 2) {
+		Com_Printf( "Usage demoList filename.\n");
+		Com_Printf( "That file should have lines with demoname projectname." );
+		Com_Printf( "These will be played after each other." );
+	}
+	if (!FS_FileExists( Cmd_Argv(1))) {
+		Com_Printf( "Listfile %s doesn't exist\n", Cmd_Argv(1));
+		return;
+	}
+	len = FS_ReadFile( Cmd_Argv(1), (void **)&buf);
+	if (!buf) {
+		Com_Printf("file %s couldn't be opened\n", Cmd_Argv(1));
+		return;
+	}
+	i = 0;
+	index = 0;
+	readName = qtrue;
+	while( i < len) {
+		switch (buf[i]) {
+		case '\r':
+			break;
+		case '"':
+			if (!haveQuote) {
+				haveQuote = qtrue;
+				break;
+			}
+		case '\n':
+		case ' ':
+		case '\t':
+			if (haveQuote && buf[i] != '"') {
+				if (index < (sizeof(word)-1)) {
+	              word[index++] = buf[i];  
+				}
+				break;
+			}
+			if (!index)
+				break;
+			haveQuote = qfalse;
+			word[index++] = 0;
+			if (readName) {
+				Com_Memcpy( demoList[demoListCount].demoName, word, index );
+				readName = qfalse;
+			} else {
+				if (demoListCount < DEMOLISTSIZE) {
+					Com_Memcpy( demoList[demoListCount].projectName, word, index );
+					demoListCount++;
+				}
+				readName = qtrue;
+			}
+			index = 0;
+			break;
+		default:
+			if (index < (sizeof(word)-1)) {
+              word[index++] = buf[i];  
+			}
+			break;
+		}
+		i++;
+	}
+	/* Handle a final line if any */
+	if (!readName && index && demoListCount < DEMOLISTSIZE) {
+		word[index++] = 0;
+		Com_Memcpy( demoList[demoListCount].projectName, word, index );
+		demoListCount++;
+	}
+
+	FS_FreeFile ( buf );
+	demoListIndex = 0;
+}
+
+void CL_DemoListNext_f(void) {
+	if ( demoListIndex < demoListCount ) {
+		const demoListEntry_t *entry = &demoList[demoListIndex++];
+		Cvar_Set( "mme_demoStartProject", entry->projectName );
+		Com_Printf( "Starting demo %s with project %s\n",
+			entry->demoName, entry->projectName );
+		Cmd_ExecuteString( va( "demo \"%s\"\n", entry->demoName ));
+	} else if (demoListCount) {
+		Com_Printf( "DemoList:Finished playing %d demos\n", demoListCount );
+		demoListCount = 0;
+		demoListIndex = 0;
+		if ( mme_demoListQuit->integer )
+			Cbuf_ExecuteText( EXEC_APPEND, "quit" );
 	}
 }

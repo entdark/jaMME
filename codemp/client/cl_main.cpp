@@ -2416,6 +2416,9 @@ void CL_Frame ( int msec ) {
 	// drop the connection
 	CL_CheckTimeout();
 
+	// MME:
+	CL_MME_CheckCvarChanges();
+
 	// send intentions now
 	CL_SendCmd();
 
@@ -2991,10 +2994,10 @@ void CL_Init( void ) {
 //	mme_anykeystopsdemo = Cvar_Get ("mme_anykeystopsdemo", "0", CVAR_ARCHIVE );
 //	mme_gameOverride = Cvar_Get ("mme_gameOverride", "", 0 );
 	mme_demoConvert = Cvar_Get ("mme_demoConvert", "1", CVAR_ARCHIVE );
-//	mme_demoListQuit = Cvar_Get ("mme_demoListQuit", "", CVAR_ARCHIVE );
+	mme_demoListQuit = Cvar_Get ("mme_demoListQuit", "", CVAR_ARCHIVE );
 	mme_demoSmoothen = Cvar_Get ("mme_demoSmoothen", "1", CVAR_ARCHIVE );
 	mme_demoFileName = Cvar_Get ("mme_demoFileName", "", CVAR_TEMP | CVAR_NORESTART );
-//	mme_demoStartProject = Cvar_Get ("mme_demoStartProject", "", CVAR_TEMP );
+	mme_demoStartProject = Cvar_Get ("mme_demoStartProject", "", CVAR_TEMP );
 
 	//
 	// register our commands
@@ -3027,8 +3030,8 @@ void CL_Init( void ) {
 	// MME commands
 //	Cmd_AddCommand ("csList", CL_CSList_f);
 	Cmd_AddCommand ("mmeDemo", CL_MMEDemo_f);
-//	Cmd_AddCommand ("demoList", CL_DemoList_f);
-//	Cmd_AddCommand ("demoListNext", CL_DemoListNext_f );
+	Cmd_AddCommand ("demoList", CL_DemoList_f);
+	Cmd_AddCommand ("demoListNext", CL_DemoListNext_f );
 
 	CL_InitRef();
 

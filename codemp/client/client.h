@@ -406,15 +406,15 @@ extern	cvar_t	*mme_saveWav;
 extern	cvar_t	*mme_demoConvert;
 extern	cvar_t	*mme_demoSmoothen;
 extern	cvar_t	*mme_demoFileName;
-//extern  cvar_t	*mme_demoListQuit;
-//extern	cvar_t	*mme_demoStartProject;
+extern  cvar_t	*mme_demoListQuit;
+extern	cvar_t	*mme_demoStartProject;
 
 //=================================================
 // cl_demos
 void CL_PlayDemo_f( void );
 void CL_MMEDemo_f( void );
-//void CL_DemoList_f( void );
-//void CL_DemoListNext_f( void );
+void CL_DemoList_f( void );
+void CL_DemoListNext_f( void );
 //void CL_DemoShutDown( void );
 void CL_DemoSetCGameTime( void );
 void demoConvert( const char *oldName, const char *newName, qboolean smoothen );
@@ -620,3 +620,9 @@ void CL_WriteAVIVideoFrame( const byte *imageBuffer, int size );
 void CL_WriteAVIAudioFrame( const byte *pcmBuffer, int size );
 qboolean CL_CloseAVI( void );
 qboolean CL_VideoRecording( void );
+
+
+//
+// cl_mme.c
+//
+void CL_MME_CheckCvarChanges(void);
