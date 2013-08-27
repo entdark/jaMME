@@ -192,10 +192,7 @@ void S_TransferStereo16 (unsigned long *pbuf, int endtime)
 
 		if( CL_VideoRecording( ) )
 			CL_WriteAVIAudioFrame( (byte *)snd_out, snd_linear_count << 1 );
-		S_MMEUpdate(1.0f, (byte *)snd_out, snd_linear_count << 1);
-		// same as above but for separated audio stream
-//		if(cl_avidemo->integer)
-//			CL_WriteAudio( (byte *)snd_out, snd_linear_count << 1 );
+		S_MMEUpdate(1.0f, (byte *)snd_out, snd_linear_count /*<< 1*/);
 	}
 }
 

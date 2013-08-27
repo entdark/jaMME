@@ -4,7 +4,7 @@
 #define MME_SNDCHANNELS 128
 #define MME_LOOPCHANNELS 128
 
-#define SAMPLERATE	44100	//22050
+#define SAMPLERATE	22050
 
 extern	cvar_t	*mme_saveWav;
 
@@ -127,15 +127,15 @@ void S_MMEUpdate( float scale, const byte *buffer, int size ) {
 	}	
 	S_MixClipOutput( count, mixTemp, mixClip, 0, MAXUPDATE - 1 );
 */	//FS_Write( mixClip, count*4, mmeSound.fileHandle );
-	FS_Write( buffer, size*2, mmeSound.fileHandle );
-	mmeSound.fileSize += size*2;
+	FS_Write( buffer, size, mmeSound.fileHandle );
+	mmeSound.fileSize += size;
 	mmeSound.gotFrame = qfalse;
 }
 
 void S_MMERecord( const char *baseName, float deltaTime ) {
 	char fileName[MAX_OSPATH];
 
-//	if (!mme_saveWav->integer)	//uncomment when audio capture be fine
+	if (!mme_saveWav->integer)	//uncomment when audio capture be fine
 		return;
 	if (Q_stricmp(baseName, mmeSound.baseName)) {
 		if (mmeSound.fileHandle)

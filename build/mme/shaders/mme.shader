@@ -41,6 +41,14 @@ mme/black
 	}
 }
 
+mme/white
+{
+	{
+		map *white
+		rgbgen const ( 1 1 1 )
+	}
+}
+
 mme_cursor
 {
 	nopicmip

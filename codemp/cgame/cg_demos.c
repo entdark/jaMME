@@ -752,8 +752,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 			demoAddViewPos( fileName, demo.viewOrigin, demo.viewAngles, demo.viewFov );
 	} else {
 		trap_Cvar_Set("cl_mme_capture", "0");
-		if (demo.editType)
-			demoDrawCrosshair();
+//		if (demo.editType)
+//			demoDrawCrosshair();
 		hudDraw();
 	}
 

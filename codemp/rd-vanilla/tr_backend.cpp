@@ -558,31 +558,38 @@ void RB_BeginDrawingView (void) {
 	{
 		if ( backEnd.refdef.rdflags & RDF_SKYBOXPORTAL )
 		{	// portal scene, clear whatever is necessary
-			if (mme_skykey->string[0] != '0') {
+/*			if (mme_skykey->string[0] != '0') {
 				vec3_t skyColor;
 				clearBits |= GL_COLOR_BUFFER_BIT;
 				Q_parseColor( mme_skykey->string, defaultColors, skyColor );
 				qglClearColor( skyColor[0], skyColor[1], skyColor[2], 1.0f );
-			} else  if (r_fastsky->integer || (backEnd.refdef.rdflags & RDF_NOWORLDMODEL) ) {
+			} else*/ if (r_fastsky->integer || (backEnd.refdef.rdflags & RDF_NOWORLDMODEL) ) {
 				// fastsky: clear color
 				// try clearing first with the portal sky fog color, then the world fog color, then finally a default
-//				clearBits |= GL_COLOR_BUFFER_BIT;
+				clearBits |= GL_COLOR_BUFFER_BIT;
 				//rwwFIXMEFIXME: Clear with fog color if there is one
 				qglClearColor ( 0.5, 0.5, 0.5, 1.0 );
-				clearBits |= GL_COLOR_BUFFER_BIT;
+//				clearBits |= GL_COLOR_BUFFER_BIT;
 			} 
 		}
 	}
 	else
 	{
-		if ( r_fastsky->integer && !( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) && !g_bRenderGlowingObjects )
-		{
-			clearBits |= GL_COLOR_BUFFER_BIT;	// FIXME: only if sky shaders have been used
+		if (!( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) && !g_bRenderGlowingObjects) {
+			if (mme_skykey->string[0] != '0') {
+				vec3_t skyColor;
+				clearBits |= GL_COLOR_BUFFER_BIT;
+				Q_parseColor( mme_skykey->string, defaultColors, skyColor );
+				qglClearColor( skyColor[0], skyColor[1], skyColor[2], 1.0f );
+			} else if ( r_fastsky->integer ) {
+	//			clearBits |= GL_COLOR_BUFFER_BIT;	// FIXME: only if sky shaders have been used
 #ifdef _DEBUG
-			qglClearColor( 0.8f, 0.7f, 0.4f, 1.0f );	// FIXME: get color of sky
+				qglClearColor( 0.8f, 0.7f, 0.4f, 1.0f );	// FIXME: get color of sky
 #else
-			qglClearColor( 0.0f, 0.0f, 0.0f, 1.0f );	// FIXME: get color of sky
+				qglClearColor( 0.0f, 0.0f, 0.0f, 1.0f );	// FIXME: get color of sky
 #endif
+				clearBits |= GL_COLOR_BUFFER_BIT;
+			}
 		}
 	}
 

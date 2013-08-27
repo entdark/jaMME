@@ -1815,7 +1815,6 @@ static void GLW_InitExtensions( void )
 		qglGetShaderiv = ( void (APIENTRY * ) (GLuint, GLenum, GLint *) ) qwglGetProcAddress( "glGetShaderiv");
 		qglGetShaderInfoLog = ( void (APIENTRY * ) (GLuint, GLsizei, GLsizei *, GLchar *) ) qwglGetProcAddress( "glGetShaderInfoLog");
 	}
-
 }
 
 /*
