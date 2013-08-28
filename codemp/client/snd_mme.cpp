@@ -135,7 +135,7 @@ void S_MMEUpdate( float scale, const byte *buffer, int size ) {
 void S_MMERecord( const char *baseName, float deltaTime ) {
 	char fileName[MAX_OSPATH];
 
-	if (!mme_saveWav->integer)	//uncomment when audio capture be fine
+//	if (!mme_saveWav->integer)	//uncomment when audio capture be fine
 		return;
 	if (Q_stricmp(baseName, mmeSound.baseName)) {
 		if (mmeSound.fileHandle)

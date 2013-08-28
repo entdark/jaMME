@@ -4904,6 +4904,8 @@ static void CG_ForcePushBlur( vec3_t org, centity_t *cent )
 
 		if (fx_vfps.integer <= 0)
 			fx_vfps.integer = 1;
+		if (fxT > cg.time)
+			fxT = cg.time;
 		if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
 		{
 			doFX = qtrue;
@@ -6568,7 +6570,8 @@ CheckTrail:
 	}
 
 JustDoIt:
-
+	if (cg.time < saberTrail->lastTime)
+		saberTrail->lastTime = cg.time;
 	if (dontDraw)
 	{
 		return;

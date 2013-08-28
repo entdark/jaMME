@@ -965,11 +965,6 @@ void CL_DemoSetCGameTime( void ) {
 	// This here was the main issue, this never updated servertime.
 	cl.serverTime = lastSeekTime; // Now it will use whatever the demo is currently at. Meaning 100% accurate!
 
-	// guarantee that time will never flow backwards, even if
-	// serverTimeDelta made an adjustment or cl_timeNudge was changed
-	if ( cl.serverTime < cl.oldServerTime ) {
-		cl.serverTime = cl.oldServerTime;
-	}
 	cl.oldServerTime = cl.serverTime;
 }
 

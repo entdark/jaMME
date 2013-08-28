@@ -1500,7 +1500,7 @@ void BG_IK_MoveArm(void *ghoul2, int lHandBolt, int time, entityState_t *ent, in
 void BG_G2PlayerAngles(void *ghoul2, int motionBolt, entityState_t *cent, int time, vec3_t cent_lerpOrigin,
 					   vec3_t cent_lerpAngles, vec3_t legs[3], vec3_t legsAngles, qboolean *tYawing,
 					   qboolean *tPitching, qboolean *lYawing, float *tYawAngle, float *tPitchAngle,
-					   float *lYawAngle, int frametime, vec3_t turAngles, vec3_t modelScale, int ciLegs,
+					   float *lYawAngle, /*int*/float frametime, vec3_t turAngles, vec3_t modelScale, int ciLegs,
 					   int ciTorso, int *corrTime, vec3_t lookAngles, vec3_t lastHeadAngles, int lookTime,
 					   entityState_t *emplaced, int *crazySmoothFactor);
 void BG_G2ATSTAngles(void *ghoul2, int time, vec3_t cent_lerpAngles );

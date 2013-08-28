@@ -657,6 +657,8 @@ void trap_FX_PlayEffectID( int id, vec3_t org, vec3_t fwd, int vol, int rad )
 		id == cgs.effects.mSparks ) {
 			if (fx_vfps.integer <= 0)
 				fx_vfps.integer = 1;
+			if (fxT > cg.time)
+				fxT = cg.time;
 			if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
 			{
 				doFX = qtrue;
@@ -676,6 +678,8 @@ void trap_FX_PlayEffectIDFix( int id, vec3_t org, vec3_t fwd, int vol, int rad )
 {
 	if (fx_vfps.integer <= 0)
 		fx_vfps.integer = 1;
+	if (fxT > cg.time)
+		fxT = cg.time;
 	if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
 	{
 		doFX = qtrue;

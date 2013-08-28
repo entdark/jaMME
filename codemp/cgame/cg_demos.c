@@ -472,6 +472,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		CG_ClearParticles ();
 		trap_FX_Reset( );
 //		trap_R_DecalReset();
+		trap_R_ClearDecals ( );
 
 		cg.centerPrintTime = 0;
         cg.damageTime = 0;
@@ -694,42 +695,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	CG_DrawActive( stereoView );
 
 	CG_DrawAutoMap();
-/*
-	if (demo.capture.locked) {
-		static qboolean captureStarted = qfalse;
-		if (demo.play.time >= demo.capture.start && demo.play.time <= demo.capture.end && captureFrame ) {
-			char format[4];
-			int fps;
-			trap_Cvar_VariableStringBuffer("mme_screenShotFormat", format, sizeof(format));
-			if (!Q_stricmp(format, "avi")) {
-				fps = mov_captureFPS.value;
-				trap_Cvar_Set("cl_aviFrameRate", va( "%d", fps ));
-				trap_SendConsoleCommand( "video" );
-			} else if (!Q_stricmp(format, "jpg")) {
-				fps = mov_captureFPS.value;
-				trap_Cvar_Set("cl_avidemo", va( "%d", fps ));
-			} else {
-				int blurframes;
-				blurframes = CG_Cvar_Get("mme_blurFrames");
-				if (blurframes <= 0) {
-					blurframes = 1;	//we cannot multiply fps with 0
-				} else if (blurframes > BLURMAX) {
-					blurframes = BLURMAX;
-				}
-				fps = mov_captureFPS.value * blurframes;
-				trap_Cvar_Set("cl_avidemo", va( "%d", fps ));
-			}
-			captureStarted = qtrue;
-		} else {
-			if (captureStarted) {
-				captureStarted = qfalse;
-				trap_Cvar_Set("cl_avidemo", "0");
-				trap_SendConsoleCommand( "stopvideo" );
-				demo.capture.active = qfalse;
-			}
-		}
-	}
-*/
+
 	if (captureFrame) {
 		char fileName[MAX_OSPATH];
 		float stereo = CG_Cvar_Get("r_stereoSeparation");
