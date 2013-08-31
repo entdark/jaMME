@@ -502,7 +502,7 @@ void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothe
 				}
 				MSG_ReadDeltaPlayerstate( &oldMsg, oldSnap ? &oldSnap->ps : &demoNullPlayerState, &newSnap->ps );
 				if( newSnap->ps.m_iVehicleNum)
-					MSG_ReadDeltaPlayerstate( &oldMsg, oldSnap ? &oldSnap->vps : &demoNullPlayerState, &newSnap->vps );
+					MSG_ReadDeltaPlayerstate( &oldMsg, oldSnap ? &oldSnap->vps : &demoNullPlayerState, &newSnap->vps, qtrue );
 				/* Read the individual entities */
 				newSnap->parseEntitiesNum = parseEntitiesNum;
 				newSnap->numEntities = 0;
