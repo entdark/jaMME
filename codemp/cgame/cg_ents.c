@@ -133,7 +133,6 @@ void CG_S_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t veloc
 			alreadyPlaying = qtrue;
 			break;
 		}
-		//this fix could be wrong because we are sending another i to &cent->loopingSound[i] but at least it works
 		i++;
 	}
 	

@@ -543,6 +543,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	cg.clientFrame++;
 //	CG_InterpolatePlayerState( qfalse );
 	CG_PredictPlayerState();
+	BG_PlayerStateToEntityState( &cg.predictedPlayerState, &cg_entities[cg.snap->ps.clientNum].currentState, qfalse );
+
 
 	if (cg.snap->ps.stats[STAT_HEALTH] > 0) {
 		if (cg.predictedPlayerState.weapon == WP_EMPLACED_GUN && cg.predictedPlayerState.emplacedIndex /*&&
@@ -567,6 +569,10 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	if (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR) {
 		cg.renderingThirdPerson = 0;
 	}
+
+	cg_entities[cg.snap->ps.clientNum].currentValid = qtrue;
+	VectorCopy( cg_entities[cg.snap->ps.clientNum].currentState.pos.trBase, cg_entities[cg.snap->ps.clientNum].lerpOrigin );
+	VectorCopy( cg_entities[cg.snap->ps.clientNum].currentState.apos.trBase, cg_entities[cg.snap->ps.clientNum].lerpAngles );
 
 //	inwater = CG_CalcViewValues();
 	inwater = demoSetupView();
@@ -672,6 +678,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	//do we need this?
 	if (gCGHasFallVector) {
 		vec3_t lookAng;
+		//broken fix
+		cg.renderingThirdPerson = qtrue;
 
 		VectorSubtract(cg.snap->ps.origin, cg.refdef.vieworg, lookAng);
 		VectorNormalize(lookAng);
@@ -853,6 +861,26 @@ static void demoEditCommand_f(void) {
 	}
 }
 
+static void demoSeekTwoCommand_f(void) {
+	const char *cmd = CG_Argv(1);
+	if (isdigit( cmd[0] )) {
+		//teh's parser for time MM:SS.MSEC, thanks *bow*
+		int i;
+		char *sec, *min;;
+		min = (char *)cmd;
+		for( i=0; min[i]!=':'&& min[i]!=0; i++ );
+		if(cmd[i]==0)
+			sec = 0;
+		else
+		{
+			min[i] = 0;
+			sec = min+i+1;
+		}
+		demo.play.time = ( atoi( min ) * 60000 + ( sec ? atof( sec ) : 0 ) * 1000 );
+		demo.play.fraction = 0;
+	}
+}
+
 static void demoSeekCommand_f(void) {
 	const char *cmd = CG_Argv(1);
 	if (cmd[0] == '+') {
@@ -917,6 +945,7 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("chase");
 	trap_AddCommand("speed");
 	trap_AddCommand("seek");
+	trap_AddCommand("demoSeek");
 	trap_AddCommand("pause");
 	trap_AddCommand("capture");
 	trap_AddCommand("hudInit");
@@ -969,6 +998,8 @@ qboolean CG_DemosConsoleCommand( void ) {
 		demoCaptureCommand_f();
 	} else if (!Q_stricmp(cmd, "seek")) {
 		demoSeekCommand_f();
+	} else if (!Q_stricmp(cmd, "demoSeek")) {
+		demoSeekTwoCommand_f();
 	} else if (!Q_stricmp(cmd, "speed")) {
 		cmd = CG_Argv(1);
 		if (cmd[0]) {

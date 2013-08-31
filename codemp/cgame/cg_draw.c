@@ -2905,7 +2905,7 @@ static float CG_DrawEnemyInfo ( float y )
 			size = ICON_SIZE * 1.25;
 			y += 5;
 
-			CG_DrawPic( 640 - size - 12 + xOffset, y, size, size, cgs.media.weaponIcons[WP_SABER] );
+			CG_DrawPic( 640 - size*cgs.widthRatioCoef - 12 + xOffset, y, size*cgs.widthRatioCoef, size, cgs.media.weaponIcons[WP_SABER] );
 
 			y += size;
 
@@ -2996,7 +2996,7 @@ static float CG_DrawEnemyInfo ( float y )
 
 	if ( ci->modelIcon )
 	{
-		CG_DrawPic( 640 - size - 5 + xOffset, y, size, size, ci->modelIcon );
+		CG_DrawPic( 640 - size*cgs.widthRatioCoef - 5 + xOffset, y, size*cgs.widthRatioCoef, size, ci->modelIcon );
 	}
 
 	y += size;
@@ -3011,7 +3011,7 @@ static float CG_DrawEnemyInfo ( float y )
 	if ( (cgs.gametype == GT_DUEL || cgs.gametype == GT_POWERDUEL) && cgs.clientinfo[cg.snap->ps.clientNum].team != TEAM_SPECTATOR)
 	{//also print their score
 		char text[1024];
-		y += 15;
+		y += 23;//15;
 		Com_sprintf(text, sizeof(text), "%i/%i", cgs.clientinfo[clientNum].score, cgs.fraglimit );
 		CG_Text_Paint( 630 - CG_Text_Width ( text, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, text, 0, 0, 0, FONT_MEDIUM );
 	}
