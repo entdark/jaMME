@@ -165,6 +165,7 @@ XCVAR_DEF( ui_tm2_cnt,							"0",					NULL,					CVAR_ROM|CVAR_INTERNAL )
 XCVAR_DEF( ui_tm3_cnt,							"0",					NULL,					CVAR_ROM|CVAR_INTERNAL )
 
 XCVAR_DEF( mme_demoFileName,					"",						NULL,					0 )
+XCVAR_DEF( mov_absorbShader,					"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_chatBeep,						"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_seekInterval,					"4",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_deltaYaw,						"0",					NULL,					CVAR_ARCHIVE )

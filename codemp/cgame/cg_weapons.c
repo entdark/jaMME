@@ -1209,7 +1209,7 @@ void CG_DrawWeaponSelect( void ) {
 
 	smallIconSize = 40;
 	bigIconSize = 80;
-	pad = 12;
+	pad = 0;//12;
 
 	x = 320;
 	y = 410;
@@ -1270,11 +1270,11 @@ void CG_DrawWeaponSelect( void ) {
 			trap_R_SetColor(colorTable[CT_WHITE]);
 			if (!CG_WeaponCheck(i))
 			{
-				CG_DrawPic( holdX, y+10+yOffset, smallIconSize, smallIconSize, /*weaponInfo->weaponIconNoAmmo*/cgs.media.weaponIcons_NA[i] );
+				CG_DrawPic( holdX, y+10+yOffset, smallIconSize*cgs.widthRatioCoef, smallIconSize, /*weaponInfo->weaponIconNoAmmo*/cgs.media.weaponIcons_NA[i] );
 			}
 			else
 			{
-				CG_DrawPic( holdX, y+10+yOffset, smallIconSize, smallIconSize, /*weaponInfo->weaponIcon*/cgs.media.weaponIcons[i] );
+				CG_DrawPic( holdX, y+10+yOffset, smallIconSize*cgs.widthRatioCoef, smallIconSize, /*weaponInfo->weaponIcon*/cgs.media.weaponIcons[i] );
 			}
 
 			holdX -= (smallIconSize+pad);
@@ -1297,11 +1297,11 @@ void CG_DrawWeaponSelect( void ) {
 		trap_R_SetColor( colorTable[CT_WHITE]);
 		if (!CG_WeaponCheck(cg.weaponSelect))
 		{
-			CG_DrawPic( x-(bigIconSize/2), (y-((bigIconSize-smallIconSize)/2))+10+yOffset, bigIconSize, bigIconSize, cgs.media.weaponIcons_NA[cg.weaponSelect] );
+			CG_DrawPic( x-(bigIconSize/2), (y-((bigIconSize-smallIconSize)/2))+10+yOffset, bigIconSize*cgs.widthRatioCoef, bigIconSize, cgs.media.weaponIcons_NA[cg.weaponSelect] );
 		}
 		else
 		{
-			CG_DrawPic( x-(bigIconSize/2), (y-((bigIconSize-smallIconSize)/2))+10+yOffset, bigIconSize, bigIconSize, cgs.media.weaponIcons[cg.weaponSelect] );
+			CG_DrawPic( x-(bigIconSize/2), (y-((bigIconSize-smallIconSize)/2))+10+yOffset, bigIconSize*cgs.widthRatioCoef, bigIconSize, cgs.media.weaponIcons[cg.weaponSelect] );
 		}
 	}
 
@@ -1364,11 +1364,11 @@ void CG_DrawWeaponSelect( void ) {
 			trap_R_SetColor( colorTable[CT_WHITE]);
 			if (!CG_WeaponCheck(i))
 			{
-				CG_DrawPic( holdX, y+10+yOffset, smallIconSize, smallIconSize, cgs.media.weaponIcons_NA[i] );
+				CG_DrawPic( holdX, y+10+yOffset, smallIconSize*cgs.widthRatioCoef, smallIconSize, cgs.media.weaponIcons_NA[i] );
 			}
 			else
 			{
-				CG_DrawPic( holdX, y+10+yOffset, smallIconSize, smallIconSize, cgs.media.weaponIcons[i] );
+				CG_DrawPic( holdX, y+10+yOffset, smallIconSize*cgs.widthRatioCoef, smallIconSize, cgs.media.weaponIcons[i] );
 			}
 
 

@@ -2747,6 +2747,13 @@ CG_DrawPickupItem
 static void CG_DrawPickupItem( void ) {
 	int		value;
 	float	*fadeColor;
+	int		yOffset;
+
+	if ( cg_lagometer.integer ) {
+		yOffset = 170;
+	} else {
+		yOffset = 170 - ICON_SIZE;
+	}
 
 	value = cg.itemPickup;
 	if ( value && cg_items[ value ].icon != -1 ) 
@@ -2756,7 +2763,7 @@ static void CG_DrawPickupItem( void ) {
 		{
 			CG_RegisterItemVisuals( value );
 			trap_R_SetColor( fadeColor );
-			CG_DrawPic( 640 - (640 - 573)*cgs.widthRatioCoef, 320, ICON_SIZE*cgs.widthRatioCoef, ICON_SIZE, cg_items[ value ].icon );
+			CG_DrawPic( 640 - (640 - 585)*cgs.widthRatioCoef, 480 - yOffset - ICON_SIZE, ICON_SIZE*cgs.widthRatioCoef, ICON_SIZE, cg_items[ value ].icon );
 			trap_R_SetColor( NULL );
 		}
 	}
@@ -3144,8 +3151,6 @@ CG_DrawRadar
 */
 //#define RADAR_RANGE				2500
 float	cg_radarRange = 2500.0f;
-
-//ATTENTION: objects on radar are still stretched and don't match their positions. fix it
 
 #define RADAR_RADIUS			60
 #define RADAR_X					(640 - (640 - 580)*cgs.widthRatioCoef - RADAR_RADIUS*cgs.widthRatioCoef)
@@ -4161,13 +4166,16 @@ void CG_AddLagometerSnapshotInfo( snapshot_t *snap ) {
 	// add this snapshot's info
 	if (cg.demoPlayback) {
 		//from pugmod, maybe useful
-		static int lasttime = 0;
+//		static int lasttime = 0;
 		// rain - #67 - display snapshot time delta instead of ping when
 		// playing a demo, since I can't think of any way to get the
 		// real ping
-		lagometer.snapshotSamples[lagometer.snapshotCount & (LAG_SAMPLES - 1)] = snap->serverTime - lasttime;
-		lasttime = snap->serverTime;
-	} else
+//		lagometer.snapshotSamples[lagometer.snapshotCount & (LAG_SAMPLES - 1)] = snap->serverTime - lasttime;
+//		lasttime = snap->serverTime;
+
+		//enemy terriroty version
+		snap->ping = (snap->serverTime - snap->ps.commandTime) - 50;
+	}// else
 		lagometer.snapshotSamples[ lagometer.snapshotCount & ( LAG_SAMPLES - 1) ] = snap->ping;
 	lagometer.snapshotFlags[ lagometer.snapshotCount & ( LAG_SAMPLES - 1) ] = snap->snapFlags;
 	lagometer.snapshotCount++;
@@ -4248,15 +4256,15 @@ static void CG_DrawLagometer( void ) {
 	//
 	// draw the graph
 	//
-	x = 640 - 48;
-	y = 480 - 144;
+	x = 640 - 48*cgs.widthRatioCoef;
+	y = 480 - 165;
 
 	trap_R_SetColor( NULL );
-	CG_DrawPic( x, y, 48, 48, cgs.media.lagometerShader );
+	CG_DrawPic( x, y, 48*cgs.widthRatioCoef, 48, cgs.media.lagometerShader );
 
 	ax = x;
 	ay = y;
-	aw = 48;
+	aw = 96;
 	ah = 48;
 
 	color = -1;
@@ -4278,7 +4286,7 @@ static void CG_DrawLagometer( void ) {
 			if ( v > range ) {
 				v = range;
 			}
-			trap_R_DrawStretchPic ( ax + aw - a, mid - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
+			trap_R_DrawStretchPic ( ax + (0.5*aw - a*0.5)*cgs.widthRatioCoef, mid - v, 0.5*cgs.widthRatioCoef, v, 0, 0, 0, 0, cgs.media.whiteShader );
 		} else if ( v < 0 ) {
 			if ( color != 2 ) {
 				color = 2;
@@ -4288,7 +4296,7 @@ static void CG_DrawLagometer( void ) {
 			if ( v > range ) {
 				v = range;
 			}
-			trap_R_DrawStretchPic( ax + aw - a, mid, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
+			trap_R_DrawStretchPic( ax + (0.5*aw - a*0.5)*cgs.widthRatioCoef, mid, 0.5*cgs.widthRatioCoef, v, 0, 0, 0, 0, cgs.media.whiteShader );
 		}
 	}
 
@@ -4315,13 +4323,13 @@ static void CG_DrawLagometer( void ) {
 			if ( v > range ) {
 				v = range;
 			}
-			trap_R_DrawStretchPic( ax + aw - a, ay + ah - v, 1, v, 0, 0, 0, 0, cgs.media.whiteShader );
+			trap_R_DrawStretchPic( ax + (0.5*aw - 0.5*a)*cgs.widthRatioCoef, ay + ah - v, 0.5*cgs.widthRatioCoef, v, 0, 0, 0, 0, cgs.media.whiteShader );
 		} else if ( v < 0 ) {
 			if ( color != 4 ) {
 				color = 4;		// RED for dropped snapshots
 				trap_R_SetColor( g_color_table[ColorIndex(COLOR_RED)] );
 			}
-			trap_R_DrawStretchPic( ax + aw - a, ay + ah - range, 1, range, 0, 0, 0, 0, cgs.media.whiteShader );
+			trap_R_DrawStretchPic( ax + (0.5*aw - 0.5*a)*cgs.widthRatioCoef, ay + ah - range, 0.5*cgs.widthRatioCoef, range, 0, 0, 0, 0, cgs.media.whiteShader );
 		}
 	}
 

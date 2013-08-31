@@ -392,31 +392,12 @@ void demoCaptureCommand_f(void) {
 	} else if (!Q_stricmp( cmd, "loopstop" )) {
 		demo.loop.start = 0;
 		demo.loop.total = 0;
-/*	} else if (!Q_stricmp(cmd, "jpg") || !Q_stricmp(cmd, "tga") || !Q_stricmp(cmd, "png") || !Q_stricmp(cmd, "avi")) {
-		if (demo.capture.end <= demo.capture.start) {
-			Com_Printf("capture end is not set or less than capture start\n" );
-			return;
-		}
-		demo.play.time = demo.capture.start;
-		demo.capture.active = qtrue;
-		demo.capture.locked = qtrue;
-		
-		trap_Cvar_Set( "mme_screenShotFormat", cmd );
-		cmd = CG_Argv(2);
-		trap_Cvar_Set( "mov_captureFPS", cmd);
-		trap_Cvar_Update( &mov_captureFPS );
-		if (!mov_captureFPS.value) {
-			trap_Cvar_Set( "mov_captureFPS", "25" );
-		}
-		trap_Cvar_Update( &mov_captureFPS );
-//		CG_DemosAddLog( "Capturing at %0.2ffps to %s", mov_captureFPS.value, cmd );
-*/	} else {
+	} else {
 		Com_Printf("capture usage:\n" );
-//		Com_Printf("capture jpg/tga/png/avi fps filename, start capturing to a specific file\n" );
+		Com_Printf("capture jpg/tga/png/avi fps filename, start capturing to a specific file\n" );
 		Com_Printf("capture lock, lock capturing to the selected range\n");
 		Com_Printf("capture start/end, set start/end parts of capture range\n");
 		Com_Printf("capture stop, stop capturing\n" );
-		Com_Printf("capture jpg/tga/png/avi fps, start capturing either screenshots or video\n" );
 		return;
 	}
 }

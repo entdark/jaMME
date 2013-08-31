@@ -363,6 +363,7 @@ typedef struct centity_s {
 
 	vec3_t			damageAngles;
 	int				damageTime;
+	int				damageStartTime;
 
 	int				snapShotTime;	// last time this entity was found in a snapshot
 

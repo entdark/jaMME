@@ -1304,10 +1304,12 @@ static float CG_EventCoeff (int weapon) {
 	}
 }
 
-static void CG_GetEventStuff(const float coeff, const float time, const float radius) {
-	cg.eventCoeff = coeff;
-	cg.eventTime = time;
-	cg.eventRadius = radius;
+static void CG_GetEventStuff(const float coeff, const int time, const float radius) {
+	if ((radius < cg.eventRadius && cg.eventTime == time) || cg.eventRadius == 0 || cg.eventTime != time) {
+		cg.eventCoeff = coeff;
+		cg.eventTime = time;
+		cg.eventRadius = radius;
+	}
 }
 
 /*
@@ -2583,7 +2585,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{ //secondary
 			FX_DisruptorAltMiss( cent->lerpOrigin, dir );
 		}
-		CG_GetEventStuff(CG_EventCoeff(es->weapon), cg.time - cgs.levelStartTime, Distance(position, cg.refdef.vieworg));
+		CG_GetEventStuff(CG_EventCoeff(WP_DISRUPTOR), cg.time, Distance(position, cg.refdef.vieworg));
 		break;
 
 	case EV_DISRUPTOR_HIT:
@@ -2597,7 +2599,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{ //non-client
 			FX_DisruptorHitWall( cent->lerpOrigin, dir );
 		}
-		CG_GetEventStuff(CG_EventCoeff(es->weapon), cg.time - cgs.levelStartTime, Distance(position, cg.refdef.vieworg));
+		CG_GetEventStuff(CG_EventCoeff(WP_DISRUPTOR), cg.time, Distance(position, cg.refdef.vieworg));
 		break;
 
 	case EV_DISRUPTOR_ZOOMSOUND:
@@ -3011,7 +3013,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			CG_G2MarkEvent(es);
 		}
 		if (es->weapon != 0) { //0 - putting detpack
-			CG_GetEventStuff(CG_EventCoeff(es->weapon), cg.time - cgs.levelStartTime, Distance(position, cg.refdef.vieworg));
+			CG_GetEventStuff(CG_EventCoeff(es->weapon), cg.time, Distance(position, cg.refdef.vieworg));
 		}
 		break;
 
@@ -3040,7 +3042,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			CG_G2MarkEvent(es);
 		}
 		if (es->weapon != 0) { //0 - putting detpack
-			CG_GetEventStuff(CG_EventCoeff(es->weapon), cg.time - cgs.levelStartTime, Distance(position, cg.refdef.vieworg));
+			CG_GetEventStuff(CG_EventCoeff(es->weapon), cg.time, Distance(position, cg.refdef.vieworg));
 		}
 		break;
 
@@ -3063,7 +3065,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_METAL, qfalse, 0);
 		}
 		if (es->weapon != 0) { //0 - putting detpack
-			CG_GetEventStuff(CG_EventCoeff(es->weapon), cg.time - cgs.levelStartTime, Distance(position, cg.refdef.vieworg));
+			CG_GetEventStuff(CG_EventCoeff(es->weapon), cg.time, Distance(position, cg.refdef.vieworg));
 		}
 		break;
 
@@ -3088,11 +3090,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			break;
 		case EFFECT_EXPLOSION_DETPACK:
 			eID = cgs.effects.mDetpackExplosion;
-			CG_GetEventStuff(CG_EventCoeff(es->weapon), cg.time - cgs.levelStartTime, Distance(position, cg.refdef.vieworg));
+			CG_GetEventStuff(CG_EventCoeff(WP_DET_PACK), cg.time, Distance(position, cg.refdef.vieworg));
 			break;
 		case EFFECT_EXPLOSION_FLECHETTE:
 			eID = cgs.effects.mFlechetteAltBlow;
-			CG_GetEventStuff(CG_EventCoeff(es->weapon), cg.time - cgs.levelStartTime, Distance(position, cg.refdef.vieworg));
+			CG_GetEventStuff(CG_EventCoeff(WP_FLECHETTE), cg.time, Distance(position, cg.refdef.vieworg));
 			break;
 		case EFFECT_STUNHIT:
 			eID = cgs.effects.mStunBatonFleshImpact;

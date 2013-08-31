@@ -83,7 +83,7 @@ static void VibrateView( const float range, const int eventTime, const int fxTim
 	float shadingTime;
 	int sign;
 
-	scale *= fx_Vibrate.integer;
+	scale *= fx_Vibrate.value;
 
 	if (range > 1 || range < 0) {
 		return;
@@ -96,12 +96,19 @@ static void VibrateView( const float range, const int eventTime, const int fxTim
 }
 
 static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
-	if (cg_thirdPerson.integer && cg.eventCoeff > 0 ) {
+	if (/*cg_thirdPerson.integer && */cg.eventCoeff > 0 ) {
 		float range, oldRange;
-		int currentTime = cg.time - cgs.levelStartTime;
+		int currentTime = cg.time;
 
 		range = 1 - (cg.eventRadius / RADIUS_LIMIT);
 		oldRange = 1 - (cg.eventOldRadius / RADIUS_LIMIT);
+
+		if (cg.eventOldTime > cg.time) {
+			cg.eventRadius = cg.eventOldRadius = 0;
+			cg.eventTime = cg.eventOldTime = 0;
+			cg.eventCoeff = cg.eventOldCoeff = 0;
+		}
+
 		if (cg.eventRadius > cg.eventOldRadius
 			&& cg.eventOldRadius != 0
 			&& (cg.eventOldTime + EFFECT_LENGTH) > cg.eventTime
@@ -192,13 +199,13 @@ int demoSetupView( void) {
 	demo.viewAngles[ROLL]	+= mov_deltaRoll.value;
 
 //	trap_FX_VibrateView( 1.0f, demo.viewOrigin, demo.viewAngles );
-	if (fx_Vibrate.integer > 0
+	if (fx_Vibrate.value > 0
 		&& cg.eventCoeff > 0
-		&& ( demo.viewType == viewCamera
+		&&  demo.viewType == viewCamera
 		|| ( demo.viewType == viewChase
-		&& (cg.renderingThirdPerson//cg_thirdPerson.integer
-		|| demo.chase.distance > mov_chaseRange.value || demo.chase.target == -1)))) {
-		FX_VibrateView( 107.0f, demo.viewOrigin, demo.viewAngles );
+		&& ((cg.renderingThirdPerson && demo.chase.distance < mov_chaseRange.value)//cg_thirdPerson.integer
+		|| demo.chase.distance > mov_chaseRange.value /*|| demo.chase.target == -1*/))) {
+			FX_VibrateView( 107.0f, demo.viewOrigin, demo.viewAngles );
 	}
 	VectorCopy( demo.viewOrigin, cg.refdef.vieworg );
 	AnglesToAxis( demo.viewAngles, cg.refdef.viewaxis );
@@ -567,6 +574,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	if (cg_linearFogOverride) {
 		trap_R_SetRangeFog(-cg_linearFogOverride);
+	} else if (demo.viewType == viewCamera || ( demo.viewType == viewChase && (cg.renderingThirdPerson || demo.chase.distance > mov_chaseRange.value))) {
+		trap_R_SetRangeFog(0.0f);
 	} else if (cg.predictedPlayerState.zoomMode) { //zooming with binoculars or sniper, set the fog range based on the zoom level -rww
 		cg_rangedFogging = qtrue;
 		//smaller the fov the less fog we have between the view and cull dist

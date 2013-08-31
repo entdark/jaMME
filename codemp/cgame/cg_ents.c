@@ -133,6 +133,8 @@ void CG_S_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t veloc
 			alreadyPlaying = qtrue;
 			break;
 		}
+		//this fix could be wrong because we are sending another i to &cent->loopingSound[i] but at least it works
+		i++;
 	}
 	
 	if (alreadyPlaying && cSound)
@@ -1510,6 +1512,8 @@ Ghoul2 Insert End
 			int curTimeDif = ((cg.time + 60000) - cent->bodyFadeTime);
 			int tMult = curTimeDif*0.08;
 
+			if (curTimeDif < 0) goto skipDisintegration;
+
 			ent.renderfx |= RF_FORCE_ENT_ALPHA;
 
 			/*
@@ -1535,7 +1539,9 @@ Ghoul2 Insert End
 
 			ent.renderfx &= ~RF_FORCE_ENT_ALPHA;
 			ent.renderfx |= RF_RGB_TINT;
-
+//			if (cent->dustTrailTime > cg.time) {
+//				cent->dustTrailTime = 0;
+//			}
 			if (tMult > 200)
 			{ //begin the disintegration effect
 				ent.shaderRGBA[3] = 200;
@@ -1628,6 +1634,7 @@ Ghoul2 Insert End
 		}
 		else
 		{
+skipDisintegration:
 			cent->dustTrailTime = 0;
 		}
 	}

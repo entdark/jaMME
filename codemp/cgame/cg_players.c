@@ -5116,7 +5116,27 @@ static void CG_ForcePushBodyBlur( centity_t *cent )
 static void CG_ForceGripEffect( vec3_t org )
 {
 	localEntity_t	*ex;
+	static int gripCounter = 0;
+	static int lastGripTime = 0;
+	int timeDif = 0;
+	int gripAmount = 0;
 	float wv = sin( cg.time * 0.004f ) * 0.08f + 0.1f;
+
+	timeDif = (cg.time - lastGripTime);
+	if (timeDif < 0) {
+		lastGripTime = cg.time;
+		return;
+	} else if (timeDif > 0) {
+		gripAmount = timeDif*5;
+	}
+
+	if (lastGripTime < cg.time && gripCounter <= gripAmount) {
+		
+	} else if (lastGripTime < cg.time) {
+		gripCounter = 0;
+	} else if (gripCounter > gripAmount && lastGripTime == cg.time) {
+		return;
+	}
 
 	ex = CG_AllocLocalEntity();
 	ex->leType = LE_PUFF;
@@ -5161,6 +5181,8 @@ static void CG_ForceGripEffect( vec3_t org )
 	ex->color[1] = 255;
 	ex->color[2] = 255;
 	ex->refEntity.customShader = cgs.media.redSaberGlowShader;//trap_R_RegisterShader( "gfx/effects/forcePush" );
+	gripCounter++;
+	lastGripTime = cg.time;
 }
 
 
@@ -5211,12 +5233,19 @@ void CG_PlayerShieldHit(int entitynum, vec3_t dir, int amount)
 		time = cg.time + 500 + amount*15;
 	}
 
+	if (cent->damageTime > time) {
+		cent->damageTime = time;
+	}
+
+	VectorScale(dir, -1, dir);
+	vectoangles(dir, cent->damageAngles);
 	if (time > cent->damageTime)
 	{
 		cent->damageTime = time;
-		VectorScale(dir, -1, dir);
-		vectoangles(dir, cent->damageAngles);
+//		VectorScale(dir, -1, dir);
+//		vectoangles(dir, cent->damageAngles);
 	}
+	cent->damageStartTime = cg.time;
 }
 
 
@@ -5263,7 +5292,7 @@ void CG_PlayerHitFX(centity_t *cent)
 	// only do the below fx if the cent in question is...uh...me, and it's first person.
 	if (cent->currentState.clientNum != cg.predictedPlayerState.clientNum || cg.renderingThirdPerson)
 	{
-		if (cent->damageTime > cg.time
+		if (cent->damageTime > cg.time && cent->damageStartTime <= cg.time
 			&& cent->currentState.NPC_class != CLASS_VEHICLE )
 		{
 			CG_DrawPlayerShield(cent, cent->lerpOrigin);
@@ -9623,7 +9652,7 @@ void CG_Player( centity_t *cent ) {
 			VectorCopy(efOrg, origBolt);
 			BG_GiveMeVectorFromMatrix( &lHandMatrix, NEGATIVE_Y, boltDir );
 
-			CG_ForceGripEffect( efOrg );
+//			CG_ForceGripEffect( efOrg );
 			CG_ForceGripEffect( efOrg );
 
 			/*
@@ -9744,8 +9773,9 @@ void CG_Player( centity_t *cent ) {
 			legs.shaderRGBA[3] = 1;
 		}
 	}
-
-	if (cent->teamPowerEffectTime > cg.time)
+//	if (cent->teamPowerEffectTime > cg.time + 1000)
+//		cent->teamPowerEffectTime = cg.time;
+	if (cent->teamPowerEffectTime > cg.time && cent->teamPowerEffectTime <= cg.time + 1000)
 	{
 		if (cent->teamPowerType == 3)
 		{ //absorb is a somewhat different effect entirely
@@ -11029,7 +11059,7 @@ stillDoSaber:
 	//AND
 	//always show if it is you with the absorb on
 	if ((cent->currentState.number == cg.predictedPlayerState.clientNum && (cg.predictedPlayerState.fd.forcePowersActive & (1<<FP_ABSORB))) ||
-		(cent->teamPowerEffectTime > cg.time && cent->teamPowerType == 3))
+		(cent->teamPowerEffectTime > cg.time && cent->teamPowerEffectTime <= cg.time + 1000 && cent->teamPowerType == 3))
 	{ //aborb is represented by blue..
 		legs.shaderRGBA[0] = 0;
 		legs.shaderRGBA[1] = 0;
@@ -11038,7 +11068,11 @@ stillDoSaber:
 
 		legs.renderfx &= ~RF_RGB_TINT;
 		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
-		legs.customShader = cgs.media.playerShieldDamage;
+		if (mov_absorbShader.integer) {
+			legs.customShader = cgs.media.protectShader;
+		} else {
+			legs.customShader = cgs.media.playerShieldDamage;
+		}
 		
 		trap_R_AddRefEntityToScene( &legs );
 	}
