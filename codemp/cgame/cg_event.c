@@ -1286,20 +1286,20 @@ static float CG_EventCoeff (int weapon) {
 	case WP_STUN_BATON: return 0; break;
 	case WP_MELEE: return 0; break;
 	case WP_SABER: return 0; break;
-	case WP_BRYAR_PISTOL: return 0.3f; break;
-	case WP_BLASTER: return 0.4f; break;
-	case WP_DISRUPTOR: return 0.7f; break;
-	case WP_BOWCASTER: return 0.5f; break;
-	case WP_REPEATER: return 1.0f; break;
-	case WP_DEMP2: return 0.4f; break;
-	case WP_FLECHETTE: return 1.0f; break;
+	case WP_BRYAR_PISTOL: return 0.1f; break;
+	case WP_BLASTER: return 0.1f; break;
+	case WP_DISRUPTOR: return 0.4f; break;
+	case WP_BOWCASTER: return 0.2f; break;
+	case WP_REPEATER: return 0.4f; break;	//we cannot know it's alt or primary so let is be 0.4f (expecting 1.0f for alt and 0.3f for prim)
+	case WP_DEMP2: return 0; break;
+	case WP_FLECHETTE: return 0.6f; break;
 	case WP_ROCKET_LAUNCHER: return 1.0f; break;
-	case WP_THERMAL: return 1.0f; break;
-	case WP_TRIP_MINE: return 1.0f; break;
-	case WP_DET_PACK: return 1.0f; break;
-	case WP_CONCUSSION: return 1.0f; break;
-	case WP_BRYAR_OLD: return 0.3f; break;
-	case WP_EMPLACED_GUN: return 1.0f; break; //what is it?
+	case WP_THERMAL: return 0.8f; break;
+	case WP_TRIP_MINE: return 0.9f; break;
+	case WP_DET_PACK: return 0.9f; break;
+	case WP_CONCUSSION: return 0.8f; break;
+	case WP_BRYAR_OLD: return 0.1f; break;
+	case WP_EMPLACED_GUN: return 0.0f; break; //what is it?
 	case WP_TURRET: return 0.3f; break;
 	}
 }

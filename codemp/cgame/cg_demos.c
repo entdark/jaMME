@@ -2,6 +2,7 @@
 
 #include "cg_demos.h"
 #include "cg_lights.h"
+#include "game/bg_saga.h"
 
 demoMain_t demo;
 
@@ -83,7 +84,7 @@ static void VibrateView( const float range, const int eventTime, const int fxTim
 	float shadingTime;
 	int sign;
 
-	scale *= fx_Vibrate.value;
+	scale *= fx_Vibrate.value * 100;
 
 	if (range > 1 || range < 0) {
 		return;
@@ -96,36 +97,34 @@ static void VibrateView( const float range, const int eventTime, const int fxTim
 }
 
 static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
-	if (/*cg_thirdPerson.integer && */cg.eventCoeff > 0 ) {
-		float range, oldRange;
-		int currentTime = cg.time;
+	float range, oldRange;
+	int currentTime = cg.time;
 
+	range = 1 - (cg.eventRadius / RADIUS_LIMIT);
+	oldRange = 1 - (cg.eventOldRadius / RADIUS_LIMIT);
+
+	if (cg.eventOldTime > cg.time) {
+		cg.eventRadius = cg.eventOldRadius = 0;
+		cg.eventTime = cg.eventOldTime = 0;
+		cg.eventCoeff = cg.eventOldCoeff = 0;
+	}
+
+	if (cg.eventRadius > cg.eventOldRadius
+		&& cg.eventOldRadius != 0
+		&& (cg.eventOldTime + EFFECT_LENGTH) > cg.eventTime
+		&& cg.eventCoeff * range < cg.eventOldCoeff * oldRange) {
+		cg.eventRadius = cg.eventOldRadius;
+		cg.eventTime = cg.eventOldTime;
+		cg.eventCoeff = cg.eventOldCoeff;
+	}
+
+	if ((currentTime >= cg.eventTime) && (currentTime <= (cg.eventTime + EFFECT_LENGTH))) {
+		int fxTime = currentTime - cg.eventTime;
 		range = 1 - (cg.eventRadius / RADIUS_LIMIT);
-		oldRange = 1 - (cg.eventOldRadius / RADIUS_LIMIT);
-
-		if (cg.eventOldTime > cg.time) {
-			cg.eventRadius = cg.eventOldRadius = 0;
-			cg.eventTime = cg.eventOldTime = 0;
-			cg.eventCoeff = cg.eventOldCoeff = 0;
-		}
-
-		if (cg.eventRadius > cg.eventOldRadius
-			&& cg.eventOldRadius != 0
-			&& (cg.eventOldTime + EFFECT_LENGTH) > cg.eventTime
-			&& cg.eventCoeff * range < cg.eventOldCoeff * oldRange) {
-			cg.eventRadius = cg.eventOldRadius;
-			cg.eventTime = cg.eventOldTime;
-			cg.eventCoeff = cg.eventOldCoeff;
-		}
-
-		if ((currentTime >= cg.eventTime) && (currentTime <= (cg.eventTime + EFFECT_LENGTH))) {
-			int fxTime = currentTime - cg.eventTime;
-			range = 1 - (cg.eventRadius / RADIUS_LIMIT);
-			VibrateView(range, cg.eventTime, fxTime, cg.eventCoeff, scale, origin, angles);
-			cg.eventOldRadius = cg.eventRadius;
-			cg.eventOldTime = cg.eventTime;
-			cg.eventOldCoeff = cg.eventCoeff;
-		}
+		VibrateView(range, cg.eventTime, fxTime, cg.eventCoeff, scale, origin, angles);
+		cg.eventOldRadius = cg.eventRadius;
+		cg.eventOldTime = cg.eventTime;
+		cg.eventOldCoeff = cg.eventCoeff;
 	}
 }
 
@@ -154,6 +153,7 @@ int demoSetupView( void) {
 					|| cg.playerCent->playerState->weapon == WP_SABER
 					|| cg.playerCent->playerState->weapon == WP_MELEE)
 					&& cg.predictedPlayerState.zoomMode == 0;
+//				cg.renderingThirdPerson = qtrue;
 				CG_DemosCalcViewValues();
 //				CG_CalcViewValues();
 				// first person blend blobs, done after AnglesToAxis
@@ -205,7 +205,7 @@ int demoSetupView( void) {
 		|| ( demo.viewType == viewChase
 		&& ((cg.renderingThirdPerson && demo.chase.distance < mov_chaseRange.value)//cg_thirdPerson.integer
 		|| demo.chase.distance > mov_chaseRange.value /*|| demo.chase.target == -1*/))) {
-			FX_VibrateView( 107.0f, demo.viewOrigin, demo.viewAngles );
+			FX_VibrateView( 1.0f, demo.viewOrigin, demo.viewAngles );
 	}
 	VectorCopy( demo.viewOrigin, cg.refdef.vieworg );
 	AnglesToAxis( demo.viewAngles, cg.refdef.viewaxis );
@@ -325,6 +325,8 @@ extern float cg_linearFogOverride;      // cg_view.c
 extern float cg_radarRange;             // cg_draw.c
 extern qboolean cg_rangedFogging;
 
+extern int cg_siegeClassIndex;
+
 void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	int deltaTime;
 	qboolean hadSkip;
@@ -359,6 +361,25 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	}
 
 	cg.demoPlayback = 2;
+
+	if (cg.snap && ui_myteam.integer != cg.snap->ps.persistant[PERS_TEAM])
+	{
+		trap_Cvar_Set ( "ui_myteam", va("%i", cg.snap->ps.persistant[PERS_TEAM]) );
+	}
+	if (cgs.gametype == GT_SIEGE &&
+		cg.snap &&
+		cg_siegeClassIndex != cgs.clientinfo[cg.snap->ps.clientNum].siegeIndex)
+	{
+		cg_siegeClassIndex = cgs.clientinfo[cg.snap->ps.clientNum].siegeIndex;
+		if (cg_siegeClassIndex == -1)
+		{
+			trap_Cvar_Set("ui_mySiegeClass", "<none>");
+		}
+		else
+		{
+			trap_Cvar_Set("ui_mySiegeClass", bgSiegeClasses[cg_siegeClassIndex].name);
+		}
+	}
 
 	// update cvars
 	CG_UpdateCvars();
@@ -508,6 +529,10 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	trap_S_ClearLoopingSounds();
 	trap_R_ClearScene();
 	/* Update demo related information */
+	
+	demoProcessSnapShots( hadSkip );
+	trap_ROFF_UpdateEntities();
+
 	if (cg.snap && cg.snap->ps.saberLockTime > cg.time) {
 		mSensitivity = 0.01f;
 	}
@@ -528,8 +553,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	} else {
 		trap_SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
 	}
-	demoProcessSnapShots( hadSkip );
-	trap_ROFF_UpdateEntities();
 
 	if ( !cg.snap ) {
 		CG_DrawInformation();

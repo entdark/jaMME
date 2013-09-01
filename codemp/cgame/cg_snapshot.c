@@ -362,10 +362,14 @@ void CG_ProcessSnapshots( void ) {
 	// see what the latest snapshot the client system has is
 	trap_GetCurrentSnapshotNumber( &n, &cg.latestSnapshotTime );
 	if ( n != cg.latestSnapshotNum ) {
-//		if ( n < cg.latestSnapshotNum ) {
+		if ( n < cg.latestSnapshotNum ) {
+			//do we need those?
+			cg.snap = 0;
+			cg.nextSnap = 0;
+			cgs.processedSnapshotNum = -2;
 //			// this should never happen
 //			CG_Error( "CG_ProcessSnapshots: n < cg.latestSnapshotNum" );
-//		}
+		}
 		cg.latestSnapshotNum = n;
 	}
 

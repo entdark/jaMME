@@ -3181,9 +3181,9 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 
 		if (veh->currentState.owner == cg.predictedPlayerState.clientNum)
 		{ //only do this if the vehicle is pilotted by this client and predicting properly
-			BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
-			BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
-			return;
+//			BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
+//			BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
+//			return;
 		}
 	}
 

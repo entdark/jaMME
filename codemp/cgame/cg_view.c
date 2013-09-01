@@ -2705,7 +2705,7 @@ extern qboolean PM_InKnockDown( playerState_t *ps );
 //extern qboolean cgQueueLoad;	//->cg_local.h
 //extern void CG_ActualLoadDeferredPlayers( void );	//->cg_local.h
 
-static int cg_siegeClassIndex = -2;
+int cg_siegeClassIndex = -2;
 
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayback ) {
 	int		inwater;
