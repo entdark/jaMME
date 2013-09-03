@@ -24,6 +24,12 @@ int			team2Timed = 0;
 int			cgSiegeTeam1PlShader = 0;
 int			cgSiegeTeam2PlShader = 0;
 
+//[TrueView]
+#define		MAX_TRUEVIEW_INFO_SIZE		4096
+char		true_view_info[MAX_TRUEVIEW_INFO_SIZE];
+int			true_view_valid;
+//[/TrueView]
+
 static char cgParseObjectives[MAX_SIEGE_INFO_SIZE];
 
 extern void CG_LoadCISounds(clientInfo_t *ci, qboolean modelloaded); //cg_players.c
@@ -1091,4 +1097,39 @@ void CG_SetSiegeTimerCvar ( int msec )
 	seconds -= tens * 10;
 
 	trap_Cvar_Set("ui_siegeTimer", va( "%i:%i%i", mins, tens, seconds ) );
+}
+
+//[TrueView]
+void CG_TrueViewInit( void )
+{
+	int				len = 0;
+	fileHandle_t	f;
+
+
+	len = trap_FS_FOpenFile("trueview.cfg", &f, FS_READ);
+
+	if (!f)
+	{
+	//	trap->Print("Error: File Not Found: trueview.cfg\n");
+		true_view_valid = 0;
+		return;
+	}
+
+	if( len >= MAX_TRUEVIEW_INFO_SIZE )
+	{
+		trap_Print("Error: trueview.cfg is over the filesize limit.\n");
+		trap_FS_FCloseFile( f );
+		true_view_valid = 0;
+		return;
+	}
+
+	
+	trap_FS_Read(true_view_info, len, f);
+
+	true_view_valid = 1;
+
+	trap_FS_FCloseFile( f );
+
+	return;
+
 }

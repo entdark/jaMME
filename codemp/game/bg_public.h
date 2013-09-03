@@ -1612,3 +1612,9 @@ extern int forcePowerDarkLight[NUM_FORCE_POWERS];
 extern const char *gametypeStringShort[GT_MAX_GAME_TYPE];
 const char *BG_GetGametypeString( int gametype );
 int BG_GetGametypeForString( const char *gametype );
+
+
+//[AnimationSys]
+float BG_GetTorsoAnimPoint( playerState_t *ps, int AnimIndex );
+float BG_GetLegsAnimPoint( playerState_t *ps, int AnimIndex );
+//[/AnimationSys]

@@ -111,22 +111,22 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	{
 		if( largeFormat )
 		{
-			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale*cgs.widthRatioCoef, 32*cgs.screenYScale, TEAM_RED, qfalse );
+			CG_DrawFlagModel( iconx, y, 32*cgs.widthRatioCoef, 32, TEAM_RED, qfalse );
 		}
 		else
 		{
-			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale*cgs.widthRatioCoef, 32*cgs.screenYScale, TEAM_RED, qfalse );
+			CG_DrawFlagModel( iconx, y, 32*cgs.widthRatioCoef, 32, TEAM_RED, qfalse );
 		}
 	}
 	else if ( ci->powerups & ( 1 << PW_BLUEFLAG ) )
 	{
 		if( largeFormat )
 		{
-			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale*cgs.widthRatioCoef, 32*cgs.screenYScale, TEAM_BLUE, qfalse );
+			CG_DrawFlagModel( iconx, y, 32*cgs.widthRatioCoef, 32, TEAM_BLUE, qfalse );
 		}
 		else
 		{
-			CG_DrawFlagModel( iconx*cgs.screenXScale, y*cgs.screenYScale, 32*cgs.screenXScale*cgs.widthRatioCoef, 32*cgs.screenYScale, TEAM_BLUE, qfalse );
+			CG_DrawFlagModel( iconx, y, 32*cgs.widthRatioCoef, 32, TEAM_BLUE, qfalse );
 		}
 	}
 	else if (cgs.gametype == GT_POWERDUEL &&

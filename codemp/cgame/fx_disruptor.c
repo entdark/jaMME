@@ -33,6 +33,203 @@ void FX_DisruptorMainShot( vec3_t start, vec3_t end )
 }
 
 
+//q3pro/QtZ code
+void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end ) {
+	localEntity_t *leCore = CG_AllocLocalEntity();
+	refEntity_t   *reCore = &leCore->refEntity;
+	localEntity_t *leGlow = CG_AllocLocalEntity();
+	refEntity_t   *reGlow = &leGlow->refEntity;
+#if 0
+	vector4 color1 = { ci->color1[0], ci->color1[1], ci->color1[2], 1.0f },
+			color2 = { ci->color2[0], ci->color2[1], ci->color2[2], 1.0f };
+#else
+	vec4_t	color1 = { ci->rgb1[0]/255.0f, ci->rgb1[1]/255.0f, ci->rgb1[2]/255.0f, 1.0f },
+			color2 = { ci->rgb2[0]/255.0f, ci->rgb2[1]/255.0f, ci->rgb2[2]/255.0f, 1.0f };
+#endif
+
+	if ( cgs.gametype >= GT_TEAM )
+	{
+		if ( ci->team == TEAM_RED )
+		{
+			VectorSet4( color1, 1.0f, 0.0f, 0.0f, 1.0f );
+			VectorSet4( color2, 1.0f, 0.0f, 0.0f, 1.0f );
+		//	muzzleEffect = cgs.effects.weapons.divergenceMuzzleRed;
+		}
+		else if ( ci->team == TEAM_BLUE )
+		{
+			VectorSet4( color1, 0.0f, 0.0f, 1.0f, 1.0f );
+			VectorSet4( color2, 0.0f, 0.0f, 1.0f, 1.0f );
+		//	muzzleEffect = cgs.effects.weapons.divergenceMuzzleBlue;
+		}
+		else
+		{
+			VectorSet4( color1, 0.0f, 0.878431f, 1.0f, 1.0f );
+			VectorSet4( color2, 0.0f, 1.0f, 1.0f, 1.0f );
+		}
+	}
+
+	//Glow
+	leGlow->leType = LE_FADE_RGB;
+	leGlow->startTime = cg.time;
+	leGlow->endTime = cg.time + 1600;
+	leGlow->lifeRate = 1.0 / (leGlow->endTime - leGlow->startTime);
+	reGlow->shaderTime = cg.time / 1600.0f;
+	reGlow->reType = RT_LINE;
+	reGlow->radius = 3.0f;
+	reGlow->customShader = trap_R_RegisterShader( "gfx/misc/whiteline2" );
+	VectorCopy(start, reGlow->origin);
+	VectorCopy(end, reGlow->oldorigin);
+	reGlow->shaderRGBA[0] = color1[0] * 255;
+	reGlow->shaderRGBA[1] = color1[1] * 255;
+	reGlow->shaderRGBA[2] = color1[2] * 255;
+	reGlow->shaderRGBA[3] = 255;
+	leGlow->color[0] = color1[0] * 0.75;
+	leGlow->color[1] = color1[1] * 0.75;
+	leGlow->color[2] = color1[2] * 0.75;
+	leGlow->color[3] = 1.0f;
+
+	//Core
+	leCore->leType = LE_FADE_RGB;
+	leCore->startTime = cg.time;
+	leCore->endTime = cg.time + 1600;
+	leCore->lifeRate = 1.0 / (leCore->endTime - leCore->startTime);
+	reCore->shaderTime = cg.time / 1600.0f;
+	reCore->reType = RT_LINE;
+	reCore->radius = 1.0f;
+	reCore->customShader = trap_R_RegisterShader( "gfx/misc/whiteline2" );
+	VectorCopy(start, reCore->origin);
+	VectorCopy(end, reCore->oldorigin);
+	reCore->shaderRGBA[0] = color1[0] * 255;
+	reCore->shaderRGBA[1] = color1[1] * 255;
+	reCore->shaderRGBA[2] = color1[2] * 255;
+	reCore->shaderRGBA[3] = 255;
+	leCore->color[0] = 1.0f;
+	leCore->color[1] = 1.0f;
+	leCore->color[2] = 1.0f;
+	leCore->color[3] = 0.6f;
+
+	AxisClear( reCore->axis );
+}
+
+
+void CG_RailSpiral( clientInfo_t *ci, vec3_t start, vec3_t end ) {
+	vec3_t axis[36], move, move2, next_move, vec, temp;
+	float  len;
+	int    i, j, skip;
+
+	localEntity_t *leCore = CG_AllocLocalEntity();
+	refEntity_t   *reCore = &leCore->refEntity;
+	localEntity_t *leGlow = CG_AllocLocalEntity();
+	refEntity_t   *reGlow = &leGlow->refEntity;
+ 
+#define RADIUS   4
+#define ROTATION 1
+#define SPACING  5
+ 
+	start[2] -= 4;
+	VectorCopy (start, move);
+	VectorSubtract (end, start, vec);
+	len = VectorNormalize (vec);
+	PerpendicularVector(temp, vec);
+	for (i = 0 ; i < 36; i++)
+		RotatePointAroundVector(axis[i], vec, temp, i * 10);//banshee 2.4 was 10
+
+	//Glow
+	leGlow->leType = LE_FADE_RGB;
+	leGlow->startTime = cg.time;
+	leGlow->endTime = cg.time + 1600;
+	leGlow->lifeRate = 1.0 / (leGlow->endTime - leGlow->startTime);
+	reGlow->shaderTime = cg.time / 1600.0f;
+	reGlow->reType = RT_LINE;
+	reGlow->radius = 3.0f;
+	reGlow->customShader = trap_R_RegisterShader( "gfx/misc/whiteline2" );
+	VectorCopy(start, reGlow->origin);
+	VectorCopy(end, reGlow->oldorigin);
+	reGlow->shaderRGBA[0] = ci->color1[0] * 255;
+	reGlow->shaderRGBA[1] = ci->color1[1] * 255;
+	reGlow->shaderRGBA[2] = ci->color1[2] * 255;
+	reGlow->shaderRGBA[3] = 255;
+	leGlow->color[0] = ci->color1[0] * 0.75;
+	leGlow->color[1] = ci->color1[1] * 0.75;
+	leGlow->color[2] = ci->color1[2] * 0.75;
+	leGlow->color[3] = 1.0f;
+
+	//Core
+	leCore->leType = LE_FADE_RGB;
+	leCore->startTime = cg.time;
+	leCore->endTime = cg.time + 1600;
+	leCore->lifeRate = 1.0 / (leCore->endTime - leCore->startTime);
+	reCore->shaderTime = cg.time / 1600.0f;
+	reCore->reType = RT_LINE;
+	reCore->radius = 1.0f;
+	reCore->customShader = trap_R_RegisterShader( "gfx/misc/whiteline2" );
+	VectorCopy(start, reCore->origin);
+	VectorCopy(end, reCore->oldorigin);
+	reCore->shaderRGBA[0] = ci->color1[0] * 255;
+	reCore->shaderRGBA[1] = ci->color1[1] * 255;
+	reCore->shaderRGBA[2] = ci->color1[2] * 255;
+	reCore->shaderRGBA[3] = 255;
+	leCore->color[0] = 1.0f;
+	leCore->color[1] = 1.0f;
+	leCore->color[2] = 1.0f;
+	leCore->color[3] = 0.6f;
+
+	AxisClear( reCore->axis );
+
+	VectorMA(move, 20, vec, move);
+	VectorCopy(move, next_move);
+	VectorScale (vec, SPACING, vec);
+
+	skip = -1;
+
+	j = 18;
+	for (i = 0; i < len; i += SPACING) {
+		if (i != skip) {
+			localEntity_t *le = CG_AllocLocalEntity();
+			refEntity_t *re = &le->refEntity;
+
+			skip = i + SPACING;
+			le->leFlags = LEF_PUFF_DONT_SCALE;
+			le->leType = LE_MOVE_SCALE_FADE;
+			le->startTime = cg.time;
+			le->endTime = cg.time + (i>>1) + 600;
+			le->lifeRate = 1.0 / (le->endTime - le->startTime);
+
+			re->shaderTime = cg.time / 2000.0f;
+			re->reType = RT_SPRITE;
+			re->radius = 1.8f;
+			re->customShader = cgs.media.enlightenmentShader;
+			re->renderfx |= RF_RGB_TINT;
+
+			re->shaderRGBA[0] = ci->color2[0] * 255;
+			re->shaderRGBA[1] = ci->color2[1] * 255;
+			re->shaderRGBA[2] = ci->color2[2] * 255;
+			re->shaderRGBA[3] = 255;
+
+			le->color[0] = ci->color2[0] * 0.75;
+			le->color[1] = ci->color2[1] * 0.75;
+			le->color[2] = ci->color2[2] * 0.75;
+			le->color[3] = 1.0f;
+
+			le->pos.trType = TR_LINEAR;
+			le->pos.trTime = cg.time;
+
+			VectorCopy( move, move2);
+			VectorMA(move2, RADIUS , axis[j], move2);
+			VectorCopy(move2, le->pos.trBase);
+
+			le->pos.trDelta[0] = axis[j][0]*6;
+			le->pos.trDelta[1] = axis[j][1]*6;
+			le->pos.trDelta[2] = axis[j][2]*6;
+		}
+
+		VectorAdd (move, vec, move);
+
+		j = j + ROTATION < 36 ? j + ROTATION : (j + ROTATION) % 36;
+	}
+}
+
+
 /*
 ---------------------------
 FX_DisruptorAltShot

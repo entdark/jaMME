@@ -151,6 +151,13 @@ void CG_ParseServerinfo( void ) {
 	cgs.timelimit = i;
 
 	cgs.maxclients = Com_Clampi( 0, MAX_CLIENTS, atoi( Info_ValueForKey( info, "sv_maxclients" ) ) );
+
+	cg.japlus.detected = qfalse;
+	if ( !Q_stricmpn( Info_ValueForKey( info, "gamename" ), "JA+ Mod", 7 ) ) {
+		cg.japlus.detected = qtrue;
+		CG_Printf( "JA+ demo detected\n" );
+	}
+
 	mapname = Info_ValueForKey( info, "mapname" );
 
 	//rww - You must do this one here, Info_ValueForKey always uses the same memory pointer.

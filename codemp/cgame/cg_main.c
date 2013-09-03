@@ -1043,6 +1043,39 @@ static void CG_RegisterSounds( void ) {
 	cgs.media.blueSaberCoreShader		= trap_R_RegisterShader( "gfx/effects/sabers/blue_line" );
 	cgs.media.purpleSaberGlowShader		= trap_R_RegisterShader( "gfx/effects/sabers/purple_glow" );
 	cgs.media.purpleSaberCoreShader		= trap_R_RegisterShader( "gfx/effects/sabers/purple_line" );
+
+
+	//[RGBSabers]
+	cgs.media.rgbSaberGlowShader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBglow1" );
+	cgs.media.rgbSaberCoreShader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBcore1" );
+
+	//Flame 1
+	cgs.media.rgbSaberGlow2Shader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBglow2" );
+	cgs.media.rgbSaberCore2Shader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBcore2" );
+	cgs.media.rgbSaberTrail2Shader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBtrail2" );
+
+	//Electric 1
+	cgs.media.rgbSaberGlow3Shader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBglow3" );
+	cgs.media.rgbSaberCore3Shader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBcore3" );
+	cgs.media.rgbSaberTrail3Shader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBtrail3" );
+
+	//Flame 2
+	cgs.media.rgbSaberGlow4Shader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBglow4" );
+	cgs.media.rgbSaberCore4Shader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBcore4" );
+	cgs.media.rgbSaberTrail4Shader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBtrail4" );
+
+	//Electric 2
+	cgs.media.rgbSaberGlow5Shader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBglow5" );
+	cgs.media.rgbSaberCore5Shader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBcore5" );
+	cgs.media.rgbSaberTrail5Shader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/swordTrail" );
+
+	//Black
+	cgs.media.blackSaberGlowShader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/blackglow" );
+	cgs.media.blackSaberCoreShader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/blackcore" );
+	cgs.media.blackBlurShader			= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/blacktrail" );
+	//[/RGBSabers]
+
+
 	cgs.media.saberBlurShader			= trap_R_RegisterShader( "gfx/effects/sabers/saberBlur" );
 	cgs.media.swordTrailShader			= trap_R_RegisterShader( "gfx/effects/sabers/swordTrail" );
 
@@ -3040,6 +3073,10 @@ Ghoul2 Insert End
 
 	//make sure saber data is loaded before this! (so we can precache the appropriate hilts)
 	CG_InitSiegeMode();
+
+	//[TrueView]
+	CG_TrueViewInit();
+	//[/TrueView]
 
 	CG_RegisterSounds();
 

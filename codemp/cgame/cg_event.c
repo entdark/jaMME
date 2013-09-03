@@ -1946,12 +1946,13 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 				break;
 			}
-
+/*			//not sure how this affects other parts of the code
+			//but now sound of picked item can be played again after playing demo backward
 			if (cg_entities[es->eventParm].weapon >= cg.time)
 			{ //rww - an unfortunately necessary hack to prevent double item pickups
 				break;
 			}
-
+*/
 			//Hopefully even if this entity is somehow removed and replaced with, say, another
 			//item, this time will have expired by the time that item needs to be picked up.
 			//Of course, it's quite possible this will fail miserably, so if you've got a better
@@ -2041,7 +2042,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			}
 			else if ( cg.snap->ps.weapon == WP_SABER )
 			{
-				cg.forceHUDTotalFlashTime = cg.time + 1000;
+				if (cg.forceHUDTotalFlashTime > cg.time + 1000) {
+					cg.forceHUDTotalFlashTime = cg.time;
+				} else {
+					cg.forceHUDTotalFlashTime = cg.time + 1000;
+				}
 			}
 			else
 			{
@@ -2543,7 +2548,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_DISRUPTOR_MAIN_SHOT:
 		DEBUGNAME("EV_DISRUPTOR_MAIN_SHOT");
 		if (cent->currentState.eventParm != cg.snap->ps.clientNum ||
-			cg.renderingThirdPerson)
+			//[TrueView]
+			cg.renderingThirdPerson || cg_trueGuns.integer 
+			|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)
+			//cg.renderingThirdPerson)
+			//[/TrueView]
 		{ //h4q3ry
 			CG_GetClientWeaponMuzzleBoltPoint(cent->currentState.eventParm, cent->currentState.origin2);
 		}
@@ -2554,7 +2563,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				VectorCopy(cg.lastFPFlashPoint, cent->currentState.origin2);
 			}
 		}
-		FX_DisruptorMainShot( cent->currentState.origin2, cent->lerpOrigin ); 
+		if (fx_disruptSpiral.integer) {
+			CG_RailSpiral( &cgs.clientinfo[cent->currentState.eventParm], cent->currentState.origin2, cent->lerpOrigin );
+		} else if ( (cg_newFX.integer & NEWFX_RUPTOR) )
+			CG_RailTrail( &cgs.clientinfo[cent->currentState.eventParm], cent->currentState.origin2, cent->lerpOrigin );
+		else
+			FX_DisruptorMainShot( cent->currentState.origin2, cent->lerpOrigin ); 
 		break;
 
 	case EV_DISRUPTOR_SNIPER_SHOT:
@@ -2571,7 +2585,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				VectorCopy(cg.lastFPFlashPoint, cent->currentState.origin2);
 			}
 		}
-		FX_DisruptorAltShot( cent->currentState.origin2, cent->lerpOrigin, cent->currentState.shouldtarget );
+		if (fx_disruptSpiral.integer) {
+			CG_RailSpiral( &cgs.clientinfo[cent->currentState.eventParm], cent->currentState.origin2, cent->lerpOrigin );
+		} else if ( (cg_newFX.integer & NEWFX_RUPTOR) )
+			CG_RailTrail( &cgs.clientinfo[cent->currentState.eventParm], cent->currentState.origin2, cent->lerpOrigin );
+		else
+			FX_DisruptorAltShot( cent->currentState.origin2, cent->lerpOrigin, cent->currentState.shouldtarget );
 		break;
 
 	case EV_DISRUPTOR_SNIPER_MISS:

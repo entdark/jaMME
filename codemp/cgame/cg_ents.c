@@ -684,14 +684,24 @@ void CG_Disintegration(centity_t *cent, refEntity_t *ent)
 
 	ent->endTime = cent->dustTrailTime;
 
-	ent->renderfx |= RF_DISINTEGRATE2;
-	ent->customShader = cgs.media.disruptorShader;
-	trap_R_AddRefEntityToScene( ent );
+	if ( (cg_newFX.integer & NEWFX_DISINT) )
+	{
+		ent->renderfx = RF_DISINTEGRATE2;
+		ent->customShader = cgs.media.orangeSaberGlowShader;
+//		SE_R_AddRefEntityToScene( ent, cent->currentState.number );
+		trap_R_AddRefEntityToScene( ent );
+	}
+	else
+	{
+		ent->renderfx |= RF_DISINTEGRATE2;
+		ent->customShader = cgs.media.disruptorShader;
+		trap_R_AddRefEntityToScene( ent );
 
-	ent->renderfx &= ~(RF_DISINTEGRATE2);
-	ent->renderfx |= (RF_DISINTEGRATE1);
-	ent->customShader = 0;
-	trap_R_AddRefEntityToScene( ent );
+		ent->renderfx &= ~(RF_DISINTEGRATE2);
+		ent->renderfx |= (RF_DISINTEGRATE1);
+		ent->customShader = 0;
+		trap_R_AddRefEntityToScene( ent );
+	}
 
 	if ( cg.time - ent->endTime < 1000 && (timescale.value * timescale.value * random()) > 0.05f )
 	{
@@ -706,6 +716,16 @@ void CG_Disintegration(centity_t *cent, refEntity_t *ent)
 				BG_GiveMeVectorFromMatrix( &boltMatrix, ORIGIN, fxOrg );
 
 		VectorMA( fxOrg, -18, cg.refdef.viewaxis[0], fxOrg );
+
+		if ( (cg_newFX.integer & NEWFX_DISINT) )
+		{
+			VectorSet(fxDir, 0, 0, 1);
+			fxOrg[2] += crandom() * 2;
+			if ( random() > 0.82f )
+				trap_FX_PlayEffectID( cgs.effects.mBlackSmoke, fxOrg, fxDir, -1, -1 );
+			return;
+		}
+
 		fxOrg[2] += crandom() * 20;
 		trap_FX_PlayEffectID( cgs.effects.mDisruptorDeathSmoke, fxOrg, fxDir, -1, -1 );
 
@@ -2001,7 +2021,7 @@ Ghoul2 Insert Start
 Ghoul2 Insert End
 */
 
-	if ( item->giType == IT_TEAM && mov_simpleFlags.integer ) {
+	if ( item->giType == IT_TEAM && mov_simpleFlags.integer/*(cg_newFX.integer & NEWFX_SIMPLEFLAG)*/ ) {
 		vec3_t angs;
 
 		memset( &ent, 0, sizeof( ent ) );
@@ -2515,6 +2535,44 @@ static void CG_Missile( centity_t *cent ) {
 //	int	col;
 
 	s1 = &cent->currentState;
+
+	if ( s1->weapon == /*WP_BRYAR_PISTOL*/cg_grappleFix.integer && cg.japlus.detected && cg_grappleFix.integer)
+	{
+		if ( s1->generic1 )
+		{//Raz: Portals
+			vec3_t pos;
+			BG_EvaluateTrajectory( &s1->pos, cg.time, pos );
+			trap_FX_PlayEffectID( (cent->currentState.eFlags & EF_ALT_FIRING) ? cgs.effects.mBobaJet : cgs.effects.itemCone, &pos, &s1->angles, -1, -1, qfalse );
+			return;
+		}
+		//[Grapple]
+		else
+		{//Raz: Grapple
+			int			clientNum	= (cent->currentState.otherEntityNum == cg.snap->ps.clientNum) ? cg.predictedPlayerState.clientNum : cent->currentState.otherEntityNum;
+			vec3_t		rHandPos;
+			mdxaBone_t	boltMatrix;
+			vec3_t pos;
+
+			//Don't show grapple in duels
+			if ( cg.predictedPlayerState.duelInProgress )
+				return;
+
+			cg_entities[clientNum].bolt1 = s1->number;
+
+			trap_G2API_GetBoltMatrix( cg_entities[clientNum].ghoul2, 0, cgs.clientinfo[clientNum].bolt_rhand, &boltMatrix, cg_entities[clientNum].turAngles, cg_entities[clientNum].lerpOrigin, cg.time, cgs.gameModels, cg_entities[clientNum].modelScale );
+
+			rHandPos[0] = boltMatrix.matrix[0][3];
+			rHandPos[1] = boltMatrix.matrix[1][3];
+			rHandPos[2] = boltMatrix.matrix[2][3];
+
+			BG_EvaluateTrajectory( &s1->pos, cg.time, pos );
+
+			CG_TestLine( rHandPos, pos, 1, 6, 1 );
+			return;
+		}
+		//[/Grapple]
+	}
+
 	if ( s1->weapon > WP_NUM_WEAPONS && s1->weapon != G2_MODEL_PART ) {
 		s1->weapon = 0;
 	}
@@ -3136,7 +3194,11 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 		return;
 	}
 
-	f = cg.frameInterpolation;
+	if (cgs.gametype != GT_SIEGE) {	// BAD FIX?
+		f = cg.frameInterpolation;
+	} else {
+		f = 1.0f;	//will look odd if we switch to other client, but at least vehs not so laggy
+	}
 
 	// this will linearize a sine or parabolic curve, but it is important
 	// to not extrapolate player positions if more recent data is available
@@ -3181,9 +3243,9 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 
 		if (veh->currentState.owner == cg.predictedPlayerState.clientNum)
 		{ //only do this if the vehicle is pilotted by this client and predicting properly
-//			BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
-//			BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
-//			return;
+			BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
+			BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
+			return;
 		}
 	}
 
@@ -3192,26 +3254,47 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 		return;
 	}
 
-	// first see if we can interpolate between two snaps for
-	// linear extrapolated clients
-	if ( cent->interpolate && cent->currentState.pos.trType == TR_LINEAR_STOP &&
-			(cent->currentState.number < MAX_CLIENTS || cent->currentState.eType == ET_NPC) ) {
-		CG_InterpolateEntityPosition( cent );
-		goAway = qtrue;
+	if (cgs.gametype != GT_SIEGE) {
+		// first see if we can interpolate between two snaps for
+		// linear extrapolated clients
+		if ( cent->interpolate && cent->currentState.pos.trType == TR_LINEAR_STOP &&
+				(cent->currentState.number < MAX_CLIENTS || cent->currentState.eType == ET_NPC) ) {
+			CG_InterpolateEntityPosition( cent );
+			goAway = qtrue;
+		}
+		else if (cent->interpolate &&
+			cent->currentState.eType == ET_NPC && cent->currentState.NPC_class == CLASS_VEHICLE)
+		{
+			CG_InterpolateEntityPosition( cent );
+			goAway = qtrue;
+		}
+		else
+		{
+			// just use the current frame and evaluate as best we can
+			BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
+			BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
+		}
+	} else {
+		// first see if we can interpolate between two snaps for
+		// linear extrapolated clients
+		if ( cent->interpolate && cent->currentState.pos.trType == TR_LINEAR_STOP &&
+				(cent->currentState.number < MAX_CLIENTS || cent->currentState.eType == ET_NPC) ) {
+			CG_InterpolateEntityPosition( cent );
+			goAway = qtrue;
+		}
+		else if (cent->interpolate &&
+			cent->currentState.eType == ET_NPC && cent->currentState.NPC_class == CLASS_VEHICLE)
+		{
+			CG_InterpolateEntityPosition( cent );
+			goAway = qtrue;
+		}
+		else if (!(cent->currentState.number < MAX_CLIENTS))	//BAD FIX? //seems working, but requires moar tests
+		{
+			// just use the current frame and evaluate as best we can
+			BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
+			BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
+		}
 	}
-	else if (cent->interpolate &&
-		cent->currentState.eType == ET_NPC && cent->currentState.NPC_class == CLASS_VEHICLE)
-	{
-		CG_InterpolateEntityPosition( cent );
-		goAway = qtrue;
-	}
-	else
-	{
-		// just use the current frame and evaluate as best we can
-		BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
-		BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
-	}
-
 #if 0
 	if (cent->hasRagOffset && cent->ragOffsetTime < cg.time)
 	{ //take all of the offsets from last frame and normalize the total direction and add it in

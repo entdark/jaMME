@@ -150,10 +150,9 @@ int demoSetupView( void) {
 //					CG_CalcEntityLerpPositions( cg.playerCent );
 //				}
 				cg.renderingThirdPerson = (cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0)
-					|| cg.playerCent->playerState->weapon == WP_SABER
+					|| (cg.playerCent->playerState->weapon == WP_SABER && cg_trueSaberOnly.integer)
 					|| cg.playerCent->playerState->weapon == WP_MELEE)
 					&& cg.predictedPlayerState.zoomMode == 0;
-//				cg.renderingThirdPerson = qtrue;
 				CG_DemosCalcViewValues();
 //				CG_CalcViewValues();
 				// first person blend blobs, done after AnglesToAxis

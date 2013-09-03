@@ -323,6 +323,11 @@ typedef struct {
 
 	int			superSmoothTime; //do crazy amount of smoothing
 
+	//[RGBSabers]
+	vec3_t		rgb1;
+	vec3_t		rgb2;
+	//[/RGBSabers]
+
 } clientInfo_t;
 
 //rww - cheap looping sound struct
@@ -798,6 +803,8 @@ typedef struct {
 	int			timelimitWarnings;	// 5 min, 1 min, overtime
 	int			fraglimitWarnings;
 
+	int			lastLoopSoundTime;
+
 	qboolean	mapRestart;			// set on a map restart to set back the weapon
 
 	qboolean	mInRMG; //rwwRMG - added
@@ -1034,6 +1041,10 @@ Ghoul2 Insert End
 	float				eventCoeff;
 	float				eventOldCoeff;
 	
+	struct			{
+		qboolean	detected;
+	} japlus;
+
 } cg_t;
 
 #define MAX_TICS	14
@@ -1155,6 +1166,34 @@ typedef struct {
 	qhandle_t	blueSaberCoreShader;
 	qhandle_t	purpleSaberGlowShader;
 	qhandle_t	purpleSaberCoreShader;
+
+
+	//[RGBSabers]
+	qhandle_t	rgbSaberGlowShader;
+	qhandle_t	rgbSaberCoreShader;
+
+	qhandle_t	rgbSaberGlow2Shader;
+	qhandle_t	rgbSaberCore2Shader;
+	qhandle_t	rgbSaberTrail2Shader;
+
+	qhandle_t	rgbSaberGlow3Shader;
+	qhandle_t	rgbSaberCore3Shader;
+	qhandle_t	rgbSaberTrail3Shader;
+
+	qhandle_t	rgbSaberGlow4Shader;
+	qhandle_t	rgbSaberCore4Shader;
+	qhandle_t	rgbSaberTrail4Shader;
+
+	qhandle_t	rgbSaberGlow5Shader;
+	qhandle_t	rgbSaberCore5Shader;
+	qhandle_t	rgbSaberTrail5Shader;
+
+	qhandle_t	blackSaberGlowShader;
+	qhandle_t	blackSaberCoreShader;
+	qhandle_t	blackBlurShader;
+	//[/RGBSabers]
+
+
 	qhandle_t	saberBlurShader;
 	qhandle_t	swordTrailShader;
 
@@ -2502,3 +2541,19 @@ extern qboolean gCGHasFallVector;
 extern vec3_t gCGFallVector;
 extern qboolean cgQueueLoad;
 extern void CG_ActualLoadDeferredPlayers( void );
+
+
+void CG_RailSpiral( clientInfo_t *ci, vec3_t start, vec3_t end );
+
+//new fx from ja++
+//[TrueView]
+void CG_TrueViewInit( void );
+//[/TrueView]
+
+refdef_t *CG_GetRefdef( void );
+void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end );
+#define NEWFX_DISINT		0x0001
+#define NEWFX_RUPTOR		0x0002
+#define NEWFX_REPEATER_ALT	0x0004
+#define NEWFX_SIMPLEFLAG	0x0008
+#define NEWFX_TRANSFLAG		0x0010

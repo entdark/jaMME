@@ -10,6 +10,15 @@
 #define CAMERA_SIZE	4
 
 
+static int GetCameraClip( void ) {
+	return /*(cg.japp.isGhosted) ? (MASK_SOLID) : */(MASK_SOLID|CONTENTS_PLAYERCLIP);
+}
+
+refdef_t *CG_GetRefdef( void ) {
+	return &cg.refdef;
+}
+
+
 /*
 =============================================================================
 
@@ -1260,15 +1269,30 @@ static int CG_CalcFov( void ) {
 	float	fov_x, fov_y;
 	float	f;
 	int		inwater;
-	float	cgFov = cg_fov.value;
+	//[TrueView]
+	float cgFov;
+	//float	cgFov = cg_fov.value;
+	
+	if(!cg.renderingThirdPerson && (cg_trueGuns.integer || cg.predictedPlayerState.weapon == WP_SABER
+		|| cg.predictedPlayerState.weapon == WP_MELEE) 
+		&& cg_trueFOV.value && (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
+		&& (cg.predictedPlayerState.pm_type != PM_INTERMISSION))
+	{
+		cgFov = cg_trueFOV.value;
+	}
+	else
+	{
+		cgFov = cg_fov.value;
+	}
+	//[/TrueView]
 
 	if (cgFov < 1)
 	{
 		cgFov = 1;
 	}
-	if (cgFov > 130)
+	if (cgFov > 150)
 	{
-		cgFov = 130;
+		cgFov = 150;
 	}
 
 	if ( cg.predictedPlayerState.pm_type == PM_INTERMISSION ) {
@@ -1978,7 +2002,20 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 
 	if (!fov_x)
 	{
-		fov_x = cg_fov.value;
+		//[TrueView]
+		if(!cg.renderingThirdPerson && (cg_trueGuns.integer || cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)
+			&& cg_trueFOV.value
+			&& (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
+			&& (cg.predictedPlayerState.pm_type != PM_INTERMISSION))
+		{
+			fov_x = cg_trueFOV.value;
+		}
+		else
+		{
+			fov_x = cg_fov.value;
+		}
+		//fov_x = cg_fov.value;
+		//[/TrueView]
 	}
 
 	// setup fog the first time, ignore this part of the configstring after that
@@ -2041,11 +2078,35 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 	if ( cg.predictedPlayerState.pm_type == PM_INTERMISSION )
 	{
 		// if in intermission, use a fixed value
-		fov_x = cg_fov.value;
+		//[TrueView]
+		if(!cg.renderingThirdPerson && (cg_trueGuns.integer || cg.predictedPlayerState.weapon == WP_SABER
+		|| cg.predictedPlayerState.weapon == WP_MELEE) && cg_trueFOV.value)
+		{
+			fov_x = cg_trueFOV.value;
+		}
+		else
+		{
+			fov_x = cg_fov.value;
+		}
+		//fov_x = cg_fov.value;
+		//[/TrueView]
 	}
 	else
 	{
-		fov_x = cg_fov.value;
+		//[TrueView]
+		if(!cg.renderingThirdPerson && (cg_trueGuns.integer || cg.predictedPlayerState.weapon == WP_SABER
+		|| cg.predictedPlayerState.weapon == WP_MELEE) && cg_trueFOV.value 
+		&& (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
+		&& (cg.predictedPlayerState.pm_type != PM_INTERMISSION))
+		{
+			fov_x = cg_trueFOV.value;
+		}
+		else
+		{
+			fov_x = cg_fov.value;
+		}
+		//fov_x = cg_fov.value;
+		//[/TrueView]
 		if ( fov_x < 1 ) 
 		{
 			fov_x = 1;
@@ -3027,4 +3088,20 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 		CG_Printf( "cg.clientFrame:%i\n", cg.clientFrame );
 	}
 }
+
+//[TrueView]
+//Checks to see if the current camera position is valid based on the last known safe location.  If it's not safe, place
+//the camera at the last position safe location
+void CheckCameraLocation( vec3_t OldeyeOrigin )  
+{
+	trace_t			trace;
+//	refdef_t *refdef = &cg.refdef;//CG_GetRefdef();
+
+	CG_Trace(&trace, OldeyeOrigin, cameramins, cameramaxs, cg.refdef.vieworg, cg.snap->ps.clientNum, GetCameraClip());
+	if (trace.fraction <= 1.0)
+	{
+		VectorCopy(trace.endpos, cg.refdef.vieworg);
+	}
+}
+//[/TrueView]
 

@@ -581,7 +581,11 @@ Ghoul2 Insert End
 
 	// Do special charge bits
 	//-----------------------
-	if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number) &&
+	//[TrueView]
+	//Make the guns do their charging visual in True View.
+	if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number || cg_trueGuns.integer) &&
+	//if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number) &&
+	//[/TrueView]
 		( ( cent->currentState.modelindex2 == WEAPON_CHARGING_ALT && cent->currentState.weapon == WP_BRYAR_PISTOL ) ||
 		  ( cent->currentState.modelindex2 == WEAPON_CHARGING_ALT && cent->currentState.weapon == WP_BRYAR_OLD ) ||
 		  ( cent->currentState.weapon == WP_BOWCASTER && cent->currentState.modelindex2 == WEAPON_CHARGING ) ||
@@ -698,8 +702,12 @@ Ghoul2 Insert End
 		}
 	}
 
-	if ( ps || cg.renderingThirdPerson ||
-			cent->currentState.number != cg.predictedPlayerState.clientNum ) 
+	//[TrueView]
+	if ( ps || cg.renderingThirdPerson || cg_trueGuns.integer 
+		|| cent->currentState.number != cg.predictedPlayerState.clientNum ) 
+	//if ( ps || cg.renderingThirdPerson ||
+	//		cent->currentState.number != cg.predictedPlayerState.clientNum ) 
+	//[/TrueView]
 //			cent != cg.playerCent )
 	{	// Make sure we don't do the thirdperson model effects for the local player if we're in first person
 		vec3_t flashorigin, flashdir;
@@ -815,8 +823,26 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 		return;
 	}
 
+	//[TrueView]
+	if ( !cg.renderingThirdPerson
+		&& (cg_trueGuns.integer /*|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE*/)
+		&& cg_trueFOV.value 
+		&& cg.predictedPlayerState.pm_type != PM_SPECTATOR
+		&& cg.predictedPlayerState.pm_type != PM_INTERMISSION )
+		cgFov = /*cg_fovViewmodel.integer ? cg_fovViewmodel.value :*/ cg_trueFOV.value;
+	else
+		cgFov = /*cg_fovViewmodel.integer ? cg_fovViewmodel.value :*/ cg_fov.value;
+	//float	cgFov = cg_fov.value;
+	//[/TrueView]
+
+	cgFov = Com_Clampi( 1, 180, cgFov );
+
 	// allow the gun to be completely removed
-	if ( !cg_drawGun.integer || cg.predictedPlayerState.zoomMode) {
+	//[TrueView]
+	if ( /*!cg.japp.fakeGun &&*/ (!cg_drawGun.integer || cg.predictedPlayerState.zoomMode || cg_trueGuns.integer
+		/*|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE*/) ) {
+	//if ( !cg_drawGun.integer || cg.predictedPlayerState.zoomMode) {
+	//[/TrueView]
 		vec3_t		origin;
 
 		if ( cg.predictedPlayerState.eFlags & EF_FIRING ) {
