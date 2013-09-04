@@ -643,6 +643,7 @@ typedef struct localEntity_s {
 typedef struct {
 	int				client;
 	int				score;
+	int				deaths;	//ja+
 	int				ping;
 	int				time;
 	int				scoreFlags;
@@ -1042,7 +1043,8 @@ Ghoul2 Insert End
 	float				eventOldCoeff;
 	
 	struct			{
-		qboolean	detected;
+		qboolean		detected;
+		unsigned int	SSF;
 	} japlus;
 
 } cg_t;
