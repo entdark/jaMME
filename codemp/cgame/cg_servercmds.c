@@ -226,12 +226,6 @@ void CG_ParseServerinfo( void ) {
 		CG_Printf( "Base/Unknown demo detected\n" );
 	}
 
-#if MAC_PORT
-	if ( tinfo[0] && sscanf( tinfo, "%X", &cg.japlus.SSF ) != 1 )
-#else
-//	if ( tinfo[0] && sscanf_s( tinfo, "%X", &cg.japlus.SSF ) != 1 )
-#endif
-//		Com_Printf( "CG_ParseServerinfo: serverinfo 'ssf' was found, but invalid.\n"  );
 	Com_Printf( "Server support hints: 0x%X\n", cg.japlus.SSF );
 
 	mapname = Info_ValueForKey( info, "mapname" );
