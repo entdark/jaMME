@@ -1607,7 +1607,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_JUMP:
 		DEBUGNAME("EV_JUMP");
-		if (cg_jumpSounds.integer)
+		
+		if ( mov_duelIsolation.integer && (cg.predictedPlayerState.duelInProgress && (cg.predictedPlayerState.clientNum != es->clientNum && cg.predictedPlayerState.duelIndex != es->clientNum)) )
+			break;
+		
+		if (cg_jumpSounds.integer /*&& (!mov_duelIsolation.integer && (!cg.predictedPlayerState.duelInProgress || (cg.predictedPlayerState.duelIndex == es->clientNum || cg.predictedPlayerState.clientNum == es->clientNum)))*/)
 		{
 			trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*jump1.wav" ) );
 		}
@@ -1618,6 +1622,10 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{
 			break;
 		}
+
+		if ( mov_duelIsolation.integer && (cg.predictedPlayerState.duelInProgress && (cg.predictedPlayerState.clientNum != es->clientNum && cg.predictedPlayerState.duelIndex != es->clientNum)) )
+			break;
+
 		if (es->eventParm)
 		{ //fall-roll-in-one event
 			DoFall(cent, es, clientNum);
@@ -1633,6 +1641,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("EV_TAUNT");
 		{
 			int soundIndex = 0;
+
+			if ( mov_duelIsolation.integer && (cg.predictedPlayerState.duelInProgress && (cg.predictedPlayerState.clientNum != es->clientNum && cg.predictedPlayerState.duelIndex != es->clientNum)) )
+				break;
 
 			if ( cg_noTaunt.integer )
 				break;
@@ -1908,6 +1919,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			int		index;
 			qboolean	newindex = qfalse;
 
+			if ( mov_duelIsolation.integer && (cg.predictedPlayerState.duelInProgress && (cg.predictedPlayerState.clientNum != es->clientNum && cg.predictedPlayerState.duelIndex != es->clientNum)) )
+				break;
+
 			index = cg_entities[es->eventParm].currentState.modelindex;		// player predicted
 
 			if (index < 1 && cg_entities[es->eventParm].currentState.isJediMaster)
@@ -2042,11 +2056,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			}
 			else if ( cg.snap->ps.weapon == WP_SABER )
 			{
-				if (cg.forceHUDTotalFlashTime > cg.time + 1000) {
-					cg.forceHUDTotalFlashTime = cg.time;
-				} else {
+//				if (cg.forceHUDTotalFlashTime > cg.time + 1000) {
+//					cg.forceHUDTotalFlashTime = cg.time;
+//				} else {
 					cg.forceHUDTotalFlashTime = cg.time + 1000;
-				}
+//				}
 			}
 			else
 			{
@@ -2071,6 +2085,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			int weapon = es->eventParm;
 			weaponInfo_t *weaponInfo;
 			
+			if ( mov_duelIsolation.integer && (cg.predictedPlayerState.duelInProgress && (cg.predictedPlayerState.clientNum != es->clientNum && cg.predictedPlayerState.duelIndex != es->clientNum)) )
+				break;
+
 			assert(weapon >= 0 && weapon < MAX_WEAPONS);
 
 			weaponInfo = &cg_weapons[weapon];
@@ -2184,6 +2201,10 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{
 			qhandle_t swingSound = trap_S_RegisterSound(va("sound/weapons/saber/saberhup%i.wav", Q_irand(1, 8)));
 			clientInfo_t *client = NULL;
+			
+			if ( mov_duelIsolation.integer && (cg.predictedPlayerState.duelInProgress && (cg.predictedPlayerState.clientNum != es->clientNum && cg.predictedPlayerState.duelIndex != es->clientNum)) )
+				break;
+			
 			if ( cg_entities[es->number].currentState.eType == ET_NPC )
 			{
 				client = cg_entities[es->number].npcClient;
@@ -2209,6 +2230,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			int hitOtherFxID = cgs.effects.mSaberCut;
 			int hitSound = trap_S_RegisterSound(va("sound/weapons/saber/saberhit%i.wav", Q_irand(1, 3)));
 			
+//			if ( mov_duelIsolation.integer && (cg.predictedPlayerState.duelInProgress && (cg.predictedPlayerState.clientNum != es->clientNum && cg.predictedPlayerState.duelIndex != es->clientNum)) )
+//				break;
+			if ( cg.snap->ps.duelInProgress && es->otherEntityNum2 != cg.snap->ps.clientNum && es->otherEntityNum2 != cg.snap->ps.duelIndex )
+				return;
+
 			if ( es->otherEntityNum2 >= 0
 				&& es->otherEntityNum2 < ENTITYNUM_NONE )
 			{//we have a specific person who is causing this effect, see if we should override it with any custom saber effects/sounds

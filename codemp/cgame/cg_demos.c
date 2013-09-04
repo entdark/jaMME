@@ -724,14 +724,13 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 //	trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, *((int *)&frameSpeed));
 	trap_S_Respatialize( cg.playerCent ? cg.playerCent->currentState.number : ENTITYNUM_NONE, cg.refdef.vieworg, cg.refdef.viewaxis, inwater);
 
+	CG_DrawActive( stereoView );
+	
 	if ( demo.viewType == viewChase && cg.playerCent && ( cg.playerCent->currentState.number < MAX_CLIENTS ) ) {
 		CG_Draw2D();
 	} else if (cg_draw2D.integer) {
-//		CG_DrawFPS( 0 );
-		CG_DrawUpperRight();
+		CG_DrawFPS( 0 );
 	}
-
-	CG_DrawActive( stereoView );
 
 	CG_DrawAutoMap();
 

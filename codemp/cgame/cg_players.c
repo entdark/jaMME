@@ -1675,6 +1675,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 
 	// model
 	v = Info_ValueForKey( configstring, "model" );
+#if 0
 	if ( cg_forceModel.integer ) {
 		// forcemodel makes everyone use a single model
 		// to prevent load hitches
@@ -1710,6 +1711,40 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 			*slash = 0;
 		}
 	}
+#else
+
+	if ( cg_forceModel.integer && clientNum != cg.clientNum ) {
+		char modelStr[MAX_QPATH] = {0};
+		char *skin = NULL;
+
+		//Ally model for teammates unless we're in a non-team game, i.e. FFA where everyone is on TEAM_FREE
+		if ( cgs.gametype < GT_TEAM || newInfo.team != cgs.clientinfo[cg.snap ? cg.snap->ps.clientNum : cg.clientNum].team )
+			Q_strncpyz( modelStr, cg_forceEnemyModel.string, sizeof( modelStr ) );
+		else
+			Q_strncpyz( modelStr, cg_forceAllyModel.string, sizeof( modelStr ) );
+
+		if ( !(skin = strchr( modelStr, '/' )) )
+			skin = "default";
+		else
+			*skin++ = 0;
+
+		Q_strncpyz( newInfo.skinName, skin, sizeof( newInfo.skinName ) );
+		Q_strncpyz( newInfo.modelName, modelStr, sizeof( newInfo.modelName ) );
+
+	} else {
+		Q_strncpyz( newInfo.modelName, v, sizeof( newInfo.modelName ) );
+
+		slash = strchr( newInfo.modelName, '/' );
+		if ( !slash ) {
+			// modelName didn not include a skin name
+			Q_strncpyz( newInfo.skinName, "default", sizeof( newInfo.skinName ) );
+		} else {
+			Q_strncpyz( newInfo.skinName, slash + 1, sizeof( newInfo.skinName ) );
+			// truncate modelName
+			*slash = 0;
+		}
+	}
+#endif
 
 	if (cgs.gametype == GT_SIEGE)
 	{ //entries only sent in siege mode
@@ -4498,7 +4533,7 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 
 	ent.hModel = hModel;
 
-	if ( mov_simpleFlags.integer ) {
+	if ( mov_simpleFlags.integer || (cg_newFX.integer & NEWFX_SIMPLEFLAG)) {
 		vec3_t angs;
 		int team = 0;
 
@@ -5185,7 +5220,7 @@ static void CG_ForceGripEffect( vec3_t org )
 	int timeDif = 0;
 	int gripAmount = 0;
 	float wv = sin( cg.time * 0.004f ) * 0.08f + 0.1f;
-
+/*
 	timeDif = (cg.time - lastGripTime);
 	if (timeDif < 0) {
 		lastGripTime = cg.time;
@@ -5199,6 +5234,22 @@ static void CG_ForceGripEffect( vec3_t org )
 	} else if (lastGripTime < cg.time) {
 		gripCounter = 0;
 	} else if (gripCounter > gripAmount && lastGripTime == cg.time) {
+		return;
+	}
+*/
+	//let's use teh's method which is global and adjustable
+	if (fx_vfps.integer <= 0)
+			fx_vfps.integer = 1;
+	if (fxT > cg.time)
+		fxT = cg.time;
+	if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
+	{
+		doFX = qtrue;
+		fxT = cg.time;
+	}
+	else 
+	{
+		doFX = qfalse;
 		return;
 	}
 
@@ -5584,6 +5635,16 @@ void CG_DoSaber( vec3_t origin, vec3_t dir, float length, float lengthMax, float
 	{
 		// if the thing is so short, just forget even adding me.
 		return;
+	}
+
+	if (cg.snap->ps.duelInProgress /*&& cent->currentState.number != cg.snap->ps.clientNum*/)
+	{ //I guess go ahead and glow your own client too in a duel
+		if (cnum != cg.snap->ps.duelIndex &&
+			cnum != cg.snap->ps.clientNum)
+		{ //everyone not involved in the duel is drawn very dark
+			if (mov_duelIsolation.integer)
+				return;
+		}
 	}
 
 	// Find the midpoint of the saber for lighting purposes
@@ -9314,6 +9375,18 @@ void CG_Player( centity_t *cent ) {
 	qboolean		checkDroidShields = qfalse;
 	refdef_t *refdef = &cg.refdef;
 
+
+	if (cg.snap->ps.duelInProgress /*&& cent->currentState.number != cg.snap->ps.clientNum*/)
+	{ //I guess go ahead and glow your own client too in a duel
+		if (cent->currentState.number != cg.snap->ps.duelIndex &&
+			cent->currentState.number != cg.snap->ps.clientNum)
+		{ //everyone not involved in the duel is drawn very dark
+			if (mov_duelIsolation.integer)
+				return;
+		}
+	}
+
+
 	//first if we are not an npc and we are using an emplaced gun then make sure our
 	//angles are visually capped to the constraints (otherwise it's possible to lerp
 	//a little outside and look kind of twitchy)
@@ -11602,12 +11675,14 @@ stillDoSaber:
 		if (cent->currentState.number != cg.snap->ps.duelIndex &&
 			cent->currentState.number != cg.snap->ps.clientNum)
 		{ //everyone not involved in the duel is drawn very dark
+			if (mov_duelIsolation.integer)
+				return;
 			legs.shaderRGBA[0] /= 5.0f;
 			legs.shaderRGBA[1] /= 5.0f;
 			legs.shaderRGBA[2] /= 5.0f;
 			legs.renderfx |= RF_RGB_TINT;
 		}
-		else
+		else if (mov_duelShell.integer)
 		{ //adjust the glow by how far away you are from your dueling partner
 			centity_t *duelEnt;
 

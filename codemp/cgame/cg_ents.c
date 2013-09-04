@@ -2021,7 +2021,7 @@ Ghoul2 Insert Start
 Ghoul2 Insert End
 */
 
-	if ( item->giType == IT_TEAM && mov_simpleFlags.integer/*(cg_newFX.integer & NEWFX_SIMPLEFLAG)*/ ) {
+	if ( item->giType == IT_TEAM && (mov_simpleFlags.integer || (cg_newFX.integer & NEWFX_SIMPLEFLAG)) ) {
 		vec3_t angs;
 
 		memset( &ent, 0, sizeof( ent ) );
@@ -2049,7 +2049,8 @@ Ghoul2 Insert End
 		cent->currentState.apos.trType = TR_LINEAR;
 		VectorSet( cent->currentState.apos.trDelta, 0.0f, 128.0f, 0.0f );
 		BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, angs );
-		angs[2] = 0.0f;
+		angs[PITCH] = 0.0f;
+		angs[ROLL] = 0.0f;
 		AnglesToAxis( angs, ent.axis );
 
 	//	VectorSet( ent.modelScale, 1.0f, 1.0f, 1.337f );
@@ -2542,7 +2543,7 @@ static void CG_Missile( centity_t *cent ) {
 		{//Raz: Portals
 			vec3_t pos;
 			BG_EvaluateTrajectory( &s1->pos, cg.time, pos );
-			trap_FX_PlayEffectID( (cent->currentState.eFlags & EF_ALT_FIRING) ? cgs.effects.mBobaJet : cgs.effects.itemCone, &pos, &s1->angles, -1, -1, qfalse );
+			trap_FX_PlayEffectID( (cent->currentState.eFlags & EF_ALT_FIRING) ? cgs.effects.mBobaJet : cgs.effects.itemCone, pos, s1->angles, -1, -1 );
 			return;
 		}
 		//[Grapple]

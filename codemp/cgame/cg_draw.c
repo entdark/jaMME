@@ -1072,6 +1072,13 @@ void CG_DrawForcePower( menuDef_t *menuHUD )
 		return;
 	}
 
+	if (cg.forceHUDTotalFlashTime < cg.time) {
+		cg.forceHUDTotalFlashTime = 0;
+		cg.forceHUDNextFlashTime = 0;
+	}// else {
+//		cg.forceHUDTotalFlashTime = cg.time + 1000;
+//	}
+
 	// Make the hud flash by setting forceHUDTotalFlashTime above cg.time
 	if (cg.forceHUDTotalFlashTime > cg.time )
 	{
@@ -4332,6 +4339,9 @@ static void CG_DrawLagometer( void ) {
 			trap_R_DrawStretchPic( ax + (0.5*aw - 0.5*a)*cgs.widthRatioCoef, ay + ah - range, 0.5*cgs.widthRatioCoef, range, 0, 0, 0, 0, cgs.media.whiteShader );
 		}
 	}
+
+	//draw ping, WORKS WRONG
+//	CG_Text_Paint(ax + 2, ay + 2, 0.5f, colorWhite, va("%i",lagometer.snapshotSamples[ lagometer.snapshotCount - 1 ]), 0, 0, 3, FONT_SMALL );
 
 	trap_R_SetColor( NULL );
 
@@ -7738,6 +7748,7 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void)
 		y += ((CHATBOX_FONT_HEIGHT*fontScale)*drawThese[i]->lines);
 		i++;
 	}
+	trap_R_SetColor( NULL );
 }
 
 static void CG_Draw2DScreenTints( void )
@@ -8337,6 +8348,8 @@ void CG_Draw2D( void ) {
 			}
     
 		}
+	} else {
+		CG_DrawCrosshair(NULL, 0);
 	}
 
 	if (cg.snap->ps.fallingToDeath)
@@ -8686,7 +8699,7 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	}
 
 	// draw status bar and other floating elements
- 	CG_Draw2D();
+//	CG_Draw2D();
 
 	doFX = qfalse;
 }

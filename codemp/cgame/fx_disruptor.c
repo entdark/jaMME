@@ -116,6 +116,7 @@ void CG_RailSpiral( clientInfo_t *ci, vec3_t start, vec3_t end ) {
 	vec3_t axis[36], move, move2, next_move, vec, temp;
 	float  len;
 	int    i, j, skip;
+	vec3_t coreColor, spiralColor;
 
 	localEntity_t *leCore = CG_AllocLocalEntity();
 	refEntity_t   *reCore = &leCore->refEntity;
@@ -134,10 +135,26 @@ void CG_RailSpiral( clientInfo_t *ci, vec3_t start, vec3_t end ) {
 	for (i = 0 ; i < 36; i++)
 		RotatePointAroundVector(axis[i], vec, temp, i * 10);//banshee 2.4 was 10
 
+	if (!fx_disruptTeamColour.integer) {
+		if (fx_disruptCoreColor.string[0] != '0') {
+			Q_parseColor( fx_disruptCoreColor.string, defaultColors, coreColor );
+		} else {
+			VectorCopy(ci->color1, coreColor);
+		}
+		if (fx_disruptSpiralColor.string[0] != '0') {
+			Q_parseColor( fx_disruptSpiralColor.string, defaultColors, spiralColor );
+		} else {
+			VectorCopy(coreColor, spiralColor);	//let's take colour from core
+		}
+	} else {
+		VectorCopy(ci->color1, coreColor);
+		VectorCopy(ci->color1, spiralColor);
+	}
+
 	//Glow
 	leGlow->leType = LE_FADE_RGB;
 	leGlow->startTime = cg.time;
-	leGlow->endTime = cg.time + 1600;
+	leGlow->endTime = cg.time + fx_disruptTime.integer;
 	leGlow->lifeRate = 1.0 / (leGlow->endTime - leGlow->startTime);
 	reGlow->shaderTime = cg.time / 1600.0f;
 	reGlow->reType = RT_LINE;
@@ -145,19 +162,19 @@ void CG_RailSpiral( clientInfo_t *ci, vec3_t start, vec3_t end ) {
 	reGlow->customShader = trap_R_RegisterShader( "gfx/misc/whiteline2" );
 	VectorCopy(start, reGlow->origin);
 	VectorCopy(end, reGlow->oldorigin);
-	reGlow->shaderRGBA[0] = ci->color1[0] * 255;
-	reGlow->shaderRGBA[1] = ci->color1[1] * 255;
-	reGlow->shaderRGBA[2] = ci->color1[2] * 255;
+	reGlow->shaderRGBA[0] = coreColor[0] * 255;
+	reGlow->shaderRGBA[1] = coreColor[1] * 255;
+	reGlow->shaderRGBA[2] = coreColor[2] * 255;
 	reGlow->shaderRGBA[3] = 255;
-	leGlow->color[0] = ci->color1[0] * 0.75;
-	leGlow->color[1] = ci->color1[1] * 0.75;
-	leGlow->color[2] = ci->color1[2] * 0.75;
+	leGlow->color[0] = coreColor[0] * 0.75;
+	leGlow->color[1] = coreColor[1] * 0.75;
+	leGlow->color[2] = coreColor[2] * 0.75;
 	leGlow->color[3] = 1.0f;
 
 	//Core
 	leCore->leType = LE_FADE_RGB;
 	leCore->startTime = cg.time;
-	leCore->endTime = cg.time + 1600;
+	leCore->endTime = cg.time + fx_disruptTime.integer;
 	leCore->lifeRate = 1.0 / (leCore->endTime - leCore->startTime);
 	reCore->shaderTime = cg.time / 1600.0f;
 	reCore->reType = RT_LINE;
@@ -165,9 +182,9 @@ void CG_RailSpiral( clientInfo_t *ci, vec3_t start, vec3_t end ) {
 	reCore->customShader = trap_R_RegisterShader( "gfx/misc/whiteline2" );
 	VectorCopy(start, reCore->origin);
 	VectorCopy(end, reCore->oldorigin);
-	reCore->shaderRGBA[0] = ci->color1[0] * 255;
-	reCore->shaderRGBA[1] = ci->color1[1] * 255;
-	reCore->shaderRGBA[2] = ci->color1[2] * 255;
+	reCore->shaderRGBA[0] = coreColor[0] * 255;
+	reCore->shaderRGBA[1] = coreColor[1] * 255;
+	reCore->shaderRGBA[2] = coreColor[2] * 255;
 	reCore->shaderRGBA[3] = 255;
 	leCore->color[0] = 1.0f;
 	leCore->color[1] = 1.0f;
@@ -192,7 +209,7 @@ void CG_RailSpiral( clientInfo_t *ci, vec3_t start, vec3_t end ) {
 			le->leFlags = LEF_PUFF_DONT_SCALE;
 			le->leType = LE_MOVE_SCALE_FADE;
 			le->startTime = cg.time;
-			le->endTime = cg.time + (i>>1) + 600;
+			le->endTime = cg.time + (i>>1) + (float)fx_disruptTime.integer / 1.337f;
 			le->lifeRate = 1.0 / (le->endTime - le->startTime);
 
 			re->shaderTime = cg.time / 2000.0f;
@@ -201,14 +218,14 @@ void CG_RailSpiral( clientInfo_t *ci, vec3_t start, vec3_t end ) {
 			re->customShader = cgs.media.enlightenmentShader;
 			re->renderfx |= RF_RGB_TINT;
 
-			re->shaderRGBA[0] = ci->color2[0] * 255;
-			re->shaderRGBA[1] = ci->color2[1] * 255;
-			re->shaderRGBA[2] = ci->color2[2] * 255;
+			re->shaderRGBA[0] = spiralColor[0] * 255;
+			re->shaderRGBA[1] = spiralColor[1] * 255;
+			re->shaderRGBA[2] = spiralColor[2] * 255;
 			re->shaderRGBA[3] = 255;
 
-			le->color[0] = ci->color2[0] * 0.75;
-			le->color[1] = ci->color2[1] * 0.75;
-			le->color[2] = ci->color2[2] * 0.75;
+			le->color[0] = spiralColor[0] * 0.75;
+			le->color[1] = spiralColor[1] * 0.75;
+			le->color[2] = spiralColor[2] * 0.75;
 			le->color[3] = 1.0f;
 
 			le->pos.trType = TR_LINEAR;
