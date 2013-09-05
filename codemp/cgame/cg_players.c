@@ -4476,7 +4476,7 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 	clientInfo_t	*ci;
 
 	//[TrueView]
-	if (cent->currentState.number == /*cg.snap->ps.clientNum */cg.playerCent->currentState.number
+	if (cent->currentState.number == cg.snap->ps.clientNum /*cg.playerCent->currentState.number*/
 		&& !cg.renderingThirdPerson && !cg_trueGuns.integer 
 		&& cg.snap->ps.weapon != WP_SABER)
 		return;
