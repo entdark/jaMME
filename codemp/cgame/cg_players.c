@@ -4476,7 +4476,7 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 	clientInfo_t	*ci;
 
 	//[TrueView]
-	if (cent->currentState.number == cg.snap->ps.clientNum 
+	if (cent->currentState.number == /*cg.snap->ps.clientNum */cg.playerCent->currentState.number
 		&& !cg.renderingThirdPerson && !cg_trueGuns.integer 
 		&& cg.snap->ps.weapon != WP_SABER)
 		return;
@@ -9831,9 +9831,9 @@ void CG_Player( centity_t *cent ) {
 			if (!cg_fpls.integer || cent->currentState.weapon != WP_SABER)
 #else
 			//[TrueView]
-			if ( ( !cg_trueGuns.integer && cg.predictedPlayerState.weapon != WP_SABER 
-				&& cg.predictedPlayerState.weapon != WP_MELEE) 
-				|| ( cg.predictedPlayerState.weapon == WP_SABER && cg_trueSaberOnly.integer )
+			if ( ( !cg_trueGuns.integer && cg.playerCent->playerState->weapon != WP_SABER 
+				&& cg.playerCent->playerState->weapon != WP_MELEE) 
+				|| ( cg.playerCent->playerState->weapon == WP_SABER && cg_trueSaberOnly.integer )
 				|| cg.predictedPlayerState.zoomMode
 				/*|| cg.japp.fakeGun*/ )
 			//if (cent->currentState.weapon != WP_SABER)
@@ -10192,7 +10192,7 @@ void CG_Player( centity_t *cent ) {
 
 	//[TrueView]
 	//Restrict True View Model changes to the player and do the True View camera view work.
-	if (cg.snap && cent->currentState.number == cg.snap->ps.clientNum && cent == cg.playerCent)
+	if (cg.snap /*&& cent->currentState.number == cg.snap->ps.clientNum*/ && cent == cg.playerCent)
 	{
 		if ( !cg.renderingThirdPerson && (cg_trueGuns.integer || cent->currentState.weapon == WP_SABER 
 			|| cent->currentState.weapon == WP_MELEE) 
@@ -10862,10 +10862,10 @@ SkipTrueView:
 	//[TrueView]
 	if (cgs.gametype == GT_HOLOCRON &&
 		cent->currentState.time2
-		&& ((cg.renderingThirdPerson
+		&& (cg.renderingThirdPerson
 			|| cg_trueGuns.integer
-			|| cg.predictedPlayerState.weapon == WP_SABER
-			|| cg.predictedPlayerState.weapon == WP_MELEE)
+//			|| cg.predictedPlayerState.weapon == WP_SABER
+//			|| cg.predictedPlayerState.weapon == WP_MELEE)
 		|| cg.snap->ps.clientNum != cent->currentState.number))
 	//if (cgs.gametype == GT_HOLOCRON && cent->currentState.time2 && (cg.renderingThirdPerson || cg.snap->ps.clientNum != cent->currentState.number))
 	//[/TrueView]
@@ -11971,7 +11971,9 @@ stillDoSaber:
 	//[TrueView]
 	if ((cent->currentState.forcePowersActive & (1 << FP_RAGE)) &&
 		(cg.renderingThirdPerson || cent->currentState.number != cg.snap->ps.clientNum
-		|| cg_trueGuns.integer /*|| cg.predictedPlayerState.weapon == WP_SABER
+		|| cg_trueGuns.integer || cg.playerCent->playerState->weapon == WP_SABER
+		|| cg.playerCent->playerState->weapon == WP_MELEE
+		/*|| cg.predictedPlayerState.weapon == WP_SABER
 		|| cg.predictedPlayerState.weapon == WP_MELEE*/))
 //	if ((cent->currentState.forcePowersActive & (1 << FP_RAGE)) &&
 //		(cg.renderingThirdPerson || cent->currentState.number != cg.snap->ps.clientNum))

@@ -2576,7 +2576,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		if (cent->currentState.eventParm != cg.snap->ps.clientNum ||
 			//[TrueView]
 			cg.renderingThirdPerson || cg_trueGuns.integer 
-			|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)
+			/*|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)*/
+			|| cg.playerCent->playerState->weapon == WP_SABER || cg.playerCent->playerState->weapon == WP_MELEE)
 			//cg.renderingThirdPerson)
 			//[/TrueView]
 		{ //h4q3ry

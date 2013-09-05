@@ -36,7 +36,52 @@ static ID_INLINE int GetScoreOffset( void ) {
 }
 
 static void CG_ParseScores( void ) {
-	if (!cg.japlus.detected) {
+	if (cg.japlus.detected && cg_japlusFix.integer) {
+		int		i=0, scoreIndex=0, powerups=0, readScores=0;
+		int		scoreOffset = GetScoreOffset();
+
+		if ( Server_Supports( SSF_SCOREBOARD_LARGE ) )
+			readScores = Com_Clampi( 0, MAX_CLIENTS, atoi( CG_Argv( 1 ) ) );
+		else
+			readScores = Com_Clampi( 0, MAX_CLIENT_SCORE_SEND, atoi( CG_Argv( 1 ) ) );
+		cg.numScores = readScores;
+
+		cg.teamScores[0] = atoi( CG_Argv( 2 ) );
+		cg.teamScores[1] = atoi( CG_Argv( 3 ) );
+
+		memset( cg.scores, 0, sizeof( cg.scores ) );
+		for ( i=0, scoreIndex=0; i<readScores; i++ )
+		{
+			cg.scores[scoreIndex].client			= atoi( CG_Argv( i * scoreOffset +  4 ) );
+			if ( cg.scores[scoreIndex].client < 0 || cg.scores[scoreIndex].client >= MAX_CLIENTS )
+				continue;
+			cg.scores[scoreIndex].score				= atoi( CG_Argv( i * scoreOffset +  5 ) );
+			cg.scores[scoreIndex].ping				= atoi( CG_Argv( i * scoreOffset +  6 ) );
+			cg.scores[scoreIndex].time				= atoi( CG_Argv( i * scoreOffset +  7 ) );
+			cg.scores[scoreIndex].scoreFlags		= atoi( CG_Argv( i * scoreOffset +  8 ) );
+			powerups								= atoi( CG_Argv( i * scoreOffset +  9 ) );
+			cg.scores[scoreIndex].accuracy			= atoi( CG_Argv( i * scoreOffset + 10 ) );
+			cg.scores[scoreIndex].impressiveCount	= atoi( CG_Argv( i * scoreOffset + 11 ) );
+			cg.scores[scoreIndex].excellentCount	= atoi( CG_Argv( i * scoreOffset + 12 ) );
+			cg.scores[scoreIndex].guantletCount		= atoi( CG_Argv( i * scoreOffset + 13 ) );
+			cg.scores[scoreIndex].defendCount		= atoi( CG_Argv( i * scoreOffset + 14 ) );
+			cg.scores[scoreIndex].assistCount		= atoi( CG_Argv( i * scoreOffset + 15 ) );
+			cg.scores[scoreIndex].perfect			= atoi( CG_Argv( i * scoreOffset + 16 ) );
+			cg.scores[scoreIndex].captures			= atoi( CG_Argv( i * scoreOffset + 17 ) );
+
+			if ( Server_Supports( SSF_SCOREBOARD_KD ) )
+				cg.scores[scoreIndex].deaths		= atoi( CG_Argv( i * scoreOffset + 18 ) );
+
+			cgs.clientinfo[ cg.scores[scoreIndex].client ].score = cg.scores[scoreIndex].score;
+			cgs.clientinfo[ cg.scores[scoreIndex].client ].powerups	= powerups;
+
+			cg.scores[scoreIndex].team = cgs.clientinfo[ cg.scores[scoreIndex].client ].team;
+
+			scoreIndex++;
+		}
+
+		CG_SetScoreSelection( NULL );
+	} else {
 		int		i, powerups, readScores;
 
 		cg.numScores = atoi( CG_Argv( 1 ) );
@@ -84,51 +129,6 @@ static void CG_ParseScores( void ) {
 			cg.scores[i].team = cgs.clientinfo[cg.scores[i].client].team;
 		}
 		CG_SetScoreSelection(NULL);
-	} else {
-		int		i=0, scoreIndex=0, powerups=0, readScores=0;
-		int		scoreOffset = GetScoreOffset();
-
-		if ( Server_Supports( SSF_SCOREBOARD_LARGE ) )
-			readScores = Com_Clampi( 0, MAX_CLIENTS, atoi( CG_Argv( 1 ) ) );
-		else
-			readScores = Com_Clampi( 0, MAX_CLIENT_SCORE_SEND, atoi( CG_Argv( 1 ) ) );
-		cg.numScores = readScores;
-
-		cg.teamScores[0] = atoi( CG_Argv( 2 ) );
-		cg.teamScores[1] = atoi( CG_Argv( 3 ) );
-
-		memset( cg.scores, 0, sizeof( cg.scores ) );
-		for ( i=0, scoreIndex=0; i<readScores; i++ )
-		{
-			cg.scores[scoreIndex].client			= atoi( CG_Argv( i * scoreOffset +  4 ) );
-			if ( cg.scores[scoreIndex].client < 0 || cg.scores[scoreIndex].client >= MAX_CLIENTS )
-				continue;
-			cg.scores[scoreIndex].score				= atoi( CG_Argv( i * scoreOffset +  5 ) );
-			cg.scores[scoreIndex].ping				= atoi( CG_Argv( i * scoreOffset +  6 ) );
-			cg.scores[scoreIndex].time				= atoi( CG_Argv( i * scoreOffset +  7 ) );
-			cg.scores[scoreIndex].scoreFlags		= atoi( CG_Argv( i * scoreOffset +  8 ) );
-			powerups								= atoi( CG_Argv( i * scoreOffset +  9 ) );
-			cg.scores[scoreIndex].accuracy			= atoi( CG_Argv( i * scoreOffset + 10 ) );
-			cg.scores[scoreIndex].impressiveCount	= atoi( CG_Argv( i * scoreOffset + 11 ) );
-			cg.scores[scoreIndex].excellentCount	= atoi( CG_Argv( i * scoreOffset + 12 ) );
-			cg.scores[scoreIndex].guantletCount		= atoi( CG_Argv( i * scoreOffset + 13 ) );
-			cg.scores[scoreIndex].defendCount		= atoi( CG_Argv( i * scoreOffset + 14 ) );
-			cg.scores[scoreIndex].assistCount		= atoi( CG_Argv( i * scoreOffset + 15 ) );
-			cg.scores[scoreIndex].perfect			= atoi( CG_Argv( i * scoreOffset + 16 ) );
-			cg.scores[scoreIndex].captures			= atoi( CG_Argv( i * scoreOffset + 17 ) );
-
-			if ( Server_Supports( SSF_SCOREBOARD_KD ) )
-				cg.scores[scoreIndex].deaths		= atoi( CG_Argv( i * scoreOffset + 18 ) );
-
-			cgs.clientinfo[ cg.scores[scoreIndex].client ].score = cg.scores[scoreIndex].score;
-			cgs.clientinfo[ cg.scores[scoreIndex].client ].powerups	= powerups;
-
-			cg.scores[scoreIndex].team = cgs.clientinfo[ cg.scores[scoreIndex].client ].team;
-
-			scoreIndex++;
-		}
-
-		CG_SetScoreSelection( NULL );
 	}
 }
 

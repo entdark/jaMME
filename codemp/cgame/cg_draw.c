@@ -4255,7 +4255,7 @@ static void CG_DrawLagometer( void ) {
 	int		color;
 	float	vscale;
 
-	if ( !cg_lagometer.integer || cgs.localServer ) {
+	if ( !cg_lagometer.integer || cgs.localServer || cg.playerCent->currentState.number != cg.predictedPlayerState.clientNum) {
 		CG_DrawDisconnect();
 		return;
 	}
@@ -5721,6 +5721,10 @@ static void CG_DrawActivePowers(void)
 
 	int endx = icon_size;
 	int endy = icon_size;
+
+	if (cg.playerCent->currentState.number != cg.predictedPlayerState.clientNum) {
+		return;
+	}
 
 	if (cg.snap->ps.zoomMode)
 	{ //don't display over zoom mask
@@ -8267,7 +8271,8 @@ void CG_Draw2D( void ) {
 	}
 
 	// Draw this before the text so that any text won't get clipped off
-	CG_DrawZoomMask();
+	if (cg.playerCent->currentState.number == cg.predictedPlayerState.clientNum)
+		CG_DrawZoomMask();
 
 /*
 	if (cg.cameraMode) {

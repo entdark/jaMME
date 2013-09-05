@@ -1311,7 +1311,7 @@ static int CG_CalcFov( void ) {
 				fov_x = 160;
 			}
 		}
-
+		if (cg.playerCent->currentState.number != cg.predictedPlayerState.clientNum) goto notZoom;
 		if (cg.predictedPlayerState.zoomMode == 2)
 		{ //binoculars
 			if (zoomFov > 40.0f)
@@ -1368,6 +1368,7 @@ static int CG_CalcFov( void ) {
 		}
 		else 
 		{
+notZoom:
 			zoomFov = 80;
 
 			f = ( cg.time - cg.predictedPlayerState.zoomTime ) / ZOOM_OUT_TIME;

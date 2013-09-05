@@ -602,7 +602,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	if (cg_linearFogOverride) {
 		trap_R_SetRangeFog(-cg_linearFogOverride);
-	} else if (demo.viewType == viewCamera || ( demo.viewType == viewChase && (cg.renderingThirdPerson || demo.chase.distance > mov_chaseRange.value))) {
+	} else if (demo.viewType == viewCamera || ( demo.viewType == viewChase && ((cg.renderingThirdPerson || demo.chase.distance > mov_chaseRange.value) || cg.playerCent->currentState.number != cg.predictedPlayerState.clientNum))) {
 		trap_R_SetRangeFog(0.0f);
 	} else if (cg.predictedPlayerState.zoomMode) { //zooming with binoculars or sniper, set the fog range based on the zoom level -rww
 		cg_rangedFogging = qtrue;
