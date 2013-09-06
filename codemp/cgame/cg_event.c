@@ -2573,21 +2573,43 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_DISRUPTOR_MAIN_SHOT:
 		DEBUGNAME("EV_DISRUPTOR_MAIN_SHOT");
-		if (cent->currentState.eventParm != cg.snap->ps.clientNum ||
-			//[TrueView]
-			cg.renderingThirdPerson || cg_trueGuns.integer 
-			/*|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)*/
-			|| cg.playerCent->playerState->weapon == WP_SABER || cg.playerCent->playerState->weapon == WP_MELEE)
-			//cg.renderingThirdPerson)
-			//[/TrueView]
-		{ //h4q3ry
-			CG_GetClientWeaponMuzzleBoltPoint(cent->currentState.eventParm, cent->currentState.origin2);
-		}
-		else
-		{
-			if (cg.lastFPFlashPoint[0] ||cg.lastFPFlashPoint[1] || cg.lastFPFlashPoint[2])
-			{ //get the position of the muzzle flash for the first person weapon model from the last frame
-				VectorCopy(cg.lastFPFlashPoint, cent->currentState.origin2);
+		if (cg.playerCent) {
+			if (cent->currentState.eventParm != cg.playerCent->currentState.number ||
+				//[TrueView]
+				cg.renderingThirdPerson || cg_trueGuns.integer 
+				/*|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)*/
+				|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_SABER
+				|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_MELEE)
+				//cg.renderingThirdPerson)
+				//[/TrueView]
+			{ //h4q3ry
+				CG_GetClientWeaponMuzzleBoltPoint(cent->currentState.eventParm, cent->currentState.origin2);
+			}
+			else
+			{
+				if (cg.lastFPFlashPoint[0] ||cg.lastFPFlashPoint[1] || cg.lastFPFlashPoint[2])
+				{ //get the position of the muzzle flash for the first person weapon model from the last frame
+					VectorCopy(cg.lastFPFlashPoint, cent->currentState.origin2);
+				}
+			}
+		} else {
+			if (cent->currentState.eventParm != cg.snap->ps.clientNum ||
+				//[TrueView]
+				cg.renderingThirdPerson || cg_trueGuns.integer 
+				/*|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)*/
+				|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_SABER
+				|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_MELEE)
+				//cg.renderingThirdPerson)
+				//[/TrueView]
+			{ //h4q3ry
+				CG_GetClientWeaponMuzzleBoltPoint(cent->currentState.eventParm, cent->currentState.origin2);
+			}
+			else
+			{
+				if (cg.lastFPFlashPoint[0] ||cg.lastFPFlashPoint[1] || cg.lastFPFlashPoint[2])
+				{ //get the position of the muzzle flash for the first person weapon model from the last frame
+					VectorCopy(cg.lastFPFlashPoint, cent->currentState.origin2);
+				}
 			}
 		}
 		if (fx_disruptSpiral.integer) {
@@ -2600,16 +2622,31 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_DISRUPTOR_SNIPER_SHOT:
 		DEBUGNAME("EV_DISRUPTOR_SNIPER_SHOT");
-		if (cent->currentState.eventParm != cg.snap->ps.clientNum ||
-			cg.renderingThirdPerson)
-		{ //h4q3ry
-			CG_GetClientWeaponMuzzleBoltPoint(cent->currentState.eventParm, cent->currentState.origin2);
-		}
-		else
-		{
-			if (cg.lastFPFlashPoint[0] ||cg.lastFPFlashPoint[1] || cg.lastFPFlashPoint[2])
-			{ //get the position of the muzzle flash for the first person weapon model from the last frame
-				VectorCopy(cg.lastFPFlashPoint, cent->currentState.origin2);
+		if (cg.playerCent) {
+			if (cent->currentState.eventParm != cg.playerCent->currentState.number ||
+				cg.renderingThirdPerson)
+			{ //h4q3ry
+				CG_GetClientWeaponMuzzleBoltPoint(cent->currentState.eventParm, cent->currentState.origin2);
+			}
+			else
+			{
+				if (cg.lastFPFlashPoint[0] ||cg.lastFPFlashPoint[1] || cg.lastFPFlashPoint[2])
+				{ //get the position of the muzzle flash for the first person weapon model from the last frame
+					VectorCopy(cg.lastFPFlashPoint, cent->currentState.origin2);
+				}
+			}
+		} else {
+			if (cent->currentState.eventParm != cg.snap->ps.clientNum ||
+				cg.renderingThirdPerson)
+			{ //h4q3ry
+				CG_GetClientWeaponMuzzleBoltPoint(cent->currentState.eventParm, cent->currentState.origin2);
+			}
+			else
+			{
+				if (cg.lastFPFlashPoint[0] ||cg.lastFPFlashPoint[1] || cg.lastFPFlashPoint[2])
+				{ //get the position of the muzzle flash for the first person weapon model from the last frame
+					VectorCopy(cg.lastFPFlashPoint, cent->currentState.origin2);
+				}
 			}
 		}
 		if (fx_disruptSpiral.integer) {

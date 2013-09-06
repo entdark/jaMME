@@ -149,14 +149,14 @@ int demoSetupView( void) {
 					//Make sure lerporigin of playercent is val
 //					CG_CalcEntityLerpPositions( cg.playerCent );
 //				}
-				cg.renderingThirdPerson = (cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0)
-					|| (cg.playerCent->playerState->weapon == WP_SABER && cg_trueSaberOnly.integer)
-					|| cg.playerCent->playerState->weapon == WP_MELEE)
-					&& cg.predictedPlayerState.zoomMode == 0;
+				cg.renderingThirdPerson = (cg_thirdPerson.integer || /*(cg.snap->ps.stats[STAT_HEALTH] <= 0)*/cent->currentState.eFlags & EF_DEAD
+					|| (/*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer)
+					|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_MELEE)
+					&& !(cg.predictedPlayerState.zoomMode != 0 && cg.playerPredicted);
 				CG_DemosCalcViewValues();
 //				CG_CalcViewValues();
 				// first person blend blobs, done after AnglesToAxis
-				if ( !cg.renderingThirdPerson ) {
+				if ( !cg.renderingThirdPerson && cg.predictedPlayerState.pm_type != PM_SPECTATOR) {
 					CG_DamageBlendBlob();
 				}
 				VectorCopy( cg.refdef.vieworg, demo.viewOrigin );
@@ -619,9 +619,9 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	}
 
 	CG_CalcScreenEffects();
-	if ( !cg.renderingThirdPerson && cg.predictedPlayerState.pm_type != PM_SPECTATOR ) {
-		CG_DamageBlendBlob();
-	}
+//	if ( !cg.renderingThirdPerson && cg.predictedPlayerState.pm_type != PM_SPECTATOR ) {
+//		CG_DamageBlendBlob();
+//	}
 	if ( !cg.hyperspace ) {
 		CG_AddPacketEntities(qfalse);			// adter calcViewValues, so predicted player state is correct
 		CG_AddMarks();
@@ -640,7 +640,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		CG_AddViewWeapon( &cg.predictedPlayerState  );
 	} else if ( cg.playerCent && cg.playerCent->currentState.number < MAX_CLIENTS )  {
 //		CG_AddViewWeapon( &cg.predictedPlayerState );
-//		CG_AddViewWeaponDirect( cg.playerCent );	//uncomment when fixed, now all clieants have weapon from recorded client
+		CG_AddViewWeaponDirect( cg.playerCent );	//uncomment when fixed, now all clieants have weapon from recorded client
 	}
 
 	cg.refdef.time = cg.time;
@@ -728,7 +728,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	
 	if ( demo.viewType == viewChase && cg.playerCent && ( cg.playerCent->currentState.number < MAX_CLIENTS ) ) {
 		CG_Draw2D();
-	} else if (cg_draw2D.integer) {
+	} else if (cg_draw2D.integer && cg_drawFPS.integer) {
 		CG_DrawFPS( 0 );
 	}
 

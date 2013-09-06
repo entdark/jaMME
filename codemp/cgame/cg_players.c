@@ -9831,9 +9831,9 @@ void CG_Player( centity_t *cent ) {
 			if (!cg_fpls.integer || cent->currentState.weapon != WP_SABER)
 #else
 			//[TrueView]
-			if ( ( !cg_trueGuns.integer && cg.playerCent->playerState->weapon != WP_SABER 
-				&& cg.playerCent->playerState->weapon != WP_MELEE) 
-				|| ( cg.playerCent->playerState->weapon == WP_SABER && cg_trueSaberOnly.integer )
+			if ( ( !cg_trueGuns.integer && /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon != WP_SABER 
+				&& /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon != WP_MELEE) 
+				|| ( /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer )
 				|| cg.predictedPlayerState.zoomMode
 				/*|| cg.japp.fakeGun*/ )
 			//if (cent->currentState.weapon != WP_SABER)
@@ -9968,7 +9968,8 @@ void CG_Player( centity_t *cent ) {
 	team = ci->team;
 
 	if (cgs.gametype >= GT_TEAM && cg_drawFriend.integer &&
-		cent->currentState.number != cg.snap->ps.clientNum &&
+//		cent->currentState.number != /*cg.playerCent->currentState.number*/cg.snap->ps.clientNum &&
+		cent != cg.playerCent &&
 		cent->currentState.eType != ET_NPC)
 	{	// If the view is either a spectator or on the same team as this character, show a symbol above their head.
 		if ((cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.snap->ps.persistant[PERS_TEAM] == team) &&
@@ -10013,7 +10014,8 @@ void CG_Player( centity_t *cent ) {
 		}
 	}
 	else if (cgs.gametype == GT_POWERDUEL && cg_drawFriend.integer &&
-		cent->currentState.number != cg.snap->ps.clientNum)
+//		cent->currentState.number != cg.snap->ps.clientNum)
+		cent->currentState.number != cg.playerCent->currentState.number)
 	{
 		if (cg.predictedPlayerState.persistant[PERS_TEAM] != TEAM_SPECTATOR &&
 			cent->currentState.number < MAX_CLIENTS &&
@@ -10033,7 +10035,8 @@ void CG_Player( centity_t *cent ) {
 	}
 
 	if (cgs.gametype == GT_JEDIMASTER && cg_drawFriend.integer &&
-		cent->currentState.number != cg.snap->ps.clientNum)			// Don't show a sprite above a player's own head in 3rd person.
+//		cent->currentState.number != cg.snap->ps.clientNum)			// Don't show a sprite above a player's own head in 3rd person.
+		cent->currentState.number != cg.playerCent->currentState.number)
 	{	// If the view is either a spectator or on the same team as this character, show a symbol above their head.
 		if ((cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.snap->ps.persistant[PERS_TEAM] == team) &&
 			!(cent->currentState.eFlags & EF_DEAD))
@@ -11961,7 +11964,7 @@ stillDoSaber:
 	//
 	// add the gun / barrel / flash
 	//
-	if (cent->currentState.weapon != WP_EMPLACED_GUN)
+	if (cent->currentState.weapon != WP_EMPLACED_GUN /*&& cent != cg.playerCent*/ && (cg.renderingThirdPerson || cg_trueGuns.integer))
 	{
 		CG_AddPlayerWeapon( &legs, NULL, cent, ci->team, rootAngles, qtrue );
 	}
@@ -11971,8 +11974,8 @@ stillDoSaber:
 	//[TrueView]
 	if ((cent->currentState.forcePowersActive & (1 << FP_RAGE)) &&
 		(cg.renderingThirdPerson || cent->currentState.number != cg.snap->ps.clientNum
-		|| cg_trueGuns.integer || cg.playerCent->playerState->weapon == WP_SABER
-		|| cg.playerCent->playerState->weapon == WP_MELEE
+		|| cg_trueGuns.integer || /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_SABER
+		|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_MELEE
 		/*|| cg.predictedPlayerState.weapon == WP_SABER
 		|| cg.predictedPlayerState.weapon == WP_MELEE*/))
 //	if ((cent->currentState.forcePowersActive & (1 << FP_RAGE)) &&

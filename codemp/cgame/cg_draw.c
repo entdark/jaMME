@@ -4931,7 +4931,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 		return;
 	}
 
-	if ( cg.predictedPlayerState.zoomMode != 0 )
+	if ( cg.predictedPlayerState.zoomMode != 0 && cg.playerPredicted)
 	{//not while scoped
 		return;
 	}
@@ -8235,6 +8235,8 @@ void CG_Draw2D( void ) {
 
 	if ( !cg.playerCent )
 		return;
+	else if (!cg.playerPredicted)
+		goto notPredicted;
 
 	CG_Draw2DScreenTints();
 
@@ -8354,7 +8356,10 @@ void CG_Draw2D( void ) {
     
 		}
 	} else {
+notPredicted:
 		CG_DrawCrosshair(NULL, 0);
+		CG_DrawUpperRight();
+		return;
 	}
 
 	if (cg.snap->ps.fallingToDeath)

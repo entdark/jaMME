@@ -446,7 +446,7 @@ Ghoul2 Insert Start
 */
 
 	memset( &gun, 0, sizeof( gun ) );
-
+//	if (cg.predictedPlayerState.zoomMode && cg.playerPredicted) goto getFlash;
 	// only do this if we are in first person, since world weapons are now handled on the server by Ghoul2
 	if (!thirdPerson)
 //	if (!thirdPerson || cent != cg.playerCent)
@@ -489,6 +489,7 @@ Ghoul2 Insert Start
 			cent->currentState.trickedentindex4,
 			cg.snap->ps.clientNum))
 		{
+			if (cg.predictedPlayerState.zoomMode && cg.playerPredicted) goto getFlash;
 			CG_AddWeaponWithPowerups( &gun, cent->currentState.powerups ); //don't draw the weapon if the player is invisible
 			/*
 			if ( weaponNum == WP_STUN_BATON )
@@ -543,6 +544,7 @@ Ghoul2 Insert Start
 				{
 					CG_PositionRotatedEntityOnTag( &barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel3" );
 				}
+				if (cg.predictedPlayerState.zoomMode && cg.playerPredicted) goto getFlash;
 				CG_AddWeaponWithPowerups( &barrel, cent->currentState.powerups );
 
 				i++;
@@ -565,7 +567,7 @@ Ghoul2 Insert Start
 				AnglesToAxis( angles, barrel.axis );
 
 				CG_PositionRotatedEntityOnTag( &barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel" );
-
+				if (cg.predictedPlayerState.zoomMode && cg.playerPredicted) goto getFlash;
 				CG_AddWeaponWithPowerups( &barrel, cent->currentState.powerups );
 			}
 		}
@@ -573,12 +575,12 @@ Ghoul2 Insert Start
 /*
 Ghoul2 Insert End
 */
-
+getFlash:
 	memset (&flash, 0, sizeof(flash));
 	CG_PositionEntityOnTag( &flash, &gun, gun.hModel, "tag_flash");
 
 	VectorCopy(flash.origin, cg.lastFPFlashPoint);
-
+	if (cg.predictedPlayerState.zoomMode && cg.playerPredicted) return;
 	// Do special charge bits
 	//-----------------------
 	//[TrueView]
@@ -839,7 +841,7 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 
 	// allow the gun to be completely removed
 	//[TrueView]
-	if ( /*!cg.japp.fakeGun &&*/ (!cg_drawGun.integer || cg.predictedPlayerState.zoomMode || cg_trueGuns.integer
+	if ( /*!cg.japp.fakeGun &&*/ (!cg_drawGun.integer || /*(cg.predictedPlayerState.zoomMode && cg.playerPredicted) ||*/ cg_trueGuns.integer
 		/*|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE*/) ) {
 	//if ( !cg_drawGun.integer || cg.predictedPlayerState.zoomMode) {
 	//[/TrueView]
@@ -908,7 +910,7 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 		{
 			ci = &cgs.clientinfo[ cent->currentState.clientNum ];
 		}
-
+		if (cent->ghoul2 == 0) return;
 #ifdef SIL_IS_A_COOL_CAT
 		trap_G2API_GetBoneFrame(cent->ghoul2, "lower_lumbar", cg.time, &currentFrame, cgs.gameModels, 0);
 #else

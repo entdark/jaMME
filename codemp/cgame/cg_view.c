@@ -661,7 +661,7 @@ static void CG_OffsetThirdPersonView( void )
 		vectoangles( dir2Me, cameraFocusAngles );
 		*/
 	}
-	else if ( cg.snap->ps.stats[STAT_HEALTH] <= 0 ) 
+	else if ( cg.snap->ps.stats[STAT_HEALTH] <= 0 && cg.playerPredicted) 
 	{
 		cameraFocusAngles[YAW] = cg.snap->ps.stats[STAT_DEAD_YAW];
 	}
@@ -947,7 +947,7 @@ static void CG_OffsetFirstPersonView( void ) {
 //	angles = cent->lerpOrigin;
 	
 	// if dead, fix the angle and don't add any kick
-	if ( cg.snap->ps.stats[STAT_HEALTH] <= 0 ) {
+	if ( cg.snap->ps.stats[STAT_HEALTH] <= 0 && cg.playerPredicted) {
 		angles[ROLL] = 40;
 		angles[PITCH] = -15;
 		angles[YAW] = cg.snap->ps.stats[STAT_DEAD_YAW];
@@ -987,7 +987,7 @@ static void CG_OffsetFirstPersonView( void ) {
 		VectorMA( angles, kickPerc, cg.kick_angles, angles );
 	}
 	// add angles based on damage kick
-	if ( cg.damageTime /*&& cg.playerPredicted*/) { //mme: added cg.playerPredicted
+	if ( cg.damageTime && cg.playerPredicted) { //mme: added cg.playerPredicted
 		ratio = cg.time - cg.damageTime;
 		if ( ratio < DAMAGE_DEFLECT_TIME ) {
 			ratio /= DAMAGE_DEFLECT_TIME;
@@ -1040,9 +1040,9 @@ static void CG_OffsetFirstPersonView( void ) {
 //===================================
 
 	// add view height
-	origin[2] += cg.predictedPlayerState.viewheight;
+//	origin[2] += cg.predictedPlayerState.viewheight;
 	//mme
-//	origin[2] += pe->viewHeight;
+	origin[2] += pe->viewHeight;
 
 	// smooth out duck height changes
 /*	timeDelta = cg.time - cg.duckTime;
@@ -1442,6 +1442,9 @@ void CG_DamageBlendBlob( void ) {
 	if ( !cg.damageValue ) {
 		return;
 	}
+
+	if ( !cg.playerPredicted )
+		return;
 
 	maxTime = DAMAGE_TIME;
 	t = cg.time - cg.damageTime;
