@@ -8359,6 +8359,7 @@ void CG_Draw2D( void ) {
 notPredicted:
 		CG_DrawCrosshair(NULL, 0);
 		CG_DrawUpperRight();
+		CG_DrawCenterString();
 		return;
 	}
 

@@ -9834,7 +9834,7 @@ void CG_Player( centity_t *cent ) {
 			if ( ( !cg_trueGuns.integer && /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon != WP_SABER 
 				&& /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon != WP_MELEE) 
 				|| ( /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer )
-				|| cg.predictedPlayerState.zoomMode
+				|| (cg.predictedPlayerState.zoomMode && cg.playerPredicted)
 				/*|| cg.japp.fakeGun*/ )
 			//if (cent->currentState.weapon != WP_SABER)
 			//[/TrueView]
@@ -10199,7 +10199,7 @@ void CG_Player( centity_t *cent ) {
 	{
 		if ( !cg.renderingThirdPerson && (cg_trueGuns.integer || cent->currentState.weapon == WP_SABER 
 			|| cent->currentState.weapon == WP_MELEE) 
-			&& !cg.predictedPlayerState.zoomMode
+//			&& (!cg.predictedPlayerState.zoomMode && !cg.playerPredicted)
 			/*&& !cg.japp.fakeGun*/ )
 		{
 			//<True View varibles
