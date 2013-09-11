@@ -2687,7 +2687,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_DISRUPTOR_ZOOMSOUND:
 		DEBUGNAME("EV_DISRUPTOR_ZOOMSOUND");
-		if (es->number == cg.snap->ps.clientNum)
+		if (cg.playerCent && cg.playerCent->currentState.number == cg.snap->ps.clientNum
+			&& es->number == cg.snap->ps.clientNum)
 		{
 			if (cg.snap->ps.zoomMode)
 			{

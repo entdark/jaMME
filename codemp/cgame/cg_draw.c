@@ -1278,7 +1278,7 @@ void CG_DrawHUD(centity_t	*cent)
 				CG_DrawPic( 
 					focusItem->window.rect.x, 
 					focusItem->window.rect.y, 
-					focusItem->window.rect.w, 
+					focusItem->window.rect.w*cgs.widthRatioCoef, 
 					focusItem->window.rect.h, 
 					focusItem->window.background 
 					);			
@@ -4970,7 +4970,8 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 			else if ( crossEnt->currentState.number < MAX_CLIENTS )
 			{
 				if (cgs.gametype >= GT_TEAM &&
-					cgs.clientinfo[crossEnt->currentState.number].team == cgs.clientinfo[cg.snap->ps.clientNum].team )
+//					cgs.clientinfo[crossEnt->currentState.number].team == cgs.clientinfo[cg.snap->ps.clientNum].team )
+					cgs.clientinfo[crossEnt->currentState.number].team == cgs.clientinfo[cg.playerCent->currentState.number].team )
 				{
 					//Allies are green
 					ecolor[0] = 0.0;//R
@@ -4980,7 +4981,8 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 				else
 				{
 					if (cgs.gametype == GT_POWERDUEL &&
-						cgs.clientinfo[crossEnt->currentState.number].duelTeam == cgs.clientinfo[cg.snap->ps.clientNum].duelTeam)
+//						cgs.clientinfo[crossEnt->currentState.number].duelTeam == cgs.clientinfo[cg.snap->ps.clientNum].duelTeam)
+						cgs.clientinfo[crossEnt->currentState.number].duelTeam == cgs.clientinfo[cg.playerCent->currentState.number].duelTeam)
 					{ //on the same duel team in powerduel, so he's a friend
 						ecolor[0] = 0.0;//R
 						ecolor[1] = 1.0;//G
@@ -5098,7 +5100,8 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 						ecolor[1] = 1.0f;//G
 						ecolor[2] = 0.0f;//B
 					}
-					else if ( crossEnt->currentState.teamowner != cgs.clientinfo[cg.snap->ps.clientNum].team )
+//					else if ( crossEnt->currentState.teamowner != cgs.clientinfo[cg.snap->ps.clientNum].team )
+					else if ( crossEnt->currentState.teamowner != cgs.clientinfo[cg.playerCent->currentState.number].team )
 					{ //on the enemy team
 						ecolor[0] = 1.0f;//R
 						ecolor[1] = 0.0f;//G
@@ -5111,22 +5114,27 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 						ecolor[2] = 0.0f;//B
 					}
 				}
-				else if (crossEnt->currentState.owner == cg.snap->ps.clientNum ||
-					(cgs.gametype >= GT_TEAM && crossEnt->currentState.teamowner == cgs.clientinfo[cg.snap->ps.clientNum].team))
+//				else if (crossEnt->currentState.owner == cg.snap->ps.clientNum ||
+//					(cgs.gametype >= GT_TEAM && crossEnt->currentState.teamowner == cgs.clientinfo[cg.snap->ps.clientNum].team))
+				else if (crossEnt->currentState.owner == cg.playerCent->currentState.number ||
+					(cgs.gametype >= GT_TEAM && crossEnt->currentState.teamowner == cgs.clientinfo[cg.playerCent->currentState.number].team))
 				{
 					ecolor[0] = 0.0f;//R
 					ecolor[1] = 1.0f;//G
 					ecolor[2] = 0.0f;//B
 				}
+//				else if (crossEnt->currentState.teamowner == 16 ||
+//					(cgs.gametype >= GT_TEAM && crossEnt->currentState.teamowner && crossEnt->currentState.teamowner != cgs.clientinfo[cg.snap->ps.clientNum].team))
 				else if (crossEnt->currentState.teamowner == 16 ||
-					(cgs.gametype >= GT_TEAM && crossEnt->currentState.teamowner && crossEnt->currentState.teamowner != cgs.clientinfo[cg.snap->ps.clientNum].team))
+					(cgs.gametype >= GT_TEAM && crossEnt->currentState.teamowner && crossEnt->currentState.teamowner != cgs.clientinfo[cg.playerCent->currentState.number].team))
 				{
 					ecolor[0] = 1.0f;//R
 					ecolor[1] = 0.0f;//G
 					ecolor[2] = 0.0f;//B
 				}
 			}
-			else if (crossEnt->currentState.eType == ET_MOVER && crossEnt->currentState.bolt1 && cg.predictedPlayerState.weapon == WP_SABER)
+//			else if (crossEnt->currentState.eType == ET_MOVER && crossEnt->currentState.bolt1 && cg.predictedPlayerState.weapon == WP_SABER)
+			else if (crossEnt->currentState.eType == ET_MOVER && crossEnt->currentState.bolt1 && cg.playerCent->currentState.weapon == WP_SABER)
 			{ //can push/pull this mover. Only show it if we're using the saber.
 				ecolor[0] = 0.2f;
 				ecolor[1] = 0.5f;
@@ -5203,7 +5211,9 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 	}
 
 	// pulse the size of the crosshair when picking up items
-	f = cg.time - cg.itemPickupBlendTime;
+	if (cg.playerPredicted) {
+		f = cg.time - cg.itemPickupBlendTime;
+	}
 	if ( f > 0 && f < ITEM_BLOB_TIME ) {
 		f /= ITEM_BLOB_TIME;
 		w *= ( 1 + f );
@@ -6089,7 +6099,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 	int			oldNum, oldTeam;
 
 	//mme, taken from pugmod
-	if(cg.playerCent->currentState.number!=-1 && cg.demoPlayback) {
+/*	if(cg.playerCent->currentState.number!=-1 && cg.demoPlayback) {
 		oldNum = cg.snap->ps.clientNum;
 		cg.snap->ps.clientNum = cg.predictedPlayerState.clientNum = cg.playerCent->currentState.number;
 		oldTeam = cg.predictedPlayerState.persistant[PERS_TEAM];
@@ -6097,10 +6107,18 @@ static void CG_ScanForCrosshairEntity( void ) {
 		VectorCopy(cg.predictedPlayerState.viewangles,orgview);
 		VectorCopy(cg_entities[cg.playerCent->currentState.number].lerpAngles,cg.predictedPlayerState.viewangles);
 	}
+*/
+	if (!cg.playerCent) {
+		return;
+	}
 
-	ignore = cg.predictedPlayerState.clientNum;
+	if (cg.playerPredicted) {
+		ignore = cg.predictedPlayerState.clientNum;
+	} else {
+		ignore = cg.playerCent->currentState.number;
+	}
 
-	if ( cg_dynamicCrosshair.integer )
+	if ( cg_dynamicCrosshair.integer && cg.playerPredicted)
 	{
 		vec3_t d_f, d_rt, d_up;
 		/*
@@ -6198,6 +6216,60 @@ static void CG_ScanForCrosshairEntity( void ) {
 
 		VectorMA( start, cg.distanceCull, d_f, end );
 	}
+	else if (cg_dynamicCrosshair.integer && cg.playerCent)
+	{
+		vec3_t d_f, d_rt, d_up;
+		if (cg.snap && cg.playerCent->currentState.weapon == WP_EMPLACED_GUN && cg.playerCent->playerState->emplacedIndex &&
+			cg_entities[cg.playerCent->playerState->emplacedIndex].ghoul2 && cg_entities[cg.playerCent->playerState->emplacedIndex].currentState.weapon == WP_NONE)
+		{ //locked into our e-web, calc the muzzle from it
+			CG_CalcEWebMuzzlePoint(&cg_entities[cg.playerCent->playerState->emplacedIndex], start, d_f, d_rt, d_up);
+		}
+		else
+		{
+			if (cg.snap && cg.playerCent->currentState.weapon == WP_EMPLACED_GUN /*&& cg.snap->ps.emplacedIndex*/)
+			{
+				vec3_t pitchConstraint;
+
+				ignore = cg.snap->ps.emplacedIndex;
+
+				VectorCopy(cg.refdef.viewangles, pitchConstraint);
+
+				if (cg.renderingThirdPerson)
+				{
+					VectorCopy(cg.playerCent->lerpAngles, pitchConstraint);
+				}
+				else
+				{
+					VectorCopy(cg.refdef.viewangles, pitchConstraint);
+				}
+
+				if (pitchConstraint[PITCH] > 40)
+				{
+					pitchConstraint[PITCH] = 40;
+				}
+
+				AngleVectors( pitchConstraint, d_f, d_rt, d_up );
+			}
+			else
+			{
+				vec3_t pitchConstraint;
+
+				if (cg.renderingThirdPerson)
+				{
+					VectorCopy(cg.playerCent->lerpAngles, pitchConstraint);
+				}
+				else
+				{
+					VectorCopy(cg.refdef.viewangles, pitchConstraint);
+				}
+
+				AngleVectors( pitchConstraint, d_f, d_rt, d_up );
+			}
+			CG_CalcMuzzlePoint(cg.playerCent->currentState.number, start);
+		}
+
+		VectorMA( start, cg.distanceCull, d_f, end );
+	}
 	else
 	{
 		VectorCopy( cg.refdef.vieworg, start );
@@ -6249,7 +6321,8 @@ static void CG_ScanForCrosshairEntity( void ) {
 			cg_entities[trace.entityNum].currentState.trickedentindex2,
 			cg_entities[trace.entityNum].currentState.trickedentindex3,
 			cg_entities[trace.entityNum].currentState.trickedentindex4,
-			cg.snap->ps.clientNum))
+//			cg.snap->ps.clientNum))
+			cg.playerCent->currentState.number))
 		{
 			if (cg.crosshairClientNum == trace.entityNum)
 			{
@@ -6260,12 +6333,12 @@ static void CG_ScanForCrosshairEntity( void ) {
 			CG_DrawCrosshair(trace.endpos, 0);
 
 			//mme, taken from pugmod
-			if(cg.playerCent->currentState.number!=-1 && cg.demoPlayback) {
+/*			if(cg.playerCent->currentState.number!=-1 && cg.demoPlayback) {
 				cg.snap->ps.clientNum = cg.predictedPlayerState.clientNum = oldNum;
 				VectorCopy(orgview,cg.predictedPlayerState.viewangles);
 				cg.predictedPlayerState.persistant[PERS_TEAM] = oldTeam;
 			}
-
+*/
 			return; //this entity is mind-tricking the current client, so don't render it
 		}
 	}
@@ -6308,23 +6381,23 @@ static void CG_ScanForCrosshairEntity( void ) {
 	content = trap_CM_PointContents( trace.endpos, 0 );
 	if ( content & CONTENTS_FOG ) {
 		//mme, taken from pugmod
-		if(cg.playerCent->currentState.number!=-1 && cg.demoPlayback) {
+/*		if(cg.playerCent->currentState.number!=-1 && cg.demoPlayback) {
 			cg.snap->ps.clientNum = cg.predictedPlayerState.clientNum = oldNum;
 			VectorCopy(orgview,cg.predictedPlayerState.viewangles);
 			cg.predictedPlayerState.persistant[PERS_TEAM] = oldTeam;
 		}
-		return;
+*/		return;
 	}
 
 	// update the fade timer
 	cg.crosshairClientNum = trace.entityNum;
 	cg.crosshairClientTime = cg.time;
 	//mme, taken from pugmod
-	if(cg.playerCent->currentState.number!=-1 && cg.demoPlayback) {
+/*	if(cg.playerCent->currentState.number!=-1 && cg.demoPlayback) {
 		cg.snap->ps.clientNum = cg.predictedPlayerState.clientNum = oldNum;
 		VectorCopy(orgview,cg.predictedPlayerState.viewangles);
 		cg.predictedPlayerState.persistant[PERS_TEAM] = oldTeam;
-	}
+	}*/
 }
 
 //mme, taken from pugmod
@@ -7710,7 +7783,10 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void)
 	{
 		return;
 	}
-
+//	if (cg.chatItems->time > cg_chatBox.integer + cg.time) {
+//		cg.chatItems->time = cg.time;
+//		return;
+//	}
 	memset(drawThese, 0, sizeof(drawThese));
 
 	while (i < MAX_CHATBOX_ITEMS)
@@ -7719,6 +7795,11 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void)
 		{
 			int check = numToDraw;
 			int insertionPoint = numToDraw;
+
+			if (cg.chatItems[i].time > cg_chatBox.integer + cg.time) {
+				cg.chatItems[i].time = cg.time;
+				return;
+			}
 
 			while (check >= 0)
 			{
@@ -8357,9 +8438,11 @@ void CG_Draw2D( void ) {
 		}
 	} else {
 notPredicted:
-		CG_DrawCrosshair(NULL, 0);
+//		CG_DrawCrosshair(NULL, 0);
 		CG_DrawUpperRight();
 		CG_DrawCenterString();
+		CG_ChatBox_DrawStrings();
+		CG_DrawCrosshairNames();
 		return;
 	}
 

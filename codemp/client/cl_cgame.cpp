@@ -1761,6 +1761,10 @@ void CL_InitCGame( void ) {
 	else {
 		interpret = (vmInterpret_t)(int)Cvar_VariableValue( "vm_cgame" );
 	}
+
+	//ent, from q3mme: CaNaBiS, force a native binary first
+	interpret = VMI_NATIVE;
+
 	cgvm = VM_Create( "cgame", CL_CgameSystemCalls, interpret );
 	if ( !cgvm ) {
 		Com_Error( ERR_DROP, "VM_Create on cgame failed" );

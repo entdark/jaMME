@@ -279,7 +279,11 @@ static void CG_CalcIdealThirdPersonViewTarget(void)
 	}
 
 	// Add in the new viewheight
-	cameraFocusLoc[2] += cg.snap->ps.viewheight;
+	if (cg.playerCent->currentState.number == cg.snap->ps.clientNum) {
+		cameraFocusLoc[2] += cg.snap->ps.viewheight;
+	} else {
+		cameraFocusLoc[2] += cg.playerCent->pe.viewHeight;
+	}
 
 	// Add in a vertical offset from the viewpoint, which puts the actual target above the head, regardless of angle.
 //	VectorMA(cameraFocusLoc, thirdPersonVertOffset, cameraup, cameraIdealTarget);
@@ -640,7 +644,9 @@ static void CG_OffsetThirdPersonView( void )
 
 	cameraStiffFactor = 0.0;
 	//mme
-//	cg.refdef.vieworg[2] += cg.playerCent->pe.viewHeight;
+//	if (cg.snap->ps.stats[STAT_HEALTH] <= 0 && !cg.playerPredicted) {
+//		cg.refdef.vieworg[2] += cg.playerCent->pe.viewHeight + 16;
+//	}
 	// Set camera viewing direction.
 	VectorCopy( cg.refdef.viewangles, cameraFocusAngles );
 

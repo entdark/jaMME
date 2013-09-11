@@ -1331,6 +1331,8 @@ void CL_InitUI( void ) {
 	else {
 		interpret = (vmInterpret_t)(int)Cvar_VariableValue( "vm_ui" );
 	}
+	//ent, from q3mme: CaNaBiS, force a native binary first
+	interpret = VMI_NATIVE;
 	uivm = VM_Create( "ui", CL_UISystemCalls, interpret );
 	if ( !uivm ) {
 		Com_Error( ERR_FATAL, "VM_Create on UI failed" );

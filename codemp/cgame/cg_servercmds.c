@@ -218,7 +218,8 @@ void CG_ParseServerinfo( void ) {
 	cgs.maxclients = Com_Clampi( 0, MAX_CLIENTS, atoi( Info_ValueForKey( info, "sv_maxclients" ) ) );
 
 	cg.japlus.detected = qfalse;
-	if ( !Q_stricmpn( Info_ValueForKey( info, "gamename" ), "JA+ Mod", 7 ) ) {
+	if ( !Q_stricmpn( Info_ValueForKey( info, "gamename" ), "JA+ Mod", 7 ) 
+		|| !Q_stricmpn( Info_ValueForKey( info, "gamename" ), "^4U^3A^5Galaxy", 14 ) ) {	//uag :s
 		cg.japlus.detected = qtrue;
 		cg.japlus.SSF = JAPLUS_SERVER_FLAGS;
 		CG_Printf( "JA+ demo detected\n" );

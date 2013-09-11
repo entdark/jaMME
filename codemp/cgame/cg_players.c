@@ -4475,12 +4475,14 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 	mdxaBone_t		boltMatrix;
 	clientInfo_t	*ci;
 
-	//[TrueView]
-	if (cent->currentState.number == cg.snap->ps.clientNum /*cg.playerCent->currentState.number*/
-		&& !cg.renderingThirdPerson && !cg_trueGuns.integer 
-		&& cg.snap->ps.weapon != WP_SABER)
-		return;
-	//[/TrueView]
+	if (cg.playerCent) {
+		//[TrueView]
+		if (cent->currentState.number == /*cg.snap->ps.clientNum*/ cg.playerCent->currentState.number
+			&& !cg.renderingThirdPerson && !cg_trueGuns.integer 
+			&& cg.snap->ps.weapon != WP_SABER)
+			return;
+		//[/TrueView]
+	}
 /*
 	if (cent->currentState.number == cg.snap->ps.clientNum &&
 		!cg.renderingThirdPerson)
@@ -5404,16 +5406,23 @@ void CG_DrawPlayerShield(centity_t *cent, vec3_t origin)
 
 void CG_PlayerHitFX(centity_t *cent)
 {
-	// only do the below fx if the cent in question is...uh...me, and it's first person.
-	if (cent->currentState.clientNum != cg.predictedPlayerState.clientNum || cg.renderingThirdPerson)
-	{
+	if (cg.playerCent) {
+		// only do the below fx if the cent in question is...uh...me, and it's first person.
+		if (cent->currentState.clientNum != cg.playerCent->currentState.number/*cg.predictedPlayerState.clientNum*/
+			|| cg.renderingThirdPerson)
+		{
+			if (cent->damageTime > cg.time && cent->damageStartTime <= cg.time
+				&& cent->currentState.NPC_class != CLASS_VEHICLE )
+			{
+				CG_DrawPlayerShield(cent, cent->lerpOrigin);
+			}
+		}
+	} else if (cg.renderingThirdPerson) {
 		if (cent->damageTime > cg.time && cent->damageStartTime <= cg.time
 			&& cent->currentState.NPC_class != CLASS_VEHICLE )
 		{
 			CG_DrawPlayerShield(cent, cent->lerpOrigin);
 		}
-
-		return;
 	}
 }
 
@@ -6432,7 +6441,14 @@ void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, in
 	}
 
 	saberEnt = &cg_entities[cent->currentState.saberEntityNum];
-	saberLen = client->saber[saberNum].blade[bladeNum].length;
+	if ((cg.time - cg.oldTime) == 0) {
+		saberLen = client->saber[saberNum].blade[bladeNum].lengthOld;
+		client->saber[saberNum].blade[bladeNum].length = saberLen;
+	} else {
+		saberLen = client->saber[saberNum].blade[bladeNum].length;
+		client->saber[saberNum].blade[bladeNum].lengthOld = saberLen;
+	}
+
 
 	if (saberLen <= 0 && !dontDraw)
 	{ //don't bother then.
@@ -7089,6 +7105,12 @@ void CG_DrawPlayerSphere(centity_t *cent, vec3_t origin, float scale, int shader
 	if (cent->currentState.eFlags & EF_DEAD)
 	{
 		return;
+	}
+
+	if (cg.playerCent) {
+		if (cent->currentState.number == cg.playerCent->currentState.number && !cg.renderingThirdPerson) {
+			return;
+		}
 	}
 
 	memset( &ent, 0, sizeof( ent ) );
@@ -11101,7 +11123,7 @@ stillDoSaber:
 					i++;
 				}
 
-				if (hasLen)
+				if (hasLen && (cg.time - cg.oldTime) != 0)
 				{
 					trap_S_AddLoopingSound( cent->currentState.number, soundSpot, vec3_origin, 
 						ci->saber[0].soundLoop );
@@ -11665,7 +11687,11 @@ stillDoSaber:
 		//goto endOfCall;
 	}
 
-	if ((cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE)) && cg.snap->ps.clientNum != cent->currentState.number)
+	if (cg.playerCent
+		&& cg.playerCent->currentState.number == cg.snap->ps.clientNum
+		&& (cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE))
+		&& cg.snap->ps.clientNum != cent->currentState.number
+		&& cg_auraShell.integer)
 	{
 		legs.shaderRGBA[0] = 255;
 		legs.shaderRGBA[1] = 255;
@@ -12113,7 +12139,11 @@ stillDoSaber:
 		legs.renderfx &= ~RF_NODEPTH;
 	}
 
-	if ((cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE)) && cg.snap->ps.clientNum != cent->currentState.number && cg_auraShell.integer)
+	if (cg.playerCent
+		&& cg.playerCent->currentState.number == cg.snap->ps.clientNum
+		&& (cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE))
+		&& cg.snap->ps.clientNum != cent->currentState.number
+		&& cg_auraShell.integer)
 	{
 		if (cgs.gametype == GT_SIEGE)
 		{	// A team game
