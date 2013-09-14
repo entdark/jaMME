@@ -99,6 +99,8 @@ static void demoFrameUnpack( msg_t *msg, demoFrame_t *oldFrame, demoFrame_t *new
 		oldPlayer = isDelta && oldFrame->clientData[last] ? &oldFrame->clients[last] : &demoNullPlayerState;
 		newPlayer = &newFrame->clients[last];
 		MSG_ReadDeltaPlayerstate( msg, oldPlayer, newPlayer );
+		if (newPlayer->m_iVehicleNum)
+			MSG_ReadDeltaPlayerstate( msg, oldPlayer, newPlayer, qtrue );
 		last = MSG_ReadByte( msg );
 	}
 	/* Extract entity states */
@@ -162,6 +164,8 @@ static void demoFramePack( msg_t *msg, const demoFrame_t *newFrame, const demoFr
 		newPlayer = &newFrame->clients[i];
 		MSG_WriteByte( msg, i );
 		MSG_WriteDeltaPlayerstate( msg, (playerState_t *)oldPlayer, (playerState_t *)newPlayer );
+		if (newPlayer->m_iVehicleNum)
+			MSG_WriteDeltaPlayerstate( msg, (playerState_t *)oldPlayer, (playerState_t *)newPlayer, qtrue );
 	}
 	MSG_WriteByte( msg, MAX_CLIENTS );
 	/* Add the entities */

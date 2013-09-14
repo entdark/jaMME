@@ -151,7 +151,7 @@ int demoSetupView( void) {
 //				}
 				cg.renderingThirdPerson = (cg_thirdPerson.integer || /*(cg.snap->ps.stats[STAT_HEALTH] <= 0)*/cent->currentState.eFlags & EF_DEAD
 					|| (/*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer)
-					|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_MELEE)
+					|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_MELEE || gCGHasFallVector)
 					&& !(cg.predictedPlayerState.zoomMode != 0 && cg.playerPredicted);
 				CG_DemosCalcViewValues();
 //				CG_CalcViewValues();
@@ -177,6 +177,7 @@ int demoSetupView( void) {
 			demo.viewTarget = demo.chase.target;
 			cg.renderingThirdPerson = qtrue;
 			zoomFix = qfalse;
+			gCGHasFallVector = qfalse;
 		}
 		break;
 	case viewCamera:
@@ -188,6 +189,7 @@ int demoSetupView( void) {
 		cg.renderingThirdPerson = qtrue;
 		cameraMove();
 		zoomFix = qfalse;
+		gCGHasFallVector = qfalse;
 		break;
 	default:
 		return 0;

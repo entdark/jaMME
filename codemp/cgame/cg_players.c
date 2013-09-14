@@ -4754,6 +4754,10 @@ static void CG_PlayerSprites( centity_t *cent ) {
 		return;
 	}
 
+	if (cent->vChatTime > cg.time + 1000) {
+		cent->vChatTime = 0;
+	}
+
 	if (cent->vChatTime > cg.time)
 	{
 		CG_PlayerFloatSprite( cent, cgs.media.vchatShader );
@@ -8654,6 +8658,10 @@ static CGAME_INLINE void CG_VehicleEffects(centity_t *cent)
 			}
 		}
 
+		if (pVehNPC->m_iLastFXTime > cg.time + 50) {	//nextFXDelay = 50;
+			pVehNPC->m_iLastFXTime = 0;
+		}
+
 		if ( pVehNPC->m_iLastFXTime <= cg.time )
 		{//until we attach it, we need to debounce this
 			vec3_t	fwd, rt, up;
@@ -11123,7 +11131,7 @@ stillDoSaber:
 					i++;
 				}
 
-				if (hasLen && (cg.time - cg.oldTime) != 0)
+				if (hasLen)
 				{
 					trap_S_AddLoopingSound( cent->currentState.number, soundSpot, vec3_origin, 
 						ci->saber[0].soundLoop );

@@ -2040,7 +2040,7 @@ void CG_DrawVehicleAmmoUpper( const menuDef_t *menuHUD, const centity_t *veh )
 	for (i=1;i<MAX_VHUD_AMMO_TICS;i++)
 	{
 		sprintf( itemName, "ammoupper_tic%d",	i );
-
+//		Com_sprintf(itemName, sizeof(itemName), "ammoupper_tic%d", i );
 		item = Menu_FindItemByName((menuDef_t *)menuHUD, itemName);
 
 		if (!item)
@@ -2482,12 +2482,21 @@ void CG_DrawVehicleDamage(const centity_t *veh,int brokenLimbs,const menuDef_t	*
 
 		if (graphicHandle)
 		{
-			CG_DrawPic( 
-				item->window.rect.x, 
-				item->window.rect.y, 
-				item->window.rect.w, 
-				item->window.rect.h, 
-				graphicHandle );
+			if (item->window.rect.x <= 320) {
+				CG_DrawPic( 
+					item->window.rect.x, 
+					item->window.rect.y, 
+					item->window.rect.w*cgs.widthRatioCoef, 
+					item->window.rect.h, 
+					graphicHandle );
+			} else {
+				CG_DrawPic( 
+					640 - (640 - item->window.rect.x)*cgs.widthRatioCoef, 
+					item->window.rect.y, 
+					item->window.rect.w*cgs.widthRatioCoef, 
+					item->window.rect.h, 
+					graphicHandle );
+			}
 		}
 	}
 }
@@ -2534,13 +2543,21 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 			{
 				trap_R_SetColor( item->window.foreColor );
 			}
-
-			CG_DrawPic( 
-				item->window.rect.x, 
-				item->window.rect.y, 
-				item->window.rect.w, 
-				item->window.rect.h, 
-				veh->m_pVehicle->m_pVehicleInfo->dmgIndicBackgroundHandle );
+			if (item->window.rect.x <= 320) {
+				CG_DrawPic( 
+					item->window.rect.x, 
+					item->window.rect.y, 
+					item->window.rect.w*cgs.widthRatioCoef, 
+					item->window.rect.h, 
+					veh->m_pVehicle->m_pVehicleInfo->dmgIndicBackgroundHandle );
+			} else {
+				CG_DrawPic( 
+					640 - (640 - item->window.rect.x)*cgs.widthRatioCoef, 
+					item->window.rect.y, 
+					item->window.rect.w*cgs.widthRatioCoef, 
+					item->window.rect.h, 
+					veh->m_pVehicle->m_pVehicleInfo->dmgIndicBackgroundHandle );
+			}
 		}
 	}
 
@@ -2550,12 +2567,21 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 		if (veh->m_pVehicle->m_pVehicleInfo->dmgIndicFrameHandle)
 		{
 			trap_R_SetColor( item->window.foreColor );
-			CG_DrawPic( 
-				item->window.rect.x, 
-				item->window.rect.y, 
-				item->window.rect.w, 
-				item->window.rect.h, 
-				veh->m_pVehicle->m_pVehicleInfo->dmgIndicFrameHandle );
+			if (item->window.rect.x <= 320) {
+				CG_DrawPic( 
+					item->window.rect.x, 
+					item->window.rect.y, 
+					item->window.rect.w*cgs.widthRatioCoef, 
+					item->window.rect.h, 
+					veh->m_pVehicle->m_pVehicleInfo->dmgIndicFrameHandle );
+			} else {
+				CG_DrawPic( 
+					640 - (640 - item->window.rect.x)*cgs.widthRatioCoef, 
+					item->window.rect.y, 
+					item->window.rect.w*cgs.widthRatioCoef, 
+					item->window.rect.h, 
+					veh->m_pVehicle->m_pVehicleInfo->dmgIndicFrameHandle );
+			}
 		}
 	}
 
@@ -2567,12 +2593,21 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 			VectorCopy4 ( colorTable[CT_HUD_GREEN], color );
 			color[3] = percShields;
 			trap_R_SetColor( color );
-			CG_DrawPic( 
-				item->window.rect.x, 
-				item->window.rect.y, 
-				item->window.rect.w, 
-				item->window.rect.h, 
-				veh->m_pVehicle->m_pVehicleInfo->dmgIndicShieldHandle );
+			if (item->window.rect.x <= 320) {
+				CG_DrawPic( 
+					item->window.rect.x, 
+					item->window.rect.y, 
+					item->window.rect.w*cgs.widthRatioCoef, 
+					item->window.rect.h, 
+					veh->m_pVehicle->m_pVehicleInfo->dmgIndicShieldHandle );
+			} else {
+				CG_DrawPic( 
+					640 - (640 - item->window.rect.x)*cgs.widthRatioCoef, 
+					item->window.rect.y, 
+					item->window.rect.w*cgs.widthRatioCoef, 
+					item->window.rect.h, 
+					veh->m_pVehicle->m_pVehicleInfo->dmgIndicShieldHandle );
+			}
 		}
 	}
 
@@ -4093,7 +4128,7 @@ static void CG_DrawReward( void ) {
 
 	if ( cg.rewardCount[0] >= 10 ) {
 		y = 56;
-		x = 320 - ICON_SIZE/2;
+		x = 320 - (ICON_SIZE-4)*cgs.widthRatioCoef/2;
 		CG_DrawPic( x, y, (ICON_SIZE-4)*cgs.widthRatioCoef, ICON_SIZE-4, cg.rewardShader[0] );
 		Com_sprintf(buf, sizeof(buf), "%d", cg.rewardCount[0]);
 		x = ( SCREEN_WIDTH - SMALLCHAR_WIDTH * CG_DrawStrlen( buf ) ) / 2;
@@ -4105,7 +4140,7 @@ static void CG_DrawReward( void ) {
 		count = cg.rewardCount[0];
 
 		y = 56;
-		x = 320 - count * (ICON_SIZE/2)*cgs.widthRatioCoef;
+		x = 320 + 2 - count * (ICON_SIZE/2)*cgs.widthRatioCoef;
 		for ( i = 0 ; i < count ; i++ ) {
 			CG_DrawPic( x, y, (ICON_SIZE-4)*cgs.widthRatioCoef, ICON_SIZE-4, cg.rewardShader[0] );
 			x += ICON_SIZE*cgs.widthRatioCoef;

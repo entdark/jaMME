@@ -416,6 +416,21 @@ void FX_DrawPortableShield(centity_t *cent)
 		return;
 	}
 
+	if (fx_vfps.integer <= 0)
+			fx_vfps.integer = 1;
+	if (fxT > cg.time)
+		fxT = cg.time;
+	if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
+	{
+		doFX = qtrue;
+		fxT = cg.time;
+	}
+	else 
+	{
+		doFX = qfalse;
+		return;
+	}
+
 	// decode the data stored in time2
 	xaxis = ((cent->currentState.time2 >> 24) & 1);
 	height = ((cent->currentState.time2 >> 16) & 255);
@@ -3195,11 +3210,7 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 		return;
 	}
 
-	if (cgs.gametype != GT_SIEGE) {	// BAD FIX?
-		f = cg.frameInterpolation;
-	} else {
-		f = 1.0f;	//will look odd if we switch to other client, but at least vehs not so laggy
-	}
+	f = cg.frameInterpolation;
 
 	// this will linearize a sine or parabolic curve, but it is important
 	// to not extrapolate player positions if more recent data is available
@@ -3255,46 +3266,24 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 		return;
 	}
 
-	if (cgs.gametype != GT_SIEGE) {
-		// first see if we can interpolate between two snaps for
-		// linear extrapolated clients
-		if ( cent->interpolate && cent->currentState.pos.trType == TR_LINEAR_STOP &&
-				(cent->currentState.number < MAX_CLIENTS || cent->currentState.eType == ET_NPC) ) {
-			CG_InterpolateEntityPosition( cent );
-			goAway = qtrue;
-		}
-		else if (cent->interpolate &&
-			cent->currentState.eType == ET_NPC && cent->currentState.NPC_class == CLASS_VEHICLE)
-		{
-			CG_InterpolateEntityPosition( cent );
-			goAway = qtrue;
-		}
-		else
-		{
-			// just use the current frame and evaluate as best we can
-			BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
-			BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
-		}
-	} else {
-		// first see if we can interpolate between two snaps for
-		// linear extrapolated clients
-		if ( cent->interpolate && cent->currentState.pos.trType == TR_LINEAR_STOP &&
-				(cent->currentState.number < MAX_CLIENTS || cent->currentState.eType == ET_NPC) ) {
-			CG_InterpolateEntityPosition( cent );
-			goAway = qtrue;
-		}
-		else if (cent->interpolate &&
-			cent->currentState.eType == ET_NPC && cent->currentState.NPC_class == CLASS_VEHICLE)
-		{
-			CG_InterpolateEntityPosition( cent );
-			goAway = qtrue;
-		}
-		else if (!(cent->currentState.number < MAX_CLIENTS))	//BAD FIX? //seems working, but requires moar tests
-		{
-			// just use the current frame and evaluate as best we can
-			BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
-			BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
-		}
+	// first see if we can interpolate between two snaps for
+	// linear extrapolated clients
+	if ( cent->interpolate && cent->currentState.pos.trType == TR_LINEAR_STOP &&
+			(cent->currentState.number < MAX_CLIENTS || cent->currentState.eType == ET_NPC) ) {
+		CG_InterpolateEntityPosition( cent );
+		goAway = qtrue;
+	}
+	else if (cent->interpolate &&
+		cent->currentState.eType == ET_NPC && cent->currentState.NPC_class == CLASS_VEHICLE)
+	{
+		CG_InterpolateEntityPosition( cent );
+		goAway = qtrue;
+	}
+	else
+	{
+		// just use the current frame and evaluate as best we can
+		BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
+		BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
 	}
 #if 0
 	if (cent->hasRagOffset && cent->ragOffsetTime < cg.time)
@@ -3662,7 +3651,8 @@ void CG_AddPacketEntities( qboolean isPortal ) {
 	{ //add the vehicle I'm riding first
 		//BG_PlayerStateToEntityState( &cg.predictedVehicleState, &cg_entities[cg.predictedPlayerState.m_iVehicleNum].currentState, qfalse );
 		//cg_entities[cg.predictedPlayerState.m_iVehicleNum].currentState.eType = ET_NPC;
-		centity_t *veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
+		//this fix seems working
+		centity_t *veh = &cg_entities[/*cg.predictedPlayerState.m_iVehicleNum*/cg.predictedPlayerState.clientNum];
 
 		if (veh->currentState.owner == cg.predictedPlayerState.clientNum)
 		{
