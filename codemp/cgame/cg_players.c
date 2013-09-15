@@ -6947,7 +6947,7 @@ CheckTrail:
 	}
 
 JustDoIt:
-	if (cg.time < saberTrail->lastTime)
+	if (cg_saberTrail.integer && cg.time < saberTrail->lastTime)
 		saberTrail->lastTime = cg.time;
 	if (dontDraw)
 	{
@@ -11932,7 +11932,9 @@ stillDoSaber:
 	}
 
 	//cent->frame_minus2 = cent->frame_minus1;
-	VectorCopy(cent->frame_minus1, cent->frame_minus2);
+	if (cg.time - cg.oldTime !=0) {
+		VectorCopy(cent->frame_minus1, cent->frame_minus2);
+	}
 	
 	if (cent->frame_minus1_refreshed)
 	{
@@ -11940,7 +11942,9 @@ stillDoSaber:
 	}
 
 	//cent->frame_minus1 = legs;
-	VectorCopy(legs.origin, cent->frame_minus1);
+	if (cg.time - cg.oldTime !=0) {
+		VectorCopy(legs.origin, cent->frame_minus1);
+	}
 
 	cent->frame_minus1_refreshed = 1;
 
