@@ -365,6 +365,7 @@ typedef struct centity_s {
 	int				trailTime;		// so missile trails can handle dropped initial packets
 	int				dustTrailTime;
 	int				miscTime;
+	int				miscRandomTime;
 
 	vec3_t			damageAngles;
 	int				damageTime;

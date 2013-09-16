@@ -4536,7 +4536,6 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 	ent.hModel = hModel;
 
 	if ( mov_simpleFlags.integer || (cg_newFX.integer & NEWFX_SIMPLEFLAG)) {
-		vec3_t angs;
 		int team = 0;
 
 		ent.modelScale[0] = 0.5;
@@ -6622,7 +6621,11 @@ void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, in
 						{//only put marks on architecture
 							// Let's do some cool burn/glowing mark bits!!!
 							CG_CreateSaberMarks( client->saber[saberNum].blade[bladeNum].trail.oldPos[i], trace.endpos, trace.plane.normal );
-						
+							
+							if (client->saber[saberNum].blade[bladeNum].hitWallDebounceTime > cg.time) {
+								client->saber[saberNum].blade[bladeNum].hitWallDebounceTime = 0;
+							}
+
 							//make a sound
 							if ( cg.time - client->saber[saberNum].blade[bladeNum].hitWallDebounceTime >= 100 )
 							{//ugh, need to have a real sound debouncer... or do this game-side
@@ -9342,7 +9345,7 @@ void SmoothTrueView(vec3_t eyeAngles) {
 
 	if ( UseRefDef )
 	{
-		VectorCopy( &refdef->viewangles, eyeAngles );
+		VectorCopy( refdef->viewangles, eyeAngles );
 	}
 	else
 	{

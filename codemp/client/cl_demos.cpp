@@ -267,7 +267,7 @@ static void demoFrameInterpolate( demoFrame_t frames[], int frameCount, int inde
 void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothen ) {
 	fileHandle_t	oldHandle = 0;
 	fileHandle_t	newHandle = 0;
-	int				temp, temp2;
+	int				temp;
 	int				oldSize;
 	int				msgSequence;
 	msg_t			oldMsg;

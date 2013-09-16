@@ -1396,12 +1396,9 @@ void RB_RenderWorldEffects(void)
 	// Calculate Elapsed Time For Scale Purposes
 	//-------------------------------------------
 	mMillisecondsElapsed = backEnd.refdef.frametime;
-	if (mMillisecondsElapsed<1)
-	{
-		mMillisecondsElapsed = 1.0f;
-	}
-	if (mMillisecondsElapsed>1000.0f)
-	{
+	if (mMillisecondsElapsed<=0) {
+		mMillisecondsElapsed = 0.0f;
+	} else if (mMillisecondsElapsed>1000.0f) {
 		mMillisecondsElapsed = 1000.0f;
 	}
 	mSecondsElapsed = (mMillisecondsElapsed / 1000.0f);

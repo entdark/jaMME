@@ -98,7 +98,7 @@ void captureSave( fileHandle_t fileHandle ) {
 	char *viewString;
 	char cvarName[1024];
 	char cvarBuf[1024];
-	int cvarIndex, i;
+	int cvarIndex;
 
 
 	trap_Cvar_VariableStringBuffer( "mov_captureCvars", buf, sizeof( buf ));

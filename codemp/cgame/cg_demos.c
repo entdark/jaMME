@@ -129,7 +129,6 @@ static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
 }
 
 int demoSetupView( void) {
-	centity_t *cent = 0;
 	vec3_t forward;
 	qboolean zoomFix;	//to see disruptor zoom when we are chasing a player
 
@@ -336,7 +335,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	float frameSpeed;
 	int blurTotal, blurIndex;
 	float blurFraction;
-	qboolean stereoCaptureSkip = qfalse;
 
 	int inwater;
 	const char *cstr;

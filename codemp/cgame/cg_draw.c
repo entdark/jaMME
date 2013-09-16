@@ -6127,22 +6127,11 @@ CG_`Entity
 #define MAX_XHAIR_DIST_ACCURACY	20000.0f
 static void CG_ScanForCrosshairEntity( void ) {
 	trace_t		trace;
-	vec3_t		start, end, orgview;
+	vec3_t		start, end;
 	int			content;
 	int			ignore;
 	qboolean	bVehCheckTraceFromCamPos = qfalse;
-	int			oldNum, oldTeam;
 
-	//mme, taken from pugmod
-/*	if(cg.playerCent->currentState.number!=-1 && cg.demoPlayback) {
-		oldNum = cg.snap->ps.clientNum;
-		cg.snap->ps.clientNum = cg.predictedPlayerState.clientNum = cg.playerCent->currentState.number;
-		oldTeam = cg.predictedPlayerState.persistant[PERS_TEAM];
-		cg.predictedPlayerState.persistant[PERS_TEAM] = cg.snap->ps.persistant[PERS_TEAM] = cgs.clientinfo[cg.playerCent->currentState.number].team;
-		VectorCopy(cg.predictedPlayerState.viewangles,orgview);
-		VectorCopy(cg_entities[cg.playerCent->currentState.number].lerpAngles,cg.predictedPlayerState.viewangles);
-	}
-*/
 	if (!cg.playerCent) {
 		return;
 	}

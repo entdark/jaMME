@@ -3400,6 +3400,9 @@ static void CG_FX( centity_t *cent )
 
 	if (cent->miscTime > cg.time)
 	{
+		if (cent->miscTime > cg.time + cent->miscRandomTime) {
+			cent->miscTime = 0;
+		}
 		return;
 	}
 
@@ -3425,7 +3428,8 @@ static void CG_FX( centity_t *cent )
 		cent->muzzleFlashTime = s1->modelindex2;
 	}
 
-	cent->miscTime = cg.time + s1->speed + random() * s1->time;
+	cent->miscRandomTime = s1->speed + random() * s1->time;
+	cent->miscTime = cg.time + cent->miscRandomTime;//s1->speed + random() * s1->time;
 
 	AngleVectors(s1->angles, fxDir, 0, 0);
 	

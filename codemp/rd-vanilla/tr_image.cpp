@@ -160,7 +160,6 @@ void GL_TextureMode( const char *string ) {
 }
 
 void GL_Anisotropy( int level ) {
-	int i;
 	image_t	*glt;
 	image_t *pImage;
 
