@@ -1718,6 +1718,9 @@ Ghoul2 Insert End
 	case CG_MME_BLURINFO:
 		re.BlurInfo( (int *)VMA(1), (int *)VMA(2) );
 		return 0;
+	case CG_S_UPDATE_PITCH:
+		S_UpdatePitch(VMF(1));
+		return 0;
 	default:
 	        assert(0); // bk010102
 		Com_Error( ERR_DROP, "Bad cgame system trap: %ld", (long int) args[0] );

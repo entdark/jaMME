@@ -28,6 +28,7 @@ extern void trap_MME_BlurInfo( int* total, int * index );
 extern void trap_MME_Capture( const char *baseName, float fps, float focus );
 extern void trap_MME_CaptureStereo( const char *baseName, float fps, float focus );
 extern int trap_MME_SeekTime( int seekTime );
+extern void trap_S_UpdatePitch( float pitch );
 
 static void CG_DemosUpdatePlayer( void ) {
 	demo.oldcmd = demo.cmd;
@@ -1025,6 +1026,7 @@ qboolean CG_DemosConsoleCommand( void ) {
 		cmd = CG_Argv(1);
 		if (cmd[0]) {
 			demo.play.speed = atof(cmd);
+			trap_S_UpdatePitch(demo.play.speed);
 		}
 		CG_DemosAddLog("Play speed %f", demo.play.speed );
 	} else if (!Q_stricmp(cmd, "pause")) {

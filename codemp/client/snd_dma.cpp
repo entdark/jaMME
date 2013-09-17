@@ -6396,3 +6396,16 @@ float CalcDistance(EMPOINT A, EMPOINT B)
 {
 	return (float)sqrt(sqr(A.fX - B.fX)+sqr(A.fY - B.fY) + sqr(A.fZ - B.fZ));
 }
+
+void S_UpdatePitch(float pitch)
+{
+#ifdef _WIN32
+	if (s_UseOpenAL)
+	{
+		for (int i = 0; i < s_numChannels; i++)
+		{
+			alSourcef(s_channels[i].alSource, AL_PITCH, pitch);
+		}
+	}
+#endif
+}
