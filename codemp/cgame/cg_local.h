@@ -230,6 +230,7 @@ typedef struct {
 
 	vec3_t			color1;
 	vec3_t			color2;
+	qhandle_t		shaderOverride;
 
 	int				icolor1;
 	int				icolor2;
@@ -421,7 +422,7 @@ typedef struct centity_s {
 	//at times
 	int				bolt1;
 	int				bolt2;
-	int				bolt3;
+	float			bolt3;
 	int				bolt4;
 
 	float			bodyHeight;
@@ -1672,6 +1673,14 @@ typedef struct {
 
 	clientInfo_t	clientinfo[MAX_CLIENTS];
 
+	char			clientOverride[MAX_CLIENTS][MAX_INFO_STRING];
+	char			redOverride[MAX_INFO_STRING];
+	char			blueOverride[MAX_INFO_STRING];
+	char			allOverride[MAX_INFO_STRING];
+	char			friendlyOverride[MAX_INFO_STRING];
+	char			enemyOverride[MAX_INFO_STRING];
+	char			playerOverride[MAX_INFO_STRING];
+
 	int cursorX;
 	int cursorY;
 	qboolean eventHandling;
@@ -1868,6 +1877,9 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, entityState_t *state, int te
 void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized );
 sfxHandle_t	CG_CustomSound( int clientNum, const char *soundName );
 void CG_PlayerShieldHit(int entitynum, vec3_t angles, int amount);
+
+char *ConfigValue( const char *configs[4], const char *value );
+void CG_ClientOverride_f(void);
 
 
 //

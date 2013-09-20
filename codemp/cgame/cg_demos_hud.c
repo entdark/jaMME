@@ -140,7 +140,7 @@ static struct {
 static void hudDrawText( float x, float y, const char *buf, const vec4_t color) {
 	if (!buf)
 		return;
-	CG_DrawStringExt( x, y, buf, color, qtrue, qtrue, HUD_TEXT_WIDTH, HUD_TEXT_HEIGHT , -1 );
+	CG_DrawStringExt( x, y, buf, color, qfalse, qtrue, HUD_TEXT_WIDTH, HUD_TEXT_HEIGHT , -1 );
 //	CG_Text_Paint( x, y, 0.3f, color, buf, 0,0,ITEM_TEXTSTYLE_SHADOWED );
 }
 
@@ -150,7 +150,7 @@ static void hudMakeTarget( int targetNum, char *dst, int dstSize) {
 		const char *type;
 		switch (cent->currentState.eType) {
 		case ET_PLAYER:
-			type = "player";
+			type = cgs.clientinfo[cent->currentState.number].name;
 			break;
 		case ET_MISSILE:
 			type = "missile";
@@ -668,7 +668,7 @@ static void hudDrawItem( hudItem_t *item ) {
 		break;
 	case hudTypeCheck:
 		checked = hudGetChecked( item, colorWhite );
-		CG_DrawPic( x + 5*cgs.widthRatioCoef, y + 2, HUD_TEXT_WIDTH, HUD_TEXT_SPACING, checked ? 
+		CG_DrawPic( x + 5, y + 2, HUD_TEXT_WIDTH, HUD_TEXT_SPACING, checked ? 
 			demo.media.switchOn : demo.media.switchOff ); 
 		break;
 	}
@@ -809,8 +809,7 @@ void hudDraw( void ) {
 		y = hud.cursorY;
 		w = 32;
 		h = 32;
-//		CG_AdjustFrom640( &x, &y, &w, &h );
-		trap_R_DrawStretchPic( x,y,w*cgs.widthRatioCoef,h, 0,0,1,1, demo.media.mouseCursor );
+		trap_R_DrawStretchPic( x,y,w,h, 0,0,1,1, demo.media.mouseCursor );
 	} else {
 		hud.edit.item = 0;
 	}

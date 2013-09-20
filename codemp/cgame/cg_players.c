@@ -1513,6 +1513,17 @@ static void CG_SetDeferredClientInfo( clientInfo_t *ci ) {
 	CG_LoadClientInfo( ci );
 }
 
+
+char *ConfigValue( const char *configs[4], const char *value ) {
+	int i;
+	for ( i = 0; i <6;i++ ) {
+		char *v = Info_ValueForKey( configs[i], value );
+		if ( v[0] )
+			return v;
+	}
+	return "";
+}
+
 /*
 ======================
 CG_NewClientInfo
@@ -1537,7 +1548,25 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	int k = 0;
 	qboolean saberUpdate[MAX_SABERS];
 
+	const char	*strings[6];
+	qboolean	friendly, skipColor, skipColor2;
+	int			psTeam;
+
 	ci = &cgs.clientinfo[clientNum];
+
+	strings[5] = CG_ConfigString( clientNum + CS_PLAYERS );
+	if ( !strings[5][0] ) {
+		memset( ci, 0, sizeof( *ci ) );
+		return;		// player just left
+	}
+	strings[0] = cgs.clientOverride[clientNum];
+	if ( cg.snap && clientNum == cg.snap->ps.clientNum ) 
+		strings[1] = cgs.playerOverride;
+	else
+		strings[1] = "";
+	strings[2] = "";
+	strings[3] = "";
+	strings[4] = cgs.allOverride;
 
 	oldGhoul2 = ci->ghoul2Model;
 
@@ -1571,25 +1600,94 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	// the old value
 	memset( &newInfo, 0, sizeof( newInfo ) );
 
+	// team
+	v = ConfigValue( strings, "t" );
+	newInfo.team = atoi( v );
+
+	switch ( newInfo.team ) {
+	case TEAM_RED:
+		strings[2] = cgs.redOverride;
+		break;
+	case TEAM_BLUE:
+		strings[2] = cgs.blueOverride;
+		break;
+	}
+
+	friendly = qfalse;
+	if ( cg.snap ) {
+		psTeam = cg.snap->ps.persistant[PERS_TEAM];
+	} else {
+		psTeam = TEAM_FREE;
+	}
+
+	if ( newInfo.team > TEAM_FREE ) {
+		if ( psTeam == TEAM_RED ) {
+			if ( psTeam == newInfo.team ) 
+				friendly = qtrue;
+		} else if ( psTeam == TEAM_BLUE ) {
+			if ( psTeam == newInfo.team ) 
+				friendly = qtrue;
+		} else {
+			friendly = newInfo.team == psTeam;
+		}
+	} else {
+		friendly = cg.snap && (clientNum == cg.snap->ps.clientNum);
+	}
+
+	if ( friendly ) {
+		strings[3] = cgs.friendlyOverride;
+	} else {
+		strings[3] = cgs.enemyOverride;
+	}
+
 	// isolate the player's name
-	v = Info_ValueForKey(configstring, "n");
+//	v = Info_ValueForKey( configstring, "n");
+	v = ConfigValue( strings, "n" );
 	Q_strncpyz( newInfo.name, v, sizeof( newInfo.name ) );
 	Q_strncpyz( newInfo.cleanname, v, sizeof( newInfo.cleanname ) );
 	Q_StripColor( newInfo.cleanname );
 
 	// colors
-	v = Info_ValueForKey( configstring, "c1" );
-	CG_ColorFromString( v, newInfo.color1 );
+	skipColor = qfalse;
+	v = ConfigValue( strings, "c1" );
+	Q_parseColor( v, defaultColors, newInfo.color1 );
+	if ((v[0] >= 'u' || v[0] >= 'U') && (v[0] <= 'z' || v[0] <= 'Z')) {
+		if ( v[0] >= 'u' && v[0] <= 'z') {
+			newInfo.icolor1 = v[0] - 'u' + 6;
+		} else if ( v[0] >= 'U' && v[0] <= 'Z') {
+			newInfo.icolor1 = v[0] - 'U' + 6;
+		}
+		Q_parseColor( v, defaultColors, newInfo.rgb1 );
+		VectorScale(newInfo.rgb1, 255, newInfo.rgb1);
+		skipColor = qtrue;
+	} else {
+//		skipColor = qtrue;
+		newInfo.icolor1 = atoi(v);
+	}
 
-	newInfo.icolor1 = atoi(v);
+	skipColor2 = qfalse;
+	v = ConfigValue( strings, "c2");
+	Q_parseColor( v, defaultColors, newInfo.color2 );
+	if ((v[0] >= 'u' || v[0] >= 'U') && (v[0] <= 'z' || v[0] <= 'Z')) {
+		if ( v[0] >= 'u' && v[0] <= 'z') {
+			newInfo.icolor2 = v[0] - 'u' + 6;
+		} else if ( v[0] >= 'U' && v[0] <= 'Z') {
+			newInfo.icolor2 = v[0] - 'U' + 6;
+		}
+		Q_parseColor( v, defaultColors, newInfo.rgb2 );
+		VectorScale(newInfo.rgb2, 255, newInfo.rgb2);
+		skipColor2 = qtrue;
+	} else {
+//		skipColor2 = qtrue;
+		newInfo.icolor2 = atoi(v);
+	}
 
-	v = Info_ValueForKey( configstring, "c2" );
-	CG_ColorFromString( v, newInfo.color2 );
-
-	newInfo.icolor2 = atoi(v);
+	v = ConfigValue( strings, "shader");
+	if ( v[0] )
+		newInfo.shaderOverride = trap_R_RegisterShader( v );
 
 	// bot skill
-	v = Info_ValueForKey( configstring, "skill" );
+	v = ConfigValue( strings, "skill");
 	//Raz: Players now have -1 skill so you can determine the bots from the scoreboard code
 	if ( v && v[0] )
 		newInfo.botSkill = atoi( v );
@@ -1597,20 +1695,16 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 		newInfo.botSkill = -1;
 
 	// handicap
-	v = Info_ValueForKey( configstring, "hc" );
+	v = ConfigValue( strings, "hc");
 	newInfo.handicap = atoi( v );
 
 	// wins
-	v = Info_ValueForKey( configstring, "w" );
+	v = ConfigValue( strings, "w");
 	newInfo.wins = atoi( v );
 
 	// losses
-	v = Info_ValueForKey( configstring, "l" );
+	v = ConfigValue( strings, "l");
 	newInfo.losses = atoi( v );
-
-	// team
-	v = Info_ValueForKey( configstring, "t" );
-	newInfo.team = atoi( v );
 
 //copy team info out to menu
 	if ( clientNum == cg.clientNum)	//this is me
@@ -1619,9 +1713,8 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	}
 
 	//[RGBSabers]
-	//va( "%i", red | ((green | (blue << 8)) << 8));
 	yo = Info_ValueForKey(configstring, "c3");
-	{
+	if (!skipColor) {
 		int red		= atoi(yo) & 255;
 		int green	= (atoi(yo) >> 8) & 255;
 		int blue	= atoi(yo) >> 16;
@@ -1635,7 +1728,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	}
 
 	yo = Info_ValueForKey(configstring, "c4");
-	{
+	if (!skipColor2) {
 		int red		= atoi(yo) & 255;
 		int green	= (atoi(yo) >> 8) & 255;
 		int blue	= atoi(yo) >> 16;
@@ -1674,7 +1767,8 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 //	Q_strncpyz(newInfo.blueTeam, v, MAX_TEAMNAME);
 
 	// model
-	v = Info_ValueForKey( configstring, "model" );
+//	v = Info_ValueForKey( configstring, "model" );
+	v = ConfigValue( strings, "model");
 #if 0
 	if ( cg_forceModel.integer ) {
 		// forcemodel makes everyone use a single model
@@ -1801,8 +1895,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	saberUpdate[1] = qfalse;
 
 	//saber being used
-	v = Info_ValueForKey( configstring, "st" );
-
+	v = ConfigValue( strings, "st");
 	if (v && Q_stricmp(v, ci->saberName))
 	{
 		Q_strncpyz( newInfo.saberName, v, 64 );
@@ -1816,8 +1909,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 		newInfo.ghoul2Weapons[0] = ci->ghoul2Weapons[0];
 	}
 
-	v = Info_ValueForKey( configstring, "st2" );
-
+	v = ConfigValue( strings, "st2");
 	if (v && Q_stricmp(v, ci->saber2Name))
 	{
 		Q_strncpyz( newInfo.saber2Name, v, 64 );
@@ -2045,6 +2137,153 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 				}
 			}
 		}
+	}
+}
+
+
+static void CG_ShowOverride( const char *configString, const char *overrideString ) {
+	static char * entryList[] = {
+		"n", "t", "model", "c1", "c2", "st", "st2", "shader", 0
+	};
+	int n;
+
+	for ( n = 0;entryList[n];n++) {
+		const char *v, *entry;
+		
+		entry = entryList[n];
+		v = Info_ValueForKey( configString, entryList[n] );
+		if ( v[0] ) {
+			Com_Printf(S_COLOR_WHITE " %s ", entryList[n] );
+			Com_Printf( v );
+			continue;
+		}
+	}
+	if ( overrideString[0] ) 
+		Com_Printf( "\nOverride : %s", overrideString );
+}
+
+static void CG_ParseOverride( char *overrideString ) {
+	int index = 2;
+	int argc = trap_Argc();
+	char cmdType[64];
+
+	if (!Q_stricmp( CG_Argv( index ), "reset" )) {
+		overrideString[0] = 0;
+	} else while ( index < argc ) {
+		const char *line = CG_Argv( index );
+		if (index & 1) {
+			Info_SetValueForKey( overrideString, cmdType, line );
+		} else {
+			Q_strncpyz( cmdType, line, sizeof( cmdType ));
+		}
+		index++;
+	}
+}
+
+
+void CG_ClientOverride_f(void) {
+	int argc = trap_Argc();
+	int clientStart, clientEnd;
+	int i;
+	char buf[64];
+	char *line;
+
+	if (argc < 2) {
+		CG_Printf("Clientoverride usage:\n");
+		CG_Printf("list, view current settings, red tag means an override\n" );
+		CG_Printf("or\n" );
+		CG_Printf("startNumber[-endNumber] select client or range of client\n" );
+		CG_Printf("Followed by a list of 2 parameter combinations\n" );
+		CG_Printf("model \"modelname/skin\", Change model\n" );
+		CG_Printf("n \"name\", Change name (^3DOES NOT AFFECT FRAG MESSAGE YET! :[^7)\n" );
+		CG_Printf("t \"0-3\", Change team number\n" );
+		CG_Printf("c1 \"0-9,w-zhexcode\", Change saber color1\n" );
+		CG_Printf("c2 \"0-9,w-zhexcode\", Change saber color2\n" );
+		CG_Printf("st \"hiltname\", Change saber hilt\n" );
+		CG_Printf("st2 \"hiltname\", Change saber hilt2\n" );
+		CG_Printf("shader \"shadername\", Shader override to be use on the whole player\n" );
+		return;
+	}
+	if (!Q_stricmp( CG_Argv(1), "list")) {
+		for (i = 0;i<MAX_CLIENTS;i++) {
+			const char *configString, *overrideString;
+
+			overrideString = cgs.clientOverride[i];
+			configString = CG_ConfigString( i + CS_PLAYERS );
+			if ( !configString[0] ) 
+				continue;
+
+			Com_Printf("client %-2d", i);
+			CG_ShowOverride( configString, overrideString );
+			Com_Printf("\n");
+		}
+		Com_Printf("\nplayer" );
+		CG_ShowOverride( "", cgs.playerOverride );
+		Com_Printf("\nred" );
+		CG_ShowOverride( "", cgs.redOverride );
+		Com_Printf("\nblue" );
+		CG_ShowOverride( "", cgs.blueOverride );
+		Com_Printf("\nfriendly" );
+		CG_ShowOverride( "", cgs.friendlyOverride );
+		Com_Printf("\nenemy" );
+		CG_ShowOverride( "", cgs.enemyOverride );
+		Com_Printf("\nall\n" );
+		CG_ShowOverride( "", cgs.allOverride );
+		Com_Printf("\n" );
+		return;
+	}
+	trap_Argv( 1, buf, sizeof( buf ));
+	if  (!Q_stricmp( buf, "all" )) {
+		clientStart = 0;
+		clientEnd = MAX_CLIENTS - 1;
+		CG_ParseOverride( cgs.allOverride );
+	} else if  (!Q_stricmp( buf, "red" )) {
+		clientStart = 0;
+		clientEnd = MAX_CLIENTS - 1;
+		CG_ParseOverride( cgs.redOverride );
+	} else if  (!Q_stricmp( buf, "blue" )) {
+		clientStart = 0;
+		clientEnd = MAX_CLIENTS - 1;
+		CG_ParseOverride( cgs.blueOverride );
+	} else if  (!Q_stricmp( buf, "friendly" )) {
+		clientStart = 0;
+		clientEnd = MAX_CLIENTS - 1;
+		CG_ParseOverride( cgs.friendlyOverride );
+	} else if  (!Q_stricmp( buf, "enemy" )) {
+		clientStart = 0;
+		clientEnd = MAX_CLIENTS - 1;
+		CG_ParseOverride( cgs.enemyOverride );
+	} else if  (!Q_stricmp( buf, "player" )) {
+		clientStart = 0;
+		clientEnd = MAX_CLIENTS - 1;
+		CG_ParseOverride( cgs.playerOverride );
+	} else {
+		line = strstr( buf, "-" );
+		if ( line ) {
+			*line++ = 0;
+			clientStart = atoi ( buf );
+			clientEnd = atoi( line );
+		} else {
+			clientStart = clientEnd = atoi ( buf );
+		}
+		if (clientStart < 0 || clientStart >= MAX_CLIENTS ) {
+			CG_Printf("Illegal clientnum %d", clientStart);
+			return;
+		}
+		if (clientEnd < 0 || clientEnd >= MAX_CLIENTS ) {
+			CG_Printf("Illegal clientnum %d", clientEnd);
+			return;
+		}
+		if ( clientStart > clientEnd ) {
+			CG_Printf("Illegal clientrange %d-%d for clientoverride", clientStart, clientEnd );
+			return;
+		}
+		for (i = clientStart;i<=clientEnd;i++) {
+			CG_ParseOverride( cgs.clientOverride[i] );		
+		}
+	}
+	for (i = clientStart;i<=clientEnd;i++) {
+		CG_NewClientInfo( i, qtrue );
 	}
 }
 
@@ -6522,7 +6761,7 @@ void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, in
 	if (cgs.gametype >= GT_TEAM &&
 		cgs.gametype != GT_SIEGE &&
 		!cgs.jediVmerc &&
-		cent->currentState.eType != ET_NPC)
+		cent->currentState.eType != ET_NPC && mov_saberTeamColour.integer)
 	{
 		if (client->team == TEAM_RED)
 		{
@@ -6700,7 +6939,11 @@ CheckTrail:
 	{
 		if (!dontDraw)
 		{
-			if ( (BG_SuperBreakWinAnim(cent->currentState.torsoAnim) || saberMoveData[cent->currentState.saberMove].trailLength > 0 || ((cent->currentState.powerups & (1 << PW_SPEED) && cg_speedTrail.integer)) || (cent->currentState.saberInFlight && saberNum == 0)) && cg.time < saberTrail->lastTime + 2000 ) // if we have a stale segment, don't draw until we have a fresh one
+			if ( (BG_SuperBreakWinAnim(cent->currentState.torsoAnim)
+				|| saberMoveData[cent->currentState.saberMove].trailLength > 0
+				|| ((cent->currentState.powerups & (1 << PW_SPEED) && (cg_speedTrail.integer || cg_saberTrail.integer == 3)))
+				|| (cent->currentState.saberInFlight && saberNum == 0))
+				&& cg.time < saberTrail->lastTime + 2000 ) // if we have a stale segment, don't draw until we have a fresh one
 			{
 	#if 0
 				if (cg_saberTrail.integer == 2 && cg_shadows.integer != 2 && cgs.glconfig.stencilBits >= 4)
@@ -12290,6 +12533,10 @@ stillDoSaber:
 		legs.renderfx &= ~RF_RGB_TINT;
 		legs.customShader = cgs.media.playerShieldDamage;
 		
+		trap_R_AddRefEntityToScene( &legs );
+	}
+	if (ci->shaderOverride) {
+		legs.customShader = ci->shaderOverride;
 		trap_R_AddRefEntityToScene( &legs );
 	}
 #if 0

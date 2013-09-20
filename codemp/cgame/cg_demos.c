@@ -487,7 +487,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	/* Set the correct time */
 	cg.time = trap_MME_SeekTime( demo.line.time );
 	/* cg.time is shifted ahead a bit to correct some issues.. */
-//	frameSpeed *= demo.play.speed;
+	frameSpeed *= demo.play.speed;
 
 	cg.frametime = (cg.time - cg.oldTime) + (cg.timeFraction - cg.oldTimeFraction);
 	if (cg.frametime <0  || cg.frametime > 100) {
@@ -718,10 +718,11 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		trap_S_UpdateAmbientSet( cstr, cg.refdef.vieworg );
 	}
 
-	//we don't have modified sound code, so we don't send sound scale
-//	if (frameSpeed > 5)
-//		frameSpeed = 6;
-//	else frameSpeed += 1;
+	if (frameSpeed > 2)
+		frameSpeed = 2;
+	else if (frameSpeed < 0.5)
+		frameSpeed = 0.5f;
+	trap_S_UpdatePitch( frameSpeed );
 //	trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, *((int *)&frameSpeed));
 	trap_S_Respatialize( cg.playerCent ? cg.playerCent->currentState.number : ENTITYNUM_NONE, cg.refdef.vieworg, cg.refdef.viewaxis, inwater);
 
@@ -977,6 +978,7 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("load");
 	trap_AddCommand("+seek");
 	trap_AddCommand("-seek");
+	trap_AddCommand("clientOverride");
 
 	demo.media.additiveWhiteShader = trap_R_RegisterShader( "mme_additiveWhite" );
 	demo.media.mouseCursor = trap_R_RegisterShaderNoMip( "mme_cursor" );
@@ -1026,7 +1028,6 @@ qboolean CG_DemosConsoleCommand( void ) {
 		cmd = CG_Argv(1);
 		if (cmd[0]) {
 			demo.play.speed = atof(cmd);
-			trap_S_UpdatePitch(demo.play.speed);
 		}
 		CG_DemosAddLog("Play speed %f", demo.play.speed );
 	} else if (!Q_stricmp(cmd, "pause")) {
@@ -1049,6 +1050,8 @@ qboolean CG_DemosConsoleCommand( void ) {
 		demoLoadCommand_f();
 	} else if (!Q_stricmp(cmd, "save")) {
 		demoSaveCommand_f();
+	} else if (!Q_stricmp(cmd, "clientOverride")) {
+		CG_ClientOverride_f();
 	} else {
 		return CG_ConsoleCommand();
 	}

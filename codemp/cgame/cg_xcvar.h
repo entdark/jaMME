@@ -183,6 +183,7 @@ XCVAR_DEF( mov_captureFPS,						"25",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_fragsOnly,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_duelShell,						"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_duelIsolation,					"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( mov_saberTeamColour,					"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( fx_Vibrate,							"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( fx_vfps,								"200",					NULL,					CVAR_ARCHIVE )	//teh's fix for laggy effects
 XCVAR_DEF( fx_disruptTime,						"150",					NULL,					CVAR_ARCHIVE )	//from smod

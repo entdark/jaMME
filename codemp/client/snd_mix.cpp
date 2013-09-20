@@ -498,6 +498,7 @@ void S_PaintChannels( int endtime ) {
 */
 		// transfer out according to DMA format
 		S_TransferPaintBuffer( end );
+		S_MMETransferWavChunks();
 		s_paintedtime = end;
 	}
 }

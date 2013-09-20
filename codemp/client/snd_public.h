@@ -62,3 +62,8 @@ void S_MMEUpdate( float scale, const byte *pcmBuffer, int size );
 //void S_MMEMusic( const char *musicName, float time, float length );
 
 void S_UpdatePitch(float pitch);
+
+void S_MMEWavRecord(const char *baseName, const float fps);
+void S_MMEClose(void);
+void S_MMETransferWavChunks(void);
+qboolean S_MMERecording (void);

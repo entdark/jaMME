@@ -75,14 +75,83 @@ static qboolean captureParseCvar( BG_XMLParse_t *parse, const struct BG_XMLParse
 	return qtrue;
 }
 
+static qboolean captureParseClientNumber( BG_XMLParse_t *parse,const char *line, void *data) {
+	int *number = (int *) data;
+	if (!line[0])
+		return qfalse;
+	*number = atoi( line );
+	return qtrue;
+}
+static qboolean captureParseClientString( BG_XMLParse_t *parse,const char *line, void *data) {
+	int number = *((int *)data);
+	if (number <0 || number >= MAX_CLIENTS)
+		return qfalse;
+	Q_strncpyz( cgs.clientOverride[number], line, sizeof( cgs.clientOverride[number] ));
+	CG_NewClientInfo( number, qtrue );
+	return qtrue;
+}
+static qboolean captureParseClient( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data) {
+	int clientNum = -1;
+	static BG_XMLParseBlock_t clientParseBlock[] = {
+		{"number",	0,		captureParseClientNumber },
+		{"string",	0,		captureParseClientString },
+		{0, 0, 0}
+	};
+	if (!BG_XMLParse( parse, fromBlock, clientParseBlock, &clientNum )) {
+		return qfalse;
+	}
+	return qtrue;
+}
+
+static qboolean captureParseGroupName( BG_XMLParse_t *parse,const char *line, void *data) {
+	char **store = ((char **)data);
+	if (!line[0])
+		return qfalse;
+	if ( !Q_stricmp( line, "red" )) {
+		*store = cgs.redOverride;
+	} else if ( !Q_stricmp( line, "blue" )) {
+		*store = cgs.blueOverride;
+	} else if ( !Q_stricmp( line, "all" )) {
+		*store = cgs.allOverride;
+	} else if ( !Q_stricmp( line, "enemy" )) {
+		*store = cgs.enemyOverride;
+	} else if ( !Q_stricmp( line, "friendly" )) {
+		*store = cgs.friendlyOverride;
+	} else if ( !Q_stricmp( line, "player" )) {
+		*store = cgs.playerOverride;
+	} else {
+		return qfalse;
+	}
+	return qtrue;
+}
+static qboolean captureParseGroupString( BG_XMLParse_t *parse,const char *line, void *data) {
+	char *store = ((char **)data)[0];
+	if ( !store )
+		return qfalse;
+	Q_strncpyz( store, line, sizeof( cgs.redOverride ));
+	return qtrue;
+}
+static qboolean captureParseGroup( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data) {
+	char *store = 0;
+	static BG_XMLParseBlock_t GroupParseBlock[] = {
+		{"name",	0,		captureParseGroupName },
+		{"string",	0,		captureParseGroupString },
+		{0, 0, 0}
+	};
+	if (!BG_XMLParse( parse, fromBlock, GroupParseBlock, &store )) {
+		return qfalse;
+	}
+	return qtrue;
+}
+
 qboolean captureParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data) {
 	static BG_XMLParseBlock_t captureParseBlock[] = {
 		{"start",	0,					captureParseStart },
 		{"end",		0,					captureParseEnd	},
 		{"view",	0,					captureParseView },
 		{"cvar",	captureParseCvar,	0 },
-//		{"client",	captureParseClient,	0 },
-//		{"group",	captureParseGroup,	0 },
+		{"client",	captureParseClient,	0 },
+		{"group",	captureParseGroup,	0 },
 		{0, 0, 0}
 	};
 
@@ -98,7 +167,7 @@ void captureSave( fileHandle_t fileHandle ) {
 	char *viewString;
 	char cvarName[1024];
 	char cvarBuf[1024];
-	int cvarIndex;
+	int cvarIndex, i;
 
 
 	trap_Cvar_VariableStringBuffer( "mov_captureCvars", buf, sizeof( buf ));
@@ -153,7 +222,7 @@ void captureSave( fileHandle_t fileHandle ) {
 			break;
 		listParse++;
 	}
-/*	for (i = 0;i<MAX_CLIENTS;i++) {
+	for (i = 0;i<MAX_CLIENTS;i++) {
 		if ( !cgs.clientOverride[i][0])
 			continue;
 		demoSaveLine( fileHandle, "\t<client>\n" );
@@ -161,7 +230,41 @@ void captureSave( fileHandle_t fileHandle ) {
 		demoSaveLine( fileHandle, "\t\t<string>%s</string>\n", cgs.clientOverride[i] );
 		demoSaveLine( fileHandle, "\t</client>\n" );
 	}
-*/	demoSaveLine( fileHandle, "</capture>\n" );
+	for (i = 0;i<=5;i++) {
+		const char* name;
+		const char* line;
+		switch ( i ) {
+		case 0:	
+			name = "red";
+			line = cgs.redOverride;
+			break;
+		case 1:
+			name = "blue";
+			line = cgs.blueOverride;
+			break;
+		case 2:
+			name = "enemy";
+			line = cgs.enemyOverride;
+			break;
+		case 3:
+			name = "friendly";
+			line = cgs.friendlyOverride;
+			break;
+		case 4:
+			name = "all";
+			line = cgs.allOverride;
+			break;
+		case 5:
+			name = "player";
+			line = cgs.playerOverride;
+			break;
+		}
+		demoSaveLine( fileHandle, "\t<group>\n" );
+		demoSaveLine( fileHandle, "\t\t<name>%s</name>\n", name );
+		demoSaveLine( fileHandle, "\t\t<string>%s</string>\n",line );
+		demoSaveLine( fileHandle, "\t</group>\n" );
+	}
+	demoSaveLine( fileHandle, "</capture>\n" );
 }
 
 static BG_XMLParseBlock_t loadBlock[] = {

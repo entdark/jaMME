@@ -1061,7 +1061,7 @@ int Q_parseColor( const char *p, const vec3_t numberColors[10], float *color ) {
 			return 1;
 		memcpy( color, numberColors + c - '0', sizeof( vec3_t ));
 		return 1;
-	} else if ( ( c >= 'a' && c < 'x') || (c >= 'A' && c < 'X') ) {
+	} else if ( ( c >= 'a' && c < 'u') || (c >= 'A' && c < 'U') ) {
 		int deg;
 		float angle, v;
 		if (!color)
@@ -1083,7 +1083,9 @@ int Q_parseColor( const char *p, const vec3_t numberColors[10], float *color ) {
 			color[2] = v;
 		}
 		return 1;
-	} else if ( c == 'x' || c == 'X' )  {
+	} else if ( c == 'u' || c == 'U' || c == 'v' || c == 'V'
+				|| c == 'w' || c == 'W' || c == 'x' || c == 'X'
+				|| c == 'y' || c == 'Y' || c == 'z' || c == 'Z') {
 		int i;
 		int val;
 		for (i = 0;i<6;i++) {

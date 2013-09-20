@@ -2790,9 +2790,12 @@ void S_GetSoundtime(void)
 	
 	fullsamples = dma.samples / dma.channels;
 
-	if( CL_VideoRecording( ) )
-	{
+	if( CL_VideoRecording( ) ) {
 		s_soundtime += (int)ceil( dma.speed / cl_aviFrameRate->value );
+		return;
+	}
+
+	if (S_MMERecording()) {
 		return;
 	}
 

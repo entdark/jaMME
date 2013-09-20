@@ -830,7 +830,10 @@ void CL_Disconnect( qboolean showMainMenu ) {
 	}
 
 	SCR_StopCinematic ();
+
 	S_MMEWavClose();
+	S_MMEClose();
+
 	S_ClearSoundBuffer();
 
 	// send a disconnect message to the server
