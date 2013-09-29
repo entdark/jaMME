@@ -1297,7 +1297,6 @@ extern cvar_t	*mme_cpuSSE2;
 extern cvar_t	*mme_workMegs;
 extern cvar_t	*mme_depthRange;
 extern cvar_t	*mme_depthFocus;
-extern cvar_t	*mme_captureName;
 extern cvar_t	*mme_saveOverwrite;
 extern cvar_t	*mme_saveStencil;
 extern cvar_t	*mme_saveShot;

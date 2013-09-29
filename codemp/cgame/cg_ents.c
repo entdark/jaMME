@@ -123,6 +123,9 @@ void CG_S_AddLoopingSound(int entityNum, const vec3_t origin, const vec3_t veloc
 	int i = 0;
 	qboolean alreadyPlaying = qfalse;
 
+	if (mov_soundDisable.integer & SDISABLE_LOOPING)	// will it work?
+		return;
+
 	//first see if we're already looping this sound handle.
 	while (i < cent->numLoopingSounds)
 	{
@@ -307,7 +310,7 @@ static void CG_EntityEffects( centity_t *cent ) {
 		}
 
 		//rww - doors and things with looping sounds have a crazy origin (being brush models and all)
-		if (realSoundIndex != -1)
+		if (!(mov_soundDisable.integer & SDISABLE_AMBIENT) && realSoundIndex != -1)
 		{
 			if ( cent->currentState.solid == SOLID_BMODEL )
 			{
@@ -3570,6 +3573,8 @@ Ghoul2 Insert End
 		CG_Portal( cent );
 		break;
 	case ET_SPEAKER:
+		if (mov_soundDisable.integer & SDISABLE_AMBIENT)
+			break;
 		CG_Speaker( cent );
 		break;
 	case ET_NPC: //An entity that wants to be able to use ghoul2 humanoid (and other) anims. Like a player, but not.

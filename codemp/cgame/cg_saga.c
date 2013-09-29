@@ -663,7 +663,7 @@ void CG_SiegeRoundOver(centity_t *ent, int won)
 		}
 		*/
 
-		if (soundstr[0])
+		if (!(mov_soundDisable.integer & SDISABLE_ANNOUNCER) && soundstr[0])
 		{
 			trap_S_StartLocalSound(trap_S_RegisterSound(soundstr), CHAN_ANNOUNCER);
 		}
@@ -979,7 +979,7 @@ void CG_SiegeObjectiveCompleted(centity_t *ent, int won, int objectivenum)
 			}
 			*/
 
-			if (soundstr[0])
+			if (!(mov_soundDisable.integer & SDISABLE_ANNOUNCER) && soundstr[0])
 			{
 				trap_S_StartLocalSound(trap_S_RegisterSound(soundstr), CHAN_ANNOUNCER);
 			}

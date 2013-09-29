@@ -225,7 +225,6 @@ Coordinates are at 640 by 480 virtual resolution
 void CG_DrawStringExt( int x, int y, const char *string, const float *setColor, 
 		qboolean forceColor, qboolean shadow, int charWidth, int charHeight, int maxChars )
 {
-	charWidth;
 	if (trap_Language_IsAsian())
 	{
 		// hack-a-doodle-do (post-release quick fix code)...

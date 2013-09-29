@@ -51,6 +51,7 @@ typedef enum {
 	hudCamPosX, hudCamPosY, hudCamPosZ,
 	hudCamPitch, hudCamYaw, hudCamRoll,
 	hudCamFov,
+	hudCamDistance,
 /*
 	hudEffectCheckPos,
 	hudEffectCheckAngles,
@@ -416,6 +417,9 @@ static void hudGetHandler( hudItem_t *item, char *buf, int bufSize ) {
 	case hudChaseTarget:
 		hudMakeTarget( demo.chase.target, buf, bufSize );
 		return;
+	case hudCamDistance:
+		hudMakeTarget( demo.camera.target, buf, bufSize );
+		return;
 	case hudLineTime:
 		Com_sprintf( buf, bufSize, "%s", demoTimeString( demo.line.time ));
 		return;
@@ -681,13 +685,6 @@ void hudDraw( void ) {
 	if (demo.editType == editNone)
 		return;
 
-	if ( mov_hudOverlay.string[0] ) {
-		qhandle_t shader = trap_R_RegisterShaderNoMip( mov_hudOverlay.string );
-		if ( shader ) {
-			trap_R_DrawStretchPic( 0, 0, cgs.glconfig.vidWidth, cgs.glconfig.vidHeight, 0,0,1,1, shader );
-		}
-	}
-
 	switch (demo.editType) {
 	case editCamera:
 		hud.showMask = MASK_CAM;
@@ -809,7 +806,7 @@ void hudDraw( void ) {
 		y = hud.cursorY;
 		w = 32;
 		h = 32;
-		trap_R_DrawStretchPic( x,y,w,h, 0,0,1,1, demo.media.mouseCursor );
+		trap_R_DrawStretchPic( x,y,w*cgs.widthRatioCoef,h, 0,0,1,1, demo.media.mouseCursor );
 	} else {
 		hud.edit.item = 0;
 	}
@@ -904,13 +901,14 @@ void hudInitTables(void) {
 	hudAddFloat(   0,  8, MASK_CAM_EDIT, "Yaw :",  hudCamYaw );
 	hudAddFloat(   0,  9, MASK_CAM_EDIT, "Roll:",  hudCamRoll );
 	hudAddFloat(   0, 10, MASK_CAM_EDIT, "Fov :",  hudCamFov );
-	hudAddHandler( 0, 11, MASK_CAM_POINT, "Length:", hudCamLength );
-	hudAddHandler( 0, 12, MASK_CAM_POINT, "Speed:", hudCamSpeed );
-	hudAddCheck(  0,  14, MASK_CAM_EDITHUD, "Pos", hudCamCheckPos );
-	hudAddCheck(  5,  14, MASK_CAM_EDITHUD, "Ang", hudCamCheckAngles );
-	hudAddCheck(  10, 14, MASK_CAM_EDITHUD, "Fov", hudCamCheckFov );
-	hudAddButton(  0, 15, MASK_CAM_HUD, "SmoothPos:", hudCamSmoothPos );
-	hudAddButton(  0, 16, MASK_CAM_HUD, "SmoothAngles:", hudCamSmoothAngles );
+	hudAddHandler( 0, 11, MASK_CAM_EDIT, "Target:", hudCamDistance );
+	hudAddHandler( 0, 12, MASK_CAM_POINT, "Length:", hudCamLength );
+	hudAddHandler( 0, 13, MASK_CAM_POINT, "Speed:", hudCamSpeed );
+	hudAddCheck(  0,  15, MASK_CAM_EDITHUD, "Pos", hudCamCheckPos );
+	hudAddCheck(  5,  15, MASK_CAM_EDITHUD, "Ang", hudCamCheckAngles );
+	hudAddCheck(  10, 15, MASK_CAM_EDITHUD, "Fov", hudCamCheckFov );
+	hudAddButton(  0, 16, MASK_CAM_HUD, "SmoothPos:", hudCamSmoothPos );
+	hudAddButton(  0, 17, MASK_CAM_HUD, "SmoothAngles:", hudCamSmoothAngles );
 
 	// Chase items
 	hudAddFloat(   0,  4, MASK_CHASE_EDIT, "PosX:",  hudChasePosX );

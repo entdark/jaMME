@@ -206,7 +206,6 @@ cvar_t	*mme_renderHeight;
 cvar_t	*mme_workMegs;
 cvar_t	*mme_depthFocus;
 cvar_t	*mme_depthRange;
-//cvar_t	*mme_captureName;
 //cvar_t	*mme_saveOverwrite;
 cvar_t	*mme_saveShot;
 cvar_t	*mme_saveStencil;

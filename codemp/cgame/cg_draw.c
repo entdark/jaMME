@@ -4103,7 +4103,9 @@ static void CG_DrawReward( void ) {
 			cg.rewardTime = cg.time;
 			cg.rewardStack--;
 			color = CG_FadeColor( cg.rewardTime, REWARD_TIME );
-			trap_S_StartLocalSound(cg.rewardSound[0], CHAN_ANNOUNCER);
+			if (!(mov_soundDisable.integer & SDISABLE_REWARD)) {
+				trap_S_StartLocalSound(cg.rewardSound[0], CHAN_ANNOUNCER);
+			}
 		} else {
 			return;
 		}
@@ -7173,7 +7175,7 @@ static void CG_DrawWarmup( void ) {
 	if ( sec != cg.warmupCount ) {
 		cg.warmupCount = sec;
 
-		if (cgs.gametype != GT_SIEGE)
+		if (!(mov_soundDisable.integer & SDISABLE_ANNOUNCER) && cgs.gametype != GT_SIEGE)
 		{
 			switch ( sec ) {
 			case 0:
@@ -8323,12 +8325,9 @@ void CG_Draw2D( void ) {
 
 	if ( mov_fragsOnly.integer != 0 ) {
 		vec4_t hcolor = {0, 0, 0, 0};
-		if(!cg.renderingThirdPerson)CG_DrawZoomMask();
+		if(!cg.renderingThirdPerson && cg.playerPredicted && mov_fragsOnly.integer == 2)CG_DrawZoomMask();
 		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
-		CG_DrawCenterString();
-		if (mov_fragsOnly.integer == 2) {
-			CG_DrawReward();
-		}
+		CG_DrawReward();
 		return;
 	}
 
@@ -8561,6 +8560,8 @@ notPredicted:
 			{
 				cgSiegeRoundCountTime = rTime;
 
+				if (mov_soundDisable.integer & SDISABLE_ANNOUNCER) goto skipCounter;
+
 				switch (rTime)
 				{
 				case 1:
@@ -8576,7 +8577,7 @@ notPredicted:
 					break;
 				}
 			}
-
+skipCounter:
 			strcpy(pStr, va("%s %i...", CG_GetStringEdString("MP_INGAME", "ROUNDBEGINSIN"), rTime));
 			CG_CenterPrint(pStr, SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH);
 			//same

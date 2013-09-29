@@ -638,10 +638,9 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		CG_PlayBufferedSounds();
 		// warning sounds when powerup is wearing off
 		CG_PowerupTimerSounds();
-		CG_AddViewWeapon( &cg.predictedPlayerState  );
+//		CG_AddViewWeapon( &cg.predictedPlayerState  );
 	} else if ( cg.playerCent && cg.playerCent->currentState.number < MAX_CLIENTS )  {
-//		CG_AddViewWeapon( &cg.predictedPlayerState );
-		CG_AddViewWeaponDirect( cg.playerCent );	//uncomment when fixed, now all clieants have weapon from recorded client
+//		CG_AddViewWeaponDirect( cg.playerCent );
 	}
 
 	cg.refdef.time = cg.time;
@@ -730,7 +729,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	
 	if ( demo.viewType == viewChase && cg.playerCent && ( cg.playerCent->currentState.number < MAX_CLIENTS ) ) {
 		CG_Draw2D();
-	} else if (cg_draw2D.integer && cg_drawFPS.integer) {
+	} else if (!captureFrame && cg_draw2D.integer && cg_drawFPS.integer) {
 		CG_DrawFPS( 0 );
 	}
 

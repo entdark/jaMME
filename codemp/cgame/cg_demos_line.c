@@ -414,6 +414,6 @@ void demoLineCommand_f(void) {
 		Com_Printf("line clear, Clear all keypoints\n" );
 		Com_Printf("line speed value, Demo speed when timeline unlocked\n" );
 		Com_Printf("line offset seconds, Shift the demotime along the main time\n" );
-		Com_Printf("start/end, set start/end parts of capture range\n");
+		Com_Printf("line start/end, set start/end parts of capture range\n");
 	}
 }

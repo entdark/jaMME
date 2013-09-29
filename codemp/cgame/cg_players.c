@@ -2159,7 +2159,7 @@ static void CG_ShowOverride( const char *configString, const char *overrideStrin
 		}
 	}
 	if ( overrideString[0] ) 
-		Com_Printf( "\nOverride : %s", overrideString );
+		Com_Printf( "\nOverride: %s", overrideString );
 }
 
 static void CG_ParseOverride( char *overrideString ) {
@@ -2195,7 +2195,7 @@ void CG_ClientOverride_f(void) {
 		CG_Printf("startNumber[-endNumber] select client or range of client\n" );
 		CG_Printf("Followed by a list of 2 parameter combinations\n" );
 		CG_Printf("model \"modelname/skin\", Change model\n" );
-		CG_Printf("n \"name\", Change name (^3DOES NOT AFFECT FRAG MESSAGE YET! :[^7)\n" );
+		CG_Printf("n \"name\", Change name\n" );
 		CG_Printf("t \"0-3\", Change team number\n" );
 		CG_Printf("c1 \"0-9,w-zhexcode\", Change saber color1\n" );
 		CG_Printf("c2 \"0-9,w-zhexcode\", Change saber color2\n" );
@@ -2229,7 +2229,6 @@ void CG_ClientOverride_f(void) {
 		CG_ShowOverride( "", cgs.enemyOverride );
 		Com_Printf("\nall\n" );
 		CG_ShowOverride( "", cgs.allOverride );
-		Com_Printf("\n" );
 		return;
 	}
 	trap_Argv( 1, buf, sizeof( buf ));
@@ -2471,7 +2470,7 @@ static void _PlayerFootStep( const vec3_t origin,
 			}
 			break;
 	}
-	if (soundType < FOOTSTEP_TOTAL) 
+	if (!(mov_soundDisable.integer & SDISABLE_STEP) && soundType < FOOTSTEP_TOTAL) 
 	{
 	 	trap_S_StartSound( NULL, cent->currentState.clientNum, CHAN_BODY, cgs.media.footsteps[soundType][rand()&3] );
 	}
@@ -2637,7 +2636,8 @@ void CG_PlayerAnimEventDo( centity_t *cent, animevent_t *animEvent )
 			}
 			swingSound = trap_S_RegisterSound(va("sound/weapons/saber/saberhup%i.wav", randomSwing));
 		}
-		trap_S_StartSound(cent->currentState.pos.trBase, cent->currentState.number, CHAN_AUTO, swingSound );
+		if (!(mov_soundDisable.integer & SDISABLE_SABER))
+			trap_S_StartSound(cent->currentState.pos.trBase, cent->currentState.number, CHAN_AUTO, swingSound );
 		break;
 	case AEV_SABER_SPIN:
 		if (cent->currentState.eType == ET_NPC)
@@ -2679,7 +2679,7 @@ void CG_PlayerAnimEventDo( centity_t *cent, animevent_t *animEvent )
 				break;
 			}
 		}
-		if ( spinSound )
+		if ( !(mov_soundDisable.integer & SDISABLE_SABER) && spinSound )
 		{
 			trap_S_StartSound( NULL, cent->currentState.clientNum, CHAN_AUTO, spinSound );
 		}
@@ -4717,8 +4717,8 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 	if (cg.playerCent) {
 		//[TrueView]
 		if (cent->currentState.number == /*cg.snap->ps.clientNum*/ cg.playerCent->currentState.number
-			&& !cg.renderingThirdPerson && !cg_trueGuns.integer 
-			&& cg.snap->ps.weapon != WP_SABER)
+			&& (!cg.renderingThirdPerson || !cg_trueGuns.integer) 
+			&& cg.playerCent->currentState.weapon != WP_SABER)//cg.snap->ps.weapon != WP_SABER)
 			return;
 		//[/TrueView]
 	}
@@ -6384,7 +6384,8 @@ void CG_G2SaberEffects(vec3_t start, vec3_t end, centity_t *owner)
 			if (trace.entityNum != ENTITYNUM_NONE)
 			{ //it succeeded with the ghoul2 trace
 				trap_FX_PlayEffectID( cgs.effects.mSaberBloodSparks, trace.endpos, trace.plane.normal, -1, -1 );
-				trap_S_StartSound(trace.endpos, trace.entityNum, CHAN_AUTO, trap_S_RegisterSound(va("sound/weapons/saber/saberhit%i.wav", Q_irand(1, 3))));
+				if (!(mov_soundDisable.integer & SDISABLE_SABER))
+					trap_S_StartSound(trace.endpos, trace.entityNum, CHAN_AUTO, trap_S_RegisterSound(va("sound/weapons/saber/saberhit%i.wav", Q_irand(1, 3))));
 			}
 		}
 
@@ -6869,7 +6870,8 @@ void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, in
 							if ( cg.time - client->saber[saberNum].blade[bladeNum].hitWallDebounceTime >= 100 )
 							{//ugh, need to have a real sound debouncer... or do this game-side
 								client->saber[saberNum].blade[bladeNum].hitWallDebounceTime = cg.time;
-								trap_S_StartSound ( trace.endpos, -1, CHAN_WEAPON, trap_S_RegisterSound( va("sound/weapons/saber/saberhitwall%i", Q_irand(1, 3)) ) );
+								if (!(mov_soundDisable.integer & SDISABLE_SABER))
+									trap_S_StartSound ( trace.endpos, -1, CHAN_WEAPON, trap_S_RegisterSound( va("sound/weapons/saber/saberhitwall%i", Q_irand(1, 3)) ) );
 							}
 						}
 					}
@@ -9988,8 +9990,9 @@ void CG_Player( centity_t *cent ) {
 					trap_FX_PlayEffectID(cgs.effects.mBobaJet, flamePos, flameDir, -1, -1);
 
 					//Keep the jet fire sound looping
-					trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
-						trap_S_RegisterSound( "sound/effects/fire_lp" ) );
+					if (!(mov_soundDisable.integer & SDISABLE_JETPACK))
+						trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
+							trap_S_RegisterSound( "sound/effects/fire_lp" ) );
 				}
 				else
 				{ //just idling
@@ -10000,9 +10003,9 @@ void CG_Player( centity_t *cent ) {
 
 				n++;
 			}
-
-			trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
-				trap_S_RegisterSound( "sound/boba/JETHOVER" ) );
+			if (!(mov_soundDisable.integer & SDISABLE_JETPACK))
+				trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
+					trap_S_RegisterSound( "sound/boba/JETHOVER" ) );
 		}
 	}
 	else if (trap_G2API_HasGhoul2ModelOnIndex(&(cent->ghoul2), 3))
@@ -10160,7 +10163,8 @@ void CG_Player( centity_t *cent ) {
 
 			if (cent->currentState.eType != ET_NPC)
 			{
-				if (cent->weapon == WP_SABER 
+				if (!(mov_soundDisable.integer & SDISABLE_SABER)
+					&& cent->weapon == WP_SABER 
 					&& cent->weapon != cent->currentState.weapon 
 					&& !cent->currentState.saberHolstered)
 				{ //switching away from the saber
@@ -10184,12 +10188,12 @@ void CG_Player( centity_t *cent ) {
 					&& !cent->saberWasInFlight)
 				{ //switching to the saber
 					//trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, trap_S_RegisterSound( "sound/weapons/saber/saberon.wav" ));
-					if (ci->saber[0].soundOn)
+					if (!(mov_soundDisable.integer & SDISABLE_SABER) && ci->saber[0].soundOn)
 					{
 						trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, ci->saber[0].soundOn);
 					}
 
-					if (ci->saber[1].soundOn)
+					if (!(mov_soundDisable.integer & SDISABLE_SABER) && ci->saber[1].soundOn)
 					{
 						trap_S_StartSound(cent->lerpOrigin, cent->currentState.number, CHAN_AUTO, ci->saber[1].soundOn);
 					}
@@ -11021,7 +11025,9 @@ SkipTrueView:
 		cent->bodyFadeTime = 0;
 	}
 
-	if (cent->currentState.weapon == WP_STUN_BATON && cent->currentState.number == cg.snap->ps.clientNum)
+	if (!(mov_soundDisable.integer & SDISABLE_WEAPONS)
+		&& cent->currentState.weapon == WP_STUN_BATON
+		&& cent->currentState.number == cg.snap->ps.clientNum)
 	{
 		trap_S_AddLoopingSound( cent->currentState.number, cg.refdef.vieworg, vec3_origin, 
 			trap_S_RegisterSound( "sound/weapons/baton/idle.wav" ) );
@@ -11377,8 +11383,7 @@ stillDoSaber:
 					i++;
 				}
 
-				if (hasLen)
-				{
+				if (!(mov_soundDisable.integer & SDISABLE_SABER) && hasLen) {
 					trap_S_AddLoopingSound( cent->currentState.number, soundSpot, vec3_origin, 
 						ci->saber[0].soundLoop );
 					didFirstSound = qtrue;
@@ -11401,8 +11406,7 @@ stillDoSaber:
 					i++;
 				}
 
-				if (hasLen)
-				{
+				if (!(mov_soundDisable.integer & SDISABLE_SABER) && hasLen) {
 					trap_S_AddLoopingSound( cent->currentState.number, soundSpot, vec3_origin, 
 						ci->saber[1].soundLoop );
 				}
@@ -12248,9 +12252,18 @@ stillDoSaber:
 	//
 	// add the gun / barrel / flash
 	//
-	if (cent->currentState.weapon != WP_EMPLACED_GUN /*&& cent != cg.playerCent*/ && (cg.renderingThirdPerson || cg_trueGuns.integer))
+	if (cent->currentState.weapon != WP_EMPLACED_GUN
+		&& (( cg.playerCent && cg.playerCent->currentState.number != cent->currentState.number)
+		|| cg.renderingThirdPerson || cg_trueGuns.integer))
 	{
 		CG_AddPlayerWeapon( &legs, NULL, cent, ci->team, rootAngles, qtrue );
+	}
+
+	//stupid hack but it works! brought from cg_demos.c
+	if ( cent == &cg_entities[cg.snap->ps.clientNum] && cent == cg.playerCent) {
+		CG_AddViewWeapon( &cg.predictedPlayerState  );
+	} else if ( cg.playerCent && cg.playerCent->currentState.number < MAX_CLIENTS && cg.playerCent == cent)  {
+		CG_AddViewWeaponDirect( cg.playerCent );
 	}
 	// add powerups floating behind the player
 	CG_PlayerPowerups( cent, &legs );
@@ -12509,7 +12522,7 @@ stillDoSaber:
 
 			trap_R_AddRefEntityToScene( &legs );
 
-			if ( random() > 0.9f )
+			if ( !(mov_soundDisable.integer & SDISABLE_FORCE) && random() > 0.9f )
 				trap_S_StartSound ( NULL, cent->currentState.number, CHAN_AUTO, cgs.media.crackleSound );
 		}
 

@@ -2572,3 +2572,28 @@ void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end );
 #define NEWFX_REPEATER_ALT	0x0004
 #define NEWFX_SIMPLEFLAG	0x0008
 #define NEWFX_TRANSFLAG		0x0010
+
+
+
+#define	SDISABLE_JUMP			0x000001
+#define	SDISABLE_ROLL			0x000002
+#define	SDISABLE_SABER			0x000004
+#define	SDISABLE_FORCELOOPING	0x000008	//absorb, rage, speed, protect, seeing
+#define	SDISABLE_FORCE			0x000010
+#define	SDISABLE_WEAPONS		0x000020	//no ammo, switch, charge
+#define	SDISABLE_REWARD			0x000040
+#define	SDISABLE_ANNOUNCER		0x000080
+#define	SDISABLE_STEP			0x000100
+#define	SDISABLE_CHAT			0x000200
+#define	SDISABLE_VOICE			0x000400
+#define	SDISABLE_AMBIENT		0x000800
+#define	SDISABLE_TAUNT			0x001000
+#define	SDISABLE_WATER			0x002000	//come in/out water
+#define	SDISABLE_ITEM			0x004000
+#define	SDISABLE_ZOOM			0x008000	//disruptor, binocular
+#define	SDISABLE_TELESPAWN		0x010000	//teleport, spawn
+#define	SDISABLE_FALL			0x020000
+#define	SDISABLE_ENTITIES		0x040000
+#define	SDISABLE_PAIN			0x080000	//pain, death
+#define	SDISABLE_LOOPING		0x100000	//all looping sounds; prolly :s
+#define	SDISABLE_JETPACK		0x200000

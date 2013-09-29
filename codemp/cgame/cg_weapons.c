@@ -585,7 +585,8 @@ getFlash:
 	//-----------------------
 	//[TrueView]
 	//Make the guns do their charging visual in True View.
-	if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number || cg_trueGuns.integer) &&
+	if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number
+		|| cg_trueGuns.integer || (!cg.playerPredicted && cg.predictedPlayerState.clientNum == cent->currentState.number)) &&
 	//if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number) &&
 	//[/TrueView]
 		( ( cent->currentState.modelindex2 == WEAPON_CHARGING_ALT && cent->currentState.weapon == WP_BRYAR_PISTOL ) ||
@@ -863,7 +864,7 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 
 	// drop gun lower at higher fov
 	if ( cgFov > 90 ) {
-		fovOffset = -0.2 * ( cgFov - 90 );
+		fovOffset = -0.2f * ( cgFov - 90 );
 	} else {
 		fovOffset = 0;
 	}

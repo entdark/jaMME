@@ -1156,7 +1156,9 @@ static void CG_MapRestart( void ) {
 
 	// play the "fight" sound if this is a restart without warmup
 	if ( cg.warmup == 0 && cgs.gametype != GT_SIEGE && cgs.gametype != GT_POWERDUEL/* && cgs.gametype == GT_DUEL */) {
-		trap_S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
+		if (!(mov_soundDisable.integer & SDISABLE_ANNOUNCER)) {
+			trap_S_StartLocalSound( cgs.media.countFightSound, CHAN_ANNOUNCER );
+		}
 		CG_CenterPrint( CG_GetStringEdString("MP_SVGAME", "BEGIN_DUEL"), 120, GIANTCHAR_WIDTH*2 );
 	}
 	/*
@@ -1683,7 +1685,7 @@ static void CG_ServerCommand( void ) {
 
 	if ( !strcmp( cmd, "chat" ) ) {
 		if ( !cg_teamChatsOnly.integer ) {
-			if (mov_chatBeep.integer)
+			if (!(mov_soundDisable.integer & SDISABLE_CHAT) && mov_chatBeep.integer)
 				trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 			Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 			CG_RemoveChatEscapeChar( text );
@@ -1694,7 +1696,7 @@ static void CG_ServerCommand( void ) {
 	}
 
 	if ( !strcmp( cmd, "tchat" ) ) {
-		if (mov_chatBeep.integer)
+		if (!(mov_soundDisable.integer & SDISABLE_CHAT) && mov_chatBeep.integer)
 			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 		Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 		CG_RemoveChatEscapeChar( text );
@@ -1726,8 +1728,8 @@ static void CG_ServerCommand( void ) {
 			{ //get localized text
 				trap_SP_GetStringTextString(loc+1, loc, sizeof( loc ) );
 			}
-
-			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+			if (!(mov_soundDisable.integer & SDISABLE_CHAT) && mov_chatBeep.integer)
+				trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 			//Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 			Com_sprintf(text, sizeof( text ), "%s^7<%s> ^%s%s", name, loc, color, message);
 			CG_RemoveChatEscapeChar( text );
@@ -1756,8 +1758,8 @@ static void CG_ServerCommand( void ) {
 		{ //get localized text
 			trap_SP_GetStringTextString(loc+1, loc, sizeof( loc ) );
 		}
-
-		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+		if (!(mov_soundDisable.integer & SDISABLE_CHAT) && mov_chatBeep.integer)
+			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 		//Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 		Com_sprintf(text, sizeof( text ), "%s^7<%s> ^%s%s", name, loc, color, message);
 		CG_RemoveChatEscapeChar( text );
