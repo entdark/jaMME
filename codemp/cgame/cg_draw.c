@@ -4795,11 +4795,11 @@ void CG_DrawHaqrBar(float chX, float chY, float chW, float chH)
 	vec4_t aColor;
 	vec4_t bColor;
 	vec4_t cColor;
-	float x = chX+((chW/2)-(HEALTH_WIDTH/2));
+	float x = chX+((chW/2)-(HEALTH_WIDTH/2)*cgs.widthRatioCoef);
 	float y = (chY+chH) + 8.0f;
-	float percent = (((float)cg.predictedPlayerState.hackingTime-(float)cg.time)/(float)cg.predictedPlayerState.hackingBaseTime)*HEALTH_WIDTH;
+	float percent = (((float)cg.predictedPlayerState.hackingTime-(float)cg.time)/(float)cg.predictedPlayerState.hackingBaseTime)*HEALTH_WIDTH*cgs.widthRatioCoef;
 
-	if (percent > HEALTH_WIDTH ||
+	if (percent > HEALTH_WIDTH*cgs.widthRatioCoef ||
 		percent < 1.0f)
 	{
 		return;
@@ -4824,16 +4824,16 @@ void CG_DrawHaqrBar(float chX, float chY, float chW, float chH)
 	cColor[3] = 0.1f;
 
 	//draw the background (black)
-	CG_DrawRect(x, y, HEALTH_WIDTH, HEALTH_HEIGHT, 1.0f, colorTable[CT_BLACK]);
+	CG_DrawRect(x, y, HEALTH_WIDTH*cgs.widthRatioCoef, HEALTH_HEIGHT, 1.0f, colorTable[CT_BLACK]);
 
 	//now draw the part to show how much health there is in the color specified
-	CG_FillRect(x+1.0f, y+1.0f, percent-1.0f, HEALTH_HEIGHT-1.0f, aColor);
+	CG_FillRect(x+1.0f, y+1.0f, (percent-1.0f), HEALTH_HEIGHT-1.0f, aColor);
 
 	//then draw the other part greyed out
-	CG_FillRect(x+percent, y+1.0f, HEALTH_WIDTH-percent-1.0f, HEALTH_HEIGHT-1.0f, cColor);
+	CG_FillRect(x+percent, y+1.0f, (HEALTH_WIDTH*cgs.widthRatioCoef-percent-1.0f), HEALTH_HEIGHT-1.0f, cColor);
 
 	//draw the hacker icon
-	CG_DrawPic(x, y-HEALTH_WIDTH, HEALTH_WIDTH, HEALTH_WIDTH, cgs.media.hackerIconShader);
+	CG_DrawPic(x, y-HEALTH_WIDTH, HEALTH_WIDTH*cgs.widthRatioCoef, HEALTH_WIDTH, cgs.media.hackerIconShader);
 }
 
 //generic timing bar
@@ -7307,7 +7307,7 @@ void CG_DrawJetpackFuel(void)
 	vec4_t aColor;
 	vec4_t bColor;
 	vec4_t cColor;
-	float x = JPFUELBAR_X;
+	float x = 640 - (640 - JPFUELBAR_X)*cgs.widthRatioCoef;
 	float y = JPFUELBAR_Y;
 	float percent = ((float)cg.snap->ps.jetpackFuel/100.0f)*JPFUELBAR_H;
 
@@ -7340,13 +7340,13 @@ void CG_DrawJetpackFuel(void)
 	cColor[3] = 0.1f;
 
 	//draw the background (black)
-	CG_DrawRect(x, y, JPFUELBAR_W, JPFUELBAR_H, 1.0f, colorTable[CT_BLACK]);
+	CG_DrawRect(x, y, JPFUELBAR_W*cgs.widthRatioCoef, JPFUELBAR_H, 1.0f, colorTable[CT_BLACK]);
 
 	//now draw the part to show how much health there is in the color specified
-	CG_FillRect(x+1.0f, y+1.0f+(JPFUELBAR_H-percent), JPFUELBAR_W-1.0f, JPFUELBAR_H-1.0f-(JPFUELBAR_H-percent), aColor);
+	CG_FillRect(x+1.0f, y+1.0f+(JPFUELBAR_H-percent), (JPFUELBAR_W-1.0f)*cgs.widthRatioCoef, JPFUELBAR_H-1.0f-(JPFUELBAR_H-percent), aColor);
 
 	//then draw the other part greyed out
-	CG_FillRect(x+1.0f, y+1.0f, JPFUELBAR_W-1.0f, JPFUELBAR_H-percent, cColor);
+	CG_FillRect(x+1.0f, y+1.0f, (JPFUELBAR_W-1.0f)*cgs.widthRatioCoef, JPFUELBAR_H-percent, cColor);
 }
 
 //draw meter showing e-web health when it is in use
@@ -8326,8 +8326,9 @@ void CG_Draw2D( void ) {
 	if ( mov_fragsOnly.integer != 0 ) {
 		vec4_t hcolor = {0, 0, 0, 0};
 		if(!cg.renderingThirdPerson && cg.playerPredicted && mov_fragsOnly.integer == 2)CG_DrawZoomMask();
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+//		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 		CG_DrawReward();
+		CG_DrawCenterString();
 		return;
 	}
 

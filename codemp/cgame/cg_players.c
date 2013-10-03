@@ -4717,8 +4717,9 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 	if (cg.playerCent) {
 		//[TrueView]
 		if (cent->currentState.number == /*cg.snap->ps.clientNum*/ cg.playerCent->currentState.number
-			&& (!cg.renderingThirdPerson || !cg_trueGuns.integer) 
-			&& cg.playerCent->currentState.weapon != WP_SABER)//cg.snap->ps.weapon != WP_SABER)
+			&& (!cg.renderingThirdPerson)// || !cg_trueGuns.integer) 
+			&& (cg.playerCent->currentState.weapon != WP_SABER
+			|| (cg.playerCent->currentState.weapon == WP_SABER && !cg_trueSaberOnly.integer)))//cg.snap->ps.weapon != WP_SABER)
 			return;
 		//[/TrueView]
 	}
@@ -11485,7 +11486,7 @@ stillDoSaber:
 				}
 				else
 				{
-					const char *saberModel = CG_ConfigString( CS_MODELS+saberEnt->currentState.modelindex );
+					const char *saberModel = ci->saber[0].model;
 
 					saberEnt->serverSaberHitIndex = saberEnt->currentState.modelindex;
 

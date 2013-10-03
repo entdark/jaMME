@@ -104,12 +104,12 @@ static void CG_Obituary( entityState_t *ent ) {
 	int			mod;
 	int			target, attacker;
 	char		*message;
-	const char	*targetInfo[2];
-	const char	*attackerInfo[2];
+	const char	*targetInfo;
+	const char	*attackerInfo;
 	char		targetName[32];
 	char		attackerName[32];
 	gender_t	gender;
-	clientInfo_t	*ci;
+	clientInfo_t	*ci, *cia;
 
 
 	target = ent->otherEntityNum;
@@ -123,20 +123,18 @@ static void CG_Obituary( entityState_t *ent ) {
 
 	if ( attacker < 0 || attacker >= MAX_CLIENTS ) {
 		attacker = ENTITYNUM_WORLD;
-		attackerInfo[1] = NULL;
+		attackerInfo = NULL;
 	} else {
-		attackerInfo[1] = CG_ConfigString( CS_PLAYERS + attacker );
-		attackerInfo[0] = cgs.clientOverride[attacker];
-//		attackerInfo = cgs.clientinfo[attacker].name;
+		attackerInfo = CG_ConfigString( CS_PLAYERS + attacker );
+		cia = &cgs.clientinfo[attacker];
 	}
 
-	targetInfo[1] = CG_ConfigString( CS_PLAYERS + target );
-	targetInfo[0] = cgs.clientOverride[target];
-//	targetInfo = cgs.clientinfo[target].name;
+	targetInfo = CG_ConfigString( CS_PLAYERS + target );
 	if ( !targetInfo ) {
 		return;
 	}
-	Q_strncpyz( targetName, /*Info_ValueForKey( targetInfo, "n" )*/ConfigValue( targetInfo, "n" ), sizeof(targetName) - 2);
+//	Q_strncpyz( targetName, /*Info_ValueForKey( targetInfo, "n" )*/ConfigValue( targetInfo, "n" ), sizeof(targetName) - 2);
+	Com_sprintf(targetName, sizeof(targetName) - 2, ci->name);
 	strcat( targetName, S_COLOR_WHITE );
 
 	// check for single client messages
@@ -319,7 +317,8 @@ clientkilled:
 		attacker = ENTITYNUM_WORLD;
 		strcpy( attackerName, "noname" );
 	} else {
-		Q_strncpyz( attackerName, /*Info_ValueForKey( attackerInfo, "n" )*/ConfigValue( attackerInfo, "n" ), sizeof(attackerName) - 2);
+//		Q_strncpyz( attackerName, /*Info_ValueForKey( attackerInfo[1], "n" )*/ConfigValue( attackerInfo, "n" ), sizeof(attackerName) - 2);
+		Com_sprintf(attackerName, sizeof(attackerName) - 2, cia->name);
 		strcat( attackerName, S_COLOR_WHITE );
 		// check for kill messages about the current clientNum
 		if ( target == cg.snap->ps.clientNum ) {

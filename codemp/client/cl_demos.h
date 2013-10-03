@@ -27,6 +27,7 @@ typedef struct {
 typedef struct {
 	int			serverTime;
 	playerState_t clients[MAX_CLIENTS];
+	playerState_t vehs[MAX_CLIENTS];
 	byte		clientData[MAX_CLIENTS];
 	entityState_t entities[MAX_GENTITIES];
 	byte		entityData[MAX_GENTITIES];

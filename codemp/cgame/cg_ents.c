@@ -3661,7 +3661,7 @@ void CG_AddPacketEntities( qboolean isPortal ) {
 		//BG_PlayerStateToEntityState( &cg.predictedVehicleState, &cg_entities[cg.predictedPlayerState.m_iVehicleNum].currentState, qfalse );
 		//cg_entities[cg.predictedPlayerState.m_iVehicleNum].currentState.eType = ET_NPC;
 		//this fix seems working
-		centity_t *veh = &cg_entities[/*cg.predictedPlayerState.m_iVehicleNum*/cg.predictedPlayerState.clientNum];
+		centity_t *veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum/*cg.predictedPlayerState.clientNum*/];
 
 		if (veh->currentState.owner == cg.predictedPlayerState.clientNum)
 		{

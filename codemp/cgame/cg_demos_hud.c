@@ -51,7 +51,7 @@ typedef enum {
 	hudCamPosX, hudCamPosY, hudCamPosZ,
 	hudCamPitch, hudCamYaw, hudCamRoll,
 	hudCamFov,
-	hudCamDistance,
+	hudCamTarget,
 /*
 	hudEffectCheckPos,
 	hudEffectCheckAngles,
@@ -414,11 +414,11 @@ static void hudGetHandler( hudItem_t *item, char *buf, int bufSize ) {
 			break;
 		}
 		return;
+	case hudCamTarget:
+		hudMakeTarget( demo.camera.target, buf, bufSize );
+		return;
 	case hudChaseTarget:
 		hudMakeTarget( demo.chase.target, buf, bufSize );
-		return;
-	case hudCamDistance:
-		hudMakeTarget( demo.camera.target, buf, bufSize );
 		return;
 	case hudLineTime:
 		Com_sprintf( buf, bufSize, "%s", demoTimeString( demo.line.time ));
@@ -901,7 +901,7 @@ void hudInitTables(void) {
 	hudAddFloat(   0,  8, MASK_CAM_EDIT, "Yaw :",  hudCamYaw );
 	hudAddFloat(   0,  9, MASK_CAM_EDIT, "Roll:",  hudCamRoll );
 	hudAddFloat(   0, 10, MASK_CAM_EDIT, "Fov :",  hudCamFov );
-	hudAddHandler( 0, 11, MASK_CAM_EDIT, "Target:", hudCamDistance );
+	hudAddHandler( 0, 11, MASK_CAM_EDIT, "Target:", hudCamTarget );
 	hudAddHandler( 0, 12, MASK_CAM_POINT, "Length:", hudCamLength );
 	hudAddHandler( 0, 13, MASK_CAM_POINT, "Speed:", hudCamSpeed );
 	hudAddCheck(  0,  15, MASK_CAM_EDITHUD, "Pos", hudCamCheckPos );

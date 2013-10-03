@@ -95,12 +95,16 @@ static void demoFrameUnpack( msg_t *msg, demoFrame_t *oldFrame, demoFrame_t *new
 	last = MSG_ReadByte( msg );
 	while (last < MAX_CLIENTS) {
 		playerState_t *oldPlayer, *newPlayer;
+		playerState_t *oldVeh, *newVeh;
 		newFrame->clientData[last] = 1;
 		oldPlayer = isDelta && oldFrame->clientData[last] ? &oldFrame->clients[last] : &demoNullPlayerState;
 		newPlayer = &newFrame->clients[last];
 		MSG_ReadDeltaPlayerstate( msg, oldPlayer, newPlayer );
-		if (newPlayer->m_iVehicleNum)
-			MSG_ReadDeltaPlayerstate( msg, oldPlayer, newPlayer, qtrue );
+		if (newPlayer->m_iVehicleNum) {
+			oldVeh = isDelta && oldFrame->clientData[last] ? &oldFrame->vehs[last] : &demoNullPlayerState;
+			newVeh = &newFrame->vehs[last];
+			MSG_ReadDeltaPlayerstate( msg, oldVeh, newVeh, qtrue );
+		}
 		last = MSG_ReadByte( msg );
 	}
 	/* Extract entity states */
@@ -158,14 +162,18 @@ static void demoFramePack( msg_t *msg, const demoFrame_t *newFrame, const demoFr
 	/* Add the playerstates */
 	for (i=0; i<MAX_CLIENTS; i++) {
 		const playerState_t *oldPlayer, *newPlayer;
+		const playerState_t *oldVeh, *newVeh;
 		if (!newFrame->clientData[i])
 			continue;
 		oldPlayer = (!oldFrame || !oldFrame->clientData[i]) ? &demoNullPlayerState : &oldFrame->clients[i];
 		newPlayer = &newFrame->clients[i];
 		MSG_WriteByte( msg, i );
 		MSG_WriteDeltaPlayerstate( msg, (playerState_t *)oldPlayer, (playerState_t *)newPlayer );
-		if (newPlayer->m_iVehicleNum)
-			MSG_WriteDeltaPlayerstate( msg, (playerState_t *)oldPlayer, (playerState_t *)newPlayer, qtrue );
+		if (newPlayer->m_iVehicleNum) {
+			oldVeh = (!oldFrame || !oldFrame->clientData[i]) ? &demoNullPlayerState : &oldFrame->vehs[i];
+			newVeh = &newFrame->vehs[i];
+			MSG_WriteDeltaPlayerstate( msg, (playerState_t *)oldVeh, (playerState_t *)newVeh, qtrue );
+		}
 	}
 	MSG_WriteByte( msg, MAX_CLIENTS );
 	/* Add the entities */
@@ -576,6 +584,7 @@ void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothe
 					}
 					workFrame->clientData[clientNum] = 1;
 					workFrame->clients[clientNum] = newSnap->ps;
+					workFrame->vehs[clientNum] = newSnap->vps;
 					workFrame->serverTime = nextTime;
 
 					/* Which frame from the cache to save */
@@ -941,8 +950,11 @@ qboolean demoGetSnapshot( int snapNumber, snapshot_t *snap ) {
 	snap->serverTime = frame->serverTime;
 	if (play->clientNum >=0 && play->clientNum < MAX_CLIENTS) {
 		snap->ps = frame->clients[ play->clientNum ];
-	} else
+		snap->vps = frame->vehs[ play->clientNum ];
+	} else {
 		Com_Memset( &snap->ps, 0, sizeof(snap->ps) );
+		Com_Memset( &snap->vps, 0, sizeof(snap->vps) );
+	}
 
 	snap->numEntities = 0;
 	for (i=0;i<MAX_GENTITIES-1 && snap->numEntities < MAX_ENTITIES_IN_SNAPSHOT;i++) {
