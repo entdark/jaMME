@@ -1193,7 +1193,9 @@ void trap_MME_BlurInfo( int* total, int* index ) {
 int trap_MME_SeekTime( int seekTime ) {
 	return Q_syscall( CG_MME_SEEKTIME, seekTime );
 }
-
+void trap_MME_Music( const char *musicName, float time, float length ) {
+	Q_syscall( CG_MME_MUSIC, musicName, PASSFLOAT(time), PASSFLOAT( length ) );
+}
 void trap_S_UpdatePitch( float pitch ) {
 	Q_syscall( CG_S_UPDATE_PITCH, PASSFLOAT(pitch) );
 }

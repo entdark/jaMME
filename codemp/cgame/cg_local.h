@@ -2573,7 +2573,11 @@ void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end );
 #define NEWFX_SIMPLEFLAG	0x0008
 #define NEWFX_TRANSFLAG		0x0010
 
-
+#define movMaskClient		0x001
+#define movMaskPlayers		0x002
+#define movMaskMissiles		0x004
+#define movMaskItems		0x008
+#define movMaskFlags		0x010
 
 #define	SDISABLE_JUMP			0x000001
 #define	SDISABLE_ROLL			0x000002

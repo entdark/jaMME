@@ -19,6 +19,20 @@
 #include "qcommon/platform.h"
 #endif
 
+
+#include "snd_mix.h"
+
+channelQueue_t	s_channelQueue[MAX_SNDQUEUE];
+int				s_channelQueueCount;
+
+entitySound_t	s_entitySounds[MAX_GENTITIES];
+
+loopQueue_t		s_loopQueue[MAX_LOOPQUEUE];
+int				s_loopQueueCount;
+
+backgroundSound_t s_background;
+
+
 qboolean s_shutUp = qfalse;
 
 static void S_Play_f(void);
@@ -154,6 +168,18 @@ int			s_numSfx;
 static	sfx_t		*sfxHash[LOOP_HASH];
 
 
+//mme stuff
+sfxEntry_t	sfxEntries[SFX_SOUNDS];
+sfxEntry_t	*sfxHashMME[SFX_HASH];
+int			sfxEntryCount;
+
+int			s_listenNumber;
+vec3_t		s_listenOrigin;
+vec3_t		s_listenVelocity;
+vec3_t		s_listenAxis[3];
+//end mme
+
+
 cvar_t		*s_volume;
 cvar_t		*s_volumeVoice;
 cvar_t		*s_testsound;
@@ -172,18 +198,32 @@ cvar_t		*s_language;	// note that this is distinct from "g_language"
 cvar_t		*s_dynamix;
 cvar_t		*s_debugdynamic;
 
+cvar_t		*s_doppler;
+cvar_t		*s_dopplerSpeed;
+cvar_t		*s_dopplerFactor;
+
+cvar_t		*s_timescale;
+cvar_t		*s_forceScale;
+cvar_t		*s_noiseFix;
+
+float		s_playScale;
+qboolean	s_hadSpatialize;
+
 typedef struct 
 { 
 	unsigned char	volume;
 	vec3_t			origin;
 	vec3_t			velocity;
-/*	const*/ sfx_t		*sfx;
+/*	const*/ sfx_t	*sfx;
 	int				mergeFrame;
-	int			entnum;
+	int				entnum;
+
+	qboolean		doppler;
+	float			dopplerScale;
 
 	// For Open AL
-	bool	bProcessed;
-	bool	bRelative;
+	bool			bProcessed;
+	bool			bRelative;
 } loopSound_t;
 
 #define	MAX_LOOP_SOUNDS		32
@@ -462,6 +502,14 @@ void S_Init( void ) {
 
 	s_language = Cvar_Get("s_language","english",CVAR_ARCHIVE | CVAR_NORESTART);
 
+	s_doppler = Cvar_Get ("s_doppler", "1", CVAR_ARCHIVE);
+	s_dopplerSpeed = Cvar_Get ("s_dopplerSpeed", "4000", CVAR_ARCHIVE);
+	s_dopplerFactor = Cvar_Get ("s_dopplerFactor", "1", CVAR_ARCHIVE);
+	s_timescale = Cvar_Get ("s_timescale", "1", CVAR_ARCHIVE);
+	s_noiseFix = Cvar_Get ("s_noiseFix", "0", CVAR_ARCHIVE);
+	s_playScale = 1.0f;
+	s_forceScale = Cvar_Get ("s_forceScale", "0", CVAR_TEMP);
+
 	MP3_InitCvars();
 
 	cv = Cvar_Get ("s_initsound", "1", CVAR_ROM);
@@ -604,8 +652,8 @@ void S_Init( void ) {
 	else
 	{
 #endif
+#ifndef SND_MME
 		r = SNDDMA_Init();
-
 		if ( r ) {
 			s_soundStarted = 1;
 			s_soundMuted = qtrue;
@@ -618,6 +666,13 @@ void S_Init( void ) {
 
 			S_SoundInfo_f();
 		}
+#else
+		S_DMAInit();
+		S_StopAllSounds ();
+		S_SoundInfo_f();
+		s_soundStarted = 1;
+		s_soundMuted = qtrue;
+#endif
 #ifdef _WIN32
 	}
 #endif
@@ -914,10 +969,19 @@ S_BeginRegistration
 */
 void S_BeginRegistration( void )
 {
+#ifndef SND_MME
 	char *mapname;
+#endif
 
 	s_soundMuted = qfalse;		// we can play again
 
+#ifdef SND_MME
+	/* Skip the first sound for 0 handle */
+	Com_Memset(sfxHashMME, 0, sizeof(sfxHashMME));
+	Com_Memset(sfxEntries, 0, sizeof(sfxEntries));
+	sfxEntryCount = 1;
+	S_MixInit();
+#else
 #ifdef _WIN32
 	// Find name of level so we can load in the appropriate EAL file
 	if (s_UseOpenAL)
@@ -946,6 +1010,7 @@ void S_BeginRegistration( void )
 		S_RegisterSound("sound/null.wav");
 #endif
 	}
+#endif
 }
 
 
@@ -1007,8 +1072,52 @@ S_RegisterSound
 Creates a default buzz sound if the file can't be loaded
 ==================
 */
-sfxHandle_t	S_RegisterSound( const char *name) 
-{
+sfxHandle_t	S_RegisterSound( const char *name) {
+#ifdef SND_MME
+	char fileName[MAX_QPATH];
+	int len;
+	unsigned long hashIndex;
+	sfxEntry_t *entry;
+
+	if (!s_soundStarted) {
+		return 0;
+	}
+
+	if ( !name ) {
+		Com_Error (ERR_FATAL, "S_RegisterSound: null name pointer\n");
+	}
+
+	if (!name[0]) {
+		Com_Printf( "S_RegisterSound: empty name\n");
+		return 0;
+	}
+
+	hashIndex = 0;
+	for ( len = 0; name[0] && len < (sizeof( fileName ) - 1); name ++, len++ ) {
+		char c = tolower( name [0] );
+		hashIndex = (hashIndex << 5 ) ^ (hashIndex >> 27) ^ c;
+		fileName[len] = c;
+	}
+	hashIndex = ( hashIndex ^ (hashIndex >> 10) ^ (hashIndex >> 20) ) & (SFX_HASH - 1);
+	fileName[len] = 0;
+	
+	entry = sfxHashMME[ hashIndex ];
+	while (entry) {
+		if (!strcmp( entry->name, fileName ))
+			return entry - sfxEntries;
+		entry = entry->next;
+	}
+	if (sfxEntryCount >= SFX_SOUNDS) {
+		Com_Printf( "SFX:Sound max %d reached\n", SFX_SOUNDS );
+		return 0;
+	}
+	entry = sfxEntries + sfxEntryCount;
+	Com_Memcpy( entry->name, fileName, len + 1);
+
+	entry->next = sfxHashMME[hashIndex];
+	sfxHashMME[hashIndex] = entry;
+	return sfxEntryCount++;
+#else
 	sfx_t	*sfx;
 
 	if (!s_soundStarted) {
@@ -1057,6 +1166,7 @@ sfxHandle_t	S_RegisterSound( const char *name)
 	}
 
 	return sfx - s_knownSfx;
+#endif
 }
 
 void S_memoryLoad(sfx_t	*sfx) 
@@ -1459,8 +1569,36 @@ Starts an ambient, 'one-shot" sound.
 ====================
 */
 
-void S_StartAmbientSound( const vec3_t origin, int entityNum, unsigned char volume, sfxHandle_t sfxHandle )
-{
+void S_StartAmbientSound( const vec3_t origin, int entityNum, unsigned char volume, sfxHandle_t sfxHandle ) {
+#ifdef SND_MME
+	channelQueue_t *q;
+
+	if ( !s_soundStarted || s_soundMuted ) {
+		return;
+	}
+	if ( !origin && ( entityNum < 0 || entityNum > MAX_GENTITIES ) ) {
+		Com_Error( ERR_DROP, "S_StartSound: bad entitynum %i", entityNum );
+	}
+	if ( s_channelQueueCount >= MAX_SNDQUEUE ) {
+		Com_Printf( "S_StartSound: Queue overflow, dropping\n");
+		return;
+	}
+	if ( sfxHandle <= 0 || sfxHandle >= sfxEntryCount) {
+		Com_DPrintf( "S_StartSound: Illegal sfxhandle %d\n", sfxHandle );
+		return;
+	}
+
+	q = s_channelQueue + s_channelQueueCount++;
+	q->entChan = CHAN_AMBIENT;
+	q->entNum = entityNum;
+	q->handle = sfxHandle;
+	if (origin) {
+		VectorCopy( origin, q->origin );
+		q->hasOrigin = qtrue;
+	} else {
+		q->hasOrigin = qfalse;
+	}
+#else
 	channel_t	*ch;
 	/*const*/ sfx_t *sfx;
 
@@ -1524,6 +1662,7 @@ void S_StartAmbientSound( const vec3_t origin, int entityNum, unsigned char volu
 	{
 		memset(&ch->MP3StreamHeader,0,						sizeof(ch->MP3StreamHeader));
 	}
+#endif
 }
 
 /*
@@ -1564,6 +1703,35 @@ Entchannel 0 will never override a playing sound
 */
 void S_StartSound(const vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle ) 
 {
+#ifdef SND_MME
+	channelQueue_t *q;
+
+	if ( !s_soundStarted || s_soundMuted ) {
+		return;
+	}
+	if ( !origin && ( entityNum < 0 || entityNum > MAX_GENTITIES ) ) {
+		Com_Error( ERR_DROP, "S_StartSound: bad entitynum %i", entityNum );
+	}
+	if ( s_channelQueueCount >= MAX_SNDQUEUE ) {
+		Com_Printf( "S_StartSound: Queue overflow, dropping\n");
+		return;
+	}
+	if ( sfxHandle <= 0 || sfxHandle >= sfxEntryCount) {
+		Com_DPrintf( "S_StartSound: Illegal sfxhandle %d\n", sfxHandle );
+		return;
+	}
+
+	q = s_channelQueue + s_channelQueueCount++;
+	q->entChan = entchannel;
+	q->entNum = entityNum;
+	q->handle = sfxHandle;
+	if (origin) {
+		VectorCopy( origin, q->origin );
+		q->hasOrigin = qtrue;
+	} else {
+		q->hasOrigin = qfalse;
+	}
+#else
 	int i;
 	channel_t	*ch;
 	/*const*/ sfx_t *sfx;
@@ -1670,6 +1838,7 @@ void S_StartSound(const vec3_t origin, int entityNum, int entchannel, sfxHandle_
 	{
 		memset(&ch->MP3StreamHeader,0,						sizeof(ch->MP3StreamHeader));
 	}
+#endif
 }
 
 /*
@@ -1682,11 +1851,15 @@ void S_StartLocalSound( sfxHandle_t sfxHandle, int channelNum ) {
 		return;
 	}
 
+#ifndef SND_MME
 	if ( sfxHandle < 0 || sfxHandle >= s_numSfx ) {
 		Com_Error( ERR_DROP, "S_StartLocalSound: handle %i out of range", sfxHandle );
 	}
 
 	S_StartSound (NULL, listener_number, channelNum, sfxHandle );
+#else
+	S_StartSound (NULL, s_listenNumber, channelNum, sfxHandle );
+#endif
 }
 
 
@@ -1706,7 +1879,8 @@ void S_StartLocalLoopingSound( sfxHandle_t sfxHandle) {
 		Com_Error( ERR_DROP, "S_StartLocalLoopingSound: handle %i out of range", sfxHandle );
 	}
 
-	S_AddLoopingSound( listener_number, nullVec, nullVec, sfxHandle );
+//	S_AddLoopingSound( listener_number, nullVec, nullVec, sfxHandle );
+	// S_StartLocalLoopingSound is never called anyways
 
 }
 
@@ -1755,6 +1929,13 @@ void S_ClearSoundBuffer( void ) {
 #endif
 	s_rawend = 0;
 
+	s_playScale = 1.0f;
+#ifdef SND_MME
+	// stop looping sounds
+	Com_Memset( s_entitySounds, 0, sizeof( s_entitySounds ));
+	// Signal the real sound mixer to stop any sounds
+	S_DMAClearBuffer();
+#else
 	if (!s_UseOpenAL)
 	{
 		if (dma.samplebits == 8)
@@ -1772,6 +1953,7 @@ void S_ClearSoundBuffer( void ) {
 		s_paintedtime = 0;
 		s_soundtime = 0;
 	}
+#endif
 }
 
 
@@ -1872,7 +2054,11 @@ void S_StopAllSounds(void) {
 	// stop the background music
 	S_StopBackgroundTrack();
 
+#ifndef SND_MME
 	S_StopSounds();
+#else
+	S_ClearSoundBuffer ();
+#endif
 }
 
 /*
@@ -1889,8 +2075,8 @@ S_ClearLoopingSounds
 
 ==================
 */
-void S_ClearLoopingSounds( void )
-{
+void S_ClearLoopingSounds( void ) {
+#ifndef SND_MME
 	int i;
 
 	if (s_UseOpenAL)
@@ -1899,7 +2085,9 @@ void S_ClearLoopingSounds( void )
 			loopSounds[i].bProcessed = false;
 	}
 	numLoopSounds = 0;
-
+#else
+	s_loopQueueCount = 0;
+#endif
 }
 
 /*
@@ -1930,6 +2118,8 @@ void S_StopLoopingSound( int entityNum )
 	}
 }
 
+#define MAX_DOPPLER_SCALE 50
+
 /*
 ==================
 S_AddLoopingSound
@@ -1938,7 +2128,32 @@ Called during entity generation for a frame
 Include velocity in case I get around to doing doppler...
 ==================
 */
-void S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle ) {
+void S_AddLoopingSound( const void *parent, int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle, int volume ) {
+#ifdef SND_MME
+	loopQueue_t *lq;
+
+	if ( !s_soundStarted || s_soundMuted ) {
+		return;
+	}
+
+	if ( sfxHandle <= 0 || sfxHandle >= sfxEntryCount) {
+		Com_DPrintf( "S_StartSound: Illegal sfxhandle %d\n", sfxHandle );
+		return;
+	}
+	
+	if ( s_loopQueueCount >= MAX_LOOPQUEUE ) {
+		Com_Printf( "S_AddLoopingSound: Queue overflow %d\n", sfxHandle );
+		return;
+	}
+
+	lq = s_loopQueue + s_loopQueueCount++;
+
+	lq->handle = sfxHandle;
+	VectorCopy( origin, lq->origin );
+	VectorCopy( velocity, lq->velocity );
+	lq->volume = volume;
+	lq->parent = parent;
+#else
 	/*const*/ sfx_t *sfx;
 
   	if ( !s_soundStarted || s_soundMuted ) {
@@ -1964,10 +2179,33 @@ void S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocit
 	assert(!sfx->pMP3StreamHeader);
 	VectorCopy( origin, loopSounds[numLoopSounds].origin );
 	VectorCopy( velocity, loopSounds[numLoopSounds].velocity );
+
+	loopSounds[numLoopSounds].doppler = qfalse;
+	loopSounds[numLoopSounds].dopplerScale = 1.0;
+
 	loopSounds[numLoopSounds].sfx = sfx;
 	loopSounds[numLoopSounds].volume = SOUND_MAXVOL;
 	loopSounds[numLoopSounds].entnum = entityNum;
+
+	if (s_doppler->integer && VectorLengthSquared(velocity) > 0.0) {
+		vec3_t	out;
+		float	lena, lenb;
+
+		loopSounds[numLoopSounds].doppler = qtrue;
+		lena = DistanceSquared(/*loopSounds[listener_number].origin*/listener_origin, loopSounds[numLoopSounds].origin);
+		VectorAdd(loopSounds[numLoopSounds].origin, loopSounds[numLoopSounds].velocity, out);
+		lenb = DistanceSquared(/*loopSounds[listener_number].origin*/listener_origin, out);
+
+		loopSounds[numLoopSounds].dopplerScale = lenb/(lena*100);
+		if (loopSounds[numLoopSounds].dopplerScale > MAX_DOPPLER_SCALE) {
+			loopSounds[numLoopSounds].dopplerScale = MAX_DOPPLER_SCALE;
+		} else if (loopSounds[numLoopSounds].dopplerScale <= 1.0) {
+			loopSounds[numLoopSounds].doppler = qfalse;			// don't bother doing the math
+		}
+	}
+
 	numLoopSounds++;
+#endif
 }
 
 
@@ -1976,8 +2214,31 @@ void S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocit
 S_AddAmbientLoopingSound
 ==================
 */
-void S_AddAmbientLoopingSound( const vec3_t origin, unsigned char volume, sfxHandle_t sfxHandle ) 
-{
+void S_AddAmbientLoopingSound( const vec3_t origin, unsigned char volume, sfxHandle_t sfxHandle ) {
+#ifdef SND_MME
+	loopQueue_t *lq;
+
+	if ( !s_soundStarted || s_soundMuted ) {
+		return;
+	}
+
+	if ( sfxHandle <= 0 || sfxHandle >= sfxEntryCount) {
+		Com_DPrintf( "S_StartSound: Illegal sfxhandle %d\n", sfxHandle );
+		return;
+	}
+	
+	if ( s_loopQueueCount >= MAX_LOOPQUEUE ) {
+		Com_Printf( "S_AddLoopingSound: Queue overflow %d\n", sfxHandle );
+		return;
+	}
+
+	lq = s_loopQueue + s_loopQueueCount++;
+
+	lq->handle = sfxHandle;
+	VectorCopy( origin, lq->origin );
+	lq->volume = volume;
+	lq->parent = (void *)-1;
+#else
 	/*const*/ sfx_t *sfx;
 
 	if ( !s_soundStarted || s_soundMuted ) {
@@ -2013,6 +2274,7 @@ void S_AddAmbientLoopingSound( const vec3_t origin, unsigned char volume, sfxHan
 	//TODO: Calculate the distance falloff
 	loopSounds[numLoopSounds].volume = volume;
 	numLoopSounds++;
+#endif
 }
 
 
@@ -2073,6 +2335,9 @@ void S_AddLoopSounds (void)
 		ch->rightvol = right_total;
 		ch->loopSound = qtrue;	// remove next frame
 		ch->thesfx = loop->sfx;
+
+		ch->doppler = loop->doppler;
+		ch->dopplerScale = loop->dopplerScale;
 
 		// you cannot use MP3 files here because they offer only streaming access, not random
 		//
@@ -2310,8 +2575,8 @@ S_UpdateEntityPosition
 let the sound system know where an entity currently is
 ======================
 */
-void S_UpdateEntityPosition( int entityNum, const vec3_t origin )
-{
+void S_UpdateEntityPosition( int entityNum, const vec3_t origin ) {
+#ifndef SND_MME
 	ALfloat pos[3];
 	channel_t *ch;
 	int i;
@@ -2358,6 +2623,12 @@ void S_UpdateEntityPosition( int entityNum, const vec3_t origin )
 #endif
 
 	VectorCopy( origin, s_entityPosition[entityNum] );
+#else
+	if ( entityNum < 0 || entityNum > MAX_GENTITIES ) {
+		Com_Error( ERR_DROP, "S_UpdateEntityPosition: bad entitynum %i", entityNum );
+	}
+	VectorCopy( origin, s_entitySounds[entityNum].origin );
+#endif
 }
 
 
@@ -2492,8 +2763,8 @@ S_Respatialize
 Change the volumes of all the playing sounds for changes in their positions
 ============
 */
-void S_Respatialize( int entityNum, const vec3_t head, vec3_t axis[3], int inwater )
-{
+void S_Respatialize( int entityNum, const vec3_t head, vec3_t axis[3], int inwater ) {
+#ifndef SND_MME
 #ifdef _WIN32
 	EAXOCCLUSIONPROPERTIES eaxOCProp;
 	EAXACTIVEFXSLOTS eaxActiveSlots;
@@ -2643,7 +2914,37 @@ void S_Respatialize( int entityNum, const vec3_t head, vec3_t axis[3], int inwat
 	}
 #endif
 
+	s_hadSpatialize = qtrue;
+	s_playScale *= com_timescale->value;
+
 	return;
+#else
+//	float timeScale;
+
+	if (s_listenNumber == entityNum ) {
+		vec3_t delta;
+		float deltaTime;
+		
+		VectorSubtract( head, s_listenOrigin, delta );
+		deltaTime = cls.frametime * 0.001f;
+		VectorScale( delta, deltaTime, s_listenVelocity );
+	} else {
+		VectorClear( s_listenVelocity );
+	}
+	s_listenNumber = entityNum;
+	VectorCopy(head, s_listenOrigin);
+	VectorCopy(axis[0], s_listenAxis[0]);
+	VectorCopy(axis[1], s_listenAxis[1]);
+	VectorCopy(axis[2], s_listenAxis[2]);
+/*	timeScale = *((float *)&inwater);
+	if (timeScale >= 1 && timeScale < 10 ) {
+		s_playScale = timeScale - 1;
+	} else {
+		s_playScale = 1;
+	}*/
+	s_hadSpatialize = qtrue;
+	s_playScale *= com_timescale->value;
+#endif
 }
 
 
@@ -2738,9 +3039,12 @@ void S_Update( void ) {
 	int			i;
 	int			total;
 	channel_t	*ch;
-//	float		scale;
+	float		scale;
 
 	if ( !s_soundStarted || s_soundMuted ) {
+		Com_DPrintf ("not started or muted\n");
+		s_channelQueueCount = 0;
+		s_loopQueueCount = 0;
 		return;
 	}
 
@@ -2766,7 +3070,7 @@ void S_Update( void ) {
 		if (total)
 			Com_Printf ("----(%i)---- painted: %i, SND %.2fMB\n", total, s_paintedtime, totalMeg/1024.0f/1024.0f);
 	}
-
+#ifndef SND_MME
 	// The Open AL code, handles background music in the S_UpdateRawSamples function
 	if (!s_UseOpenAL)
 	{
@@ -2776,9 +3080,21 @@ void S_Update( void ) {
 
 	// mix some sound
 	S_Update_();
+#else
+	if (s_timescale->integer) {
+		scale = (s_hadSpatialize) ? s_playScale : com_timescale->value;
+		s_hadSpatialize = qfalse;
+	} else {
+		scale = 1.0f;
+	}
 
-//	scale = 1.0f;
-//	S_MMEUpdate( scale );
+	S_DMA_Update( scale );
+	S_MMEUpdate( scale );
+
+	s_channelQueueCount = 0;
+	s_loopQueueCount = 0;
+	s_background.reload = qfalse;
+#endif
 }
 
 void S_GetSoundtime(void)
@@ -3112,7 +3428,7 @@ void S_Update_(void) {
 
 		SNDDMA_BeginPainting ();
 
-		S_PaintChannels (endtime);
+		S_PaintChannels (endtime / s_playScale);
 
 		SNDDMA_Submit ();
 
@@ -3606,9 +3922,9 @@ int S_MP3PreProcessLipSync(channel_t *ch, short *data)
 	int i;
 	int sample;
 	int sampleTotal = 0;
+	float ofst = 0;
 
-	for (i = 0; i < 576; i += 100)
-	{
+	for (i = 0; i < 576; i += 100) {
 		sample = LittleShort(data[i]);
 		sample = sample >> 8;
 		sampleTotal += sample * sample;
@@ -3744,6 +4060,10 @@ static void S_Play_f( void ) {
 static void S_Music_f( void ) {
 	int		c;
 
+	if ( s_background.override ) {
+		Com_Printf( "Can't start music in mme player mode" );
+		return;
+	}
 	c = Cmd_Argc();
 
 	if ( c == 2 ) {
@@ -4553,8 +4873,25 @@ void S_RestartMusic( void )
 // to be honest, although the code still plays WAVs some of the file-check logic only works for MP3s, so if you ever want
 //	to use WAV music you'll have to do some tweaking below (but I've got other things to do so it'll have to wait - Ste)
 //
-void S_StartBackgroundTrack( const char *intro, const char *loop, int bCalledByCGameStart )
-{
+void S_StartBackgroundTrack( const char *intro, const char *loop, int bCalledByCGameStart ) {
+#ifdef SND_MME
+	if ( !intro || !intro[0] )
+		return;
+
+	if ( !loop || !loop[0] ) 
+		loop = intro;
+
+	Com_DPrintf( "S_StartBackgroundTrack( %s, %s )\n", intro, loop );
+
+	s_background.playing = qtrue;
+	s_background.reload = qtrue;
+
+	Q_strncpyz( s_background.startName, intro, sizeof( s_background.startName ));
+	COM_DefaultExtension( s_background.startName, sizeof( s_background.startName ), ".wav" );
+
+	Q_strncpyz( s_background.loopName, loop, sizeof( s_background.loopName ));
+	COM_DefaultExtension( s_background.loopName, sizeof( s_background.loopName ), ".wav" );
+#else
 	bMusic_IsDynamic = qfalse;
 
 	if (!s_soundStarted)
@@ -4676,16 +5013,21 @@ void S_StartBackgroundTrack( const char *intro, const char *loop, int bCalledByC
 	{
 		S_StopBackgroundTrack();
 	}
+#endif
 }
 
-void S_StopBackgroundTrack( void )
-{
+void S_StopBackgroundTrack( void ) {
+#ifdef SND_MME
+	if (!s_background.override)
+		s_background.playing = qfalse;
+#else
 	for (int i=0; i<eBGRNDTRACK_NUMBEROF; i++)
 	{
 		S_StopBackgroundTrack_Actual( &tMusic_Info[i] );
 	}
 
 	s_rawend = 0;
+#endif
 }
 
 
@@ -4947,8 +5289,8 @@ static void S_CheckDynamicMusicState(void)
 	S_HandleDynamicMusicStateChange();
 }
 
-static void S_UpdateBackgroundTrack( void )
-{
+static void S_UpdateBackgroundTrack( void ) {
+#ifndef SND_MME
 	if (bMusic_IsDynamic)
 	{
 		if (s_debugdynamic->integer == 2)
@@ -5063,6 +5405,7 @@ static void S_UpdateBackgroundTrack( void )
 			S_StartBackgroundTrack( sMusic_BackgroundLoop, sMusic_BackgroundLoop, qfalse );
 		}
 	}
+#endif
 }
 
 
@@ -6402,13 +6745,27 @@ float CalcDistance(EMPOINT A, EMPOINT B)
 
 void S_UpdatePitch(float pitch)
 {
+	if (s_timescale->integer) {
 #ifdef _WIN32
-	if (s_UseOpenAL)
-	{
-		for (int i = 0; i < s_numChannels; i++)
+		if (s_UseOpenAL)
 		{
-			alSourcef(s_channels[i].alSource, AL_PITCH, pitch);
+			for (int i = 0; i < s_numChannels; i++)
+			{
+				alSourcef(s_channels[i].alSource, AL_PITCH, pitch);
+			}
 		}
-	}
+		else
 #endif
+		{
+			if (s_forceScale->value > 0) {
+				s_playScale = s_forceScale->value;
+			} else {
+				s_playScale = pitch;
+			}
+			if (s_playScale > 5)
+				s_playScale = 5;
+		}
+	} else {
+		s_playScale = 1;
+	}
 }

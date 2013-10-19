@@ -28,7 +28,19 @@ extern void trap_MME_BlurInfo( int* total, int * index );
 extern void trap_MME_Capture( const char *baseName, float fps, float focus );
 extern void trap_MME_CaptureStereo( const char *baseName, float fps, float focus );
 extern int trap_MME_SeekTime( int seekTime );
+extern void trap_MME_Music( const char *musicName, float time, float length );
 extern void trap_S_UpdatePitch( float pitch );
+int lastMusicStart;
+
+static void demoSynchMusic( int start, float length ) {
+	if ( length > 0 ) {
+		lastMusicStart = -1;
+	} else {
+		length = 0;
+		lastMusicStart = start;
+	}
+	trap_MME_Music( mov_musicFile.string , start * 0.001f, length );
+}
 
 static void CG_DemosUpdatePlayer( void ) {
 	demo.oldcmd = demo.cmd;
@@ -418,6 +430,21 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	demo.play.oldTime = demo.play.time;
 
+
+	/* Handle the music */
+	if ( demo.play.paused ) {
+		if ( lastMusicStart >= 0)
+			demoSynchMusic( -1, 0 ); 
+	} else {
+		int musicStart = (demo.play.time - mov_musicStart.value * 1000 );
+		if ( musicStart <= 0 ) {
+			if (lastMusicStart >= 0 )
+				demoSynchMusic( -1, 0 );
+		} else {
+			if ( demo.play.time != demo.play.lastTime || lastMusicStart < 0)
+				demoSynchMusic( musicStart, 0 );
+		}
+	}
 	/* forward the time a bit till the moment of capture */
 	if ( captureFrame && demo.capture.locked && demo.play.time < demo.capture.start) {
 		int left = demo.capture.start - demo.play.time;
@@ -451,8 +478,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		demo.play.fraction = delta - (int)delta;
 	}
 
-	//that is used for music, we don't have that (yet)
-//	demo.play.lastTime = demo.play.time;
+	demo.play.lastTime = demo.play.time;
 
 	if ( demo.loop.total && captureFrame && blurTotal ) {
 		//Delay till we hit the right part at the start
@@ -717,10 +743,9 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		trap_S_UpdateAmbientSet( cstr, cg.refdef.vieworg );
 	}
 
-	if (frameSpeed > 2)
-		frameSpeed = 2;
-	else if (frameSpeed < 0.5)
-		frameSpeed = 0.5f;
+	if (frameSpeed > 5)
+		frameSpeed = 5;
+
 	trap_S_UpdatePitch( frameSpeed );
 //	trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, *((int *)&frameSpeed));
 	trap_S_Respatialize( cg.playerCent ? cg.playerCent->currentState.number : ENTITYNUM_NONE, cg.refdef.vieworg, cg.refdef.viewaxis, inwater);
@@ -731,6 +756,9 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		CG_Draw2D();
 	} else if (!captureFrame && cg_draw2D.integer && cg_drawFPS.integer) {
 		CG_DrawFPS( 0 );
+	} else {
+		vec4_t hcolor = {0, 0, 0, 0};
+		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 	}
 
 	CG_DrawAutoMap();
@@ -921,6 +949,19 @@ static void demoSeekCommand_f(void) {
 	}
 }
 
+static void musicPlayCommand_f(void) {
+	float length = 2;
+	int musicStart;
+
+	if ( trap_Argc() > 1 ) {
+		length = atof( CG_Argv( 1 ) );
+		if ( length <= 0)
+			length = 2;
+	}
+	musicStart = (demo.play.time - mov_musicStart.value * 1000 );
+	demoSynchMusic( musicStart, length );
+}
+
 void demoPlaybackInit(void) {
 	char projectFile[MAX_OSPATH];
 
@@ -960,6 +1001,7 @@ void demoPlaybackInit(void) {
 	demo.chase.target = -1;
 
 	hudInitTables();
+	demoSynchMusic( -1, 0 );
 
 	trap_AddCommand("camera");
 	trap_AddCommand("edit");
@@ -978,6 +1020,7 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("+seek");
 	trap_AddCommand("-seek");
 	trap_AddCommand("clientOverride");
+	trap_AddCommand("musicPlay");
 
 	demo.media.additiveWhiteShader = trap_R_RegisterShader( "mme_additiveWhite" );
 	demo.media.mouseCursor = trap_R_RegisterShaderNoMip( "mme_cursor" );
@@ -1051,6 +1094,8 @@ qboolean CG_DemosConsoleCommand( void ) {
 		demoSaveCommand_f();
 	} else if (!Q_stricmp(cmd, "clientOverride")) {
 		CG_ClientOverride_f();
+	} else if (!Q_stricmp(cmd, "musicPlay")) {
+		musicPlayCommand_f();
 	} else {
 		return CG_ConsoleCommand();
 	}

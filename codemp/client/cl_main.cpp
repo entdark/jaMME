@@ -2860,6 +2860,8 @@ void CL_StopVideo_f( void )
 
 #define G2_VERT_SPACE_CLIENT_SIZE 256
 
+qboolean doNotYell;
+
 /*
 ====================
 CL_Init
@@ -3047,6 +3049,8 @@ void CL_Init( void ) {
 	Cvar_Set( "cl_running", "1" );
 
 	G2VertSpaceClient = new CMiniHeap(G2_VERT_SPACE_CLIENT_SIZE * 1024);
+
+	doNotYell = qfalse;
 
 //	Com_Printf( "----- Client Initialization Complete -----\n" );
 }

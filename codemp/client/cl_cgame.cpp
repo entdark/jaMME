@@ -787,13 +787,13 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		S_ClearLoopingSounds();
 		return 0;
 	case CG_S_ADDLOOPINGSOUND:
-		S_AddLoopingSound( args[1], (const float *)VMA(2), (const float *)VMA(3), args[4] );
+		S_AddLoopingSound( ((char *)cl.entityBaselines) + args[1], args[1], (const float *)VMA(2), (const float *)VMA(3), args[4], 127 );
 		return 0;
 	case CG_S_ADDREALLOOPINGSOUND:
 		//S_AddRealLoopingSound( args[1], (const float *)VMA(2), (const float *)VMA(3), args[4] );
-		S_AddLoopingSound( args[1], (const float *)VMA(2), (const float *)VMA(3), args[4] );
+		S_AddLoopingSound( ((char *)cl.entityBaselines) + args[1], args[1], (const float *)VMA(2), (const float *)VMA(3), args[4], 90 );
 		return 0;
-	case CG_S_STOPLOOPINGSOUND:
+	case CG_S_STOPLOOPINGSOUND: //never called wtf
 		S_StopLoopingSound( args[1] );
 		return 0;
 	case CG_S_UPDATEENTITYPOSITION:
@@ -1710,7 +1710,7 @@ Ghoul2 Insert End
 		return 0;
 	case CG_MME_CAPTURE:
 		re.Capture( (char *)VMA(1), VMF(2), VMF(3) );
-//		S_MMERecord( (char *)VMA(1), 1.0f / VMF(2) );
+		S_MMERecord( (char *)VMA(1), 1.0f / VMF(2) );
 		S_MMEWavRecord( (char *)VMA(1), VMF(2) );
 		return 0;
 	case CG_MME_CAPTURE_STEREO:
@@ -1719,6 +1719,9 @@ Ghoul2 Insert End
 	case CG_MME_BLURINFO:
 		re.BlurInfo( (int *)VMA(1), (int *)VMA(2) );
 		return 0;
+	case CG_MME_MUSIC:
+		S_MMEMusic( (const char *)VMA(1), VMF(2), VMF(3) );
+        return 0; 	
 	case CG_S_UPDATE_PITCH:
 		S_UpdatePitch(VMF(1));
 		return 0;

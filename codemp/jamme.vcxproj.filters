@@ -502,6 +502,9 @@
     <ClCompile Include="client\snd_mme.cpp">
       <Filter>Client</Filter>
     </ClCompile>
+    <ClCompile Include="client\snd_demos.cpp">
+      <Filter>Client</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="client\OpenAL\al.h">

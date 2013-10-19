@@ -2551,7 +2551,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				VectorCopy( es->origin, cg_saberFlashPos );
 			}
 			if (!(mov_soundDisable.integer & SDISABLE_SABER)) {
-				trap_S_StartSound ( es->origin, -1, CHAN_WEAPON, trap_S_RegisterSound( va("sound/weapons/saber/saberhitwall%i", Q_irand(1, 3)) ) );
+				trap_S_StartSound ( es->origin, -1, CHAN_WEAPON, trap_S_RegisterSound( va("sound/weapons/saber/saberhitwall%i.mp3", Q_irand(1, 3)) ) );
 			}
 		}
 		break;

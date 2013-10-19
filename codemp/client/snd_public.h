@@ -31,7 +31,7 @@ void S_MP3_CalcVols_f( void );
 // all continuous looping sounds must be added before calling S_Update
 void S_ClearLoopingSounds( void );
 void S_StopLoopingSound( int entityNum );
-void S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx );
+void S_AddLoopingSound( const void *parent, int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle, int volume );
 
 // recompute the reletive volumes for all running sounds
 // relative to the given entityNum / orientation
@@ -58,8 +58,10 @@ void S_FreeAllSFXMem(void);
 // MME
 void S_MMERecord( const char *baseName, float deltaTime );
 void S_MMEWavClose( void );
-void S_MMEUpdate( float scale, const byte *pcmBuffer, int size );
-//void S_MMEMusic( const char *musicName, float time, float length );
+void S_MMEUpdate( float scale );
+void S_MMEMusic( const char *musicName, float time, float length );
+
+extern qboolean doNotYell;
 
 void S_UpdatePitch(float pitch);
 

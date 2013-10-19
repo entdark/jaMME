@@ -72,8 +72,8 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>ALut.lib;OpenAL32.lib;winmm.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/MACHINE:I386 /FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>ALut.lib;OpenAL32.lib;winmm.lib;wsock32.lib;libmad.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -118,8 +118,8 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>ALut.lib;OpenAL32.lib;winmm.lib;wsock32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/MACHINE:I386 /FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>ALut.lib;OpenAL32.lib;winmm.lib;wsock32.lib;libmad.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -324,6 +324,7 @@
     <ClCompile Include="client\cl_parse.cpp" />
     <ClCompile Include="client\cl_scrn.cpp" />
     <ClCompile Include="client\cl_ui.cpp" />
+    <ClCompile Include="client\snd_demos.cpp" />
     <ClCompile Include="client\snd_mme.cpp" />
     <ClCompile Include="qcommon\CNetProfile.cpp" />
     <ClCompile Include="qcommon\GenericParser2.cpp" />

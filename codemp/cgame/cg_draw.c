@@ -8285,6 +8285,7 @@ void CG_Draw2D( void ) {
 	float			fallTime; 
 	float			bestTime;
 	int				drawSelect = 0;
+	vec4_t			hcolor = {0, 0, 0, 0};
 
 	// if we are taking a levelshot for the menu, don't draw anything
 	if ( cg.levelShot ) {
@@ -8320,15 +8321,15 @@ void CG_Draw2D( void ) {
 		//		Clear the fall vector to avoid that.
 		gCGHasFallVector = qfalse;
 		VectorClear( gCGFallVector );
+		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 		return;
 	}
 
 	if ( mov_fragsOnly.integer != 0 ) {
-		vec4_t hcolor = {0, 0, 0, 0};
 		if(!cg.renderingThirdPerson && cg.playerPredicted && mov_fragsOnly.integer == 2)CG_DrawZoomMask();
-//		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 		CG_DrawReward();
 		CG_DrawCenterString();
+		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 		return;
 	}
 

@@ -39,6 +39,7 @@ typedef struct {
 											// making the snapshot current
 } clSnapshot_t;
 
+//qboolean doNotYell;
 
 
 /*

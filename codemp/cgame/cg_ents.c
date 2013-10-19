@@ -1591,7 +1591,7 @@ Ghoul2 Insert End
 					}
 					else
 					{
-						trap_S_StartSound ( NULL, cent->currentState.number, CHAN_AUTO, trap_S_RegisterSound("sound/weapons/force/lightning") );
+						trap_S_StartSound ( NULL, cent->currentState.number, CHAN_AUTO, trap_S_RegisterSound("sound/weapons/force/lightning.mp3") );
 					}
 				}
 				ent.endTime = cent->dustTrailTime;
@@ -1970,6 +1970,9 @@ static void CG_Item( centity_t *cent ) {
 	int				msec;
 	float			scale;
 	weaponInfo_t	*wi;
+
+	if ( mov_filterMask.integer & movMaskItems)
+		return;
 
 	es = &cent->currentState;
 	if ( es->modelindex >= bg_numItems ) {
@@ -2552,6 +2555,9 @@ static void CG_Missile( centity_t *cent ) {
 	entityState_t		*s1;
 	const weaponInfo_t		*weapon;
 //	int	col;
+
+	if (mov_filterMask.integer & movMaskMissiles)
+		return;
 
 	s1 = &cent->currentState;
 

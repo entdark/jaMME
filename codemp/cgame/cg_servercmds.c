@@ -519,7 +519,7 @@ static void CG_RegisterCustomSounds(clientInfo_t *ci, int setType, const char *p
 		}
 
 		s++;
-		hSFX = trap_S_RegisterSound( va("sound/chars/%s/misc/%s", psDir, s) );
+		hSFX = trap_S_RegisterSound( va("sound/chars/%s/misc/%s.mp3", psDir, s) );	//all of them have .mp3?
 
 		if (hSFX == 0)
 		{
@@ -590,7 +590,7 @@ void CG_PrecacheNPCSounds(const char *str)
 				sEnd[k-1] = 0;
 
 				trap_S_ShutUp(qtrue);
-				trap_S_RegisterSound( va("sound/chars/%s/misc/%s", pEnd, sEnd) );
+				trap_S_RegisterSound( va("sound/chars/%s/misc/%s.mp3", pEnd, sEnd) );	//all of them have .mp3?
 				trap_S_ShutUp(qfalse);
 			}
 			else

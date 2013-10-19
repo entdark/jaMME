@@ -185,6 +185,10 @@ XCVAR_DEF( mov_duelShell,						"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_duelIsolation,					"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_saberTeamColour,					"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_soundDisable,					"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( mov_wallhack,						"0",					NULL,					0 )
+XCVAR_DEF( mov_filterMask,						"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( mov_musicFile,						"",						NULL,					CVAR_TEMP )
+XCVAR_DEF( mov_musicStart,						"0",					NULL,					CVAR_TEMP )
 XCVAR_DEF( fx_Vibrate,							"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( fx_vfps,								"200",					NULL,					CVAR_ARCHIVE )	//teh's fix for laggy effects
 XCVAR_DEF( fx_disruptTime,						"150",					NULL,					CVAR_ARCHIVE )	//from smod

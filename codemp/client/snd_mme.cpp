@@ -71,29 +71,6 @@ void S_MMEWavClose(void) {
 	Com_Memset( &mmeSound, 0, sizeof(mmeSound) );
 }
 
-void S_MixClipOutput (int count, const int *input, short *output, int outStart, int outMask) {
-	int		i;
-	int		val;
-
-	for (i=0 ; i<count ; i++)
-	{
-		val = input[i*2+0] >> MIX_SHIFT;
-		if (val > 0x7fff)
-			val = 0x7fff;
-		else if (val < -32768)
-			val = -32768;
-		output[outStart*2 + 0] = val;
-
-		val = input[i*2+1] >> MIX_SHIFT;
-		if (val > 0x7fff)
-			val = 0x7fff;
-		else if (val < -32768)
-			val = -32768;
-		output[outStart*2 + 1] = val;
-		outStart = (outStart+1) & outMask;
-	}
-}
-
 /*
 ===================
 S_MME_Update
@@ -102,7 +79,7 @@ Called from CL_Frame() in cl_main.c when shooting avidemo
 ===================
 */
 #define MAXUPDATE 4096
-void S_MMEUpdate( float scale, const byte *buffer, int size ) {
+void S_MMEUpdate( float scale ) {
 	int count, speed;
 	int mixTemp[MAXUPDATE*2];
 	short mixClip[MAXUPDATE*2];
@@ -120,26 +97,26 @@ void S_MMEUpdate( float scale, const byte *buffer, int size ) {
 	if (count > MAXUPDATE)
 		count = MAXUPDATE;
 
-	speed = (scale * (MIX_SPEED << MIX_SHIFT)) / SAMPLERATE;
+	speed = (scale * (MIX_SPEED << MIX_SHIFT)) / 22050;
 	if (speed < 0 || (speed == 0 && scale) )
 		speed = 1;
 
 	Com_Memset( mixTemp, 0, sizeof(int) * count * 2);
-/*	if ( speed > 0 ) {
+	if ( speed > 0 ) {
 		S_MixChannels( mmeSound.channels, MME_SNDCHANNELS, speed, count, mixTemp );
 		S_MixLoops( mmeSound.loops, MME_LOOPCHANNELS, speed, count, mixTemp );
 	}	
 	S_MixClipOutput( count, mixTemp, mixClip, 0, MAXUPDATE - 1 );
-*/	//FS_Write( mixClip, count*4, mmeSound.fileHandle );
-	FS_Write( buffer, size, mmeSound.fileHandle );
-	mmeSound.fileSize += size;
+	FS_Write( mixClip, count*4, mmeSound.fileHandle );
+	mmeSound.fileSize += count * 4;
 	mmeSound.gotFrame = qfalse;
 }
 
 void S_MMERecord( const char *baseName, float deltaTime ) {
+#ifdef SND_MME
 	char fileName[MAX_OSPATH];
 
-//	if (!mme_saveWav->integer)	//uncomment when audio capture be fine
+	if (!mme_saveWav->integer)
 		return;
 	if (Q_stricmp(baseName, mmeSound.baseName)) {
 		if (mmeSound.fileHandle)
@@ -153,7 +130,7 @@ void S_MMERecord( const char *baseName, float deltaTime ) {
 		}
 		Q_strncpyz( mmeSound.baseName, baseName, sizeof( mmeSound.baseName ));
 		mmeSound.deltaSamples = 0;
-		mmeSound.sampleRate = SAMPLERATE;
+		mmeSound.sampleRate = 22050;
 		FS_Seek( mmeSound.fileHandle, 0, FS_SEEK_END );
 		mmeSound.fileSize = FS_filelength( mmeSound.fileHandle );
 		if ( mmeSound.fileSize < WAV_HEADERSIZE) {
@@ -167,12 +144,32 @@ void S_MMERecord( const char *baseName, float deltaTime ) {
 	}
 	mmeSound.deltaSamples += deltaTime * mmeSound.sampleRate;
 	mmeSound.gotFrame = qtrue;
+#endif
 }
+
+/* This is a seriously crappy hack, but it'll work for now */
+void S_MMEMusic( const char *musicName, float time, float length ) {
+	if ( !musicName || !musicName[0] ) {
+		s_background.playing = qfalse;
+		s_background.override = qfalse;
+		return;
+	}
+	s_background.override = qtrue;
+	s_background.seekTime = time;
+	s_background.length = length;
+	s_background.playing = qtrue;
+	s_background.reload = qtrue;
+
+	Q_strncpyz( s_background.startName, musicName, sizeof( s_background.startName ));
+	COM_DefaultExtension( s_background.startName, sizeof( s_background.startName ), ".wav" );
+}
+
 
 
 
 // similar looking sound capture to actual MME capture, but for not modified sound code
 // let's leave actual MME capture above for future with rainbows and unicorns
+// UPD since jaMME 1.0: unicorns and rainbows arrived, so things below are prolly not needed
 
 extern int s_soundtime;
 extern portable_samplepair_t paintbuffer[PAINTBUFFER_SIZE];
@@ -207,6 +204,7 @@ void S_MMEClose(void) {
 extern int s_UseOpenAL;
 
 void S_MMEWavRecord(const char *baseName, const float fps) {
+#ifndef SND_MME
 	char fileName[MAX_OSPATH];
 	if (!mme_saveWav->integer || s_UseOpenAL)
 		return;
@@ -237,6 +235,7 @@ void S_MMEWavRecord(const char *baseName, const float fps) {
 		memcpy( mmeWave.buffer, paintbuffer, sizeof( mmeWave.buffer ) );
 	}
 	mmeWave.gotFrame = qtrue;
+#endif
 }
 
 void S_MMETransferWavChunks(void) {

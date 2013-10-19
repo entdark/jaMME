@@ -957,8 +957,8 @@ void hudInitTables(void) {
 	hudAddCvar(   0,  14, MASK_LINE_HUD, "depthFocus:", "mme_depthFocus" );
 	hudAddCvar(   0,  15, MASK_LINE_HUD, "depthRange:", "mme_depthRange" );
 	hudAddCvar(   0,  16, MASK_LINE_HUD, "saveStencil:", "mme_saveStencil" );
-//	hudAddCvar(   0,  17, MASK_LINE_HUD, "MusicFile:", "mov_musicFile" );
-//	hudAddCvar(   0,  18, MASK_LINE_HUD, "MusicStart:", "mov_musicStart" );
+	hudAddCvar(   0,  17, MASK_LINE_HUD, "MusicFile:", "mov_musicFile" );
+	hudAddCvar(   0,  18, MASK_LINE_HUD, "MusicStart:", "mov_musicStart" );
 
 }
 

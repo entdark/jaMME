@@ -35,6 +35,17 @@ extern void AS_Free( void );
 #define	PAINTBUFFER_SIZE	1024
 
 
+#define		SFX_SOUNDS		2048
+#define		SFX_HASH		256
+
+typedef struct sfxEntry_s {
+	struct		sfxEntry_s *next;
+	char		name[MAX_QPATH];
+} sfxEntry_t;
+
+extern	sfxEntry_t		sfxEntries[SFX_SOUNDS];
+
+
 // !!! if this is changed, the asm code must change !!!
 typedef struct {
 	int			left;	// the final values will be clamped to +/- 0x00ffff00 and shifted down
@@ -124,6 +135,8 @@ typedef struct
 	int			iMP3SlidingDecodeWritePos;
 	int			iMP3SlidingDecodeWindowPos;
 
+	qboolean	doppler;
+	float		dopplerScale;
 
 	// Open AL specific
 	bool	bLooping;	// Signifies if this channel / source is playing a looping sound
@@ -178,11 +191,13 @@ void	SNDDMA_Submit(void);
 //====================================================================
 
 #define	MAX_CHANNELS			32
+
 extern	channel_t   s_channels[MAX_CHANNELS];
 
 extern	int		s_paintedtime;
 extern	int		s_rawend;
 extern	vec3_t	listener_origin;
+extern	vec3_t	listener_axis[3];
 extern	vec3_t	listener_forward;
 extern	vec3_t	listener_right;
 extern	vec3_t	listener_up;
@@ -192,8 +207,13 @@ extern	dma_t	dma;
 extern	portable_samplepair_t	s_rawsamples[MAX_RAW_SAMPLES];
 portable_samplepair_t *S_GetRawSamplePointer();	// TA added this, but it just returns the s_rawsamples[] array above. Oh well...
 
+extern float	s_playScale;
+extern cvar_t	*s_forceScale;
+extern cvar_t	*s_noiseFix;
+
 extern cvar_t	*s_volume;
 extern cvar_t	*s_volumeVoice;
+extern cvar_t	*s_musicVolume;
 extern cvar_t	*s_nosound;
 extern cvar_t	*s_khz;
 extern cvar_t	*s_allowDynamicMusic;
@@ -234,3 +254,40 @@ void S_memoryLoad(sfx_t *sfx);
 //////////////////////////////////
 
 #include "snd_mp3.h"
+
+#define SND_MME
+
+extern cvar_t	*s_doppler;
+extern cvar_t	*s_dopplerSpeed;
+extern cvar_t	*s_dopplerFactor;
+
+struct openSound_s;
+typedef int (*openSoundRead_t)( struct openSound_s *open, qboolean stereo, int size, short *data );
+/* Maybe some kind of error return sometime? */
+typedef int (*openSoundSeek_t)( struct openSound_s *open, int samples );
+typedef void (*openSoundClose_t)( struct openSound_s *open );
+
+typedef struct openSound_s {
+	int					rate;
+	int					totalSamples, doneSamples;
+	char				buf[16*1024];
+	int					bufUsed, bufPos;
+	fileHandle_t		fileHandle;
+	int					fileSize, filePos;
+
+	openSoundRead_t		read;
+	openSoundSeek_t		seek;
+	openSoundClose_t	close;
+
+	char				data[0];
+} openSound_t;
+
+openSound_t *S_SoundOpen( char *fileName );
+int S_SoundRead( openSound_t *open, qboolean stereo, int size, short *data );
+int S_SoundSeek( openSound_t *open, int samples );
+void S_SoundClose( openSound_t *open );
+
+extern int		s_listenNumber;
+extern vec3_t	s_listenOrigin;
+extern vec3_t	s_listenVelocity;
+extern vec3_t	s_listenAxis[3];

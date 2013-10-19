@@ -6872,7 +6872,7 @@ void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, in
 							{//ugh, need to have a real sound debouncer... or do this game-side
 								client->saber[saberNum].blade[bladeNum].hitWallDebounceTime = cg.time;
 								if (!(mov_soundDisable.integer & SDISABLE_SABER))
-									trap_S_StartSound ( trace.endpos, -1, CHAN_WEAPON, trap_S_RegisterSound( va("sound/weapons/saber/saberhitwall%i", Q_irand(1, 3)) ) );
+									trap_S_StartSound ( trace.endpos, -1, CHAN_WEAPON, trap_S_RegisterSound( va("sound/weapons/saber/saberhitwall%i.mp3", Q_irand(1, 3)) ) );
 							}
 						}
 					}
@@ -9993,7 +9993,7 @@ void CG_Player( centity_t *cent ) {
 					//Keep the jet fire sound looping
 					if (!(mov_soundDisable.integer & SDISABLE_JETPACK))
 						trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
-							trap_S_RegisterSound( "sound/effects/fire_lp" ) );
+							trap_S_RegisterSound( "sound/effects/fire_lp.wav" ) );
 				}
 				else
 				{ //just idling
@@ -10006,7 +10006,7 @@ void CG_Player( centity_t *cent ) {
 			}
 			if (!(mov_soundDisable.integer & SDISABLE_JETPACK))
 				trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
-					trap_S_RegisterSound( "sound/boba/JETHOVER" ) );
+					trap_S_RegisterSound( "sound/chars/boba/jethover.wav" ) );
 		}
 	}
 	else if (trap_G2API_HasGhoul2ModelOnIndex(&(cent->ghoul2), 3))
@@ -10106,6 +10106,9 @@ void CG_Player( centity_t *cent ) {
 	renderfx = 0;
 //	if ( cent->currentState.number == cg.snap->ps.clientNum) {
 	if ( cent == cg.playerCent ) {
+		if ( mov_filterMask.integer & movMaskClient) {
+			return;
+		}
 		if (!cg.renderingThirdPerson) {
 #if 0
 			if (!cg_fpls.integer || cent->currentState.weapon != WP_SABER)
@@ -10133,8 +10136,12 @@ void CG_Player( centity_t *cent ) {
 				return;
 			}
 		}
+	} else if ( mov_filterMask.integer & movMaskPlayers) {
+		return;
 	}
-
+	if (mov_wallhack.integer) {
+		renderfx |= RF_NODEPTH;// | RF_FORCE_ENT_ALPHA;
+	}
 	// Update the player's client entity information regarding weapons.
 	// Explanation:  The entitystate has a weapond defined on it.  The cliententity does as well.
 	// The cliententity's weapon tells us what the ghoul2 instance on the cliententity has bolted to it.
@@ -12553,6 +12560,7 @@ stillDoSaber:
 		legs.customShader = ci->shaderOverride;
 		trap_R_AddRefEntityToScene( &legs );
 	}
+
 #if 0
 endOfCall:
 	

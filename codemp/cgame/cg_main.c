@@ -1009,7 +1009,7 @@ static void CG_RegisterSounds( void ) {
 	trap_S_RegisterSound( "sound/weapons/melee/punch2.mp3" );
 	trap_S_RegisterSound( "sound/weapons/melee/punch3.mp3" );
 	trap_S_RegisterSound( "sound/weapons/melee/punch4.mp3" );
-	trap_S_RegisterSound("sound/movers/objects/saber_slam");
+	trap_S_RegisterSound("sound/movers/objects/saber_slam.mp3");
 
 	trap_S_RegisterSound("sound/player/bodyfall_human1.wav");
 	trap_S_RegisterSound("sound/player/bodyfall_human2.wav");
@@ -1019,15 +1019,15 @@ static void CG_RegisterSounds( void ) {
 	trap_FX_RegisterEffect("effects/mp/test_sparks.efx");
 	trap_FX_RegisterEffect("effects/mp/test_wall_impact.efx");
 
-	cgs.media.oneMinuteSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM004" );
-	cgs.media.fiveMinuteSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM005" );
-	cgs.media.oneFragSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM001" );
-	cgs.media.twoFragSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM002" );
-	cgs.media.threeFragSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM003");
-	cgs.media.count3Sound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM035" );
-	cgs.media.count2Sound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM036" );
-	cgs.media.count1Sound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM037" );
-	cgs.media.countFightSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM038" );
+	cgs.media.oneMinuteSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM004.mp3" );
+	cgs.media.fiveMinuteSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM005.mp3" );
+	cgs.media.oneFragSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM001.mp3" );
+	cgs.media.twoFragSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM002.mp3" );
+	cgs.media.threeFragSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM003.mp3");
+	cgs.media.count3Sound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM035.mp3" );
+	cgs.media.count2Sound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM036.mp3" );
+	cgs.media.count1Sound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM037.mp3" );
+	cgs.media.countFightSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM038.mp3" );
 
 	cgs.media.hackerIconShader			= trap_R_RegisterShaderNoMip("gfx/mp/c_icon_tech");
 
@@ -1119,9 +1119,9 @@ static void CG_RegisterSounds( void ) {
 	trap_S_RegisterSound( "sound/weapons/saber/saberhum1.wav" );
 	trap_S_RegisterSound( "sound/weapons/saber/saberon.wav" );
 	trap_S_RegisterSound( "sound/weapons/saber/saberoffquick.wav" );
-	trap_S_RegisterSound( "sound/weapons/saber/saberhitwall1" );
-	trap_S_RegisterSound( "sound/weapons/saber/saberhitwall2" );
-	trap_S_RegisterSound( "sound/weapons/saber/saberhitwall3" );
+	trap_S_RegisterSound( "sound/weapons/saber/saberhitwall1.mp3" );
+	trap_S_RegisterSound( "sound/weapons/saber/saberhitwall2.mp3" );
+	trap_S_RegisterSound( "sound/weapons/saber/saberhitwall3.mp3" );
 	trap_S_RegisterSound("sound/weapons/saber/saberhit.wav");
 	trap_S_RegisterSound("sound/weapons/saber/saberhit1.wav");
 	trap_S_RegisterSound("sound/weapons/saber/saberhit2.wav");
@@ -1136,10 +1136,10 @@ static void CG_RegisterSounds( void ) {
 	trap_S_RegisterSound("sound/weapons/force/speed.wav");
 	trap_S_RegisterSound("sound/weapons/force/see.wav");
 	trap_S_RegisterSound("sound/weapons/force/rage.wav");
-	trap_S_RegisterSound("sound/weapons/force/lightning");
-	trap_S_RegisterSound("sound/weapons/force/lightninghit1");
-	trap_S_RegisterSound("sound/weapons/force/lightninghit2");
-	trap_S_RegisterSound("sound/weapons/force/lightninghit3");
+	trap_S_RegisterSound("sound/weapons/force/lightning.mp3");
+	trap_S_RegisterSound("sound/weapons/force/lightninghit1.mp3");
+	trap_S_RegisterSound("sound/weapons/force/lightninghit2.mp3");
+	trap_S_RegisterSound("sound/weapons/force/lightninghit3.mp3");
 	trap_S_RegisterSound("sound/weapons/force/drain.wav");
 	trap_S_RegisterSound("sound/weapons/force/jumpbuild.wav");
 	trap_S_RegisterSound("sound/weapons/force/distract.wav");
@@ -1181,24 +1181,24 @@ static void CG_RegisterSounds( void ) {
 #ifdef JK2AWARDS
 		cgs.media.captureAwardSound = trap_S_RegisterSound( "sound/chars/protocol/misc/capture.wav" );
 #endif
-		cgs.media.redLeadsSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM046");
-		cgs.media.blueLeadsSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM045");
-		cgs.media.teamsTiedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM032" );
+		cgs.media.redLeadsSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM046.mp3");
+		cgs.media.blueLeadsSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM045.mp3");
+		cgs.media.teamsTiedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM032.mp3" );
 
-		cgs.media.redScoredSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM044");
-		cgs.media.blueScoredSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM043" );
+		cgs.media.redScoredSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM044.mp3");
+		cgs.media.blueScoredSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM043.mp3" );
 
 		if ( cgs.gametype == GT_CTF || com_buildScript.integer ) {
-			cgs.media.redFlagReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM042" );
-			cgs.media.blueFlagReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM041" );
-			cgs.media.redTookFlagSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM040" );
-			cgs.media.blueTookFlagSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM039" );
+			cgs.media.redFlagReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM042.mp3" );
+			cgs.media.blueFlagReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM041.mp3" );
+			cgs.media.redTookFlagSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM040.mp3" );
+			cgs.media.blueTookFlagSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM039.mp3" );
 		}
-		if ( cgs.gametype == GT_CTY /*|| com_buildScript.integer*/ ) {
-			cgs.media.redYsalReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM050" );
-			cgs.media.blueYsalReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM049" );
-			cgs.media.redTookYsalSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM048" );
-			cgs.media.blueTookYsalSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM047" );
+		if ( cgs.gametype == GT_CTY /*|| com_buildScript.integer*/ ) {	//we don't hav them in JA assets
+			cgs.media.redYsalReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM050.mp3" );
+			cgs.media.blueYsalReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM049.mp3" );
+			cgs.media.redTookYsalSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM048.mp3" );
+			cgs.media.blueTookYsalSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM047.mp3" );
 		}
 	}
 
@@ -1248,7 +1248,7 @@ static void CG_RegisterSounds( void ) {
 
 	cgs.media.rollSound					= trap_S_RegisterSound( "sound/player/roll1.wav");
 
-	cgs.media.noforceSound				= trap_S_RegisterSound( "sound/weapons/force/noforce" );
+	cgs.media.noforceSound				= trap_S_RegisterSound( "sound/weapons/force/noforce.mp3" );
 
 	cgs.media.watrInSound				= trap_S_RegisterSound( "sound/player/watr_in.wav");
 	cgs.media.watrOutSound				= trap_S_RegisterSound( "sound/player/watr_out.wav");
@@ -1429,11 +1429,11 @@ static void CG_RegisterSounds( void ) {
 	cg.loadLCARSStage = 2;
 
 	// FIXME: only needed with item
-	cgs.media.deploySeeker = trap_S_RegisterSound ("sound/chars/seeker/misc/hiss");
+	cgs.media.deploySeeker = trap_S_RegisterSound ("sound/chars/seeker/misc/hiss.wav");
 	cgs.media.medkitSound = trap_S_RegisterSound ("sound/items/use_bacta.wav");
 	
-	cgs.media.winnerSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM006" );
-	cgs.media.loserSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM010" );
+	cgs.media.winnerSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM006.mp3" );
+	cgs.media.loserSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM010.mp3" );
 }
 
 
@@ -1774,16 +1774,16 @@ static void CG_RegisterGraphics( void ) {
 		cgs.media.chunkModels[CHUNK_WHITE_METAL][i]	= trap_R_RegisterModel( va( "models/chunks/metal/wmetal1_%i.md3", i+1 ) );
 	}
 
-	cgs.media.chunkSound			= trap_S_RegisterSound("sound/weapons/explosions/glasslcar");
-	cgs.media.grateSound			= trap_S_RegisterSound( "sound/effects/grate_destroy" );
-	cgs.media.rockBreakSound		= trap_S_RegisterSound("sound/effects/wall_smash");
-	cgs.media.rockBounceSound[0]	= trap_S_RegisterSound("sound/effects/stone_bounce");
-	cgs.media.rockBounceSound[1]	= trap_S_RegisterSound("sound/effects/stone_bounce2");
-	cgs.media.metalBounceSound[0]	= trap_S_RegisterSound("sound/effects/metal_bounce");
-	cgs.media.metalBounceSound[1]	= trap_S_RegisterSound("sound/effects/metal_bounce2");
-	cgs.media.glassChunkSound		= trap_S_RegisterSound("sound/weapons/explosions/glassbreak1");
-	cgs.media.crateBreakSound[0]	= trap_S_RegisterSound("sound/weapons/explosions/crateBust1" );
-	cgs.media.crateBreakSound[1]	= trap_S_RegisterSound("sound/weapons/explosions/crateBust2" );
+	cgs.media.chunkSound			= trap_S_RegisterSound("sound/weapons/explosions/glasslcar.wav");
+	cgs.media.grateSound			= trap_S_RegisterSound( "sound/effects/grate_destroy.mp3" );
+	cgs.media.rockBreakSound		= trap_S_RegisterSound("sound/effects/wall_smash.mp3");
+	cgs.media.rockBounceSound[0]	= trap_S_RegisterSound("sound/effects/stone_bounce.wav");
+	cgs.media.rockBounceSound[1]	= trap_S_RegisterSound("sound/effects/stone_bounce2.wav");
+	cgs.media.metalBounceSound[0]	= trap_S_RegisterSound("sound/effects/metal_bounce.mp3");
+	cgs.media.metalBounceSound[1]	= trap_S_RegisterSound("sound/effects/metal_bounce2.mp3");
+	cgs.media.glassChunkSound		= trap_S_RegisterSound("sound/weapons/explosions/glassbreak1.wav");
+	cgs.media.crateBreakSound[0]	= trap_S_RegisterSound("sound/weapons/explosions/crateBust1.wav" );
+	cgs.media.crateBreakSound[1]	= trap_S_RegisterSound("sound/weapons/explosions/crateBust2.wav" );
 
 /*
 Ghoul2 Insert Start
