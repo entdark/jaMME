@@ -979,6 +979,7 @@ void S_BeginRegistration( void )
 	/* Skip the first sound for 0 handle */
 	Com_Memset(sfxHashMME, 0, sizeof(sfxHashMME));
 	Com_Memset(sfxEntries, 0, sizeof(sfxEntries));
+	Com_Memset(s_knownSfx, 0, sizeof(s_knownSfx));
 	sfxEntryCount = 1;
 	S_MixInit();
 #else
@@ -1100,7 +1101,39 @@ sfxHandle_t	S_RegisterSound( const char *name) {
 	}
 	hashIndex = ( hashIndex ^ (hashIndex >> 10) ^ (hashIndex >> 20) ) & (SFX_HASH - 1);
 	fileName[len] = 0;
-	
+
+
+	/* begin the fix to assign meta sounds to chars w/o sounds */
+	char *psVoice = strstr(fileName,"chars");
+	if (psVoice) {
+		char sSoundNameNoExt[MAX_QPATH];
+		sfx_t	*sfx;
+		sfx = &s_knownSfx[0];
+		memset (sfx, 0, sizeof(*sfx));
+		COM_StripExtension(fileName,sSoundNameNoExt, sizeof( sSoundNameNoExt ));
+		Q_strncpyz(sfx->sSoundName, sSoundNameNoExt, sizeof(sfx->sSoundName));
+#ifdef _WIN32
+		strlwr(sfx->sSoundName);//force it down low
+#else
+		std::string s = sfx->sSoundName;
+		std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+#endif
+		SND_TouchSFX(sfx);
+		sfx->bInMemory = qfalse;
+	//	Q_strncpyz(sfx->sSoundName, fileName, sizeof(sfx->sSoundName));
+		S_memoryLoad(sfx);
+		if ( sfx->bDefaultSound ) {
+#ifndef FINAL_BUILD
+			if (!s_shutUp) {
+				Com_Printf( S_COLOR_YELLOW "WARNING: could not find %s - using default\n", sfx->sSoundName );
+			}
+#endif
+			return 0;
+		}
+	}
+	/* end the fix */
+
+
 	entry = sfxHashMME[ hashIndex ];
 	while (entry) {
 		if (!strcmp( entry->name, fileName ))

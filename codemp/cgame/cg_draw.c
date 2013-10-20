@@ -8279,6 +8279,13 @@ static void CG_Draw2DScreenTints( void )
 	}
 }
 
+void CG_CameraDraw2D( void ) {
+	if (cg_drawFPS.integer)
+		CG_DrawFPS( 0 );
+	if (cg_draw2D.integer == 2)
+		CG_ChatBox_DrawStrings();
+}
+
 void CG_Draw2D( void ) {
 	float			inTime = cg.invenSelectTime+WEAPON_SELECT_TIME;
 	float			wpTime = cg.weaponSelectTime+WEAPON_SELECT_TIME;

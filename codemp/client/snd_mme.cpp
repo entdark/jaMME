@@ -97,7 +97,7 @@ void S_MMEUpdate( float scale ) {
 	if (count > MAXUPDATE)
 		count = MAXUPDATE;
 
-	speed = (scale * (MIX_SPEED << MIX_SHIFT)) / 22050;
+	speed = (scale * (MIX_SPEED << MIX_SHIFT)) / SAMPLERATE;
 	if (speed < 0 || (speed == 0 && scale) )
 		speed = 1;
 
@@ -130,7 +130,7 @@ void S_MMERecord( const char *baseName, float deltaTime ) {
 		}
 		Q_strncpyz( mmeSound.baseName, baseName, sizeof( mmeSound.baseName ));
 		mmeSound.deltaSamples = 0;
-		mmeSound.sampleRate = 22050;
+		mmeSound.sampleRate = SAMPLERATE;
 		FS_Seek( mmeSound.fileHandle, 0, FS_SEEK_END );
 		mmeSound.fileSize = FS_filelength( mmeSound.fileHandle );
 		if ( mmeSound.fileSize < WAV_HEADERSIZE) {

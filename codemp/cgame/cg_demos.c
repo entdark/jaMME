@@ -18,6 +18,7 @@ extern void CG_PowerupTimerSounds( void );
 extern void CG_UpdateSoundTrackers();
 extern float CG_DrawFPS( float y );
 extern void CG_DrawUpperRight( void );
+extern void CG_CameraDraw2D( void );
 extern void CG_Draw2D( void );
 extern void CG_DrawAutoMap(void);
 extern void CG_DrawSkyBoxPortal(const char *cstr);
@@ -754,8 +755,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	
 	if ( demo.viewType == viewChase && cg.playerCent && ( cg.playerCent->currentState.number < MAX_CLIENTS ) ) {
 		CG_Draw2D();
-	} else if (!captureFrame && cg_draw2D.integer && cg_drawFPS.integer) {
-		CG_DrawFPS( 0 );
+	} else if (cg_draw2D.integer) {
+		CG_CameraDraw2D();
 	} else {
 		vec4_t hcolor = {0, 0, 0, 0};
 		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);

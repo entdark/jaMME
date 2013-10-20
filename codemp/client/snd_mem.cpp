@@ -558,7 +558,6 @@ void S_MP3_CalcVols_f( void )
 
 
 
-
 // adjust filename for foreign languages and WAV/MP3 issues. 
 //
 // returns qfalse if failed to load, else fills in *pData
@@ -639,9 +638,11 @@ static sboolean S_LoadSound_FileLoadAndNameAdjuster(char *psFilename, byte **pDa
 		{
 			psVoice = NULL;	// use this ptr as a flag as to whether or not we substituted with a foreign version
 		}
+#ifndef SND_MME
 		return 0;
+#endif
 	}
-#ifdef SND_MME
+#ifndef SND_MME
 	else {
 		psVoice = strstr(psFilename,"chr_d");
 		if (psVoice) {
@@ -707,6 +708,92 @@ static sboolean S_LoadSound_FileLoadAndNameAdjuster(char *psFilename, byte **pDa
 	}
 
 	return qtrue;
+}
+
+static sboolean S_SwitchLang(char *psFilename) {
+	int iNameStrlen = strlen(psFilename);
+	char *psVoice = strstr(psFilename,"chars");
+	if (psVoice) {
+		// cache foreign voices...
+		//		
+		if (com_buildScript->integer) {
+			fileHandle_t hFile;
+			//German
+			strncpy(psVoice,"chr_d",5);	// same number of letters as "chars"
+			FS_FOpenFileRead(psFilename, &hFile, qfalse);		//cache the wav
+			if (!hFile) {
+				strcpy(&psFilename[iNameStrlen-3],"mp3");		//not there try mp3
+				FS_FOpenFileRead(psFilename, &hFile, qfalse);	//cache the mp3
+			}
+			if (hFile) {
+				FS_FCloseFile(hFile);
+			}
+			strcpy(&psFilename[iNameStrlen-3],"wav");	//put it back to wav
+
+			//French
+			strncpy(psVoice,"chr_f",5);	// same number of letters as "chars"
+			FS_FOpenFileRead(psFilename, &hFile, qfalse);		//cache the wav
+			if (!hFile) {
+				strcpy(&psFilename[iNameStrlen-3],"mp3");		//not there try mp3
+				FS_FOpenFileRead(psFilename, &hFile, qfalse);	//cache the mp3
+			}
+			if (hFile) {
+				FS_FCloseFile(hFile);
+			}
+			strcpy(&psFilename[iNameStrlen-3],"wav");	//put it back to wav
+
+			//Spanish
+			strncpy(psVoice,"chr_e",5);	// same number of letters as "chars"
+			FS_FOpenFileRead(psFilename, &hFile, qfalse);		//cache the wav
+			if (!hFile) {
+				strcpy(&psFilename[iNameStrlen-3],"mp3");		//not there try mp3
+				FS_FOpenFileRead(psFilename, &hFile, qfalse);	//cache the mp3
+			}
+			if (hFile) {
+				FS_FCloseFile(hFile);
+			}
+			strcpy(&psFilename[iNameStrlen-3],"wav");	//put it back to wav
+
+			strncpy(psVoice,"chars",5);	//put it back to chars
+		}
+
+		// account for foreign voices...
+		//		
+
+		if (s_language && stricmp("DEUTSCH",s_language->string)==0) {				
+			strncpy(psVoice,"chr_d",5);	// same number of letters as "chars"
+		}
+		else if (s_language && stricmp("FRANCAIS",s_language->string)==0) {				
+			strncpy(psVoice,"chr_f",5);	// same number of letters as "chars"
+		}
+		else if (s_language && stricmp("ESPANOL",s_language->string)==0) {				
+			strncpy(psVoice,"chr_e",5);	// same number of letters as "chars"
+		}
+		else {
+			psVoice = NULL;	// use this ptr as a flag as to whether or not we substituted with a foreign version
+		}
+		return 0;
+	}
+	else {
+		psVoice = strstr(psFilename,"chr_d");
+		if (psVoice) {
+			strncpy(psVoice,"chars",5);
+			return 1;
+		} else {
+			psVoice = strstr(psFilename,"chr_f");
+			if (psVoice) {
+				strncpy(psVoice,"chars",5);
+				return 1;
+			} else {
+				psVoice = strstr(psFilename,"chr_f");
+				if (psVoice) {
+					strncpy(psVoice,"chars",5);
+					return 1;
+				}
+			}
+		}
+		return 0; //has to reach that only if it's not "chars" related sound, 1 - replaced sound
+	}
 }
 
 
@@ -1084,7 +1171,7 @@ static openSound_t *S_StreamOpen( const char *fileName, int dataSize ) {
 	int fileSize = 0;
 	openSound_t *open;
 
-	fileSize = FS_FOpenFileRead( fileName, &fileHandle, qtrue );//<--THIS SHIT DOES NOT WORK PLZ FIX
+	fileSize = FS_FOpenFileRead( fileName, &fileHandle, qtrue );
 	if ( fileSize <= 0 || fileHandle <= 0)
 		return 0;
 	open = (openSound_t *)Z_Malloc( sizeof( openSound_t ) + dataSize, TAG_SND_RAWDATA );	//???
@@ -1606,10 +1693,12 @@ openSound_t *S_SoundOpen( char *fileName ) {
 		return 0;
 	}
 
-	/* switch language */
+	/* switch language: /chars/ -> /chr_f/, /chr_d/, /chr_e/ */
 	if (Q_stricmp(s_language->string, "english"))
-		S_LoadSound_FileLoadAndNameAdjuster(fileName, NULL, NULL, NULL);
+//		S_LoadSound_FileLoadAndNameAdjuster(fileName, NULL, NULL, NULL);
+		S_SwitchLang(fileName);
 
+	/* sound/mp_generic_female/sound -> sound/chars/mp_generic_female/misc/sound */
 	char *match = strstr( fileName, "sound/mp_generic_female" );
 	if ( match ) {
 		char out[MAX_QPATH];
@@ -1620,6 +1709,7 @@ openSound_t *S_SoundOpen( char *fileName ) {
 		Q_strcat( out, sizeof( out ), pos );
 		fileName = out;
 	} else {
+	/* or sound/mp_generic_male/sound -> sound/chars/mp_generic_male/misc/sound */
 		match = strstr( fileName, "sound/mp_generic_male" );
 		if ( match ) {
 			char out[MAX_QPATH];
@@ -1632,7 +1722,7 @@ openSound_t *S_SoundOpen( char *fileName ) {
 		}
 	}
 
-tryAgainThisSound: //what if had an extension?
+tryAgainThisSound:
 	fileExt = Q_strrchr( fileName, '.' );
 	if (!fileExt) {
 		char *blah;
@@ -1663,7 +1753,8 @@ tryAgainThisSound: //what if had an extension?
 			if (open) {
 				return open;
 			} else if (Q_stricmp(s_language->string, "english")) {
-				if (S_LoadSound_FileLoadAndNameAdjuster(fileName, NULL, NULL, NULL)) {
+//				if (S_LoadSound_FileLoadAndNameAdjuster(fileName, NULL, NULL, NULL)) {
+				if (S_SwitchLang(fileName)) {
 					if (!doNotYell)
 						Com_Printf("File %s doesn't exist in %s, retrying with english\n", fileName, s_language->string );
 					goto tryAgainThisSound;
@@ -1692,7 +1783,8 @@ tryAgainThisSound: //what if had an extension?
 			if (open) {
 				return open;
 			} else if (Q_stricmp(s_language->string, "english") && !wasHere) {
-				if (S_LoadSound_FileLoadAndNameAdjuster(fileName, NULL, NULL, NULL)) {
+//				if (S_LoadSound_FileLoadAndNameAdjuster(fileName, NULL, NULL, NULL)) {
+				if (S_SwitchLang(fileName)) {
 					wasHere = qtrue;
 					if (!doNotYell)
 						Com_Printf("File %s doesn't exist in %s, retrying with english\n", fileName, s_language->string );
@@ -1720,7 +1812,8 @@ tryAgainThisSound: //what if had an extension?
 			if (open) {
 				return open;
 			} else if (Q_stricmp(s_language->string, "english") && !wasHere) {
-				if (S_LoadSound_FileLoadAndNameAdjuster(fileName, NULL, NULL, NULL)) {
+//				if (S_LoadSound_FileLoadAndNameAdjuster(fileName, NULL, NULL, NULL)) {
+				if (S_SwitchLang(fileName)) {
 					wasHere = qtrue;
 					if (!doNotYell)
 						Com_Printf("File %s doesn't exist in %s, retrying with english\n", fileName, s_language->string );
