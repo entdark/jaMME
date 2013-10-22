@@ -739,6 +739,11 @@ static void demoPlayForwardFrame( demoPlay_t *play ) {
 	demoFrame_t *copyFrame;
 
 	if (play->filePos + 4 > play->fileSize) {
+		if (mme_demoAutoQuit->integer) {
+			CL_Disconnect_f();
+			S_StopAllSounds();
+			VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
+		}
 		play->lastFrame = qtrue;
 		return;
 	}
@@ -791,7 +796,7 @@ static void demoPlaySetIndex( demoPlay_t *play, int index ) {
 	play->frameNumber = play->fileIndex[index].frame;
 }
 
-int lastSeekTime = 0; // You can put this wherever you want, or change it around if you want to. Globals aren't that pretty.
+int lastSeekTime = 0;
 static int demoPlaySeek( demoPlay_t *play, int seekTime ) {
 	int i;
 

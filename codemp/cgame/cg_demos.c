@@ -756,6 +756,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	if ( demo.viewType == viewChase && cg.playerCent && ( cg.playerCent->currentState.number < MAX_CLIENTS ) ) {
 		CG_Draw2D();
 	} else if (cg_draw2D.integer) {
+		vec4_t hcolor = {0, 0, 0, 0};
+		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 		CG_CameraDraw2D();
 	} else {
 		vec4_t hcolor = {0, 0, 0, 0};
@@ -785,7 +787,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		if ( mov_captureCamera.integer )
 			demoAddViewPos( fileName, demo.viewOrigin, demo.viewAngles, demo.viewFov );
 	} else {
-		trap_Cvar_Set("cl_mme_capture", "0");
+		if (demo.capture.active)
+			trap_Cvar_Set("cl_mme_capture", "0");
 //		if (demo.editType)
 //			demoDrawCrosshair();
 		hudDraw();
@@ -963,6 +966,18 @@ static void musicPlayCommand_f(void) {
 	demoSynchMusic( musicStart, length );
 }
 
+static void demoFindCommand_f(void) {
+	const char *cmd = CG_Argv(1);
+
+	if (!Q_stricmp(cmd, "death")) {
+		demo.find = findObituary;
+	} else {
+		demo.find = findNone;
+	}
+	if ( demo.find )
+		demo.play.paused = qfalse;
+}
+
 void demoPlaybackInit(void) {
 	char projectFile[MAX_OSPATH];
 
@@ -1011,6 +1026,7 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("speed");
 	trap_AddCommand("seek");
 	trap_AddCommand("demoSeek");
+	trap_AddCommand("find");
 	trap_AddCommand("pause");
 	trap_AddCommand("capture");
 	trap_AddCommand("hudInit");
@@ -1053,6 +1069,17 @@ void demoPlaybackInit(void) {
 	}
 }
 
+void CG_DemoEntityEvent( const centity_t* cent ) {
+	switch ( cent->currentState.event ) {
+	case EV_OBITUARY:
+		if ( demo.find == findObituary ) {
+			demo.play.paused = qtrue;
+			demo.find = findNone;
+		}
+		break;
+	}
+}
+
 qboolean CG_DemosConsoleCommand( void ) {
 	const char *cmd = CG_Argv(0);
 	if (!Q_stricmp(cmd, "camera")) {
@@ -1067,6 +1094,8 @@ qboolean CG_DemosConsoleCommand( void ) {
 		demoSeekCommand_f();
 	} else if (!Q_stricmp(cmd, "demoSeek")) {
 		demoSeekTwoCommand_f();
+	} else if (!Q_stricmp(cmd, "find")) {
+		demoFindCommand_f();
 	} else if (!Q_stricmp(cmd, "speed")) {
 		cmd = CG_Argv(1);
 		if (cmd[0]) {

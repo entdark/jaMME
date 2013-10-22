@@ -22,8 +22,11 @@ sboolean MP3_IsValid( const char *psLocalFilename, void *pvData, int iDataLen, s
 	{
 		Com_Printf(va(S_COLOR_RED"%s(%s)\n",psError, psLocalFilename));
 	}
-
+#ifndef SND_MME
 	return !psError;
+#else
+	return 1;
+#endif
 }
 
 

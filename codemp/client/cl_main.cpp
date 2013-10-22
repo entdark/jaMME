@@ -2995,7 +2995,7 @@ void CL_Init( void ) {
 
 
 	// MME cvars
-	mme_saveWav = Cvar_Get ("mme_saveWav", "0", CVAR_ARCHIVE );
+	mme_saveWav = Cvar_Get ("mme_saveWav", "1", CVAR_ARCHIVE );
 //	mme_anykeystopsdemo = Cvar_Get ("mme_anykeystopsdemo", "0", CVAR_ARCHIVE );
 //	mme_gameOverride = Cvar_Get ("mme_gameOverride", "", 0 );
 	mme_demoConvert = Cvar_Get ("mme_demoConvert", "1", CVAR_ARCHIVE );
@@ -3003,6 +3003,7 @@ void CL_Init( void ) {
 	mme_demoSmoothen = Cvar_Get ("mme_demoSmoothen", "1", CVAR_ARCHIVE );
 	mme_demoFileName = Cvar_Get ("mme_demoFileName", "", CVAR_TEMP | CVAR_NORESTART );
 	mme_demoStartProject = Cvar_Get ("mme_demoStartProject", "", CVAR_TEMP );
+	mme_demoAutoQuit = Cvar_Get ("mme_demoAutoQuit", "0", CVAR_ARCHIVE );
 
 	//
 	// register our commands

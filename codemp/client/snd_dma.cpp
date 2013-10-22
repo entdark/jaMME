@@ -1104,8 +1104,8 @@ sfxHandle_t	S_RegisterSound( const char *name) {
 
 
 	/* begin the fix to assign meta sounds to chars w/o sounds */
-	char *psVoice = strstr(fileName,"chars");
-	if (psVoice) {
+//	char *psVoice = strstr(fileName,"chars");
+//	if (psVoice) {
 		char sSoundNameNoExt[MAX_QPATH];
 		sfx_t	*sfx;
 		sfx = &s_knownSfx[0];
@@ -1130,7 +1130,7 @@ sfxHandle_t	S_RegisterSound( const char *name) {
 #endif
 			return 0;
 		}
-	}
+//	}
 	/* end the fix */
 
 

@@ -1337,6 +1337,7 @@ also called by CG_CheckPlayerstateEvents
 */
 #define	DEBUGNAME(x) if(cg_debugEvents.integer){CG_Printf(x"\n");}
 extern void CG_ChatBox_AddString(char *chatStr); //cg_draw.c
+extern void CG_DemoEntityEvent( const centity_t *cent );
 void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	entityState_t	*es;
 	int				event;
@@ -1361,6 +1362,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("ZEROEVENT");
 		return;
 	}
+
+	CG_DemoEntityEvent( cent );
 
 	clientNum = es->clientNum;
 	if ( clientNum < 0 || clientNum >= MAX_CLIENTS ) {

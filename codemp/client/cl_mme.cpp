@@ -16,6 +16,7 @@ cvar_t	*mme_demoSmoothen;
 cvar_t	*mme_demoFileName;
 cvar_t	*mme_demoStartProject;
 cvar_t	*mme_demoListQuit;
+cvar_t	*mme_demoAutoQuit;
 
 void CL_MME_CheckCvarChanges(void) {
 	

@@ -6963,44 +6963,35 @@ static void CG_DrawIntermission( void ) {
 CG_DrawFollow
 =================
 */
-static qboolean CG_DrawFollow( void ) 
-{
-	const char	*s;
-	//mme
-	return qfalse;
-	if ( !(cg.snap->ps.pm_flags & PMF_FOLLOW) ) 
-	{
+static qboolean CG_DrawFollow( void ) {
+	char	*s, *name;
+	
+	if (!(cg.snap->ps.pm_flags & PMF_FOLLOW)) {
 		return qfalse;
 	}
 
 //	s = "following";
-	if (cgs.gametype == GT_POWERDUEL)
-	{
+	if (cgs.gametype == GT_POWERDUEL) {
 		clientInfo_t *ci = &cgs.clientinfo[ cg.snap->ps.clientNum ];
 
-		if (ci->duelTeam == DUELTEAM_LONE)
-		{
+		if (ci->duelTeam == DUELTEAM_LONE) {
 			s = CG_GetStringEdString("MP_INGAME", "FOLLOWINGLONE");
-		}
-		else if (ci->duelTeam == DUELTEAM_DOUBLE)
-		{
+		} else if (ci->duelTeam == DUELTEAM_DOUBLE) {
 			s = CG_GetStringEdString("MP_INGAME", "FOLLOWINGDOUBLE");
-		}
-		else
-		{
+		} else {
 			s = CG_GetStringEdString("MP_INGAME", "FOLLOWING");
 		}
-	}
-	else
-	{
+	} else {
 		s = CG_GetStringEdString("MP_INGAME", "FOLLOWING");
 	}
-
+/*
 	CG_Text_Paint ( 320 - CG_Text_Width ( s, 1.0f, FONT_MEDIUM ) / 2, 60, 1.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM );
 
 	s = cgs.clientinfo[ cg.snap->ps.clientNum ].name;
 	CG_Text_Paint ( 320 - CG_Text_Width ( s, 2.0f, FONT_MEDIUM ) / 2, 80, 2.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM );
-
+*/
+	strcat( s, va(": %s", cgs.clientinfo[ cg.snap->ps.clientNum ].name));
+	CG_Text_Paint ( 320 - CG_Text_Width ( s, 0.5f, FONT_LARGE ) / 2, 1, 0.5f, colorWhite, s, 0, 0, 0, FONT_LARGE );
 	return qtrue;
 }
 
