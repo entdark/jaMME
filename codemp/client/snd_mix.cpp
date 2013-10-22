@@ -754,7 +754,10 @@ static void S_MixChannel( mixChannel_t *ch, int speed, int count, int *output ) 
 	const short *data;
 	float volume;
 
-	volume = s_volume->value * (1 << MIX_SHIFT) * 0.5;
+	if (ch->entChan == CHAN_VOICE || ch->entChan == CHAN_VOICE_ATTEN || ch->entChan == CHAN_VOICE_GLOBAL )
+		volume = s_volumeVoice->value * (1 << MIX_SHIFT) * 0.5;
+	else
+		volume = s_volume->value * (1 << MIX_SHIFT) * 0.5;
 	origin = (!ch->hasOrigin) ? s_entitySounds[ch->entNum].origin : ch->origin;
 	S_MixSpatialize( origin, volume , &leftVol, &rightVol );
 	sound = S_MixGetSound( ch->handle );
