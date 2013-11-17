@@ -1683,7 +1683,9 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	}
 
 	v = ConfigValue( strings, "shader");
-	if ( v[0] )
+	if ( v[0] == '2' && !v[1])
+		newInfo.shaderOverride = 2;
+	else if ( v[0] )
 		newInfo.shaderOverride = trap_R_RegisterShader( v );
 
 	// bot skill
@@ -4716,10 +4718,11 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 
 	if (cg.playerCent) {
 		//[TrueView]
-		if (cent->currentState.number == /*cg.snap->ps.clientNum*/ cg.playerCent->currentState.number
-			&& (!cg.renderingThirdPerson)// || !cg_trueGuns.integer) 
+		if (cent == cg.playerCent
+			&& (!cg.renderingThirdPerson)
 			&& (cg.playerCent->currentState.weapon != WP_SABER
-			|| (cg.playerCent->currentState.weapon == WP_SABER && !cg_trueSaberOnly.integer)))//cg.snap->ps.weapon != WP_SABER)
+			|| (cg.playerCent->currentState.weapon == WP_SABER && !cg_trueSaberOnly.integer)
+			|| (cg.playerCent->currentState.weapon == WP_MELEE && cg_trueGuns.integer)))
 			return;
 		//[/TrueView]
 	}
@@ -4809,6 +4812,11 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 		ent.origin[2] += 17;
 		ent.renderfx |= RF_FORCE_ENT_ALPHA;
 
+		if (ci->shaderOverride == 2 && !cg_renderToTextureFX.integer)
+			ent.customShader = cgs.media.cloakedShader;
+		else if (ci->shaderOverride == 2 && cg_renderToTextureFX.integer)
+			ent.customShader = ci->shaderOverride;
+
 		trap_R_AddRefEntityToScene( &ent, cent->currentState.number );
 		ent.modelScale[0] = 1.0;
 		ent.modelScale[1] = -1.0;
@@ -4836,6 +4844,11 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 			ent.renderfx |= RF_FORCE_ENT_ALPHA;
 			ent.shaderRGBA[3] = 100;
 		}
+
+		if (ci->shaderOverride == 2 && !cg_renderToTextureFX.integer)
+			ent.customShader = cgs.media.cloakedShader;
+		else if (ci->shaderOverride == 2 && cg_renderToTextureFX.integer)
+			ent.customShader = ci->shaderOverride;
 
 		trap_R_AddRefEntityToScene( &ent );
 	}
@@ -4975,7 +4988,7 @@ static void CG_PlayerSprites( centity_t *cent ) {
 //	int		team;
 
 	//mme
-	if (  cent == cg.playerCent && !cg.renderingThirdPerson ) 
+	if ( cent == cg.playerCent && !cg.renderingThirdPerson ) 
 		return;
 
 	if (cg.snap &&
@@ -5651,7 +5664,7 @@ void CG_PlayerHitFX(centity_t *cent)
 {
 	if (cg.playerCent) {
 		// only do the below fx if the cent in question is...uh...me, and it's first person.
-		if (cent->currentState.clientNum != cg.playerCent->currentState.number/*cg.predictedPlayerState.clientNum*/
+		if (cent != cg.playerCent
 			|| cg.renderingThirdPerson)
 		{
 			if (cent->damageTime > cg.time && cent->damageStartTime <= cg.time
@@ -7360,10 +7373,10 @@ void CG_DrawPlayerSphere(centity_t *cent, vec3_t origin, float scale, int shader
 		return;
 	}
 
-	if (cg.playerCent) {
-		if (cent->currentState.number == cg.playerCent->currentState.number && !cg.renderingThirdPerson) {
-			return;
-		}
+	if (cg.playerCent
+		&& cent == cg.playerCent
+		&& !cg.renderingThirdPerson) {
+		return;
 	}
 
 	memset( &ent, 0, sizeof( ent ) );
@@ -10104,7 +10117,6 @@ void CG_Player( centity_t *cent ) {
 
 	// get the player model information
 	renderfx = 0;
-//	if ( cent->currentState.number == cg.snap->ps.clientNum) {
 	if ( cent == cg.playerCent ) {
 		if ( mov_filterMask.integer & movMaskClient) {
 			return;
@@ -10114,12 +10126,10 @@ void CG_Player( centity_t *cent ) {
 			if (!cg_fpls.integer || cent->currentState.weapon != WP_SABER)
 #else
 			//[TrueView]
-			if ( ( !cg_trueGuns.integer && /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon != WP_SABER 
-				&& /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon != WP_MELEE) 
-				|| ( /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer )
-				|| (cg.predictedPlayerState.zoomMode && cg.playerPredicted)
-				/*|| cg.japp.fakeGun*/ )
-			//if (cent->currentState.weapon != WP_SABER)
+			if ( ( !cg_trueGuns.integer && cg.playerCent->currentState.weapon != WP_SABER 
+				&& cg.playerCent->currentState.weapon != WP_MELEE) 
+				|| (cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer )
+				|| (cg.predictedPlayerState.zoomMode && cg.playerPredicted))
 			//[/TrueView]
 #endif
 			{
@@ -10256,7 +10266,6 @@ void CG_Player( centity_t *cent ) {
 	team = ci->team;
 
 	if (cgs.gametype >= GT_TEAM && cg_drawFriend.integer &&
-//		cent->currentState.number != /*cg.playerCent->currentState.number*/cg.snap->ps.clientNum &&
 		cent != cg.playerCent &&
 		cent->currentState.eType != ET_NPC)
 	{	// If the view is either a spectator or on the same team as this character, show a symbol above their head.
@@ -10302,8 +10311,7 @@ void CG_Player( centity_t *cent ) {
 		}
 	}
 	else if (cgs.gametype == GT_POWERDUEL && cg_drawFriend.integer &&
-//		cent->currentState.number != cg.snap->ps.clientNum)
-		cent->currentState.number != cg.playerCent->currentState.number)
+		cent != cg.playerCent)
 	{
 		if (cg.predictedPlayerState.persistant[PERS_TEAM] != TEAM_SPECTATOR &&
 			cent->currentState.number < MAX_CLIENTS &&
@@ -10323,8 +10331,7 @@ void CG_Player( centity_t *cent ) {
 	}
 
 	if (cgs.gametype == GT_JEDIMASTER && cg_drawFriend.integer &&
-//		cent->currentState.number != cg.snap->ps.clientNum)			// Don't show a sprite above a player's own head in 3rd person.
-		cent->currentState.number != cg.playerCent->currentState.number)
+		cent != cg.playerCent) // Don't show a sprite above a player's own head in 3rd person.
 	{	// If the view is either a spectator or on the same team as this character, show a symbol above their head.
 		if ((cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.snap->ps.persistant[PERS_TEAM] == team) &&
 			!(cent->currentState.eFlags & EF_DEAD))
@@ -10343,7 +10350,8 @@ void CG_Player( centity_t *cent ) {
 	}
 
 	// add the shadow
-	shadow = CG_PlayerShadow( cent, &shadowPlane );
+	if (ci->shaderOverride != 2)
+		shadow = CG_PlayerShadow( cent, &shadowPlane );
 
 	if ( ((cent->currentState.eFlags & EF_SEEKERDRONE) || cent->currentState.genericenemyindex != -1) && cent->currentState.eType != ET_NPC )
 	{
@@ -10483,7 +10491,7 @@ void CG_Player( centity_t *cent ) {
 
 	//[TrueView]
 	//Restrict True View Model changes to the player and do the True View camera view work.
-	if (cg.snap /*&& cent->currentState.number == cg.snap->ps.clientNum*/ && cent == cg.playerCent)
+	if (cg.snap && cent == cg.playerCent)
 	{
 		if ( !cg.renderingThirdPerson && (cg_trueGuns.integer || cent->currentState.weapon == WP_SABER 
 			|| cent->currentState.weapon == WP_MELEE) 
@@ -10579,7 +10587,7 @@ void CG_Player( centity_t *cent ) {
 			//	TrueEyePosition = cg_trueEyePosition.value;
 			AngleVectors( eyeAngles, EyeAxis[0], NULL, NULL );
 			VectorMA( refdef->vieworg, cg_trueEyePosition.value, EyeAxis[0], refdef->vieworg );
-			if ( cg.snap->ps.emplacedIndex )
+			if ( cg.playerPredicted && cg.snap->ps.emplacedIndex )
 				VectorMA( refdef->vieworg, 10, EyeAxis[2], refdef->vieworg );
 
 			//Trace to see if the bolt eye origin is ok to move to.  If it's not, place it at the last safe position.
@@ -10921,9 +10929,9 @@ SkipTrueView:
 		//[TrueView]
 		//Do the Grip visual when you're using true view.
 		if ( (cent->currentState.forcePowersActive & (1 << FP_GRIP)) &&
-			(cg.renderingThirdPerson || cent->currentState.number != cg.snap->ps.clientNum 
-			|| cg_trueGuns.integer  || cg.predictedPlayerState.weapon == WP_SABER
-			|| cg.predictedPlayerState.weapon == WP_MELEE) )
+			(cg.renderingThirdPerson || (cg.playerCent && (cent != cg.playerCent
+			|| cg.playerCent->currentState.weapon == WP_SABER
+			|| cg.playerCent->currentState.weapon == WP_MELEE)) || cg_trueGuns.integer))
 		/*
 		if ( (cent->currentState.forcePowersActive & (1 << FP_GRIP)) &&
 			(cg.renderingThirdPerson || cent->currentState.number != cg.snap->ps.clientNum) )
@@ -11157,9 +11165,9 @@ SkipTrueView:
 		cent->currentState.time2
 		&& (cg.renderingThirdPerson
 			|| cg_trueGuns.integer
-//			|| cg.predictedPlayerState.weapon == WP_SABER
-//			|| cg.predictedPlayerState.weapon == WP_MELEE)
-		|| cg.snap->ps.clientNum != cent->currentState.number))
+			|| (cg.playerCent && (cg.playerCent->currentState.weapon == WP_SABER
+			|| cg.playerCent->currentState.weapon == WP_MELEE))
+		|| cg.playerCent != cent))
 	//if (cgs.gametype == GT_HOLOCRON && cent->currentState.time2 && (cg.renderingThirdPerson || cg.snap->ps.clientNum != cent->currentState.number))
 	//[/TrueView]
 	{
@@ -11361,7 +11369,8 @@ stillDoSaber:
 			vec3_t soundSpot;
 			qboolean didFirstSound = qfalse;
 
-			if (cg.snap->ps.clientNum == cent->currentState.number)
+			if (cg.playerCent &&
+				cg.playerCent == cent)
 			{
 				//trap_S_AddLoopingSound( cent->currentState.number, cg.refdef.vieworg, vec3_origin, 
 				//	trap_S_RegisterSound( "sound/weapons/saber/saberhum1.wav" ) );
@@ -11954,9 +11963,8 @@ stillDoSaber:
 	}
 
 	if (cg.playerCent
-		&& cg.playerCent->currentState.number == cg.snap->ps.clientNum
-		&& (cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE))
-		&& cg.snap->ps.clientNum != cent->currentState.number
+		&& cg.playerCent != cent
+		&& (cg.playerCent->currentState.forcePowersActive & (1 << FP_SEE))
 		&& cg_auraShell.integer)
 	{
 		legs.shaderRGBA[0] = 255;
@@ -12094,8 +12102,8 @@ stillDoSaber:
 
 	if (cent->uncloaking > cg.time)
 	{//in the middle of cloaking
-		if ((cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE)) 
-			&& cg.snap->ps.clientNum != cent->currentState.number)
+		if (cg.playerCent && (cg.playerCent->currentState.forcePowersActive & (1 << FP_SEE)) 
+			&& cg.playerCent != cent)
 		{//just draw him
 			trap_R_AddRefEntityToScene( &legs );
 		}
@@ -12127,8 +12135,8 @@ stillDoSaber:
 	}
 	else if (( cent->currentState.powerups & ( 1 << PW_CLOAKED ))) 
 	{//fully cloaked
-		if ((cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE)) 
-			&& cg.snap->ps.clientNum != cent->currentState.number)
+		if (cg.playerCent && (cg.playerCent->currentState.forcePowersActive & (1 << FP_SEE)) 
+			&& cg.playerCent != cent)
 		{//just draw him
 			trap_R_AddRefEntityToScene( &legs );
 		}
@@ -12183,11 +12191,14 @@ stillDoSaber:
 		}
 	}
 
+	if (ci->shaderOverride == 2) goto skipCloaked;
+
 	if (!(cent->currentState.powerups & (1 << PW_CLOAKED)))
 	{ //don't add the normal model if cloaked
 		CG_CheckThirdPersonAlpha( cent, &legs );
 		trap_R_AddRefEntityToScene(&legs);
 	}
+skipCloaked:
 
 	//cent->frame_minus2 = cent->frame_minus1;
 	if (cg.time - cg.oldTime !=0) {
@@ -12261,7 +12272,7 @@ stillDoSaber:
 	// add the gun / barrel / flash
 	//
 	if (cent->currentState.weapon != WP_EMPLACED_GUN
-		&& (( cg.playerCent && cg.playerCent->currentState.number != cent->currentState.number)
+		&& (( cg.playerCent && cg.playerCent != cent)
 		|| cg.renderingThirdPerson || cg_trueGuns.integer))
 	{
 		CG_AddPlayerWeapon( &legs, NULL, cent, ci->team, rootAngles, qtrue );
@@ -12278,13 +12289,9 @@ stillDoSaber:
 
 	//[TrueView]
 	if ((cent->currentState.forcePowersActive & (1 << FP_RAGE)) &&
-		(cg.renderingThirdPerson || cent->currentState.number != cg.snap->ps.clientNum
-		|| cg_trueGuns.integer || /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_SABER
-		|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_MELEE
-		/*|| cg.predictedPlayerState.weapon == WP_SABER
-		|| cg.predictedPlayerState.weapon == WP_MELEE*/))
-//	if ((cent->currentState.forcePowersActive & (1 << FP_RAGE)) &&
-//		(cg.renderingThirdPerson || cent->currentState.number != cg.snap->ps.clientNum))
+		(cg.renderingThirdPerson || cent != cg.playerCent
+		|| cg_trueGuns.integer || cg.playerCent->currentState.weapon == WP_SABER
+		|| cg.playerCent->currentState.weapon == WP_MELEE))
 	//[/TrueView]
 	{
 		//legs.customShader = cgs.media.rageShader;
@@ -12419,9 +12426,8 @@ stillDoSaber:
 	}
 
 	if (cg.playerCent
-		&& cg.playerCent->currentState.number == cg.snap->ps.clientNum
-		&& (cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE))
-		&& cg.snap->ps.clientNum != cent->currentState.number
+		&& cg.playerCent != cent
+		&& (cg.playerCent->currentState.forcePowersActive & (1 << FP_SEE))
 		&& cg_auraShell.integer)
 	{
 		if (cgs.gametype == GT_SIEGE)
@@ -12482,7 +12488,7 @@ stillDoSaber:
 */		{	// See through walls.
 			legs.renderfx |= RF_MINLIGHT | RF_NODEPTH;
 
-			if (cg.snap->ps.fd.forcePowerLevel[FP_SEE] < FORCE_LEVEL_2)
+			if (cg.snap->ps.fd.forcePowerLevel[FP_SEE] < FORCE_LEVEL_2 && cg.playerPredicted)
 			{ //only level 2+ can see players through walls
 				legs.renderfx &= ~RF_NODEPTH;
 			}
@@ -12530,7 +12536,10 @@ stillDoSaber:
 
 			trap_R_AddRefEntityToScene( &legs );
 
-			if ( !(mov_soundDisable.integer & SDISABLE_FORCE) && random() > 0.9f )
+			if ( !(mov_soundDisable.integer & SDISABLE_FORCE) && (random() > 0.9f || !cg.frametime)
+				&& ((cg.frametime < 50 && (cg.time % 50 <= cg.frametime && cg.time % 50 != 0))
+				|| cg.frametime >= 50
+				|| (!cg.frametime && cg.time % 5 == 0)))
 				trap_S_StartSound ( NULL, cent->currentState.number, CHAN_AUTO, cgs.media.crackleSound );
 		}
 
@@ -12557,7 +12566,10 @@ stillDoSaber:
 		trap_R_AddRefEntityToScene( &legs );
 	}
 	if (ci->shaderOverride) {
-		legs.customShader = ci->shaderOverride;
+		if (ci->shaderOverride == 2 && !cg_renderToTextureFX.integer)
+			legs.customShader = cgs.media.cloakedShader;
+		else
+			legs.customShader = ci->shaderOverride;
 		trap_R_AddRefEntityToScene( &legs );
 	}
 

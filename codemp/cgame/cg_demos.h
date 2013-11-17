@@ -27,6 +27,7 @@ typedef enum {
 typedef enum {
 	findNone,
 	findObituary,
+	findDirect,
 } demofindType_t;
 
 typedef struct demoLinePoint_s {
@@ -144,14 +145,13 @@ void demoPlaybackInit(void);
 void CG_DemosAddLog(const char *fmt, ...);
 void demoCameraCommand_f(void);
 
+demoCameraPoint_t *cameraPointSynch( int time );
+void cameraMove( void );
 void cameraMoveDirect( void );
 void cameraUpdate( int time, float timeFraction );
 void cameraDraw( int time, float timeFraction );
 qboolean cameraParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data);
 void cameraSave( fileHandle_t fileHandle );
-
-demoCameraPoint_t *cameraPointSynch( int time );
-void cameraMove( void );
 
 void demoLineCommand_f(void);
 demoLinePoint_t *linePointSynch(int playTime);

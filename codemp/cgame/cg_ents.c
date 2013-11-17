@@ -3499,6 +3499,7 @@ static void CG_AddCEntity( centity_t *cent ) {
 			cent->currentState.eType == ET_PLAYER ||
 			cent->currentState.eType == ET_INVISIBLE)
 		{
+			CG_SetEntitySoundPosition( cent );
 			return;
 		}
 		if ( cent->currentState.eType == ET_NPC )

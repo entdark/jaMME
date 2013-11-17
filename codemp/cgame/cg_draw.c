@@ -2921,7 +2921,7 @@ static float CG_DrawEnemyInfo ( float y )
 		return y;
 	}
 
-	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 ) 
+	if ( cg.playerPredicted && cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 ) 
 	{
 		return y;
 	}
@@ -2965,20 +2965,24 @@ static float CG_DrawEnemyInfo ( float y )
 	{
 //		title = "Dueling";
 		title = CG_GetStringEdString("MP_INGAME", "DUELING");
-		clientNum = cg.snap->ps.duelIndex;
+		// good fix yeah?
+		if (cg.playerPredicted)
+			clientNum = cg.snap->ps.duelIndex;
+		else
+			clientNum = cg.snap->ps.clientNum;
 	}
 	else if ( cgs.gametype == GT_DUEL && cgs.clientinfo[cg.snap->ps.clientNum].team != TEAM_SPECTATOR)
 	{
 		title = CG_GetStringEdString("MP_INGAME", "DUELING");
-		if (cg.snap->ps.clientNum == cgs.duelist1)
+		if (cg.playerCent->currentState.number == cgs.duelist1)
 		{
 			clientNum = cgs.duelist2; //if power duel, should actually draw both duelists 2 and 3 I guess
 		}
-		else if (cg.snap->ps.clientNum == cgs.duelist2)
+		else if (cg.playerCent->currentState.number == cgs.duelist2)
 		{
 			clientNum = cgs.duelist1;
 		}
-		else if (cg.snap->ps.clientNum == cgs.duelist3)
+		else if (cg.playerCent->currentState.number == cgs.duelist3)
 		{
 			clientNum = cgs.duelist1;
 		}
@@ -4001,6 +4005,9 @@ static void CG_DrawPowerupIcons(int y)
 		{
 			int secondsleft = (cg.snap->ps.powerups[j] - cg.time)/1000;
 
+			if (!cg.playerPredicted)
+				secondsleft = 1000; //we don't draw timer
+
 			item = BG_FindItemForPowerup( j );
 
 			if (item)
@@ -4292,7 +4299,7 @@ static void CG_DrawLagometer( void ) {
 	int		color;
 	float	vscale;
 
-	if ( !cg_lagometer.integer || cgs.localServer || cg.playerCent->currentState.number != cg.predictedPlayerState.clientNum) {
+	if ( !cg_lagometer.integer || cgs.localServer || !cg.playerPredicted) {
 		CG_DrawDisconnect();
 		return;
 	}
@@ -5007,7 +5014,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 			else if ( crossEnt->currentState.number < MAX_CLIENTS )
 			{
 				if (cgs.gametype >= GT_TEAM &&
-//					cgs.clientinfo[crossEnt->currentState.number].team == cgs.clientinfo[cg.snap->ps.clientNum].team )
 					cgs.clientinfo[crossEnt->currentState.number].team == cgs.clientinfo[cg.playerCent->currentState.number].team )
 				{
 					//Allies are green
@@ -5018,7 +5024,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 				else
 				{
 					if (cgs.gametype == GT_POWERDUEL &&
-//						cgs.clientinfo[crossEnt->currentState.number].duelTeam == cgs.clientinfo[cg.snap->ps.clientNum].duelTeam)
 						cgs.clientinfo[crossEnt->currentState.number].duelTeam == cgs.clientinfo[cg.playerCent->currentState.number].duelTeam)
 					{ //on the same duel team in powerduel, so he's a friend
 						ecolor[0] = 0.0;//R
@@ -5137,7 +5142,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 						ecolor[1] = 1.0f;//G
 						ecolor[2] = 0.0f;//B
 					}
-//					else if ( crossEnt->currentState.teamowner != cgs.clientinfo[cg.snap->ps.clientNum].team )
 					else if ( crossEnt->currentState.teamowner != cgs.clientinfo[cg.playerCent->currentState.number].team )
 					{ //on the enemy team
 						ecolor[0] = 1.0f;//R
@@ -5151,8 +5155,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 						ecolor[2] = 0.0f;//B
 					}
 				}
-//				else if (crossEnt->currentState.owner == cg.snap->ps.clientNum ||
-//					(cgs.gametype >= GT_TEAM && crossEnt->currentState.teamowner == cgs.clientinfo[cg.snap->ps.clientNum].team))
 				else if (crossEnt->currentState.owner == cg.playerCent->currentState.number ||
 					(cgs.gametype >= GT_TEAM && crossEnt->currentState.teamowner == cgs.clientinfo[cg.playerCent->currentState.number].team))
 				{
@@ -5160,8 +5162,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 					ecolor[1] = 1.0f;//G
 					ecolor[2] = 0.0f;//B
 				}
-//				else if (crossEnt->currentState.teamowner == 16 ||
-//					(cgs.gametype >= GT_TEAM && crossEnt->currentState.teamowner && crossEnt->currentState.teamowner != cgs.clientinfo[cg.snap->ps.clientNum].team))
 				else if (crossEnt->currentState.teamowner == 16 ||
 					(cgs.gametype >= GT_TEAM && crossEnt->currentState.teamowner && crossEnt->currentState.teamowner != cgs.clientinfo[cg.playerCent->currentState.number].team))
 				{
@@ -5170,7 +5170,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 					ecolor[2] = 0.0f;//B
 				}
 			}
-//			else if (crossEnt->currentState.eType == ET_MOVER && crossEnt->currentState.bolt1 && cg.predictedPlayerState.weapon == WP_SABER)
 			else if (crossEnt->currentState.eType == ET_MOVER && crossEnt->currentState.bolt1 && cg.playerCent->currentState.weapon == WP_SABER)
 			{ //can push/pull this mover. Only show it if we're using the saber.
 				ecolor[0] = 0.2f;
@@ -5728,8 +5727,8 @@ static void CG_DrawHolocronIcons(void)
 	{
 		if (cg.snap->ps.holocronBits & (1 << forcePowerSorted[i]))
 		{
-			CG_DrawPic( startx, starty, endx, endy, cgs.media.forcePowerIcons[forcePowerSorted[i]]);
-			starty += (icon_size+2); //+2 for spacing
+			CG_DrawPic( startx, starty, endx*cgs.widthRatioCoef, endy, cgs.media.forcePowerIcons[forcePowerSorted[i]]);
+			starty += (icon_size+2)*cgs.widthRatioCoef; //+2 for spacing
 			if ((starty+icon_size) >= SCREEN_HEIGHT-80)
 			{
 				starty = 10;//SCREEN_HEIGHT - icon_size*3;
@@ -5769,11 +5768,7 @@ static void CG_DrawActivePowers(void)
 	int endx = icon_size;
 	int endy = icon_size;
 
-	if (cg.playerCent->currentState.number != cg.predictedPlayerState.clientNum) {
-		return;
-	}
-
-	if (cg.snap->ps.zoomMode)
+	if (cg.playerPredicted && cg.snap->ps.zoomMode)
 	{ //don't display over zoom mask
 		return;
 	}
@@ -5787,7 +5782,7 @@ static void CG_DrawActivePowers(void)
 
 	while (i < NUM_FORCE_POWERS)
 	{
-		if ((cg.snap->ps.fd.forcePowersActive & (1 << forcePowerSorted[i])) &&
+		if ((cg.playerCent->currentState.forcePowersActive & (1 << forcePowerSorted[i])) &&
 			CG_IsDurationPower(forcePowerSorted[i]))
 		{
 			CG_DrawPic( startx, starty, endx*cgs.widthRatioCoef, endy, cgs.media.forcePowerIcons[forcePowerSorted[i]]);
@@ -5803,7 +5798,7 @@ static void CG_DrawActivePowers(void)
 	}
 
 	//additionally, draw an icon force force rage recovery
-	if (cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
+	if (cg.playerPredicted && cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
 	{
 		CG_DrawPic( startx, starty, endx*cgs.widthRatioCoef, endy, cgs.media.rageRecShader);
 	}
@@ -6134,15 +6129,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 	int			ignore;
 	qboolean	bVehCheckTraceFromCamPos = qfalse;
 
-	if (!cg.playerCent) {
-		return;
-	}
-
-	if (cg.playerPredicted) {
-		ignore = cg.predictedPlayerState.clientNum;
-	} else {
-		ignore = cg.playerCent->currentState.number;
-	}
+	ignore = cg.playerCent->currentState.number;
 
 	if ( cg_dynamicCrosshair.integer && cg.playerPredicted)
 	{
@@ -6242,7 +6229,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 
 		VectorMA( start, cg.distanceCull, d_f, end );
 	}
-	else if (cg_dynamicCrosshair.integer && cg.playerCent)
+	else if (cg_dynamicCrosshair.integer)
 	{
 		vec3_t d_f, d_rt, d_up;
 		if (cg.snap && cg.playerCent->currentState.weapon == WP_EMPLACED_GUN && cg.playerCent->playerState->emplacedIndex &&
@@ -6252,7 +6239,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 		}
 		else
 		{
-			if (cg.snap && cg.playerCent->currentState.weapon == WP_EMPLACED_GUN /*&& cg.snap->ps.emplacedIndex*/)
+			if (cg.snap && cg.playerCent->currentState.weapon == WP_EMPLACED_GUN)
 			{
 				vec3_t pitchConstraint;
 
@@ -6347,7 +6334,6 @@ static void CG_ScanForCrosshairEntity( void ) {
 			cg_entities[trace.entityNum].currentState.trickedentindex2,
 			cg_entities[trace.entityNum].currentState.trickedentindex3,
 			cg_entities[trace.entityNum].currentState.trickedentindex4,
-//			cg.snap->ps.clientNum))
 			cg.playerCent->currentState.number))
 		{
 			if (cg.crosshairClientNum == trace.entityNum)
@@ -6357,14 +6343,6 @@ static void CG_ScanForCrosshairEntity( void ) {
 			}
 
 			CG_DrawCrosshair(trace.endpos, 0);
-
-			//mme, taken from pugmod
-/*			if(cg.playerCent->currentState.number!=-1 && cg.demoPlayback) {
-				cg.snap->ps.clientNum = cg.predictedPlayerState.clientNum = oldNum;
-				VectorCopy(orgview,cg.predictedPlayerState.viewangles);
-				cg.predictedPlayerState.persistant[PERS_TEAM] = oldTeam;
-			}
-*/
 			return; //this entity is mind-tricking the current client, so don't render it
 		}
 	}
@@ -6406,24 +6384,12 @@ static void CG_ScanForCrosshairEntity( void ) {
 	// if the player is in fog, don't show it
 	content = trap_CM_PointContents( trace.endpos, 0 );
 	if ( content & CONTENTS_FOG ) {
-		//mme, taken from pugmod
-/*		if(cg.playerCent->currentState.number!=-1 && cg.demoPlayback) {
-			cg.snap->ps.clientNum = cg.predictedPlayerState.clientNum = oldNum;
-			VectorCopy(orgview,cg.predictedPlayerState.viewangles);
-			cg.predictedPlayerState.persistant[PERS_TEAM] = oldTeam;
-		}
-*/		return;
+		return;
 	}
 
 	// update the fade timer
 	cg.crosshairClientNum = trace.entityNum;
 	cg.crosshairClientTime = cg.time;
-	//mme, taken from pugmod
-/*	if(cg.playerCent->currentState.number!=-1 && cg.demoPlayback) {
-		cg.snap->ps.clientNum = cg.predictedPlayerState.clientNum = oldNum;
-		VectorCopy(orgview,cg.predictedPlayerState.viewangles);
-		cg.predictedPlayerState.persistant[PERS_TEAM] = oldTeam;
-	}*/
 }
 
 //mme, taken from pugmod
@@ -6532,7 +6498,6 @@ static void CG_DrawCrosshairNames( void ) {
 		if (1)
 		{ //instead of team-based we'll make it oriented based on which team we're on
 			//mme, taken from pugmod
-//			if (cgs.clientinfo[cg.crosshairClientNum].team == cg.predictedPlayerState.persistant[PERS_TEAM])
 			if (cgs.clientinfo[cg.crosshairClientNum].team == (cg.playerCent->currentState.number!=-1?cgs.clientinfo[cg.playerCent->currentState.number].team:cg.predictedPlayerState.persistant[PERS_TEAM]))
 			{
 				baseColor = CT_GREEN;
@@ -6559,7 +6524,6 @@ static void CG_DrawCrosshairNames( void ) {
 		//baseColor = CT_WHITE;
 		if (cgs.gametype == GT_POWERDUEL &&
 			//mme, taken from pugmod
-//			cgs.clientinfo[cg.snap->ps.clientNum].team != TEAM_SPECTATOR &&
 			cgs.clientinfo[cg.playerCent->currentState.number!=-1?cg.playerCent->currentState.number:cg.snap->ps.clientNum].team != TEAM_SPECTATOR &&
 			cgs.clientinfo[cg.crosshairClientNum].duelTeam == cgs.clientinfo[cg.predictedPlayerState.clientNum].duelTeam)
 		{ //on the same duel team in powerduel, so he's a friend
@@ -6597,14 +6561,12 @@ static void CG_DrawCrosshairNames( void ) {
 	{
 		char str[MAX_STRING_CHARS];
 		//mme, taken from pugmod
-//		Com_sprintf(str, MAX_STRING_CHARS, "%s (pilot)", name);
 		Com_sprintf(str, MAX_STRING_CHARS, "%s (pilot)", sanitized);
 		UI_DrawProportionalString(320, 170, str, UI_CENTER, tcolor);
 	}
 	else
 	{
 		//mme, taken from pugmod
-//		UI_DrawProportionalString(320, 170, name, UI_CENTER, tcolor);
 		UI_DrawProportionalString(320, 170, sanitized, UI_CENTER, tcolor);
 	}
 
@@ -8273,8 +8235,10 @@ static void CG_Draw2DScreenTints( void )
 void CG_CameraDraw2D( void ) {
 	if (cg_drawFPS.integer)
 		CG_DrawFPS( 0 );
-	if (cg_draw2D.integer == 2)
+	if (cg_draw2D.integer == 2) {
+		trap_S_UpdateEntityPosition(ENTITYNUM_NONE, cg.refdef.vieworg);
 		CG_ChatBox_DrawStrings();
+	}
 }
 
 void CG_Draw2D( void ) {
@@ -8291,7 +8255,6 @@ void CG_Draw2D( void ) {
 	}
 
 	if (cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR)
-//	if (cgs.clientinfo[cg.playerCent->currentState.clientNum].team == TEAM_SPECTATOR)
 	{
 		cgRageTime = 0;
 		cgRageFadeTime = 0;
@@ -8377,8 +8340,7 @@ void CG_Draw2D( void ) {
 	}
 
 	// Draw this before the text so that any text won't get clipped off
-	if (cg.playerCent->currentState.number == cg.predictedPlayerState.clientNum)
-		CG_DrawZoomMask();
+	CG_DrawZoomMask();
 
 /*
 	if (cg.cameraMode) {
@@ -8386,8 +8348,7 @@ void CG_Draw2D( void ) {
 	}
 */
 	if ( cg.playerPredicted ) {
-//		if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
-		if ( cgs.clientinfo[ cg.playerCent->currentState.clientNum].team == TEAM_SPECTATOR ) {
+		if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
 //			CG_DrawSpectator();
 			CG_DrawCrosshair(NULL, 0);
 			CG_DrawCrosshairNames();
@@ -8461,11 +8422,13 @@ void CG_Draw2D( void ) {
 		}
 	} else {
 notPredicted:
-//		CG_DrawCrosshair(NULL, 0);
 		CG_DrawUpperRight();
 		CG_DrawCenterString();
 		CG_ChatBox_DrawStrings();
 		CG_DrawCrosshairNames();
+		if (cg.playerCent->currentState.forcePowersActive) {
+			CG_DrawActivePowers();
+		}
 		return;
 	}
 

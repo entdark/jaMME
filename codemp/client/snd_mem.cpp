@@ -1695,7 +1695,6 @@ openSound_t *S_SoundOpen( char *fileName ) {
 
 	/* switch language: /chars/ -> /chr_f/, /chr_d/, /chr_e/ */
 	if (Q_stricmp(s_language->string, "english"))
-//		S_LoadSound_FileLoadAndNameAdjuster(fileName, NULL, NULL, NULL);
 		S_SwitchLang(fileName);
 
 	/* sound/mp_generic_female/sound -> sound/chars/mp_generic_female/misc/sound */
@@ -1734,7 +1733,6 @@ tryAgainThisSound:
 		open = S_MP3Open( blah );
 		if (open) {
 			return open;
-
 		}
 		else
 #endif
@@ -1753,7 +1751,6 @@ tryAgainThisSound:
 			if (open) {
 				return open;
 			} else if (Q_stricmp(s_language->string, "english")) {
-//				if (S_LoadSound_FileLoadAndNameAdjuster(fileName, NULL, NULL, NULL)) {
 				if (S_SwitchLang(fileName)) {
 					if (!doNotYell)
 						Com_Printf("File %s doesn't exist in %s, retrying with english\n", fileName, s_language->string );
@@ -1783,7 +1780,6 @@ tryAgainThisSound:
 			if (open) {
 				return open;
 			} else if (Q_stricmp(s_language->string, "english") && !wasHere) {
-//				if (S_LoadSound_FileLoadAndNameAdjuster(fileName, NULL, NULL, NULL)) {
 				if (S_SwitchLang(fileName)) {
 					wasHere = qtrue;
 					if (!doNotYell)
@@ -1812,7 +1808,6 @@ tryAgainThisSound:
 			if (open) {
 				return open;
 			} else if (Q_stricmp(s_language->string, "english") && !wasHere) {
-//				if (S_LoadSound_FileLoadAndNameAdjuster(fileName, NULL, NULL, NULL)) {
 				if (S_SwitchLang(fileName)) {
 					wasHere = qtrue;
 					if (!doNotYell)

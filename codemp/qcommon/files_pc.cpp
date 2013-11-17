@@ -2714,6 +2714,7 @@ void FS_Startup( const char *gameName ) {
 	}
 	fs_homepath = Cvar_Get ("fs_homepath", homePath, CVAR_INIT|CVAR_PROTECTED );
 	fs_gamedirvar = Cvar_Get ("fs_game", "", CVAR_INIT|CVAR_SYSTEMINFO );
+	fs_extragamedirs = Cvar_Get( "fs_extragames", "", CVAR_INIT );
 
 	fs_dirbeforepak = Cvar_Get("fs_dirbeforepak", "0", CVAR_INIT|CVAR_PROTECTED);
 
@@ -2740,6 +2741,24 @@ void FS_Startup( const char *gameName ) {
 		}
 		if (fs_homepath->string[0] && !Sys_PathCmp(fs_homepath->string, fs_basepath->string)) {
 			FS_AddGameDirectory(fs_homepath->string, fs_basegame->string);
+		}
+	}
+
+	/* Read the fs_extragames after the base */
+	if ( fs_extragamedirs->string[0] ) {
+		int i;
+		Cmd_TokenizeString( fs_extragamedirs->string );
+		for( i=0; i<Cmd_Argc();i++) {
+			const char *newPath = Cmd_Argv( i );
+			if (fs_cdpath->string[0]) {
+				FS_AddGameDirectory(fs_cdpath->string, newPath );
+			}
+			if (fs_basepath->string[0]) {
+				FS_AddGameDirectory(fs_basepath->string, newPath );
+			}
+			if (fs_homepath->string[0] && Q_stricmp(fs_homepath->string,fs_basepath->string)) {
+				FS_AddGameDirectory(fs_homepath->string, newPath );
+			}
 		}
 	}
 

@@ -151,7 +151,6 @@ void demoMoveDirection( vec3_t origin, vec3_t angles ) {
 qboolean demoCentityBoxSize( const centity_t *cent, vec3_t container ) {
 	switch ( cent->currentState.eType ) {
 	case ET_ITEM:
-//		VectorSet( container, -5, 5, 10 );
 		VectorSet( container, 0, 10, 10 );
 		break;
 	case ET_PLAYER:
@@ -184,7 +183,6 @@ centity_t *demoTargetEntity( int num ) {
 		return 0;
 	if (num == cg.snap->ps.clientNum) {
 		return &cg_entities[cg.predictedPlayerState.clientNum];
-//		return &cg_entities[cg.snap->ps.clientNum];
 	}
 	if (cg_entities[num].currentValid) {
 		return &cg_entities[num];
@@ -354,10 +352,10 @@ static void chasePointDraw( demoChasePoint_t *point ) {
 
 	chasePointControl( point, times, origins, quats );
 	for (lerp = 0; lerp < 1.1f; lerp+=0.1f) {
-		QuatTimeSpline( lerp, times, quats, lerpQuat );
 		VectorTimeSpline( lerp, times, (float *)origins, (float *)lerpOrigin, 4 );
-		QuatToAxis( lerpQuat, axis );
 		if (firstOne) {
+			QuatTimeSpline( lerp, times, quats, lerpQuat );
+			QuatToAxis( lerpQuat, axis );
 			demoDrawCross( lerpOrigin, colorRed );
 			VectorCopy( lerpOrigin, start );
 			VectorMA( start, -lerpOrigin[3], axis[0], end );
@@ -522,9 +520,7 @@ void chaseUpdate( int time, float timeFraction ) {
 		chaseEntityOrigin( targetCent, demo.chase.origin );
 		demo.chase.cent = targetCent;
 	} else {
-//		demo.chase.cent = &cg.predictedPlayerEntity;
 		demo.chase.cent = &cg_entities[cg.predictedPlayerState.clientNum];
-//		demo.chase.cent = &cg_entities[cg.snap->ps.clientNum];
 	}
 }
 

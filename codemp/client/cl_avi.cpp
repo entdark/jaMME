@@ -393,9 +393,9 @@ qboolean CL_OpenAVIForWriting( const char *fileName )
         "of the audio rate, suggest %d\n", suggestRate );
   }
 
-  if( !Cvar_VariableIntegerValue( "s_initsound" ) )
+/*  if( !Cvar_VariableIntegerValue( "s_initsound" ) )
   {
-    afd.audio = qfalse;
+*/    afd.audio = qfalse;/* //super mme feature for video renderer
   }
   else if( Cvar_VariableIntegerValue( "s_UseOpenAL" ) == 0 )
   //else if( Q_stricmp( Cvar_VariableString( "s_backend" ), "OpenAL" ) )
@@ -414,7 +414,7 @@ qboolean CL_OpenAVIForWriting( const char *fileName )
     afd.audio = qfalse;
     Com_Printf( S_COLOR_YELLOW "WARNING: Audio capture is not supported "
         "with OpenAL. Set s_UseOpenAL to 0 for audio capture\n" );
-  }
+  }*/
 
   // This doesn't write a real header, but allocates the
   // correct amount of space at the beginning of the file

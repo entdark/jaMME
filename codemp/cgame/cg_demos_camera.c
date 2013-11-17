@@ -218,17 +218,6 @@ static qboolean cameraOriginAt( int time, float timeFraction, vec3_t origin ) {
 		step += addStep;
 		VectorCopy( nextOrigin, origin );
 	}
-/*	i = 64;		//why do we need this loop?
-	while (i > 0 && fabs( distance) > 0.005f) {
-		i--;
-		if (distance > 0)
-			addStep /= 1.1f;
-		else 
-			addStep *= 1.2f;
-		posGet( step+addStep, demo.camera.smoothPos, control, nextOrigin );
-		distance = VectorDistance( origin, nextOrigin);
-	}*/
-//	return step + addStep;
 	return qtrue;
 }
 
@@ -1090,7 +1079,8 @@ void demoCameraCommand_f(void) {
 		Com_Printf("camera shift time, move time indexes of camera points by certain amount.\n" );
 		Com_Printf("camera next/prev, go to time index of next or previous point.\n" );
 		Com_Printf("camera start/end, current time with be set as start/end of selection.\n" );
-		Com_Printf("camera pos/angles (a)0 (a)0 (a)0, Directly control position/angles, optional a before number to add to current value.\n" );
+		Com_Printf("camera pos/angles/fov (a)0 (a)0 (a)0, Directly control position/angles/fov, optional a before number to add to current value.\n" );
+		Com_Printf("camera fov (a)0, Directly control fov, optional a before number to add to current value.\n" );
 		Com_Printf("camera target, Clear/Set the target currently being aimed at.\n" );
 		Com_Printf("camera targetNext/Prev, Go the next or previous player.\n" );
 		Com_Printf("camera smoothPos 0-2, linear, catmullrom, bezier interpolation.\n" );

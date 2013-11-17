@@ -209,7 +209,7 @@ portable_samplepair_t *S_GetRawSamplePointer();	// TA added this, but it just re
 
 extern float	s_playScale;
 extern cvar_t	*s_forceScale;
-extern cvar_t	*s_noiseFix;
+extern cvar_t	*s_attenuate;
 
 extern cvar_t	*s_volume;
 extern cvar_t	*s_volumeVoice;

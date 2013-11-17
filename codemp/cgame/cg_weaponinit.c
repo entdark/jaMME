@@ -146,9 +146,9 @@ void CG_RegisterWeapon( int weaponNum) {
 		break;
 
 	case WP_CONCUSSION:
-		weaponInfo->selectSound			= trap_S_RegisterSound("sound/weapons/concussion/select.wav");
+		weaponInfo->selectSound			= NULL_SOUND;
 
-		weaponInfo->flashSound[0]		= NULL_SOUND;
+		weaponInfo->flashSound[0]		= trap_S_RegisterSound( "sound/weapons/concussion/fire");
 		weaponInfo->firingSound			= NULL_SOUND;
 		weaponInfo->chargeSound			= NULL_SOUND;
 		weaponInfo->muzzleEffect		= trap_FX_RegisterEffect( "concussion/muzzle_flash" );

@@ -214,12 +214,6 @@ static void CG_StepOffset( void ) {
 	int		timeDelta;
 	
 	// smooth out stair climbing
-/*	timeDelta = cg.time - cg.stepTime;
-	if ( timeDelta < STEP_TIME ) {
-		cg.refdef.vieworg[2] -= cg.stepChange 
-			* (STEP_TIME - timeDelta) / STEP_TIME;
-	}
-*/
 	//mme
 	timeDelta = cg.time - cg.playerCent->pe.stepTime;
 	if ( timeDelta < STEP_TIME ) {
@@ -279,7 +273,7 @@ static void CG_CalcIdealThirdPersonViewTarget(void)
 	}
 
 	// Add in the new viewheight
-	if (cg.playerCent->currentState.number == cg.snap->ps.clientNum) {
+	if (cg.playerPredicted) {
 		cameraFocusLoc[2] += cg.snap->ps.viewheight;
 	} else {
 		cameraFocusLoc[2] += cg.playerCent->pe.viewHeight;
@@ -643,10 +637,7 @@ static void CG_OffsetThirdPersonView( void )
 	}
 
 	cameraStiffFactor = 0.0;
-	//mme
-//	if (cg.snap->ps.stats[STAT_HEALTH] <= 0 && !cg.playerPredicted) {
-//		cg.refdef.vieworg[2] += cg.playerCent->pe.viewHeight + 16;
-//	}
+
 	// Set camera viewing direction.
 	VectorCopy( cg.refdef.viewangles, cameraFocusAngles );
 
@@ -670,6 +661,12 @@ static void CG_OffsetThirdPersonView( void )
 	else if ( cg.snap->ps.stats[STAT_HEALTH] <= 0 && cg.playerPredicted) 
 	{
 		cameraFocusAngles[YAW] = cg.snap->ps.stats[STAT_DEAD_YAW];
+	}
+	else if ( cg.playerCent->currentState.eFlags & EF_DEAD ) 
+	{
+		cameraFocusAngles[PITCH] = 0;
+		cameraFocusAngles[YAW] = 0;
+		cameraFocusAngles[ROLL] = 0;
 	}
 	else
 	{	// Add in the third Person Angle.
@@ -1279,10 +1276,14 @@ static int CG_CalcFov( void ) {
 	float cgFov;
 	//float	cgFov = cg_fov.value;
 	
-	if(!cg.renderingThirdPerson && (cg_trueGuns.integer || cg.predictedPlayerState.weapon == WP_SABER
+	if(cg.playerPredicted && (!cg.renderingThirdPerson && (cg_trueGuns.integer || cg.predictedPlayerState.weapon == WP_SABER
 		|| cg.predictedPlayerState.weapon == WP_MELEE) 
 		&& cg_trueFOV.value && (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
-		&& (cg.predictedPlayerState.pm_type != PM_INTERMISSION))
+		&& (cg.predictedPlayerState.pm_type != PM_INTERMISSION))) {
+		cgFov = cg_trueFOV.value;
+	} else if(!cg.renderingThirdPerson && (cg_trueGuns.integer || cg.playerCent->currentState.weapon == WP_SABER
+		|| cg.playerCent->currentState.weapon == WP_MELEE) 
+		&& cg_trueFOV.value && (cg.predictedPlayerState.pm_type != PM_INTERMISSION))
 	{
 		cgFov = cg_trueFOV.value;
 	}
@@ -1301,7 +1302,7 @@ static int CG_CalcFov( void ) {
 		cgFov = 150;
 	}
 
-	if ( cg.predictedPlayerState.pm_type == PM_INTERMISSION ) {
+	if (cg.predictedPlayerState.pm_type == PM_INTERMISSION) {
 		// if in intermission, use a fixed value
 		fov_x = 80;//90;
 	} else {
@@ -1317,7 +1318,7 @@ static int CG_CalcFov( void ) {
 				fov_x = 160;
 			}
 		}
-		if (cg.playerCent->currentState.number != cg.predictedPlayerState.clientNum) goto notZoom;
+		if (!cg.playerPredicted) goto notZoom;
 		if (cg.predictedPlayerState.zoomMode == 2)
 		{ //binoculars
 			if (zoomFov > 40.0f)
@@ -1374,7 +1375,6 @@ static int CG_CalcFov( void ) {
 		}
 		else 
 		{
-notZoom:
 			zoomFov = 80;
 
 			f = ( cg.time - cg.predictedPlayerState.zoomTime ) / ZOOM_OUT_TIME;
@@ -1389,6 +1389,7 @@ notZoom:
 		}
 	}
 
+notZoom:
 	if ( cg_fovAspectAdjust.integer ) {
 		// Based on LordHavoc's code for Darkplaces
 		// http://www.quakeworld.nu/forum/topic/53/what-does-your-qw-look-like/page/30
@@ -1824,9 +1825,7 @@ int CG_DemosCalcViewValues( void ) {
 		return CG_CalcFov();
 	}
 
-//	if ( cg.playerCent == &cg.predictedPlayerEntity ) {
-	if ( cg.playerCent == &cg_entities[cg.predictedPlayerState.clientNum] ) {
-//	if ( cg.playerCent == &cg_entities[cg.snap->ps.clientNum] ) {
+	if ( cg.playerPredicted ) {
 		cg.bobcycle = ( cg.predictedPlayerState.bobCycle & 128 ) >> 7;
 		cg.bobfracsin = fabs( sin( ( cg.predictedPlayerState.bobCycle & 127 ) / 127.0 * M_PI ) );
 	} else {
@@ -1850,7 +1849,7 @@ int CG_DemosCalcViewValues( void ) {
 	{//not manning a turret on a vehicle
 		VectorCopy( cg.playerCent->lerpOrigin, cg.refdef.vieworg );
 #ifdef VEH_CONTROL_SCHEME_4
-		if ( cg.playerCent == &cg_entities[cg.snap->ps.clientNum] && cg.predictedPlayerState.m_iVehicleNum )//in a vehicle
+		if ( cg.playerPredicted && cg.predictedPlayerState.m_iVehicleNum )//in a vehicle
 		{
 			Vehicle_t *pVeh = cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle;
 			if ( BG_UnrestrainedPitchRoll( &cg.predictedPlayerState, pVeh ) )//can roll/pitch without restriction
@@ -1870,7 +1869,7 @@ int CG_DemosCalcViewValues( void ) {
 			}
 		}
 #else// VEH_CONTROL_SCHEME_4
-		if ( cg.playerCent == &cg_entities[cg.snap->ps.clientNum] && cg.predictedPlayerState.m_iVehicleNum //in a vehicle
+		if ( cg.playerPredicted && cg.predictedPlayerState.m_iVehicleNum //in a vehicle
 			&& BG_UnrestrainedPitchRoll( &cg.predictedPlayerState, cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle ) )//can roll/pitch without restriction
 		{//use the vehicle's viewangles to render view!
 			VectorCopy( cg.predictedVehicleState.viewangles, cg.refdef.viewangles );
@@ -1898,7 +1897,7 @@ int CG_DemosCalcViewValues( void ) {
 
 	if ( !manningTurret )
 	{
-		if ( cg.playerCent == &cg_entities[cg.snap->ps.clientNum] && cg.predictedPlayerState.m_iVehicleNum //in a vehicle
+		if ( cg.playerPredicted && cg.predictedPlayerState.m_iVehicleNum //in a vehicle
 			&& BG_UnrestrainedPitchRoll( &cg.predictedPlayerState, cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle ) )//can roll/pitch without restriction
 		{//use the vehicle's viewangles to render view!
 			CG_OffsetFighterView();
@@ -1908,7 +1907,7 @@ int CG_DemosCalcViewValues( void ) {
 			if (cg_thirdPersonSpecialCam.integer &&
 				BG_SaberInSpecial(cg.snap->ps.saberMove))
 			{ //the action cam
-				if (!CG_ThirdPersonActionCam())
+//				if (!CG_ThirdPersonActionCam())
 				{ //couldn't do it for whatever reason, resort back to third person then
 					CG_OffsetThirdPersonView();
 				}
@@ -2013,9 +2012,16 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 	if (!fov_x)
 	{
 		//[TrueView]
-		if(!cg.renderingThirdPerson && (cg_trueGuns.integer || cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)
+		if(cg.playerPredicted && (!cg.renderingThirdPerson && (cg_trueGuns.integer || cg.predictedPlayerState.weapon == WP_SABER
+			|| cg.predictedPlayerState.weapon == WP_MELEE) 
+			&& cg_trueFOV.value && (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
+			&& (cg.predictedPlayerState.pm_type != PM_INTERMISSION))) {
+			fov_x = cg_trueFOV.value;
+		} else if (!cg.renderingThirdPerson
+			&& (cg_trueGuns.integer
+			|| (cg.playerCent && (cg.playerCent->currentState.weapon == WP_SABER
+			|| cg.playerCent->currentState.weapon == WP_MELEE)))
 			&& cg_trueFOV.value
-			&& (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
 			&& (cg.predictedPlayerState.pm_type != PM_INTERMISSION))
 		{
 			fov_x = cg_trueFOV.value;
@@ -2089,8 +2095,11 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 	{
 		// if in intermission, use a fixed value
 		//[TrueView]
-		if(!cg.renderingThirdPerson && (cg_trueGuns.integer || cg.predictedPlayerState.weapon == WP_SABER
-		|| cg.predictedPlayerState.weapon == WP_MELEE) && cg_trueFOV.value)
+		if(!cg.renderingThirdPerson &&
+			(cg_trueGuns.integer
+			|| (cg.playerCent && (cg.playerCent->currentState.weapon == WP_SABER
+			|| cg.playerCent->currentState.weapon == WP_MELEE)))
+			&& cg_trueFOV.value)
 		{
 			fov_x = cg_trueFOV.value;
 		}
@@ -2104,10 +2113,15 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 	else
 	{
 		//[TrueView]
-		if(!cg.renderingThirdPerson && (cg_trueGuns.integer || cg.predictedPlayerState.weapon == WP_SABER
-		|| cg.predictedPlayerState.weapon == WP_MELEE) && cg_trueFOV.value 
-		&& (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
-		&& (cg.predictedPlayerState.pm_type != PM_INTERMISSION))
+		if(cg.playerPredicted && (!cg.renderingThirdPerson && (cg_trueGuns.integer || cg.predictedPlayerState.weapon == WP_SABER
+			|| cg.predictedPlayerState.weapon == WP_MELEE) 
+			&& cg_trueFOV.value && (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
+			&& (cg.predictedPlayerState.pm_type != PM_INTERMISSION))) {
+			fov_x = cg_trueFOV.value;
+		} else if(!cg.renderingThirdPerson && (cg_trueGuns.integer
+			|| (cg.playerCent && (cg.playerCent->currentState.weapon == WP_SABER
+			|| cg.playerCent->currentState.weapon == WP_MELEE))) && cg_trueFOV.value 
+			&& (cg.predictedPlayerState.pm_type != PM_INTERMISSION))
 		{
 			fov_x = cg_trueFOV.value;
 		}
@@ -2217,9 +2231,9 @@ CG_PlayBufferedSounds
 void CG_PlayBufferedSounds( void ) {
 	if ( cg.soundTime < cg.time ) {
 		if (cg.soundBufferOut != cg.soundBufferIn && cg.soundBuffer[cg.soundBufferOut]) {
-			if (!(mov_soundDisable.integer & SDISABLE_ANNOUNCER)) {
+			if (!(mov_soundDisable.integer & SDISABLE_ANNOUNCER))
 				trap_S_StartLocalSound(cg.soundBuffer[cg.soundBufferOut], CHAN_ANNOUNCER);
-			}
+
 			cg.soundBuffer[cg.soundBufferOut] = 0;
 			cg.soundBufferOut = (cg.soundBufferOut + 1) % MAX_SOUNDBUFFER;
 			cg.soundTime = cg.time + 750;
@@ -2239,9 +2253,15 @@ void CG_UpdateSoundTrackers()
 		if (cent && (cent->currentState.eFlags & EF_SOUNDTRACKER) && cent->currentState.number == num)
 			//make sure the thing is valid at least.
 		{ //keep sound for this entity updated in accordance with its attached entity at all times
-			if (cg.snap && cent->currentState.trickedentindex == cg.snap->ps.clientNum)
+			if (cg.snap && cg.playerCent &&
+				cent->currentState.trickedentindex == cg.playerCent->currentState.number)
 			{ //this is actually the player, so center the sound origin right on top of us
 				VectorCopy(cg.refdef.vieworg, cent->lerpOrigin);
+				trap_S_UpdateEntityPosition( cent->currentState.number, cent->lerpOrigin );
+			}
+			else if (cg.snap && !cg.playerCent && cent->currentState.trickedentindex == cg.snap->ps.clientNum)
+			{
+				VectorCopy(cg.snap->ps.origin, cent->lerpOrigin);
 				trap_S_UpdateEntityPosition( cent->currentState.number, cent->lerpOrigin );
 			}
 			else
@@ -2939,8 +2959,6 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 
 	// decide on third person view
 	cg.renderingThirdPerson = cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0);
-	//mme
-//	cg.renderingThirdPerson = cg_thirdPerson.integer || (cg.playerCent->currentState.eFlags & EF_DEAD);
 
 	if (cg.snap->ps.stats[STAT_HEALTH] > 0)
 	{
@@ -3109,7 +3127,7 @@ void CheckCameraLocation( vec3_t OldeyeOrigin )
 	trace_t			trace;
 //	refdef_t *refdef = &cg.refdef;//CG_GetRefdef();
 
-	CG_Trace(&trace, OldeyeOrigin, cameramins, cameramaxs, cg.refdef.vieworg, cg.snap->ps.clientNum, GetCameraClip());
+	CG_Trace(&trace, OldeyeOrigin, cameramins, cameramaxs, cg.refdef.vieworg, cg.playerCent->currentState.number, GetCameraClip());
 	if (trace.fraction <= 1.0)
 	{
 		VectorCopy(trace.endpos, cg.refdef.vieworg);

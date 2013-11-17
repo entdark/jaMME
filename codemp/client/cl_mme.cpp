@@ -20,10 +20,14 @@ cvar_t	*mme_demoAutoQuit;
 
 void CL_MME_CheckCvarChanges(void) {
 	
-//	if (cl_avidemo->modified) {
-//		cl_avidemo->modified = qfalse;
-//		clc.aviDemoRemain = 0;
-//	}
+	if (cl_avidemo->modified) {
+		cl_avidemo->modified = qfalse;
+		clc.aviDemoRemain = 0;
+	}
+	if (cl_aviFrameRate->modified) {
+		cl_aviFrameRate->modified = qfalse;
+		clc.aviDemoRemain = 0;
+	}
 	if ( cls.state == CA_DISCONNECTED)
 		CL_DemoListNext_f();
 }

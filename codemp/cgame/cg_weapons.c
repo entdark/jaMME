@@ -230,15 +230,6 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 
 	// Ensiform: Allow toggling of this feature
 	if ( cg_fallingBob.value ) {
-		// drop the weapon when landing
-/*		delta = cg.time - cg.landTime;
-		if ( delta < LAND_DEFLECT_TIME ) {
-			origin[2] += cg.landChange*0.25 * delta / LAND_DEFLECT_TIME;
-		} else if ( delta < LAND_DEFLECT_TIME + LAND_RETURN_TIME ) {
-			origin[2] += cg.landChange*0.25 * 
-				(LAND_DEFLECT_TIME + LAND_RETURN_TIME - delta) / LAND_RETURN_TIME;
-		}
-*/
 		//mme
 		delta = cg.time - pe->landTime;
 		if ( delta < LAND_DEFLECT_TIME ) {
@@ -449,7 +440,6 @@ Ghoul2 Insert Start
 //	if (cg.predictedPlayerState.zoomMode && cg.playerPredicted) goto getFlash;
 	// only do this if we are in first person, since world weapons are now handled on the server by Ghoul2
 	if (!thirdPerson)
-//	if (!thirdPerson || cent != cg.playerCent)
 	{
 
 		// add the weapon
@@ -585,8 +575,8 @@ getFlash:
 	//-----------------------
 	//[TrueView]
 	//Make the guns do their charging visual in True View.
-	if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number
-		|| cg_trueGuns.integer || (!cg.playerPredicted && cg.predictedPlayerState.clientNum == cent->currentState.number)) &&
+	if ( (ps || cg.renderingThirdPerson || (cg.playerCent && cg.playerCent != cent)
+		|| cg_trueGuns.integer) &&
 	//if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number) &&
 	//[/TrueView]
 		( ( cent->currentState.modelindex2 == WEAPON_CHARGING_ALT && cent->currentState.weapon == WP_BRYAR_PISTOL ) ||
@@ -706,12 +696,9 @@ getFlash:
 	}
 
 	//[TrueView]
-	if ( ps || cg.renderingThirdPerson || cg_trueGuns.integer 
-		|| cent->currentState.number != cg.predictedPlayerState.clientNum ) 
-	//if ( ps || cg.renderingThirdPerson ||
-	//		cent->currentState.number != cg.predictedPlayerState.clientNum ) 
+	if (ps || cg.renderingThirdPerson || cg_trueGuns.integer 
+		|| (cg.playerCent && cent != cg.playerCent)) 
 	//[/TrueView]
-//			cent != cg.playerCent )
 	{	// Make sure we don't do the thirdperson model effects for the local player if we're in first person
 		vec3_t flashorigin, flashdir;
 		refEntity_t	flash;
@@ -743,34 +730,22 @@ getFlash:
 			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flashdir);
 		}
 
-		if ( cg.time - cent->muzzleFlashTime <= MUZZLE_FLASH_TIME + 10 )
-		{	// Handle muzzle flashes
-			if ( cent->currentState.eFlags & EF_ALT_FIRING )
-			{	// Check the alt firing first.
-				if (weapon->altMuzzleEffect)
-				{
+//		if (cg.time - cent->muzzleFlashTime <= MUZZLE_FLASH_TIME + 10) {
+		if (cent->muzzleFlash) { // we play it once, so we don't need time
+			// Handle muzzle flashes
+			if ( cent->currentState.eFlags & EF_ALT_FIRING ) { // Check the alt firing first.
+				if (weapon->altMuzzleEffect) {
 					if (!thirdPerson)
-					{
 						trap_FX_PlayEntityEffectID(weapon->altMuzzleEffect, flashorigin, flash.axis, -1, -1, -1, -1  );
-					}
 					else
-					{
 						trap_FX_PlayEffectID(weapon->altMuzzleEffect, flashorigin, flashdir, -1, -1);
-					}
 				}
-			}
-			else
-			{	// Regular firing
-				if (weapon->muzzleEffect)
-				{
+			} else { // Regular firing
+				if (weapon->muzzleEffect) {
 					if (!thirdPerson)
-					{
 						trap_FX_PlayEntityEffectID(weapon->muzzleEffect, flashorigin, flash.axis, -1, -1, -1, -1  );
-					}
 					else
-					{
 						trap_FX_PlayEffectID(weapon->muzzleEffect, flashorigin, flashdir, -1, -1);
-					}
 				}
 			}
 		}
@@ -782,6 +757,7 @@ getFlash:
 			trap_R_AddLightToScene( flashorigin, 300 + (rand()&31), weapon->flashDlightColor[0],
 				weapon->flashDlightColor[1], weapon->flashDlightColor[2] );
 		}
+		cent->muzzleFlash = qfalse;
 	}
 }
 
@@ -794,14 +770,11 @@ Add the weapon, and flash for the player's view
 */
 void CG_AddViewWeaponDirect( centity_t *cent ) {
 	refEntity_t	hand;
-//	centity_t	*cent;
 	clientInfo_t	*ci;
 	float		fovOffset;
 	vec3_t		angles;
 	weaponInfo_t	*weapon;
 	float	cgFov = cg_fov.value;
-	//temp value, delete when fix first person weapon problem for other clients
-//	playerState_t *ps = &cg.predictedPlayerState;
 
 	if (cgFov < 1)
 	{
@@ -811,15 +784,7 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 	{
 		cgFov = 97;
 	}
-/*
-	if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
-		return;
-	}
 
-	if ( ps->pm_type == PM_INTERMISSION ) {
-		return;
-	}
-*/
 	// no gun if in third person view or a camera is active
 	//if ( cg.renderingThirdPerson || cg.cameraMode) {
 	if ( cg.renderingThirdPerson ) {
@@ -828,31 +793,29 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 
 	//[TrueView]
 	if ( !cg.renderingThirdPerson
-		&& (cg_trueGuns.integer /*|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE*/)
+		&& (cg_trueGuns.integer)
 		&& cg_trueFOV.value 
-		&& cg.predictedPlayerState.pm_type != PM_SPECTATOR
-		&& cg.predictedPlayerState.pm_type != PM_INTERMISSION )
-		cgFov = /*cg_fovViewmodel.integer ? cg_fovViewmodel.value :*/ cg_trueFOV.value;
+		&& (cg.playerPredicted && cg.predictedPlayerState.pm_type != PM_SPECTATOR
+		&& cg.predictedPlayerState.pm_type != PM_INTERMISSION) )
+		cgFov = cg_trueFOV.value;
 	else
-		cgFov = /*cg_fovViewmodel.integer ? cg_fovViewmodel.value :*/ cg_fov.value;
-	//float	cgFov = cg_fov.value;
+		cgFov = cg_fov.value;
 	//[/TrueView]
 
 	cgFov = Com_Clampi( 1, 180, cgFov );
 
 	// allow the gun to be completely removed
 	//[TrueView]
-	if ( /*!cg.japp.fakeGun &&*/ (!cg_drawGun.integer || /*(cg.predictedPlayerState.zoomMode && cg.playerPredicted) ||*/ cg_trueGuns.integer
-		/*|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE*/) ) {
-	//if ( !cg_drawGun.integer || cg.predictedPlayerState.zoomMode) {
+	if ((!cg_drawGun.integer || cg_trueGuns.integer)) {
 	//[/TrueView]
 		vec3_t		origin;
 
-		if ( cg.predictedPlayerState.eFlags & EF_FIRING ) {
+//		if ( cg.predictedPlayerState.eFlags & EF_FIRING ) {
+		if ( cg.playerCent->currentState.eFlags & EF_FIRING ) {
 			// special hack for lightning gun...
 			VectorCopy( cg.refdef.vieworg, origin );
 			VectorMA( origin, -8, cg.refdef.viewaxis[2], origin );
-			CG_LightningBolt( /*&cg_entities[ps->clientNum]*/cent, origin );
+			CG_LightningBolt( cent, origin );
 		}
 		return;
 	}
@@ -869,10 +832,6 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 		fovOffset = 0;
 	}
 
-//	cent = &cg_entities[cg.predictedPlayerState.clientNum];
-//	cent = cg.playerCent;
-//	CG_RegisterWeapon( ps->weapon );
-//	weapon = &cg_weapons[ ps->weapon ];
 	CG_RegisterWeapon( cent->currentState.weapon );
 	weapon = &cg_weapons[ cent->currentState.weapon ];
 
@@ -917,8 +876,8 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 #else
 		trap_G2API_GetBoneAnim(cent->ghoul2, "lower_lumbar", cg.time, &currentFrame, &startFrame, &endFrame, &flags, &animSpeed, cgs.gameModels, 0);
 #endif
-		hand.frame = CG_MapTorsoToWeaponFrame( ci, ceil( currentFrame ), /*ps->torsoAnim*/cent->playerState->torsoAnim );
-		hand.oldframe = CG_MapTorsoToWeaponFrame( ci, floor( currentFrame ), /*ps->torsoAnim*/cent->playerState->torsoAnim );
+		hand.frame = CG_MapTorsoToWeaponFrame( ci, ceil( currentFrame ), cent->currentState.torsoAnim );
+		hand.oldframe = CG_MapTorsoToWeaponFrame( ci, floor( currentFrame ), cent->currentState.torsoAnim );
 		hand.backlerp = 1.0f - (currentFrame-floor(currentFrame));
 
 		// Handle the fringe situation where oldframe is invalid
@@ -939,7 +898,6 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 	hand.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON;// | RF_MINLIGHT;
 
 	// add everything onto the hand
-//	CG_AddPlayerWeapon( &hand, ps, &cg_entities[cg.predictedPlayerState.clientNum], ps->persistant[PERS_TEAM], angles, qfalse );
 	CG_AddPlayerWeapon( &hand, cent->playerState, cent, cent->playerState->persistant[PERS_TEAM], angles, qfalse );
 }
 
@@ -954,7 +912,6 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 	}
 
 	CG_AddViewWeaponDirect( &cg_entities[cg.predictedPlayerState.clientNum] );
-
 }
 
 /*
@@ -1902,6 +1859,7 @@ void CG_FireWeapon( centity_t *cent, qboolean altFire ) {
 	// mark the entity as muzzle flashing, so when it is added it will
 	// append the flash to the weapon model
 	cent->muzzleFlashTime = cg.time;
+	cent->muzzleFlash = qtrue;
 
 	if (cg.predictedPlayerState.clientNum == cent->currentState.number)
 	{

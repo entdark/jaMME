@@ -13,6 +13,8 @@ cvar_t	*fx_freeze;
 cvar_t	*fx_countScale;
 cvar_t	*fx_nearCull;
 
+cvar_t	*fx_disableSounds;
+
 #define DEFAULT_EXPLOSION_RADIUS	512
 
 // Stuff for the FxHelper

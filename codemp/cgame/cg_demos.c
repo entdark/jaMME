@@ -6,8 +6,6 @@
 
 demoMain_t demo;
 
-#define BLURMAX 32
-
 extern void CG_DamageBlendBlob( void );
 extern void CG_PlayBufferedSounds( void );
 extern int CG_CalcViewValues( void );
@@ -142,6 +140,36 @@ static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
 	}
 }
 
+void CG_SetPredictedThirdPerson(void) {
+	cg.renderingThirdPerson = ((cg_thirdPerson.integer
+		|| (cg.snap->ps.stats[STAT_HEALTH] <= 0)
+		|| (cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer)
+		|| (cg.playerCent->currentState.weapon == WP_MELEE && !cg_trueGuns.integer)
+		|| BG_InGrappleMove(cg.predictedPlayerState.torsoAnim)
+		|| BG_InGrappleMove(cg.predictedPlayerState.legsAnim)
+
+		|| (cg.predictedPlayerState.forceHandExtend == HANDEXTEND_KNOCKDOWN 
+		&& ((cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer)
+		|| (cg.playerCent->currentState.weapon != WP_SABER && !cg_trueGuns.integer)))
+
+		|| (cg.predictedPlayerState.fallingToDeath)
+		|| cg.predictedPlayerState.m_iVehicleNum
+
+		|| (PM_InKnockDown(&cg.predictedPlayerState)
+		&& ((cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer)
+		|| (cg.playerCent->currentState.weapon != WP_SABER && !cg_trueGuns.integer))))
+
+		&& !cg_fpls.integer)
+		&& !cg.snap->ps.zoomMode;
+
+	if (cg.predictedPlayerState.pm_type == PM_SPECTATOR) { //always first person for spec
+		cg.renderingThirdPerson = 0;
+	}
+	if (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR) {
+		cg.renderingThirdPerson = 0;
+	}
+}
+
 int demoSetupView( void) {
 	vec3_t forward;
 	qboolean zoomFix;	//to see disruptor zoom when we are chasing a player
@@ -162,12 +190,13 @@ int demoSetupView( void) {
 					//Make sure lerporigin of playercent is val
 //					CG_CalcEntityLerpPositions( cg.playerCent );
 //				}
-				cg.renderingThirdPerson = (cg_thirdPerson.integer || /*(cg.snap->ps.stats[STAT_HEALTH] <= 0)*/cent->currentState.eFlags & EF_DEAD
-					|| (/*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer)
-					|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_MELEE || gCGHasFallVector)
-					&& !(cg.predictedPlayerState.zoomMode != 0 && cg.playerPredicted);
+				if (cg.playerPredicted)
+					CG_SetPredictedThirdPerson();
+				else
+					cg.renderingThirdPerson = (cg_thirdPerson.integer || cent->currentState.eFlags & EF_DEAD
+						|| (cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer)
+						|| (cg.playerCent->currentState.weapon == WP_MELEE && !cg_trueGuns.integer));
 				CG_DemosCalcViewValues();
-//				CG_CalcViewValues();
 				// first person blend blobs, done after AnglesToAxis
 				if ( !cg.renderingThirdPerson && cg.predictedPlayerState.pm_type != PM_SPECTATOR) {
 					CG_DamageBlendBlob();
@@ -212,13 +241,12 @@ int demoSetupView( void) {
 	demo.viewAngles[PITCH]	+= mov_deltaPitch.value;
 	demo.viewAngles[ROLL]	+= mov_deltaRoll.value;
 
-//	trap_FX_VibrateView( 1.0f, demo.viewOrigin, demo.viewAngles );
 	if (fx_Vibrate.value > 0
 		&& cg.eventCoeff > 0
-		&&  demo.viewType == viewCamera
+/*		&&  demo.viewType == viewCamera
 		|| ( demo.viewType == viewChase
-		&& ((cg.renderingThirdPerson && demo.chase.distance < mov_chaseRange.value)//cg_thirdPerson.integer
-		|| demo.chase.distance > mov_chaseRange.value /*|| demo.chase.target == -1*/))) {
+		&& ((cg.renderingThirdPerson && demo.chase.distance < mov_chaseRange.value)
+		|| demo.chase.distance > mov_chaseRange.value))*/) {
 			FX_VibrateView( 1.0f, demo.viewOrigin, demo.viewAngles );
 	}
 	VectorCopy( demo.viewOrigin, cg.refdef.vieworg );
@@ -269,7 +297,6 @@ void demoProcessSnapShots( qboolean hadSkip ) {
 
 		for (i=-1;i<MAX_GENTITIES;i++) {
 			centity_t *cent = i < 0 ? &cg_entities[cg.predictedPlayerState.clientNum] : &cg_entities[i];
-//			centity_t *cent = i < 0 ? &cg_entities[cg.snap->ps.clientNum] : &cg_entities[i];
 			cent->trailTime = cg.time;
 			cent->snapShotTime = cg.time;
 			cent->currentValid = qfalse;
@@ -526,7 +553,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		CG_InitMarkPolys();
 		CG_ClearParticles ();
 		trap_FX_Reset( );
-//		trap_R_DecalReset();
 		trap_R_ClearDecals ( );
 
 		cg.centerPrintTime = 0;
@@ -595,42 +621,20 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	CG_PredictPlayerState();
 	BG_PlayerStateToEntityState( &cg.predictedPlayerState, &cg_entities[cg.snap->ps.clientNum].currentState, qfalse );
 
-
-	if (cg.snap->ps.stats[STAT_HEALTH] > 0) {
-		if (cg.predictedPlayerState.weapon == WP_EMPLACED_GUN && cg.predictedPlayerState.emplacedIndex /*&&
-			cg_entities[cg.predictedPlayerState.emplacedIndex].currentState.weapon == WP_NONE*/) { //force third person for e-web and emplaced use
-			cg.renderingThirdPerson = 1;
-		} else if (cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE ||
-			BG_InGrappleMove(cg.predictedPlayerState.torsoAnim) || BG_InGrappleMove(cg.predictedPlayerState.legsAnim) ||
-			cg.predictedPlayerState.forceHandExtend == HANDEXTEND_KNOCKDOWN || cg.predictedPlayerState.fallingToDeath ||
-			cg.predictedPlayerState.m_iVehicleNum || PM_InKnockDown(&cg.predictedPlayerState)) {
-			if (cg_fpls.integer && cg.predictedPlayerState.weapon == WP_SABER) { //force to first person for fpls
-				cg.renderingThirdPerson = 0;
-			} else {
-				cg.renderingThirdPerson = 1;
-			}
-		} else if (cg.snap->ps.zoomMode) { //always force first person when zoomed
-			cg.renderingThirdPerson = 0;
-		}
-	}
-	if (cg.predictedPlayerState.pm_type == PM_SPECTATOR) { //always first person for spec
-		cg.renderingThirdPerson = 0;
-	}
-	if (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR) {
-		cg.renderingThirdPerson = 0;
-	}
-
 	cg_entities[cg.snap->ps.clientNum].currentValid = qtrue;
 	VectorCopy( cg_entities[cg.snap->ps.clientNum].currentState.pos.trBase, cg_entities[cg.snap->ps.clientNum].lerpOrigin );
 	VectorCopy( cg_entities[cg.snap->ps.clientNum].currentState.apos.trBase, cg_entities[cg.snap->ps.clientNum].lerpAngles );
 
-//	inwater = CG_CalcViewValues();
 	inwater = demoSetupView();
 	CG_SetupFrustum();
 
 	if (cg_linearFogOverride) {
 		trap_R_SetRangeFog(-cg_linearFogOverride);
-	} else if (demo.viewType == viewCamera || ( demo.viewType == viewChase && ((cg.renderingThirdPerson || demo.chase.distance > mov_chaseRange.value) || cg.playerCent->currentState.number != cg.predictedPlayerState.clientNum))) {
+	} else if (demo.viewType == viewCamera
+		|| ( demo.viewType == viewChase
+		&& ((cg.renderingThirdPerson
+		|| demo.chase.distance > mov_chaseRange.value)
+		|| !cg.playerPredicted))) {
 		trap_R_SetRangeFog(0.0f);
 	} else if (cg.predictedPlayerState.zoomMode) { //zooming with binoculars or sniper, set the fog range based on the zoom level -rww
 		cg_rangedFogging = qtrue;
@@ -647,27 +651,22 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	}
 
 	CG_CalcScreenEffects();
-//	if ( !cg.renderingThirdPerson && cg.predictedPlayerState.pm_type != PM_SPECTATOR ) {
-//		CG_DamageBlendBlob();
-//	}
-	if ( !cg.hyperspace ) {
+
+//	if ( !cg.hyperspace ) {
 		CG_AddPacketEntities(qfalse);			// adter calcViewValues, so predicted player state is correct
 		CG_AddMarks();
 		CG_AddParticles ();
 		CG_AddLocalEntities();
-	}
-	if ( !cg.hyperspace) {
+//	}
+//	if ( !cg.hyperspace) {
 		trap_FX_AddScheduledEffects(qfalse);
-	}
+//	}
 
-//	if ( cg.playerCent == &cg_entities[cg.predictedPlayerState.clientNum] ) {
-	if ( cg.playerCent == &cg_entities[cg.snap->ps.clientNum] ) {
+	
+	if ( cg.playerCent == &cg_entities[cg.predictedPlayerState.clientNum] ) {
 		CG_PlayBufferedSounds();
 		// warning sounds when powerup is wearing off
 		CG_PowerupTimerSounds();
-//		CG_AddViewWeapon( &cg.predictedPlayerState  );
-	} else if ( cg.playerCent && cg.playerCent->currentState.number < MAX_CLIENTS )  {
-//		CG_AddViewWeaponDirect( cg.playerCent );
 	}
 
 	cg.refdef.time = cg.time;
@@ -721,7 +720,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		}
 */	}
 
-//	CG_PowerupTimerSounds();
 	CG_UpdateSoundTrackers();
 
 	//do we need this?
@@ -748,7 +746,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		frameSpeed = 5;
 
 	trap_S_UpdatePitch( frameSpeed );
-//	trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, *((int *)&frameSpeed));
 	trap_S_Respatialize( cg.playerCent ? cg.playerCent->currentState.number : ENTITYNUM_NONE, cg.refdef.vieworg, cg.refdef.viewaxis, inwater);
 
 	CG_DrawActive( stereoView );
@@ -789,8 +786,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	} else {
 		if (demo.capture.active)
 			trap_Cvar_Set("cl_mme_capture", "0");
-//		if (demo.editType)
-//			demoDrawCrosshair();
 		hudDraw();
 	}
 
@@ -840,7 +835,6 @@ static void demoViewCommand_f(void) {
 		Com_Printf("view camera, Change to camera view.\n" );
 		Com_Printf("view chase, Change to chase view.\n" );
 //		Com_Printf("view effect, Change to effect view.\n" );
-//		Com_Printf("view follow, Change to follow view.\n" );
 		Com_Printf("view next/prev, Change to next or previous view.\n" );
 		return;
 	}
@@ -966,12 +960,20 @@ static void musicPlayCommand_f(void) {
 	demoSynchMusic( musicStart, length );
 }
 
+static void stopLoopingSounds_f(void) {
+	int i;
+	for (i = 0; i < MAX_GENTITIES; i++)
+		CG_S_StopLoopingSound(i, -1);
+}
+
 static void demoFindCommand_f(void) {
 	const char *cmd = CG_Argv(1);
 
 	if (!Q_stricmp(cmd, "death")) {
 		demo.find = findObituary;
-	} else {
+	} else if (!Q_stricmp(cmd, "direct")) {
+		demo.find = findDirect;
+	} else{
 		demo.find = findNone;
 	}
 	if ( demo.find )
@@ -1038,6 +1040,7 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("-seek");
 	trap_AddCommand("clientOverride");
 	trap_AddCommand("musicPlay");
+	trap_AddCommand("stopLoop");
 
 	demo.media.additiveWhiteShader = trap_R_RegisterShader( "mme_additiveWhite" );
 	demo.media.mouseCursor = trap_R_RegisterShaderNoMip( "mme_cursor" );
@@ -1075,6 +1078,26 @@ void CG_DemoEntityEvent( const centity_t* cent ) {
 		if ( demo.find == findObituary ) {
 			demo.play.paused = qtrue;
 			demo.find = findNone;
+		} else if ( demo.find == findDirect ) {
+			int mod = cent->currentState.eventParm;
+			switch (mod) {
+			case MOD_BRYAR_PISTOL:
+			case MOD_BRYAR_PISTOL_ALT:
+			case MOD_BLASTER:
+			case MOD_TURBLAST:
+			case MOD_BOWCASTER:
+			case MOD_REPEATER:
+			case MOD_REPEATER_ALT:
+			case MOD_DEMP2:
+			case MOD_FLECHETTE:
+			case MOD_ROCKET:
+			case MOD_ROCKET_HOMING:
+			case MOD_THERMAL:
+			case MOD_CONC_ALT:
+				demo.play.paused = qtrue;
+				demo.find = findNone;
+			break;
+			}
 		}
 		break;
 	}
@@ -1126,6 +1149,8 @@ qboolean CG_DemosConsoleCommand( void ) {
 		CG_ClientOverride_f();
 	} else if (!Q_stricmp(cmd, "musicPlay")) {
 		musicPlayCommand_f();
+	} else if (!Q_stricmp(cmd, "stopLoop")) {
+		stopLoopingSounds_f();
 	} else {
 		return CG_ConsoleCommand();
 	}

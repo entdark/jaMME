@@ -185,6 +185,7 @@ cvar_t		*fs_basegame;
 cvar_t		*fs_cdpath;
 cvar_t		*fs_copyfiles;
 cvar_t		*fs_gamedirvar;
+cvar_t		*fs_extragamedirs;
 cvar_t		*fs_dirbeforepak; //rww - when building search path, keep directories at top and insert pk3's under them
 searchpath_t	*fs_searchpaths;
 int			fs_readCount;			// total bytes read
@@ -488,6 +489,7 @@ void FS_InitFilesystem( void ) {
 	Com_StartupVariable( "fs_game" );
 	Com_StartupVariable( "fs_copyfiles" );
 	Com_StartupVariable( "fs_dirbeforepak" );
+	Com_StartupVariable( "fs_extragames" );
 
 	if(!FS_FilenameCompare(Cvar_VariableString("fs_game"), BASEGAME))
 		Cvar_Set("fs_game", "");

@@ -21,7 +21,7 @@ static byte				demoBuffer[128*1024];
 static entityState_t	demoNullEntityState;
 static playerState_t	demoNullPlayerState;
 
-static const char *demoHeader = JK_VERSION "Demo";
+static const char *demoHeader = JK_VERSION " Demo";
 
 static void demoFrameAddString( demoString_t *string, int num, const char *newString) {
 	int			dataLeft, len;

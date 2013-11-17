@@ -2099,6 +2099,7 @@ CL_UpdateProcessCoresAffinity
 ==================
 */
 //smod feature
+#ifdef _WIN32
 void CL_UpdateProcessCoresAffinity() {
     DWORD   processMask;
     DWORD   systemMask;
@@ -2133,7 +2134,7 @@ void CL_UpdateProcessCoresAffinity() {
         Com_Printf("Setting affinity mask failed, error: %i\n", GetLastError() );
     }
 }
-
+#endif
 /*
 ==================
 CL_CheckUserinfo
@@ -2298,13 +2299,24 @@ void CL_Frame ( int msec ) {
 	if ( CL_VideoRecording( ) && cl_aviFrameRate->integer && msec) {
 		// save the current screen
 		if ( cls.state == CA_ACTIVE || cl_forceavidemo->integer) {
+			float frameTime, fps;
+			char shotName[MAX_OSPATH];
+			Com_sprintf( shotName, sizeof( shotName ), "videos/%s", mme_demoFileName->string );
 			CL_TakeVideoFrame( );
 
 			// fixed time for next frame'
-			msec = (int)ceil( (1000.0f / cl_aviFrameRate->value) * com_timescale->value );
-			if (msec == 0) {
-				msec = 1;
+			fps = cl_aviFrameRate->value * com_timescale->value;
+			if ( fps > 1000.0f)
+				fps = 1000.0f;
+			frameTime = (1000.0f / fps);
+			if (frameTime < 1) {
+				frameTime = 1;
 			}
+			frameTime += clc.aviDemoRemain;
+			msec = (int)frameTime;
+			clc.aviDemoRemain = frameTime - msec;
+
+			S_MMERecord( shotName, 1.0f / (cl_aviFrameRate->value * com_timescale->value ));
 		}
 	}
 	if ( cl_avidemo->integer && msec) {
@@ -2343,12 +2355,25 @@ void CL_Frame ( int msec ) {
 			} else {
 				Cbuf_ExecuteText( EXEC_NOW, "screenshot_tga silent\n" );
 			}
+			float frameTime, fps;
+			char shotName[MAX_OSPATH];
+			Com_sprintf( shotName, sizeof( shotName ), "screenshots/%s", mme_demoFileName->string );
+
+			// fixed time for next frame'
+			fps = cl_avidemo->integer * com_timescale->value;
+			if ( fps > 1000.0f)
+				fps = 1000.0f;
+			frameTime = (1000.0f / fps);
+			if (frameTime < 1) {
+				frameTime = 1;
+			}
+			frameTime += clc.aviDemoRemain;
+			msec = (int)frameTime;
+			clc.aviDemoRemain = frameTime - msec;
+
+			S_MMERecord( shotName, 1.0f / (cl_aviFrameRate->value * com_timescale->value ));
 		}
 		// fixed time for next frame'
-		msec = (1000 / abs(cl_avidemo->integer)) * com_timescale->value;
-		if (msec == 0) {
-			msec = 1;
-		}
 	}
 
 	if (cl_mme_capture->integer) {
@@ -2374,10 +2399,21 @@ void CL_Frame ( int msec ) {
 		} else {
 //			re.Capture( cl_mme_name->string, cl_mme_fps->value, cl_mme_focus->value  );
 		}
-		msec = (1000 / abs(cl_mme_fps->integer)) * com_timescale->value;
-		if (msec == 0) {
-			msec = 1;
+		float frameTime, fps;
+
+		// fixed time for next frame'
+		fps = cl_avidemo->integer * com_timescale->value;
+		if ( fps > 1000.0f)
+			fps = 1000.0f;
+		frameTime = (1000.0f / fps);
+		if (frameTime < 1) {
+			frameTime = 1;
 		}
+		frameTime += clc.aviDemoRemain;
+		msec = (int)frameTime;
+		clc.aviDemoRemain = frameTime - msec;
+
+		S_MMERecord( cl_mme_name->string, 1.0f / (cl_aviFrameRate->value * com_timescale->value ));
 	}
 
 	// save the msec before checking pause
@@ -3043,7 +3079,9 @@ void CL_Init( void ) {
 
 	SCR_Init ();
 
+#ifdef _WIN32
 	CL_UpdateProcessCoresAffinity();
+#endif
 
 	Cbuf_Execute ();
 

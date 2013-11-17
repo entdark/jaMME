@@ -11,6 +11,8 @@ extern cvar_t	*fx_freeze;
 extern cvar_t	*fx_countScale;
 extern cvar_t	*fx_nearCull;
 
+extern cvar_t	*fx_disableSounds;
+
 inline void Vector2Clear(vec2_t a)
 {
 	a[0] = 0.0f;

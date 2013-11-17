@@ -222,6 +222,9 @@ typedef struct {
 	unsigned char		rmgFlattenMap[MAX_HEIGHTMAP_SIZE];
 	rmAutomapSymbol_t	rmgAutomapSymbols[MAX_AUTOMAP_SYMBOLS];
 	int					rmgAutomapSymbolCount;
+
+	float		aviDemoRemain;		// Used for accurate fps recording
+	float		aviSoundRemain;		// Used for accurate fps recording
 } clientConnection_t;
 
 extern	clientConnection_t clc;

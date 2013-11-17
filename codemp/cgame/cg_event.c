@@ -106,8 +106,8 @@ static void CG_Obituary( entityState_t *ent ) {
 	char		*message;
 	const char	*targetInfo;
 	const char	*attackerInfo;
-	char		targetName[32];
-	char		attackerName[32];
+	char		targetName[64];
+	char		attackerName[64];
 	gender_t	gender;
 	clientInfo_t	*ci, *cia;
 
@@ -134,7 +134,8 @@ static void CG_Obituary( entityState_t *ent ) {
 		return;
 	}
 //	Q_strncpyz( targetName, /*Info_ValueForKey( targetInfo, "n" )*/ConfigValue( targetInfo, "n" ), sizeof(targetName) - 2);
-	Com_sprintf(targetName, sizeof(targetName) - 2, ci->name);
+	Q_strncpyz( targetName, ci->name, sizeof(targetName) - 2);
+//	Com_sprintf(targetName, sizeof(targetName) - 2, ci->name);
 	strcat( targetName, S_COLOR_WHITE );
 
 	// check for single client messages
@@ -253,7 +254,6 @@ static void CG_Obituary( entityState_t *ent ) {
 clientkilled:
 
 	// check for kill messages from the current clientNum
-//	if ( attacker == cg.snap->ps.clientNum ) {
 	if ( cg.playerCent && attacker == cg.playerCent->currentState.clientNum ) {
 		char	*s;
 
@@ -318,7 +318,8 @@ clientkilled:
 		strcpy( attackerName, "noname" );
 	} else {
 //		Q_strncpyz( attackerName, /*Info_ValueForKey( attackerInfo[1], "n" )*/ConfigValue( attackerInfo, "n" ), sizeof(attackerName) - 2);
-		Com_sprintf(attackerName, sizeof(attackerName) - 2, cia->name);
+		Q_strncpyz( attackerName, cia->name, sizeof(attackerName) - 2);
+//		Com_sprintf(attackerName, sizeof(attackerName) - 2, cia->name);
 		strcat( attackerName, S_COLOR_WHITE );
 		// check for kill messages about the current clientNum
 		if ( target == cg.snap->ps.clientNum ) {
@@ -791,6 +792,8 @@ const char *CG_TeamName(int team)
 	return "FREE";
 }
 
+static int flagGotTime = 0;
+
 void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage)
 {
 	char printMsg[1024];
@@ -809,9 +812,12 @@ void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage)
 		refName = "PLAYER_RETURNED_FLAG";
 		break;
 	case CTFMESSAGE_PLAYER_CAPTURED_FLAG:
+		if (cg.snap->serverTime - flagGotTime > 0)
+			Com_Printf("Capture time: ^1%.3f\n", (float)(cg.snap->serverTime - flagGotTime) / 1000);
 		refName = "PLAYER_CAPTURED_FLAG";
 		break;
 	case CTFMESSAGE_PLAYER_GOT_FLAG:
+		flagGotTime = cg.snap->serverTime;
 		refName = "PLAYER_GOT_FLAG";
 		break;
 	default:
@@ -957,8 +963,8 @@ void DoFall(centity_t *cent, entityState_t *es, int clientNum)
 		trap_S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.landSound );
 	}
 	
-	if ( clientNum == cg.predictedPlayerState.clientNum )
-	{
+//	if ( clientNum == cg.predictedPlayerState.clientNum )
+//	{
 		// smooth landing z changes
 /*		cg.landChange = -delta;
 		if (cg.landChange > 32)
@@ -982,7 +988,7 @@ void DoFall(centity_t *cent, entityState_t *es, int clientNum)
 			pe->landChange = -32;
 		}
 		pe->landTime = cg.time;
-	}
+//	}
 }
 
 int CG_InClientBitflags(entityState_t *ent, int client)
@@ -1317,6 +1323,7 @@ static float CG_EventCoeff (int weapon) {
 	case WP_EMPLACED_GUN: return 0.0f; break; //what is it?
 	case WP_TURRET: return 0.3f; break;
 	}
+	return 0;
 }
 
 static void CG_GetEventStuff(const float coeff, const int time, const float radius) {
@@ -2627,10 +2634,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			if (cent->currentState.eventParm != cg.playerCent->currentState.number ||
 				//[TrueView]
 				cg.renderingThirdPerson || cg_trueGuns.integer 
-				/*|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)*/
-				|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_SABER
-				|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_MELEE)
-				//cg.renderingThirdPerson)
+				|| cg.playerCent->currentState.weapon == WP_SABER
+				|| cg.playerCent->currentState.weapon == WP_MELEE)
 				//[/TrueView]
 			{ //h4q3ry
 				CG_GetClientWeaponMuzzleBoltPoint(cent->currentState.eventParm, cent->currentState.origin2);
@@ -2646,10 +2651,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			if (cent->currentState.eventParm != cg.snap->ps.clientNum ||
 				//[TrueView]
 				cg.renderingThirdPerson || cg_trueGuns.integer 
-				/*|| cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE)*/
-				|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_SABER
-				|| /*cg.playerCent->playerState->weapon*/cg.playerCent->currentState.weapon == WP_MELEE)
-				//cg.renderingThirdPerson)
+				|| cg.predictedPlayerState.weapon == WP_SABER
+				|| cg.predictedPlayerState.weapon == WP_MELEE)
 				//[/TrueView]
 			{ //h4q3ry
 				CG_GetClientWeaponMuzzleBoltPoint(cent->currentState.eventParm, cent->currentState.origin2);
@@ -2737,7 +2740,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_DISRUPTOR_ZOOMSOUND:
 		DEBUGNAME("EV_DISRUPTOR_ZOOMSOUND");
-		if (!(mov_soundDisable.integer & SDISABLE_ZOOM) && cg.playerCent && cg.playerCent->currentState.number == cg.snap->ps.clientNum
+		if (!(mov_soundDisable.integer & SDISABLE_ZOOM) && cg.playerCent && cg.playerPredicted
 			&& es->number == cg.snap->ps.clientNum)
 		{
 			if (cg.snap->ps.zoomMode)

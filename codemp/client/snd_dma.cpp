@@ -204,7 +204,7 @@ cvar_t		*s_dopplerFactor;
 
 cvar_t		*s_timescale;
 cvar_t		*s_forceScale;
-cvar_t		*s_noiseFix;
+cvar_t		*s_attenuate;
 
 float		s_playScale;
 qboolean	s_hadSpatialize;
@@ -487,7 +487,7 @@ void S_Init( void ) {
 	s_volumeVoice= Cvar_Get ("s_volumeVoice", "1.0", CVAR_ARCHIVE);
 	s_musicVolume = Cvar_Get ("s_musicvolume", "0.25", CVAR_ARCHIVE);
 	s_separation = Cvar_Get ("s_separation", "0.5", CVAR_ARCHIVE);
-	s_khz = Cvar_Get ("s_khz", "44", CVAR_ARCHIVE|CVAR_LATCH);
+	s_khz = Cvar_Get ("s_khz", "22", CVAR_ARCHIVE|CVAR_LATCH);
 	s_allowDynamicMusic = Cvar_Get ("s_allowDynamicMusic", "1", CVAR_ARCHIVE);
 	s_mixahead = Cvar_Get ("s_mixahead", "0.2", CVAR_ARCHIVE);
 
@@ -506,7 +506,7 @@ void S_Init( void ) {
 	s_dopplerSpeed = Cvar_Get ("s_dopplerSpeed", "4000", CVAR_ARCHIVE);
 	s_dopplerFactor = Cvar_Get ("s_dopplerFactor", "1", CVAR_ARCHIVE);
 	s_timescale = Cvar_Get ("s_timescale", "1", CVAR_ARCHIVE);
-	s_noiseFix = Cvar_Get ("s_noiseFix", "0", CVAR_ARCHIVE);
+	s_attenuate = Cvar_Get ("s_attenuate", "1.0", CVAR_ARCHIVE);
 	s_playScale = 1.0f;
 	s_forceScale = Cvar_Get ("s_forceScale", "0", CVAR_TEMP);
 
@@ -1964,7 +1964,9 @@ void S_ClearSoundBuffer( void ) {
 	s_playScale = 1.0f;
 #ifdef SND_MME
 	// stop looping sounds
-	Com_Memset( s_entitySounds, 0, sizeof( s_entitySounds ));
+	Com_Memset(s_entitySounds, 0, sizeof(s_entitySounds));
+	VectorClear(s_listenOrigin);
+
 	// Signal the real sound mixer to stop any sounds
 	S_DMAClearBuffer();
 #else
@@ -3139,7 +3141,19 @@ void S_GetSoundtime(void)
 	fullsamples = dma.samples / dma.channels;
 
 	if( CL_VideoRecording( ) ) {
-		s_soundtime += (int)ceil( dma.speed / cl_aviFrameRate->value );
+		float frameTime, fps;
+		int temp_soundtime;
+		fps = cl_aviFrameRate->value;
+		if ( fps > 1000.0f)
+			fps = 1000.0f;
+		frameTime = ((float)dma.speed / fps);
+		if (frameTime < 1) {
+			frameTime = 1;
+		}
+		frameTime += clc.aviSoundRemain;
+		temp_soundtime = (int)frameTime;
+		s_soundtime += (int)frameTime;
+		clc.aviSoundRemain = frameTime - temp_soundtime;
 		return;
 	}
 

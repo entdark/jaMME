@@ -712,7 +712,7 @@ static void S_MixSpatialize(const vec3_t origin, float volume, int *left_vol, in
     vec3_t		source_vec;
     vec3_t		vec;
 
-	const float dist_mult = SOUND_ATTENUATE;
+	const float dist_mult = SOUND_ATTENUATE * s_attenuate->value;
 	
 	// calculate stereo seperation and distance attenuation
 	VectorSubtract(origin, s_listenOrigin, source_vec);
@@ -989,7 +989,7 @@ void S_MixBackground( mixBackground_t *background, int speed, int count, int *ou
 	int		volumeMul;
 	short	buf[2048][2];
 
-	speed = 1 << 8;
+	speed = 1 << MIX_SHIFT;
 	if ( s_background.playing ) {
 		/* Do we need a reload */
 		if ( s_background.reload ) {
