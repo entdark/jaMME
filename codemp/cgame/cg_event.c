@@ -792,13 +792,19 @@ const char *CG_TeamName(int team)
 	return "FREE";
 }
 
-static int flagGotTime = 0;
+static int gotRedFlag = 0, gotBlueFlag = 0;
 
 void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage)
 {
 	char printMsg[1024];
 	char *refName = NULL;
 	const char *psStringEDString = NULL;
+	int team = 0;
+
+	if (!Q_stricmp(teamName, "RED"))
+		team = 1;
+	else if (!Q_stricmp(teamName, "BLUE"))
+		team = 2;
 
 	switch (ctfMessage)
 	{
@@ -812,12 +818,17 @@ void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage)
 		refName = "PLAYER_RETURNED_FLAG";
 		break;
 	case CTFMESSAGE_PLAYER_CAPTURED_FLAG:
-		if (cg.snap->serverTime - flagGotTime > 0)
-			Com_Printf("Capture time: ^1%.3f\n", (float)(cg.snap->serverTime - flagGotTime) / 1000);
+		if (team == 1 && cg.snap->serverTime - gotRedFlag > 0)
+			Com_Printf("Capture time: ^1%.3f\n", (float)(cg.snap->serverTime - gotRedFlag) / 1000);
+		else if (team == 2 && cg.snap->serverTime - gotBlueFlag > 0)
+			Com_Printf("Capture time: ^1%.3f\n", (float)(cg.snap->serverTime - gotBlueFlag) / 1000);
 		refName = "PLAYER_CAPTURED_FLAG";
 		break;
 	case CTFMESSAGE_PLAYER_GOT_FLAG:
-		flagGotTime = cg.snap->serverTime;
+		if (team == 1)
+			gotRedFlag = cg.snap->serverTime;
+		else if (team == 2)
+			gotBlueFlag = cg.snap->serverTime;
 		refName = "PLAYER_GOT_FLAG";
 		break;
 	default:
@@ -2630,6 +2641,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_DISRUPTOR_MAIN_SHOT:
 		DEBUGNAME("EV_DISRUPTOR_MAIN_SHOT");
+		{
 		if (cg.playerCent) {
 			if (cent->currentState.eventParm != cg.playerCent->currentState.number ||
 				//[TrueView]
@@ -2665,16 +2677,24 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				}
 			}
 		}
-		if (fx_disruptSpiral.integer) {
+
+		if (fx_disruptSpiral.integer)
 			CG_RailSpiral( &cgs.clientinfo[cent->currentState.eventParm], cent->currentState.origin2, cent->lerpOrigin );
-		} else if ( (cg_newFX.integer & NEWFX_RUPTOR) )
+		else if ( (cg_newFX.integer & NEWFX_RUPTOR) )
 			CG_RailTrail( &cgs.clientinfo[cent->currentState.eventParm], cent->currentState.origin2, cent->lerpOrigin );
-		else
-			FX_DisruptorMainShot( cent->currentState.origin2, cent->lerpOrigin ); 
+		else {
+			vec3_t start, end;
+			VectorCopy(cent->currentState.origin2, start);
+			VectorCopy(cent->lerpOrigin, end);
+			CG_StartBehindCamera(start, end, cg.refdef.vieworg, cg.refdef.viewaxis, NULL);
+			FX_DisruptorMainShot( start, end );
+		}
+		}
 		break;
 
 	case EV_DISRUPTOR_SNIPER_SHOT:
 		DEBUGNAME("EV_DISRUPTOR_SNIPER_SHOT");
+		{
 		if (cg.playerCent) {
 			if (cent->currentState.eventParm != cg.playerCent->currentState.number ||
 				cg.renderingThirdPerson)
@@ -2702,12 +2722,19 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				}
 			}
 		}
-		if (fx_disruptSpiral.integer) {
-			CG_RailSpiral( &cgs.clientinfo[cent->currentState.eventParm], cent->currentState.origin2, cent->lerpOrigin );
-		} else if ( (cg_newFX.integer & NEWFX_RUPTOR) )
-			CG_RailTrail( &cgs.clientinfo[cent->currentState.eventParm], cent->currentState.origin2, cent->lerpOrigin );
-		else
-			FX_DisruptorAltShot( cent->currentState.origin2, cent->lerpOrigin, cent->currentState.shouldtarget );
+
+		if (fx_disruptSpiral.integer)
+			CG_RailSpiral(&cgs.clientinfo[cent->currentState.eventParm], cent->currentState.origin2, cent->lerpOrigin);
+		else if ( (cg_newFX.integer & NEWFX_RUPTOR) )
+			CG_RailTrail(&cgs.clientinfo[cent->currentState.eventParm], cent->currentState.origin2, cent->lerpOrigin);
+		else {
+			vec3_t start, end;
+			VectorCopy(cent->currentState.origin2, start);
+			VectorCopy(cent->lerpOrigin, end);
+			CG_StartBehindCamera(start, end, cg.refdef.vieworg, cg.refdef.viewaxis, NULL);
+			FX_DisruptorAltShot(start, end, cent->currentState.shouldtarget);
+		}
+		}
 		break;
 
 	case EV_DISRUPTOR_SNIPER_MISS:

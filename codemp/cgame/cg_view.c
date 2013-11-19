@@ -664,7 +664,7 @@ static void CG_OffsetThirdPersonView( void )
 	}
 	else if ( cg.playerCent->currentState.eFlags & EF_DEAD ) 
 	{
-		cameraFocusAngles[PITCH] = 0;
+//		cameraFocusAngles[PITCH] = 0;
 		cameraFocusAngles[YAW] = 0;
 		cameraFocusAngles[ROLL] = 0;
 	}
@@ -1907,7 +1907,7 @@ int CG_DemosCalcViewValues( void ) {
 			if (cg_thirdPersonSpecialCam.integer &&
 				BG_SaberInSpecial(cg.snap->ps.saberMove))
 			{ //the action cam
-//				if (!CG_ThirdPersonActionCam())
+				if (!CG_ThirdPersonActionCam())
 				{ //couldn't do it for whatever reason, resort back to third person then
 					CG_OffsetThirdPersonView();
 				}

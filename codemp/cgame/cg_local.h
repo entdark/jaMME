@@ -1895,6 +1895,7 @@ void CG_G2Trace( trace_t *result, const vec3_t start, const vec3_t mins, const v
 void CG_PredictPlayerState( void );
 void CG_LoadDeferredPlayers( void );
 
+void CG_StartBehindCamera(vec3_t start, vec3_t end, const vec3_t camOrg, const vec3_t camAxis[3], vec3_t entDirection);
 
 //
 // cg_events.c

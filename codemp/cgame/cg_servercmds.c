@@ -1684,10 +1684,7 @@ static void CG_ServerCommand( void ) {
 	if ( !strcmp( cmd, "chat" ) ) {
 		if ( !cg_teamChatsOnly.integer ) {
 			if (!(mov_soundDisable.integer & SDISABLE_CHAT) && mov_chatBeep.integer) {
-				if (cg.playerCent || cg_draw2D.integer != 2)
-					trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
-				else
-					trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+				trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 			}
 			Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 			CG_RemoveChatEscapeChar( text );
@@ -1699,10 +1696,7 @@ static void CG_ServerCommand( void ) {
 
 	if ( !strcmp( cmd, "tchat" ) ) {
 		if (!(mov_soundDisable.integer & SDISABLE_CHAT) && mov_chatBeep.integer) {
-			if (cg.playerCent || cg_draw2D.integer != 2)
-				trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
-			else
-				trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
 		}
 		Q_strncpyz( text, CG_Argv(1), MAX_SAY_TEXT );
 		CG_RemoveChatEscapeChar( text );

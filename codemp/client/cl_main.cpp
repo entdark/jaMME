@@ -2371,7 +2371,7 @@ void CL_Frame ( int msec ) {
 			msec = (int)frameTime;
 			clc.aviDemoRemain = frameTime - msec;
 
-			S_MMERecord( shotName, 1.0f / (cl_aviFrameRate->value * com_timescale->value ));
+			S_MMERecord( shotName, 1.0f / (cl_avidemo->value * com_timescale->value ));
 		}
 		// fixed time for next frame'
 	}
@@ -2379,11 +2379,12 @@ void CL_Frame ( int msec ) {
 	if (cl_mme_capture->integer) {
 //		CL_CaptureStereo(cl_mme_name->string, cl_mme_fps->value, cl_mme_focus->value);
 		float stereoSep;
+		float frameTime, fps;
 		
 		stereoSep = Cvar_VariableValue( "r_stereoSeparation" );
 		if (stereoSep != 0) {
 			if (stereoSep > 0)
-				stereoSep = -stereoSep;
+				stereoSep = -stereoSep; // we start always with negative for correct sync
 
 			Cvar_SetValue("r_stereoSeparation", stereoSep);
 			SCR_UpdateScreen();
@@ -2399,10 +2400,9 @@ void CL_Frame ( int msec ) {
 		} else {
 //			re.Capture( cl_mme_name->string, cl_mme_fps->value, cl_mme_focus->value  );
 		}
-		float frameTime, fps;
 
 		// fixed time for next frame'
-		fps = cl_avidemo->integer * com_timescale->value;
+		fps = cl_mme_fps->value * com_timescale->value;
 		if ( fps > 1000.0f)
 			fps = 1000.0f;
 		frameTime = (1000.0f / fps);
@@ -2413,7 +2413,7 @@ void CL_Frame ( int msec ) {
 		msec = (int)frameTime;
 		clc.aviDemoRemain = frameTime - msec;
 
-		S_MMERecord( cl_mme_name->string, 1.0f / (cl_aviFrameRate->value * com_timescale->value ));
+		S_MMERecord( cl_mme_name->string, 1.0f / (cl_mme_fps->value * com_timescale->value ));
 	}
 
 	// save the msec before checking pause

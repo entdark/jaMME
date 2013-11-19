@@ -12536,10 +12536,10 @@ skipCloaked:
 
 			trap_R_AddRefEntityToScene( &legs );
 
-			if ( !(mov_soundDisable.integer & SDISABLE_FORCE) && (random() > 0.9f || !cg.frametime)
-				&& ((cg.frametime < 50 && (cg.time % 50 <= cg.frametime && cg.time % 50 != 0))
-				|| cg.frametime >= 50
-				|| (!cg.frametime && cg.time % 5 == 0)))
+			if ( !(mov_soundDisable.integer & SDISABLE_FORCE) && (random() > 0.9f)
+				&& cg.frametime > 0
+				&& ((cg.frametime < 50 && cg.time % 50 <= cg.frametime)
+				|| cg.frametime >= 50))
 				trap_S_StartSound ( NULL, cent->currentState.number, CHAN_AUTO, cgs.media.crackleSound );
 		}
 

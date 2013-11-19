@@ -811,8 +811,6 @@ void CFxScheduler::PlayEffect( int id, vec3_t origin, vec3_t axis[3], const int 
 	float					factor = 0.0f, fxscale;
 	bool					forceScheduling = false;
 
-	static int				oldID = -1;
-
 	i = 0;
 
 	if ( id < 1 || id >= FX_MAX_EFFECTS || !mEffectTemplates[id].mInUse )

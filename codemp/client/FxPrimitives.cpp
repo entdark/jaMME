@@ -2307,11 +2307,15 @@ void CFlash::Draw( void )
 	}
 	else
 	{
+		float stereoSep, stereoCoeff = 1.0f;
 		VectorCopy( theFxHelper.refdef->vieworg, mRefEnt.origin );
 		VectorMA( mRefEnt.origin, FLASH_DISTANCE_FROM_VIEWER, theFxHelper.refdef->viewaxis[0], mRefEnt.origin );
 
         // This is assuming that the screen is wider than it is tall.
-        mRefEnt.radius = FLASH_DISTANCE_FROM_VIEWER * tan (DEG2RAD (theFxHelper.refdef->fov_x * 0.5f));
+		stereoSep = Cvar_VariableValue( "r_stereoSeparation" );
+		if (stereoSep != 0)
+			stereoCoeff = stereoSep / 0.017f; //not accurate but works
+        mRefEnt.radius = FLASH_DISTANCE_FROM_VIEWER * tan (DEG2RAD (theFxHelper.refdef->fov_x * 0.5f)) * stereoCoeff;
 
 		theFxHelper.AddFxToScene( &mRefEnt );
 	}

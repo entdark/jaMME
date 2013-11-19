@@ -376,6 +376,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	float frameSpeed;
 	int blurTotal, blurIndex;
 	float blurFraction;
+	float stereo = CG_Cvar_Get("r_stereoSeparation");
 
 	int inwater;
 	const char *cstr;
@@ -490,7 +491,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		demo.play.fraction = demo.loop.range * loopFraction;
 		demo.play.time += (int)demo.play.fraction;
 		demo.play.fraction -= (int)demo.play.fraction;
-	} else if (captureFrame) {
+	} else if (captureFrame && stereo == 0) {
 		float frameDelay = 1000.0f / captureFPS;
 		demo.play.fraction += frameDelay * demo.play.speed;
 		demo.play.time += (int)demo.play.fraction;
@@ -500,7 +501,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		demo.play.fraction = 0;
 		if ( demo.play.paused )
 			demo.find = findNone;
-	} else if (!demo.play.paused) {
+	} else if (!demo.play.paused/* && !captureFrame*/) {
 		float delta = demo.play.fraction + deltaTime * demo.play.speed;
 		demo.play.time += (int)delta;
 		demo.play.fraction = delta - (int)delta;
@@ -765,12 +766,17 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	if (captureFrame) {
 		char fileName[MAX_OSPATH];
-		float stereo = CG_Cvar_Get("r_stereoSeparation");
 		Com_sprintf( fileName, sizeof( fileName ), "capture/%s/%s", mme_demoFileName.string, mov_captureName.string );
 		if (stereo == 0) {
 			trap_MME_Capture( fileName, captureFPS, demo.viewFocus );
 		} else {
-			//we can capture stereo 3d only through cl_main
+/*			if (stereo < 0)
+				trap_MME_Capture( fileName, captureFPS, demo.viewFocus );
+			else if (stereo > 0)
+				trap_MME_CaptureStereo( fileName, captureFPS, demo.viewFocus );
+			stereo = -stereo;
+			trap_Cvar_Set("r_stereoSeparation", va( "%f", stereo ));*/
+			//we can capture stereo 3d only through cl_main <- lie, we can capture here now, but with bugs :c
 			trap_Cvar_Set("cl_mme_name", fileName);
 			trap_Cvar_Set("cl_mme_fps", va( "%f", captureFPS ));
 			trap_Cvar_Set("cl_mme_focus", va( "%f", demo.viewFocus ));
@@ -791,6 +797,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	if ( demo.capture.active && demo.capture.locked && demo.play.time > demo.capture.end  ) {
 		Com_Printf( "Capturing ended\n" );
+		trap_Cvar_Set("cl_mme_capture", "0");
 		if (demo.autoLoad) {
 			trap_SendConsoleCommand( "disconnect\n" );
 		} 

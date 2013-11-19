@@ -1458,3 +1458,40 @@ revertES:
 	}
 }
 #pragma warning(default : 4701) //local variable may be used without having been initialized
+
+void CG_StartBehindCamera(vec3_t start, vec3_t end, const vec3_t camOrg, const vec3_t camAxis[3], vec3_t entDirection) {
+	vec3_t beamDirection, a, forwardDirection;
+
+	AxisToAngles(camAxis, a);
+	AngleVectors (a, forwardDirection, NULL, NULL);
+	VectorNormalize(forwardDirection);
+	VectorSubtract(start, camOrg, beamDirection);
+	VectorNormalize(beamDirection);
+
+	if (DotProduct(forwardDirection, beamDirection) < 0) {
+		vec3_t beamEnd;
+		trace_t trace;
+
+		if (end) {
+			vec3_t temp;
+			VectorCopy(start, temp);
+			VectorCopy(end, start);
+			VectorCopy(temp, end);
+			return;
+		}
+		if (!entDirection)
+			return;
+
+		VectorMA(start, 5000, entDirection, beamEnd);
+		CG_Trace(&trace, start, NULL, NULL, beamEnd, -1, CONTENTS_SOLID);
+
+		if (trace.fraction < 1.0f) {
+			vec3_t opossiteDir;                    
+
+			VectorCopy(trace.endpos, beamEnd);
+			VectorInverse(entDirection);
+			VectorCopy(beamEnd, start);
+			return;
+		}
+	}
+}

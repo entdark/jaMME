@@ -1640,10 +1640,11 @@ Ghoul2 Insert End
 			{
 				if (lightSide)
 				{
-					if (curTimeDif < 2200)
-					{ //probably temporary
+					if (curTimeDif < 2200
+						&& cg.frametime > 0
+						&& ((cg.frametime < 50 && cg.time % 50 <= cg.frametime)
+						|| cg.frametime >= 50)) //probably temporary
 						trap_S_StartSound ( NULL, cent->currentState.number, CHAN_AUTO, trap_S_RegisterSound( "sound/weapons/saber/saberhum1.wav" ) );
-					}
 				}
 				else
 				{ //probably temporary as well
@@ -1652,17 +1653,16 @@ Ghoul2 Insert End
 					ent.shaderRGBA[1] = ent.shaderRGBA[2] = 0;
 					ent.shaderRGBA[3] = 255;
 					if ( rand() & 1 )
-					{
 						ent.customShader = cgs.media.electricBodyShader;	
-					}
 					else
-					{
 						ent.customShader = cgs.media.electricBody2Shader;
-					}
-					if ( random() > 0.9f )
-					{
+
+					if ((random() > 0.9f)
+						&& cg.frametime > 0
+						&& ((cg.frametime < 50 && cg.time % 50 <= cg.frametime)
+						|| cg.frametime >= 50))
 						trap_S_StartSound ( NULL, cent->currentState.number, CHAN_AUTO, cgs.media.crackleSound );
-					}
+
 					trap_R_AddRefEntityToScene( &ent );
 				}
 			}
@@ -1837,60 +1837,29 @@ skipDisintegration:
 
 	if ( cent->currentState.time == -1 && cent->currentState.weapon == WP_TRIP_MINE && (cent->currentState.eFlags & EF_FIRING) )
 	{ //if force sight is active, render the laser multiple times up to the force sight level to increase visibility
-		if (cent->currentState.bolt2 == 1)
-		{
+		if (cent->currentState.bolt2 == 1) {
 			VectorMA( ent.origin, 6.6f, ent.axis[0], beamOrg );// forward
 			beamID = cgs.effects.tripmineGlowFX;
 			trap_FX_PlayEffectID( beamID, beamOrg, cent->currentState.pos.trDelta, -1, -1 );
-		}
-		else
-		{
+		} else {
 			int i = 0;
-			vec3_t forwardDir, beamOrgDir;
+			vec3_t beamDirection;
 
 			VectorMA( ent.origin, 6.6f, ent.axis[0], beamOrg );// forward
 			beamID = cgs.effects.tripmineLaserFX;
 
-			if (cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE))
-			{
-				i = cg.snap->ps.fd.forcePowerLevel[FP_SEE];
+			VectorCopy(cent->currentState.pos.trDelta, beamDirection);
+			CG_StartBehindCamera(beamOrg, NULL, cg.refdef.vieworg, cg.refdef.viewaxis, beamDirection);
 
-				while (i > 0)
-				{
-					trap_FX_PlayEffectID( beamID, beamOrg, cent->currentState.pos.trDelta, -1, -1 );
-					trap_FX_PlayEffectID( beamID, beamOrg, cent->currentState.pos.trDelta, -1, -1 );
+			if (cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE)) {
+				i = cg.snap->ps.fd.forcePowerLevel[FP_SEE];
+				while (i > 0) {
+					trap_FX_PlayEffectID( beamID, beamOrg, beamDirection, -1, -1 );
+					trap_FX_PlayEffectID( beamID, beamOrg, beamDirection, -1, -1 );
 					i--;
 				}
 			}
-
-			AngleVectors ( cg.refdef.viewangles, forwardDir, NULL, NULL );
-			VectorNormalize(forwardDir);
-			VectorSubtract(beamOrg,cg.refdef.vieworg,beamOrgDir);
-			VectorNormalize(beamOrgDir);
-
-			if (DotProduct(forwardDir, beamOrgDir) < 0) {
-				vec3_t beamEnd;
-				trace_t trace;
-
-				VectorMA( beamOrg, 5000, cent->currentState.pos.trDelta, beamEnd );
-				CG_Trace( &trace, beamOrg, NULL, NULL, beamEnd, -1, CONTENTS_SOLID );
-
-				if (trace.fraction < 1.0f) {
-					vec3_t opossiteDir;                    
-
-					VectorCopy(trace.endpos, beamEnd);
-					VectorScale(cent->currentState.pos.trDelta,-1,opossiteDir);
-
-					// draw opposite direction
-					trap_FX_PlayEffectID( beamID, beamEnd, opossiteDir, -1, -1 );
-				} else {
-					// not found any obsticle, draw in original direction
-					trap_FX_PlayEffectID( beamID, beamOrg, cent->currentState.pos.trDelta, -1, -1 );
-				}
-			} else {
-				// original direction
-				trap_FX_PlayEffectID( beamID, beamOrg, cent->currentState.pos.trDelta, -1, -1 );
-			}
+			trap_FX_PlayEffectID( beamID, beamOrg, beamDirection, -1, -1 );	
 		}
 	}
 /*
