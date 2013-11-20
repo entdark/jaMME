@@ -793,6 +793,7 @@ const char *CG_TeamName(int team)
 }
 
 static int gotRedFlag = 0, gotBlueFlag = 0;
+static qboolean blueOnStand = qtrue, redOnStand = qtrue;
 
 void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage)
 {
@@ -806,29 +807,42 @@ void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage)
 	else if (!Q_stricmp(teamName, "BLUE"))
 		team = 2;
 
-	switch (ctfMessage)
-	{
+	switch (ctfMessage) {
 	case CTFMESSAGE_FRAGGED_FLAG_CARRIER:
 		refName = "FRAGGED_FLAG_CARRIER";
 		break;
 	case CTFMESSAGE_FLAG_RETURNED:
 		refName = "FLAG_RETURNED";
+		if (team == 1)
+			redOnStand = qtrue;
+		else if (team == 2)
+			blueOnStand = qtrue;
 		break;
 	case CTFMESSAGE_PLAYER_RETURNED_FLAG:
 		refName = "PLAYER_RETURNED_FLAG";
+		if (team == 1)
+			redOnStand = qtrue;
+		else if (team == 2)
+			blueOnStand = qtrue;
 		break;
 	case CTFMESSAGE_PLAYER_CAPTURED_FLAG:
-		if (team == 1 && cg.snap->serverTime - gotRedFlag > 0)
+		if (team == 1 && cg.snap->serverTime - gotRedFlag > 0) {
 			Com_Printf("Capture time: ^1%.3f\n", (float)(cg.snap->serverTime - gotRedFlag) / 1000);
-		else if (team == 2 && cg.snap->serverTime - gotBlueFlag > 0)
+			redOnStand = qtrue;
+		} else if (team == 2 && cg.snap->serverTime - gotBlueFlag > 0) {
 			Com_Printf("Capture time: ^1%.3f\n", (float)(cg.snap->serverTime - gotBlueFlag) / 1000);
+			blueOnStand = qtrue;
+		}
 		refName = "PLAYER_CAPTURED_FLAG";
 		break;
 	case CTFMESSAGE_PLAYER_GOT_FLAG:
-		if (team == 1)
+		if (team == 1 && redOnStand) {
 			gotRedFlag = cg.snap->serverTime;
-		else if (team == 2)
+			redOnStand = qfalse;
+		} else if (team == 2 && blueOnStand) {
 			gotBlueFlag = cg.snap->serverTime;
+			blueOnStand = qfalse;
+		}
 		refName = "PLAYER_GOT_FLAG";
 		break;
 	default:

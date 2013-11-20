@@ -1724,11 +1724,10 @@ openSound_t *S_SoundOpen( char *fileName ) {
 tryAgainThisSound:
 	fileExt = Q_strrchr( fileName, '.' );
 	if (!fileExt) {
-		char *blah;
+		char *blah = fileName;
 #ifdef HAVE_LIBMAD
 		if (!doNotYell)
 			Com_Printf("File %s has no extension, trying to use .mp3\n", fileName );
-		blah = (char *)fileName;
 		strcat( blah, ".mp3" );
 		open = S_MP3Open( blah );
 		if (open) {
@@ -1737,8 +1736,6 @@ tryAgainThisSound:
 		else
 #endif
 		{
-			char *newFileName2;
-			blah = (char *)fileName;
 			if (!doNotYell)
 				Com_Printf("File %s has no extension or .mp3 did not work, trying to use .wav\n", fileName );
 			char *p = strchr( blah, '.' ); /* find first '.' */
@@ -1768,8 +1765,7 @@ tryAgainThisSound:
 #ifdef HAVE_LIBMAD
 		} else {
 			//ZTM's super replacer
-			char *blah; /* need to set blah */
-			blah = (char *)fileName;
+			char *blah = fileName; /* need to set blah */
 			char *p = strchr( blah, '.' ); /* find first '.' */
 			if ( p != NULL ) {/* found '.' */
 				Q_strncpyz(p, ".mp3", sizeof (blah) + 1); /* change ext */
@@ -1796,8 +1792,7 @@ tryAgainThisSound:
 			return open;
 		} else {
 			//ZTM's super replacer
-			char *blah; /* need to set blah */
-			blah = (char *)fileName;
+			char *blah = fileName; /* need to set blah */
 			char *p = strchr( blah, '.' ); /* find first '.' */
 			if ( p != NULL ) {/* found '.' */
 				Q_strncpyz(p, ".wav", sizeof (blah) + 1); /* change ext */
