@@ -10,6 +10,24 @@ static mixChannel_t	dmaChannels[DMA_SNDCHANNELS];
 static qboolean		dmaInit;
 static int   		dmaWrite;
 
+void S_DMAStopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle) {
+	int i;
+	for (i = 0; i < DMA_SNDCHANNELS; i++) {
+		if (dmaChannels[i].entChan == entchannel
+			&& dmaChannels[i].entNum == entityNum
+			&& dmaChannels[i].handle == sfxHandle) {
+			dmaChannels[i].entChan = 0;
+			dmaChannels[i].entNum = 0;
+			dmaChannels[i].handle = 0;
+			dmaChannels[i].hasOrigin = 0;
+			VectorClear(dmaChannels[i].origin);
+			dmaChannels[i].index = 0;
+			dmaChannels[i].wasMixed = 0;
+			break;
+		}
+	}
+}
+
 void S_DMAClearBuffer( void ) {
 	int		clear;
 		

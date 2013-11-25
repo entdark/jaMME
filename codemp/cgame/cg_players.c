@@ -4921,7 +4921,7 @@ static void CG_PlayerFloatSprite( centity_t *cent, qhandle_t shader ) {
 	int				rf;
 	refEntity_t		ent;
 
-	if ( cent->currentState.number == cg.snap->ps.clientNum && !cg.renderingThirdPerson ) {
+	if ( cent == cg.playerCent && !cg.renderingThirdPerson ) {
 		rf = RF_THIRD_PERSON;		// only show in mirrors
 	} else {
 		rf = 0;
@@ -10266,11 +10266,13 @@ void CG_Player( centity_t *cent ) {
 	team = ci->team;
 
 	if (cgs.gametype >= GT_TEAM && cg_drawFriend.integer &&
-		cent != cg.playerCent &&
+		cg.playerCent && cent != cg.playerCent &&
 		cent->currentState.eType != ET_NPC)
 	{	// If the view is either a spectator or on the same team as this character, show a symbol above their head.
-		if ((cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.snap->ps.persistant[PERS_TEAM] == team) &&
-			!(cent->currentState.eFlags & EF_DEAD))
+		if (((cg.playerPredicted
+			&& (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.snap->ps.persistant[PERS_TEAM] == team))
+			|| (!cg.playerPredicted && cgs.clientinfo[cg.playerCent->currentState.number].team == team))
+			&& !(cent->currentState.eFlags & EF_DEAD))
 		{
 			if (cgs.gametype == GT_SIEGE)
 			{ //check for per-map team shaders
@@ -10310,18 +10312,19 @@ void CG_Player( centity_t *cent ) {
 			}
 		}
 	}
-	else if (cgs.gametype == GT_POWERDUEL && cg_drawFriend.integer &&
-		cent != cg.playerCent)
+	else if (cgs.gametype == GT_POWERDUEL && cg_drawFriend.integer
+		&& cg.playerCent && cent != cg.playerCent)
 	{
-		if (cg.predictedPlayerState.persistant[PERS_TEAM] != TEAM_SPECTATOR &&
-			cent->currentState.number < MAX_CLIENTS &&
+		if (((cg.playerPredicted && cg.predictedPlayerState.persistant[PERS_TEAM] != TEAM_SPECTATOR)
+			|| (!cg.playerPredicted))
+			&& cent->currentState.number < MAX_CLIENTS &&
 			!(cent->currentState.eFlags & EF_DEAD) &&
 			ci &&
-			cgs.clientinfo[cg.snap->ps.clientNum].duelTeam == ci->duelTeam)
+			cgs.clientinfo[cg.playerCent->currentState.number].duelTeam == ci->duelTeam)
 		{ //ally in powerduel, so draw the icon
 			CG_PlayerFloatSprite( cent, cgs.media.powerDuelAllyShader);
 		}
-		else if (cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_SPECTATOR &&
+		else if (cg.playerPredicted && cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_SPECTATOR &&
 			cent->currentState.number < MAX_CLIENTS &&
 			!(cent->currentState.eFlags & EF_DEAD) &&
 			ci->duelTeam == DUELTEAM_DOUBLE)
@@ -10330,7 +10333,7 @@ void CG_Player( centity_t *cent ) {
 		}
 	}
 
-	if (cgs.gametype == GT_JEDIMASTER && cg_drawFriend.integer &&
+	if (cg.playerPredicted && cgs.gametype == GT_JEDIMASTER && cg_drawFriend.integer &&
 		cent != cg.playerCent) // Don't show a sprite above a player's own head in 3rd person.
 	{	// If the view is either a spectator or on the same team as this character, show a symbol above their head.
 		if ((cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.snap->ps.persistant[PERS_TEAM] == team) &&

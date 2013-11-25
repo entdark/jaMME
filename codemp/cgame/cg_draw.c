@@ -7207,7 +7207,8 @@ void CG_DrawFlagStatus()
 		return;
 	}
 
-	team = cg.snap->ps.persistant[PERS_TEAM];
+//	team = cg.snap->ps.persistant[PERS_TEAM];
+	team = cgs.clientinfo[cg.playerCent->currentState.number].team;
 
 	if (cgs.gametype == GT_CTY)
 	{
@@ -8422,13 +8423,17 @@ void CG_Draw2D( void ) {
 		}
 	} else {
 notPredicted:
+		if (cg.playerCent->currentState.forcePowersActive)
+			CG_DrawActivePowers();
+		CG_DrawCrosshairNames();
+		if (cg_drawStatus.integer)
+			CG_DrawFlagStatus();
+		CG_DrawPickupItem();
+		CG_DrawVote();
 		CG_DrawUpperRight();
+		CG_DrawTeamVote();
 		CG_DrawCenterString();
 		CG_ChatBox_DrawStrings();
-		CG_DrawCrosshairNames();
-		if (cg.playerCent->currentState.forcePowersActive) {
-			CG_DrawActivePowers();
-		}
 		return;
 	}
 
@@ -8781,7 +8786,11 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	}
 
 	// draw status bar and other floating elements
-//	CG_Draw2D();
+	if (!cg.demoPlayback) {
+		vec4_t hcolor = {0, 0, 0, 0};
+		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+		CG_Draw2D();
+	}
 
 	doFX = qfalse;
 }

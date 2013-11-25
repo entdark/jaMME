@@ -668,6 +668,11 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		CG_PlayBufferedSounds();
 		// warning sounds when powerup is wearing off
 		CG_PowerupTimerSounds();
+	} else if ( cg.playerCent && !cg.playerPredicted ) {
+		CG_PlayBufferedSounds();
+	} else {
+		trap_S_UpdateEntityPosition( ENTITYNUM_NONE, cg.refdef.vieworg );
+		CG_PlayBufferedSounds();
 	}
 
 	cg.refdef.time = cg.time;

@@ -610,10 +610,12 @@ static void CG_ItemPickup( int itemNum ) {
 				bg_itemlist[itemNum].giTag != WP_DET_PACK &&
 				bg_itemlist[itemNum].giTag != WP_THERMAL &&
 				bg_itemlist[itemNum].giTag != WP_ROCKET_LAUNCHER &&
-				bg_itemlist[itemNum].giTag > cg.snap->ps.weapon &&
-				cg.snap->ps.weapon != WP_SABER)
+//				bg_itemlist[itemNum].giTag > cg.snap->ps.weapon &&
+//				cg.snap->ps.weapon != WP_SABER)
+				bg_itemlist[itemNum].giTag > cg.playerCent->currentState.weapon &&
+				cg.playerCent->currentState.weapon != WP_SABER)
 			{
-				if (!cg.snap->ps.emplacedIndex)
+				if (cg.playerPredicted && !cg.snap->ps.emplacedIndex)
 				{
 					cg.weaponSelectTime = cg.time;
 				}
@@ -622,10 +624,12 @@ static void CG_ItemPickup( int itemNum ) {
 		}
 		else if ( cg_autoSwitch.integer == 2)
 		{ //autoselect if better
-			if (bg_itemlist[itemNum].giTag > cg.snap->ps.weapon &&
-				cg.snap->ps.weapon != WP_SABER)
+//			if (bg_itemlist[itemNum].giTag > cg.snap->ps.weapon &&
+//				cg.snap->ps.weapon != WP_SABER)
+			if (bg_itemlist[itemNum].giTag > cg.playerCent->currentState.weapon &&
+				cg.playerCent->currentState.weapon != WP_SABER)
 			{
-				if (!cg.snap->ps.emplacedIndex)
+				if (cg.playerPredicted && !cg.snap->ps.emplacedIndex)
 				{
 					cg.weaponSelectTime = cg.time;
 				}
@@ -795,12 +799,11 @@ const char *CG_TeamName(int team)
 static int gotRedFlag = 0, gotBlueFlag = 0;
 static qboolean blueOnStand = qtrue, redOnStand = qtrue;
 
-void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage)
-{
+void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage) {
 	char printMsg[1024];
 	char *refName = NULL;
 	const char *psStringEDString = NULL;
-	int team = 0;
+	int team = 0, time = 0;
 
 	if (!Q_stricmp(teamName, "RED"))
 		team = 1;
@@ -827,11 +830,26 @@ void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage)
 		break;
 	case CTFMESSAGE_PLAYER_CAPTURED_FLAG:
 		if (team == 1 && cg.snap->serverTime - gotRedFlag > 0) {
-			Com_Printf("Capture time: ^1%.3f\n", (float)(cg.snap->serverTime - gotRedFlag) / 1000);
+			time = cg.snap->serverTime - gotRedFlag;
 			redOnStand = qtrue;
 		} else if (team == 2 && cg.snap->serverTime - gotBlueFlag > 0) {
-			Com_Printf("Capture time: ^1%.3f\n", (float)(cg.snap->serverTime - gotBlueFlag) / 1000);
+			time = cg.snap->serverTime - gotBlueFlag;
 			blueOnStand = qtrue;
+		}
+		if (time && time >= 60000) {
+			static char buf[32];
+			int msec = time % 1000;
+			int secs = (time / 1000);
+			int mins = (secs / 60);
+			secs %= 60;
+			Com_sprintf(buf, sizeof(buf), "%d:%02d.%03d", mins, secs, msec);
+			Com_Printf("Capture time: ^1%s\n", buf);
+		} else if (time) {
+			static char buf[32];
+			int msec = time % 1000;
+			int secs = (time / 1000);
+			Com_sprintf(buf, sizeof(buf), "%02d.%03d", secs, msec);
+			Com_Printf("Capture time: ^1%s\n", buf);
 		}
 		refName = "PLAYER_CAPTURED_FLAG";
 		break;
@@ -1327,26 +1345,51 @@ const char *CG_GetStringForVoiceSound(const char *s)
 	return "voice chat";
 }
 
-static float CG_EventCoeff (int weapon) {
-	switch (weapon) {
-	case WP_STUN_BATON: return 0; break;
-	case WP_MELEE: return 0; break;
-	case WP_SABER: return 0; break;
-	case WP_BRYAR_PISTOL: return 0.1f; break;
-	case WP_BLASTER: return 0.1f; break;
-	case WP_DISRUPTOR: return 0.4f; break;
-	case WP_BOWCASTER: return 0.2f; break;
-	case WP_REPEATER: return 0.4f; break;	//we cannot know it's alt or primary so let is be 0.4f (expecting 1.0f for alt and 0.3f for prim)
-	case WP_DEMP2: return 0; break;
-	case WP_FLECHETTE: return 0.6f; break;
-	case WP_ROCKET_LAUNCHER: return 1.0f; break;
-	case WP_THERMAL: return 0.8f; break;
-	case WP_TRIP_MINE: return 0.9f; break;
-	case WP_DET_PACK: return 0.9f; break;
-	case WP_CONCUSSION: return 0.8f; break;
-	case WP_BRYAR_OLD: return 0.1f; break;
-	case WP_EMPLACED_GUN: return 0.0f; break; //what is it?
-	case WP_TURRET: return 0.3f; break;
+static float CG_EventCoeff (int weapon, qboolean alt) {
+	if (!alt) {
+		switch (weapon) {
+		case WP_STUN_BATON: return 0;
+		case WP_MELEE: return 0;
+		case WP_SABER: return 0;
+		case WP_BRYAR_PISTOL: return 0.1f;
+		case WP_BLASTER: return 0.1f;
+		case WP_DISRUPTOR: return 0.4f;
+		case WP_BOWCASTER: return 0.2f;
+		case WP_REPEATER: return 0.1f;
+		case WP_DEMP2: return 0;
+		case WP_FLECHETTE: return 0;
+		case WP_ROCKET_LAUNCHER: return 1.0f;
+		case WP_THERMAL: return 0.8f;
+		case WP_TRIP_MINE: return 0.8f;
+		case WP_DET_PACK: return 0.9f;
+		case WP_CONCUSSION: return 0.8f;
+		case WP_BRYAR_OLD: return 0.1f;
+		case WP_EMPLACED_GUN: return 0.0f; //what is it?
+		case WP_TURRET: return 0.3f;
+		default: return 0;
+		}
+	} else {
+		switch (weapon) {
+		case WP_STUN_BATON: return 0;
+		case WP_MELEE: return 0;
+		case WP_SABER: return 0;
+		case WP_BRYAR_PISTOL: return 0.17f;
+		case WP_BLASTER: return 0.1f;
+		case WP_DISRUPTOR: return 0.6f;
+		case WP_BOWCASTER: return 0.2f;
+		case WP_REPEATER: return 0.5f;
+		case WP_DEMP2: return 0;
+		case WP_FLECHETTE: return 0.7f;
+		case WP_ROCKET_LAUNCHER: return 1.0f;
+		case WP_THERMAL: return 0.8f;
+		case WP_TRIP_MINE: return 0.8f;
+		case WP_DET_PACK: return 0.9f;
+		case WP_CONCUSSION: return 0.8f;
+		case WP_BRYAR_OLD: return 0.17f;
+		case WP_EMPLACED_GUN: return 0.0f; //what is it?
+		case WP_TURRET: return 0.3f;
+		default: return 0;
+		}
 	}
 	return 0;
 }
@@ -2016,7 +2059,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 					}
 				}
 
-				if (es->number == cg.snap->ps.clientNum && newindex)
+				if (cg.playerPredicted && es->number == cg.snap->ps.clientNum && newindex)
 				{
 					if (cg.forceSelectTime < cg.time)
 					{
@@ -2053,7 +2096,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			}
 
 			// show icon and name on status bar
-			if ( es->number == cg.snap->ps.clientNum ) {
+//			if ( es->number == cg.snap->ps.clientNum ) {
+			if (cg.playerCent && es->number == cg.playerCent->currentState.number ) {
 				CG_ItemPickup( index );
 			}
 		}
@@ -2072,12 +2116,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			}
 			item = &bg_itemlist[ index ];
 			// powerup pickups are global
-			if( !(mov_soundDisable.integer & SDISABLE_ITEM) && item->pickup_sound && item->pickup_sound[0] ) {
-				trap_S_StartSound (NULL, cg.snap->ps.clientNum, CHAN_AUTO, trap_S_RegisterSound( item->pickup_sound) );
-			}
+			if( cg.playerCent && !(mov_soundDisable.integer & SDISABLE_ITEM) && item->pickup_sound && item->pickup_sound[0] )
+				trap_S_StartSound (NULL, cg.playerCent->currentState.number, CHAN_AUTO, trap_S_RegisterSound( item->pickup_sound) );
 
 			// show icon and name on status bar
-			if ( es->number == cg.snap->ps.clientNum ) {
+//			if ( es->number == cg.snap->ps.clientNum ) {
+			if (cg.playerCent && es->number == cg.playerCent->currentState.number ) {
 				CG_ItemPickup( index );
 			}
 		}
@@ -2762,21 +2806,28 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{ //secondary
 			FX_DisruptorAltMiss( cent->lerpOrigin, dir );
 		}
-		CG_GetEventStuff(CG_EventCoeff(WP_DISRUPTOR), cg.time, Distance(position, cg.refdef.vieworg));
+		CG_GetEventStuff(CG_EventCoeff(WP_DISRUPTOR, qtrue), cg.time, Distance(position, cg.refdef.vieworg));
 		break;
 
 	case EV_DISRUPTOR_HIT:
-		DEBUGNAME("EV_DISRUPTOR_HIT");
-		ByteToDir( es->eventParm, dir );
-		if (es->weapon)
-		{ //client
-			FX_DisruptorHitPlayer( cent->lerpOrigin, dir, qtrue );
+		{
+			qboolean alt = qfalse;
+			DEBUGNAME("EV_DISRUPTOR_HIT");
+			ByteToDir( es->eventParm, dir );
+
+			if (cent->currentState.eFlags & EF_ALT_FIRING)
+				alt = qtrue;
+
+			if (es->weapon)
+			{ //client
+				FX_DisruptorHitPlayer( cent->lerpOrigin, dir, qtrue );
+			}
+			else
+			{ //non-client
+				FX_DisruptorHitWall( cent->lerpOrigin, dir );
+			}
+			CG_GetEventStuff(CG_EventCoeff(WP_DISRUPTOR, alt), cg.time, Distance(position, cg.refdef.vieworg));
 		}
-		else
-		{ //non-client
-			FX_DisruptorHitWall( cent->lerpOrigin, dir );
-		}
-		CG_GetEventStuff(CG_EventCoeff(WP_DISRUPTOR), cg.time, Distance(position, cg.refdef.vieworg));
 		break;
 
 	case EV_DISRUPTOR_ZOOMSOUND:
@@ -3179,167 +3230,187 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		break;
 
 	case EV_MISSILE_HIT:
-		DEBUGNAME("EV_MISSILE_HIT");
-		ByteToDir( es->eventParm, dir );
-		if ( es->emplacedOwner )
-		{//hack: this is an index to a custom effect to use
-			trap_FX_PlayEffectID(cgs.gameEffects[es->emplacedOwner], position, dir, -1, -1);
-		}
-		else if ( CG_VehicleWeaponImpact( cent ) )
-		{//a vehicle missile that uses an overridden impact effect...
-		}
-		else if (cent->currentState.eFlags & EF_ALT_FIRING)
 		{
-			CG_MissileHitPlayer( es->weapon, position, dir, es->otherEntityNum, qtrue);
-		}
-		else
-		{
-			CG_MissileHitPlayer( es->weapon, position, dir, es->otherEntityNum, qfalse);
-		}
+			qboolean alt = qfalse;
+			DEBUGNAME("EV_MISSILE_HIT");
+			ByteToDir( es->eventParm, dir );
+			if ( es->emplacedOwner )
+			{//hack: this is an index to a custom effect to use
+				trap_FX_PlayEffectID(cgs.gameEffects[es->emplacedOwner], position, dir, -1, -1);
+			}
+			else if ( CG_VehicleWeaponImpact( cent ) )
+			{//a vehicle missile that uses an overridden impact effect...
+			}
+			else if (cent->currentState.eFlags & EF_ALT_FIRING)
+			{
+				alt = qtrue;
+				CG_MissileHitPlayer( es->weapon, position, dir, es->otherEntityNum, qtrue);
+			}
+			else
+			{
+				alt = qfalse;
+				CG_MissileHitPlayer( es->weapon, position, dir, es->otherEntityNum, qfalse);
+			}
 
-		if (cg_ghoul2Marks.integer &&
-			es->trickedentindex)
-		{ //flag to place a ghoul2 mark
-			CG_G2MarkEvent(es);
-		}
-		if (es->weapon != 0) { //0 - putting detpack
-			CG_GetEventStuff(CG_EventCoeff(es->weapon), cg.time, Distance(position, cg.refdef.vieworg));
+			if (cg_ghoul2Marks.integer &&
+				es->trickedentindex)
+			{ //flag to place a ghoul2 mark
+				CG_G2MarkEvent(es);
+			}
+			if (es->weapon != 0) { //0 - putting detpack
+				CG_GetEventStuff(CG_EventCoeff(es->weapon, alt), cg.time, Distance(position, cg.refdef.vieworg));
+			}
 		}
 		break;
 
 	case EV_MISSILE_MISS:
-		DEBUGNAME("EV_MISSILE_MISS");
-		ByteToDir( es->eventParm, dir );
-		if ( es->emplacedOwner )
-		{//hack: this is an index to a custom effect to use
-			trap_FX_PlayEffectID(cgs.gameEffects[es->emplacedOwner], position, dir, -1, -1);
-		}
-		else if ( CG_VehicleWeaponImpact( cent ) )
-		{//a vehicle missile that used an overridden impact effect...
-		}
-		else if (cent->currentState.eFlags & EF_ALT_FIRING)
 		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_DEFAULT, qtrue, es->generic1);
-		}
-		else
-		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_DEFAULT, qfalse, 0);
-		}
+			qboolean alt = qfalse;
+			DEBUGNAME("EV_MISSILE_MISS");
+			ByteToDir( es->eventParm, dir );
+			if ( es->emplacedOwner )
+			{//hack: this is an index to a custom effect to use
+				trap_FX_PlayEffectID(cgs.gameEffects[es->emplacedOwner], position, dir, -1, -1);
+			}
+			else if ( CG_VehicleWeaponImpact( cent ) )
+			{//a vehicle missile that used an overridden impact effect...
+			}
+			else if (cent->currentState.eFlags & EF_ALT_FIRING)
+			{
+				alt = qtrue;
+				CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_DEFAULT, qtrue, es->generic1);
+			}
+			else
+			{
+				alt = qfalse;
+				CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_DEFAULT, qfalse, 0);
+			}
 
-		if (cg_ghoul2Marks.integer &&
-			es->trickedentindex)
-		{ //flag to place a ghoul2 mark
-			CG_G2MarkEvent(es);
-		}
-		if (es->weapon != 0) { //0 - putting detpack
-			CG_GetEventStuff(CG_EventCoeff(es->weapon), cg.time, Distance(position, cg.refdef.vieworg));
+			if (cg_ghoul2Marks.integer &&
+				es->trickedentindex)
+			{ //flag to place a ghoul2 mark
+				CG_G2MarkEvent(es);
+			}
+			if (es->weapon != 0) { //0 - putting detpack
+				CG_GetEventStuff(CG_EventCoeff(es->weapon, alt), cg.time, Distance(position, cg.refdef.vieworg));
+			}
 		}
 		break;
 
 	case EV_MISSILE_MISS_METAL:
-		DEBUGNAME("EV_MISSILE_MISS_METAL");
-		ByteToDir( es->eventParm, dir );
-		if ( es->emplacedOwner )
-		{//hack: this is an index to a custom effect to use
-			trap_FX_PlayEffectID(cgs.gameEffects[es->emplacedOwner], position, dir, -1, -1);
-		}
-		else if ( CG_VehicleWeaponImpact( cent ) )
-		{//a vehicle missile that used an overridden impact effect...
-		}
-		else if (cent->currentState.eFlags & EF_ALT_FIRING)
 		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_METAL, qtrue, es->generic1);
-		}
-		else
-		{
-			CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_METAL, qfalse, 0);
-		}
-		if (es->weapon != 0) { //0 - putting detpack
-			CG_GetEventStuff(CG_EventCoeff(es->weapon), cg.time, Distance(position, cg.refdef.vieworg));
+			qboolean alt = qfalse;
+			DEBUGNAME("EV_MISSILE_MISS_METAL");
+			ByteToDir( es->eventParm, dir );
+			if ( es->emplacedOwner )
+			{//hack: this is an index to a custom effect to use
+				trap_FX_PlayEffectID(cgs.gameEffects[es->emplacedOwner], position, dir, -1, -1);
+			}
+			else if ( CG_VehicleWeaponImpact( cent ) )
+			{//a vehicle missile that used an overridden impact effect...
+			}
+			else if (cent->currentState.eFlags & EF_ALT_FIRING)
+			{
+				alt = qtrue;
+				CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_METAL, qtrue, es->generic1);
+			}
+			else
+			{
+				alt = qfalse;
+				CG_MissileHitWall(es->weapon, 0, position, dir, IMPACTSOUND_METAL, qfalse, 0);
+			}
+			if (es->weapon != 0) { //0 - putting detpack
+				CG_GetEventStuff(CG_EventCoeff(es->weapon, alt), cg.time, Distance(position, cg.refdef.vieworg));
+			}
 		}
 		break;
 
 	case EV_PLAY_EFFECT:
-		DEBUGNAME("EV_PLAY_EFFECT");
-		switch(es->eventParm)
-		{ //it isn't a hack, it's ingenuity!
-		case EFFECT_SMOKE:
-			eID = cgs.effects.mEmplacedDeadSmoke;
-			break;
-		case EFFECT_EXPLOSION:
-			eID = cgs.effects.mEmplacedExplode;
-			break;
-		case EFFECT_EXPLOSION_PAS:
-			eID = cgs.effects.mTurretExplode;
-			break;
-		case EFFECT_SPARK_EXPLOSION:
-			eID = cgs.effects.mSparkExplosion;
-			break;
-		case EFFECT_EXPLOSION_TRIPMINE:
-			eID = cgs.effects.mTripmineExplosion;
-			break;
-		case EFFECT_EXPLOSION_DETPACK:
-			eID = cgs.effects.mDetpackExplosion;
-			CG_GetEventStuff(CG_EventCoeff(WP_DET_PACK), cg.time, Distance(position, cg.refdef.vieworg));
-			break;
-		case EFFECT_EXPLOSION_FLECHETTE:
-			eID = cgs.effects.mFlechetteAltBlow;
-			CG_GetEventStuff(CG_EventCoeff(WP_FLECHETTE), cg.time, Distance(position, cg.refdef.vieworg));
-			break;
-		case EFFECT_STUNHIT:
-			eID = cgs.effects.mStunBatonFleshImpact;
-			break;
-		case EFFECT_EXPLOSION_DEMP2ALT:
-			FX_DEMP2_AltDetonate( cent->lerpOrigin, es->weapon );
-			eID = cgs.effects.mAltDetonate;
-			break;
-		case EFFECT_EXPLOSION_TURRET:
-			eID = cgs.effects.mTurretExplode;
-			break;
-		case EFFECT_SPARKS:
-			eID = cgs.effects.mSparksExplodeNoSound;
-			break;
-		case EFFECT_WATER_SPLASH:
-			eID = cgs.effects.waterSplash;
-			break;
-		case EFFECT_ACID_SPLASH:
-			eID = cgs.effects.acidSplash;
-			break;
-		case EFFECT_LAVA_SPLASH:
-			eID = cgs.effects.lavaSplash;
-			break;
-		case EFFECT_LANDING_MUD:
-			eID = cgs.effects.landingMud;
-			break;
-		case EFFECT_LANDING_SAND:
-			eID = cgs.effects.landingSand;
-			break;
-		case EFFECT_LANDING_DIRT:
-			eID = cgs.effects.landingDirt;
-			break;
-		case EFFECT_LANDING_SNOW:
-			eID = cgs.effects.landingSnow;
-			break;
-		case EFFECT_LANDING_GRAVEL:
-			eID = cgs.effects.landingGravel;
-			break;
-		default:
-			eID = -1;
-			break;
-		}
-
-		if (eID != -1)
 		{
-			vec3_t fxDir;
-
-			VectorCopy(es->angles, fxDir);
-
-			if (!fxDir[0] && !fxDir[1] && !fxDir[2])
-			{
-				fxDir[1] = 1;
+			qboolean alt = qfalse;
+			DEBUGNAME("EV_PLAY_EFFECT");
+			switch(es->eventParm)
+			{ //it isn't a hack, it's ingenuity!
+			case EFFECT_SMOKE:
+				eID = cgs.effects.mEmplacedDeadSmoke;
+				break;
+			case EFFECT_EXPLOSION:
+				eID = cgs.effects.mEmplacedExplode;
+				break;
+			case EFFECT_EXPLOSION_PAS:
+				eID = cgs.effects.mTurretExplode;
+				break;
+			case EFFECT_SPARK_EXPLOSION:
+				eID = cgs.effects.mSparkExplosion;
+				break;
+			case EFFECT_EXPLOSION_TRIPMINE:
+				eID = cgs.effects.mTripmineExplosion;
+				break;
+			case EFFECT_EXPLOSION_DETPACK:
+				eID = cgs.effects.mDetpackExplosion;
+				CG_GetEventStuff(CG_EventCoeff(WP_DET_PACK, qtrue), cg.time, Distance(position, cg.refdef.vieworg));
+				break;
+			case EFFECT_EXPLOSION_FLECHETTE:
+				if (cent->currentState.eFlags & EF_ALT_FIRING)
+					alt = qtrue;
+				eID = cgs.effects.mFlechetteAltBlow;
+				CG_GetEventStuff(CG_EventCoeff(WP_FLECHETTE, alt), cg.time, Distance(position, cg.refdef.vieworg));
+				break;
+			case EFFECT_STUNHIT:
+				eID = cgs.effects.mStunBatonFleshImpact;
+				break;
+			case EFFECT_EXPLOSION_DEMP2ALT:
+				FX_DEMP2_AltDetonate( cent->lerpOrigin, es->weapon );
+				eID = cgs.effects.mAltDetonate;
+				break;
+			case EFFECT_EXPLOSION_TURRET:
+				eID = cgs.effects.mTurretExplode;
+				break;
+			case EFFECT_SPARKS:
+				eID = cgs.effects.mSparksExplodeNoSound;
+				break;
+			case EFFECT_WATER_SPLASH:
+				eID = cgs.effects.waterSplash;
+				break;
+			case EFFECT_ACID_SPLASH:
+				eID = cgs.effects.acidSplash;
+				break;
+			case EFFECT_LAVA_SPLASH:
+				eID = cgs.effects.lavaSplash;
+				break;
+			case EFFECT_LANDING_MUD:
+				eID = cgs.effects.landingMud;
+				break;
+			case EFFECT_LANDING_SAND:
+				eID = cgs.effects.landingSand;
+				break;
+			case EFFECT_LANDING_DIRT:
+				eID = cgs.effects.landingDirt;
+				break;
+			case EFFECT_LANDING_SNOW:
+				eID = cgs.effects.landingSnow;
+				break;
+			case EFFECT_LANDING_GRAVEL:
+				eID = cgs.effects.landingGravel;
+				break;
+			default:
+				eID = -1;
+				break;
 			}
 
-			trap_FX_PlayEffectID(eID, es->origin, fxDir, -1, -1);
+			if (eID != -1)
+			{
+				vec3_t fxDir;
+
+				VectorCopy(es->angles, fxDir);
+
+				if (!fxDir[0] && !fxDir[1] && !fxDir[2])
+				{
+					fxDir[1] = 1;
+				}
+
+				trap_FX_PlayEffectID(eID, es->origin, fxDir, -1, -1);
+			}
 		}
 		break;
 

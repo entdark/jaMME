@@ -780,6 +780,9 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_S_STARTSOUND:
 		S_StartSound( (float *)VMA(1), args[2], args[3], args[4] );
 		return 0;
+	case CG_S_STOPSOUND:
+		S_StopSound(args[1], args[2], args[3] );
+		return 0;
 	case CG_S_STARTLOCALSOUND:
 		S_StartLocalSound( args[1], args[2] );
 		return 0;

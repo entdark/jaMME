@@ -1705,8 +1705,8 @@ S_MuteSound
 Mutes sound on specified channel for specified entity.
 ====================
 */
-void S_MuteSound(int entityNum, int entchannel) 
-{
+void S_MuteSound(int entityNum, int entchannel) {
+#ifndef SND_MME
 	//I guess this works.
 	channel_t *ch = S_PickChannel( entityNum, entchannel );
 
@@ -1723,6 +1723,18 @@ void S_MuteSound(int entityNum, int entchannel)
 
 	ch->leftvol = 0;
 	ch->rightvol = 0;
+#endif
+}
+
+/*
+====================
+S_StopSound
+
+Stops sound on specified channel for specified entity with specified sfx.
+====================
+*/
+void S_StopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle ) {
+	S_DMAStopSound(entityNum, entchannel, sfxHandle);
 }
 
 /*
@@ -2270,6 +2282,7 @@ void S_AddAmbientLoopingSound( const vec3_t origin, unsigned char volume, sfxHan
 
 	lq->handle = sfxHandle;
 	VectorCopy( origin, lq->origin );
+	VectorClear( lq->velocity );
 	lq->volume = volume;
 	lq->parent = (void *)-1;
 #else
@@ -5680,7 +5693,7 @@ qboolean SND_RegisterAudio_LevelLoadEnd(qboolean bDeleteEverythingNotUsedThisLev
 	{
 		Com_DPrintf( "(Inside S_LoadSound (z_malloc recovery?), exiting...\n");
 	}
-	else
+	else if (s_soundpoolmegs && s_soundpoolmegs->integer > 0)
 	{
 		int iLoadedAudioBytes	 = Z_MemSize ( TAG_SND_RAWDATA ) + Z_MemSize( TAG_SND_MP3STREAMHDR );
 		const int iMaxAudioBytes = s_soundpoolmegs->integer * 1024 * 1024;

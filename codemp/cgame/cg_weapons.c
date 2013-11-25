@@ -1933,40 +1933,37 @@ void CG_FireWeapon( centity_t *cent, qboolean altFire ) {
 
 
 	// play a sound
-	if (altFire)
-	{
+	if (altFire) {
 		// play a sound
 		for ( c = 0 ; c < 4 ; c++ ) {
 			if ( !weap->altFlashSound[c] ) {
 				break;
 			}
 		}
+		if(weap->altChargeSound)
+			trap_S_StopSound(ent->number, CHAN_WEAPON, weap->altChargeSound );
 		if ( c > 0 ) {
 			c = rand() % c;
 			if ( weap->altFlashSound[c] )
-			{
 				trap_S_StartSound( NULL, ent->number, CHAN_WEAPON, weap->altFlashSound[c] );
-			}
 		}
 //		if ( weap->altFlashSnd )
 //		{
 //			trap_S_StartSound( NULL, ent->number, CHAN_WEAPON, weap->altFlashSnd );
 //		}
-	}
-	else
-	{
+	} else {
 		// play a sound
 		for ( c = 0 ; c < 4 ; c++ ) {
 			if ( !weap->flashSound[c] ) {
 				break;
 			}
 		}
+		if(weap->chargeSound)
+			trap_S_StopSound(ent->number, CHAN_WEAPON, weap->chargeSound );
 		if ( c > 0 ) {
 			c = rand() % c;
 			if ( weap->flashSound[c] )
-			{
 				trap_S_StartSound( NULL, ent->number, CHAN_WEAPON, weap->flashSound[c] );
-			}
 		}
 	}
 }
