@@ -4462,6 +4462,7 @@ void CG_CenterPrint( const char *str, int y, int charWidth ) {
 	// count the number of lines for centering
 	cg.centerPrintLines = 1;
 	s = cg.centerPrint;
+	Q_StripColor(s);
 	while( *s ) 
 	{
 		//[BugFix19]
@@ -4477,6 +4478,7 @@ void CG_CenterPrint( const char *str, int y, int charWidth ) {
 			cg.centerPrintLines++;
 		s++;
 	}
+	Q_strncpyz( cg.centerPrint, str, sizeof(cg.centerPrint) );
 }
 
 
@@ -4494,7 +4496,7 @@ qboolean BG_IsWhiteSpace( char c )
 }
 static void CG_DrawCenterString( void ) {
 	char	*start;
-	int		l;
+	int		l, len;
 	int		x, y, w;
 	int h;
 	float	*color;
@@ -4513,6 +4515,10 @@ static void CG_DrawCenterString( void ) {
 
 	start = cg.centerPrint;
 
+	len = Q_PrintColorStrlen(start) - Q_PrintStrlen(start);
+	if (len < 0) //must never happen
+		len = 0;
+
 	if( mov_fragsOnly.integer != 0 ) {
 		char sKilledStr[256];
 		trap_SP_GetStringTextString("MP_INGAME_KILLED_MESSAGE", sKilledStr, sizeof(sKilledStr));
@@ -4522,60 +4528,86 @@ static void CG_DrawCenterString( void ) {
 	y = cg.centerPrintY - cg.centerPrintLines * BIGCHAR_HEIGHT / 2;
 
 	while ( 1 ) {
-		char linebuffer[1024];
+		if (cg.centerPrintLines > 1) {
+			char linebuffer[1024];
 
-		for ( l = 0; l < 50; l++ ) {
-			if ( !start[l] || start[l] == '\n' ) {
-				break;
-			}
-			linebuffer[l] = start[l];
-		}
-		linebuffer[l] = 0;
-
-		//[BugFix19]
-		if(!BG_IsWhiteSpace(start[l]) && !BG_IsWhiteSpace(linebuffer[l-1]) )
-		{//we might have cut a word off, attempt to find a spot where we won't cut words off at.
-			int savedL = l;
-			int counter = l-2;
-
-			for(; counter >= 0; counter--)
-			{
-				if(BG_IsWhiteSpace(start[counter]))
-				{//this location is whitespace, line break from this position
-					linebuffer[counter] = 0;
-					l = counter + 1;
+			for ( l = 0; l < 50; l++ ) {
+				if ( !start[l] || start[l] == '\n' ) {
 					break;
 				}
+				linebuffer[l] = start[l];
 			}
-			if(counter < 0)
-			{//couldn't find a break in the text, just go ahead and cut off the word mid-word.
-				l = savedL;
+			linebuffer[l] = 0;
+
+			//[BugFix19]
+			if(!BG_IsWhiteSpace(start[l]) && !BG_IsWhiteSpace(linebuffer[l-1]) )
+			{//we might have cut a word off, attempt to find a spot where we won't cut words off at.
+				int savedL = l;
+				int counter = l-2;
+
+				for(; counter >= 0; counter--)
+				{
+					if(BG_IsWhiteSpace(start[counter]))
+					{//this location is whitespace, line break from this position
+						linebuffer[counter] = 0;
+						l = counter + 1;
+						break;
+					}
+				}
+				if(counter < 0)
+				{//couldn't find a break in the text, just go ahead and cut off the word mid-word.
+					l = savedL;
+				}
 			}
+			//[/BugFix19]
+
+			w = CG_Text_Width(linebuffer, scale, FONT_MEDIUM);
+			h = CG_Text_Height(linebuffer, scale, FONT_MEDIUM);
+			x = (SCREEN_WIDTH - w) / 2;
+			CG_Text_Paint(x, y + h, scale, color, linebuffer, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM);
+			y += h + 6;
+
+			//[BugFix19]
+			//this method of advancing to new line from the start of the array was causing long lines without
+			//new lines to be totally truncated.
+			if(start[l] && start[l] == '\n')
+			{//next char is a newline, advance past
+				l++;
+			}
+
+			if ( !start[l] )
+			{//end of string, we're done.
+				break;
+			}
+
+			//advance pointer to the last character that we didn't read in.
+			start = &start[l];
+			//[/BugFix19]
+		} else {
+			char linebuffer[1024];
+
+			for ( l = 0; l < 50+len; l++ ) {
+				if ( !start[l] || start[l] == '\n' ) {
+					break;
+				}
+				linebuffer[l] = start[l];
+			}
+			linebuffer[l] = 0;
+
+			w = CG_Text_Width(linebuffer, scale, FONT_MEDIUM);
+			h = CG_Text_Height(linebuffer, scale, FONT_MEDIUM);
+			x = (SCREEN_WIDTH - w) / 2;
+			CG_Text_Paint(x, y + h, scale, color, linebuffer, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM);
+			y += h + 6;
+
+			while ( *start && ( *start != '\n' ) ) {
+				start++;
+			}
+			if ( !*start ) {
+				break;
+			}
+			start++;
 		}
-		//[/BugFix19]
-
-		w = CG_Text_Width(linebuffer, scale, FONT_MEDIUM);
-		h = CG_Text_Height(linebuffer, scale, FONT_MEDIUM);
-		x = (SCREEN_WIDTH - w) / 2;
-		CG_Text_Paint(x, y + h, scale, color, linebuffer, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM);
-		y += h + 6;
-
-		//[BugFix19]
-		//this method of advancing to new line from the start of the array was causing long lines without
-		//new lines to be totally truncated.
-		if(start[l] && start[l] == '\n')
-		{//next char is a newline, advance past
-			l++;
-		}
-
-		if ( !start[l] )
-		{//end of string, we're done.
-			break;
-		}
-
-		//advance pointer to the last character that we didn't read in.
-		start = &start[l];
-		//[/BugFix19]
 	}
 
 	trap_R_SetColor( NULL );

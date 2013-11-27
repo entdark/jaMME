@@ -1152,6 +1152,24 @@ const char *Q_stristr( const char *s, const char *find)
   return s;
 }
 
+int Q_PrintColorStrlen( const char *string ) {
+	int			len;
+	const char	*p;
+
+	if( !string ) {
+		return 0;
+	}
+
+	len = 0;
+	p = string;
+	while( *p ) {
+		p++;
+		len++;
+	}
+
+	return len;
+}
+
 int Q_PrintStrlen( const char *string ) {
 	int			len;
 	const char	*p;

@@ -831,10 +831,8 @@ void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage) 
 	case CTFMESSAGE_PLAYER_CAPTURED_FLAG:
 		if (team == 1 && cg.snap->serverTime - gotRedFlag > 0) {
 			time = cg.snap->serverTime - gotRedFlag;
-			redOnStand = qtrue;
 		} else if (team == 2 && cg.snap->serverTime - gotBlueFlag > 0) {
 			time = cg.snap->serverTime - gotBlueFlag;
-			blueOnStand = qtrue;
 		}
 		if (time && time >= 60000) {
 			static char buf[32];
@@ -848,9 +846,14 @@ void CG_PrintCTFMessage(clientInfo_t *ci, const char *teamName, int ctfMessage) 
 			static char buf[32];
 			int msec = time % 1000;
 			int secs = (time / 1000);
-			Com_sprintf(buf, sizeof(buf), "%02d.%03d", secs, msec);
+			if (secs >= 10)
+				Com_sprintf(buf, sizeof(buf), "%02d.%03d", secs, msec);
+			else
+				Com_sprintf(buf, sizeof(buf), "%01d.%03d", secs, msec);
 			Com_Printf("Capture time: ^1%s\n", buf);
 		}
+		redOnStand = qtrue;
+		blueOnStand = qtrue;
 		refName = "PLAYER_CAPTURED_FLAG";
 		break;
 	case CTFMESSAGE_PLAYER_GOT_FLAG:
@@ -3591,9 +3594,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			switch( es->eventParm ) {
 				case GTS_RED_CAPTURE: // CTF: red team captured the blue flag, 1FCTF: red team captured the neutral flag
 					//CG_AddBufferedSound( cgs.media.redScoredSound );
+					redOnStand = qtrue;
 					break;
 				case GTS_BLUE_CAPTURE: // CTF: blue team captured the red flag, 1FCTF: blue team captured the neutral flag
 					//CG_AddBufferedSound( cgs.media.blueScoredSound );
+					blueOnStand = qtrue;
 					break;
 				case GTS_RED_RETURN: // CTF: blue flag returned, 1FCTF: never used
 					if (cgs.gametype == GT_CTY)
@@ -3604,6 +3609,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 					{
 						CG_AddBufferedSound( cgs.media.blueFlagReturnedSound );
 					}
+					redOnStand = qtrue;
 					break;
 				case GTS_BLUE_RETURN: // CTF red flag returned, 1FCTF: neutral flag returned
 					if (cgs.gametype == GT_CTY)
@@ -3614,8 +3620,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 					{
 						CG_AddBufferedSound( cgs.media.redFlagReturnedSound );
 					}
+					blueOnStand = qtrue;
 					break;
-
 				case GTS_RED_TAKEN: // CTF: red team took blue flag, 1FCTF: blue team took the neutral flag
 					// if this player picked up the flag then a sound is played in CG_CheckLocalSounds
 					if (cgs.gametype == GT_CTY)

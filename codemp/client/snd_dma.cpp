@@ -531,6 +531,7 @@ void S_Init( void ) {
 	cv = Cvar_Get("s_UseOpenAL" , "0",CVAR_ARCHIVE|CVAR_LATCH);
 	s_UseOpenAL = !!(cv->integer);
 
+#ifndef SND_MME
 #ifdef _WIN32
 	if (s_UseOpenAL)
 	{
@@ -652,7 +653,6 @@ void S_Init( void ) {
 	else
 	{
 #endif
-#ifndef SND_MME
 		r = SNDDMA_Init();
 		if ( r ) {
 			s_soundStarted = 1;
@@ -673,8 +673,10 @@ void S_Init( void ) {
 		s_soundStarted = 1;
 		s_soundMuted = qtrue;
 #endif
+#ifndef SND_MME
 #ifdef _WIN32
 	}
+#endif
 #endif
 
 	Com_Printf("------------------------------------\n");
