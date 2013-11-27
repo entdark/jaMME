@@ -11334,7 +11334,7 @@ SkipTrueView:
 			CG_DrawPlayerSphere(cent, cent->lerpOrigin, 1.4f, cgs.media.ysalimariShader );
 		}
 	}
-	
+
 	if (cent->currentState.powerups & (1 << PW_FORCE_BOON))
 	{
 		CG_DrawPlayerSphere(cent, cent->lerpOrigin, 2.0f, cgs.media.boonShader );

@@ -223,6 +223,11 @@ extern cvar_t	*s_mixahead;
 extern cvar_t	*s_testsound;
 extern cvar_t	*s_separation;
 
+extern cvar_t	*s_lip_threshold_1;
+extern cvar_t	*s_lip_threshold_2;
+extern cvar_t	*s_lip_threshold_3;
+extern cvar_t	*s_lip_threshold_4;
+
 wavinfo_t GetWavinfo (const char *name, byte *wav, int wavlength);
 
 sboolean S_LoadSound( sfx_t *sfx );

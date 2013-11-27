@@ -561,10 +561,11 @@ void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(in
 
 	Com_sprintf( filename, sizeof( filename ), "%sx86.dll", name );
 
-	if (!Sys_UnpackDLL(filename))
+	//let folder with dlls have a higher priority over pk3 with dlls
+/*	if (!Sys_UnpackDLL(filename))
 	{
 		return NULL;
-	}
+	}*/
 
 	libHandle = LoadLibrary( filename );
 	if ( !libHandle ) {

@@ -32,11 +32,6 @@ int 	iff_chunk_len;
 extern sfx_t		s_knownSfx[];
 extern	int			s_numSfx;
 
-extern cvar_t		*s_lip_threshold_1;
-extern cvar_t		*s_lip_threshold_2;
-extern cvar_t		*s_lip_threshold_3;
-extern cvar_t		*s_lip_threshold_4;
-
 short GetLittleShort(void)
 {
 	short val = 0;
