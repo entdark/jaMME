@@ -4580,6 +4580,8 @@ static void CG_DrawCenterString( void ) {
 				l++;
 			}
 
+			len = 0; //only for the first string
+
 			if ( !start[l] )
 			{//end of string, we're done.
 				break;
