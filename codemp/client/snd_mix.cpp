@@ -748,7 +748,7 @@ static void S_MixSpatialize(const vec3_t origin, float volume, int *left_vol, in
 
 extern int s_entityWavVol[MAX_GENTITIES];
 
-static void S_MixLipSync(const mixSound_t *sound, const mixChannel_t *ch, int currentCount) {
+static void S_MixLipSync(const mixSound_t *sound, const mixChannel_t *ch) {
 	int indexAdd, indexLeft, index = 0;
 	int i, count;
 	int wavVol, maxSample = 0, sampleToCompare = 0;
@@ -769,14 +769,14 @@ static void S_MixLipSync(const mixSound_t *sound, const mixChannel_t *ch, int cu
 		index += indexAdd;
 	}
 
-	currentCount = 1024;
+	count = 1024;
 	index = ch->index;
 	indexLeft = sound->samples - index;
 	indexLeft /= indexAdd;
-	if ( indexLeft <= currentCount) {
-		currentCount = indexLeft;
+	if (indexLeft <= count) {
+		count = indexLeft;
 	}
-	for (i = 0; i < currentCount; i++) {
+	for (i = 0; i < count; i++) {
 		int sample;
 		sample = data[index >> MIX_SHIFT];
 		if (sample < 0)
@@ -803,7 +803,7 @@ static void S_MixLipSync(const mixSound_t *sound, const mixChannel_t *ch, int cu
 
 static void S_MixChannel( mixChannel_t *ch, int speed, int count, int *output ) {
 	const mixSound_t *sound;
-	int i, leftVol, rightVol, maxSample = 0;
+	int i, leftVol, rightVol;
 	int index, indexAdd, indexLeft;
 	float *origin;
 	const short *data;
@@ -813,9 +813,11 @@ static void S_MixChannel( mixChannel_t *ch, int speed, int count, int *output ) 
 		volume = s_volumeVoice->value * (1 << MIX_SHIFT) * 0.5;
 	else
 		volume = s_volume->value * (1 << MIX_SHIFT) * 0.5;
+
 	origin = (!ch->hasOrigin) ? s_entitySounds[ch->entNum].origin : ch->origin;
 	if (!ch->hasOrigin && s_entitySounds[ch->entNum].origin[0] == 0 && s_entitySounds[ch->entNum].origin[1] == 0 && s_entitySounds[ch->entNum].origin[2] == 0)
 		origin = s_listenOrigin;
+
 	S_MixSpatialize( origin, volume , &leftVol, &rightVol );
 	sound = S_MixGetSound( ch->handle );
 
@@ -845,14 +847,10 @@ static void S_MixChannel( mixChannel_t *ch, int speed, int count, int *output ) 
 		output[i*2+0] += sample * leftVol;
 		output[i*2+1] += sample * rightVol;
 		index += indexAdd;
-		if (sample < 0)
-			sample = -sample;
-		if (sample > maxSample)
-			maxSample = sample;
 	}
 
 	if (ch->entChan == CHAN_VOICE || ch->entChan == CHAN_VOICE_ATTEN || ch->entChan == CHAN_VOICE_GLOBAL)
-		S_MixLipSync(sound, ch, count);
+		S_MixLipSync(sound, ch);
 
 	ch->index = index;
 }
