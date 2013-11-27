@@ -90,6 +90,7 @@ extern void S_DMAInit(void);
 extern void S_DMA_Update( float scale );
 void S_DMAClearBuffer(void);
 void S_DMAStopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle);
+void S_MMEStopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle);
 
 void S_MixInit(void);
 void S_MixBackground( mixBackground_t *background, int speed, int count, int *output );

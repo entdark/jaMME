@@ -164,6 +164,26 @@ void S_MMEMusic( const char *musicName, float time, float length ) {
 	COM_DefaultExtension( s_background.startName, sizeof( s_background.startName ), ".wav" );
 }
 
+void S_MMEStopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle) {
+	int i;
+	if (!mmeSound.fileHandle)
+		return;
+	for (i = 0; i < MME_SNDCHANNELS; i++) {
+		if (mmeSound.channels[i].entChan == entchannel
+			&& mmeSound.channels[i].entNum == entityNum
+			&& mmeSound.channels[i].handle == sfxHandle) {
+			mmeSound.channels[i].entChan = 0;
+			mmeSound.channels[i].entNum = 0;
+			mmeSound.channels[i].handle = 0;
+			mmeSound.channels[i].hasOrigin = 0;
+			VectorClear(mmeSound.channels[i].origin);
+			mmeSound.channels[i].index = 0;
+			mmeSound.channels[i].wasMixed = 0;
+			break;
+		}
+	}
+}
+
 
 
 

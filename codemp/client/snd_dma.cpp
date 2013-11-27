@@ -1735,6 +1735,7 @@ Stops sound on specified channel for specified entity with specified sfx.
 */
 void S_StopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle ) {
 	S_DMAStopSound(entityNum, entchannel, sfxHandle);
+	S_MMEStopSound(entityNum, entchannel, sfxHandle);
 }
 
 /*
