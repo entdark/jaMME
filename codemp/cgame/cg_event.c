@@ -3595,9 +3595,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				case GTS_RED_CAPTURE: // CTF: red team captured the blue flag, 1FCTF: red team captured the neutral flag
 					//CG_AddBufferedSound( cgs.media.redScoredSound );
 					redOnStand = qtrue;
+					blueOnStand = qtrue;
 					break;
 				case GTS_BLUE_CAPTURE: // CTF: blue team captured the red flag, 1FCTF: blue team captured the neutral flag
 					//CG_AddBufferedSound( cgs.media.blueScoredSound );
+					redOnStand = qtrue;
 					blueOnStand = qtrue;
 					break;
 				case GTS_RED_RETURN: // CTF: blue flag returned, 1FCTF: never used

@@ -4495,7 +4495,7 @@ qboolean BG_IsWhiteSpace( char c )
 	return qfalse;
 }
 static void CG_DrawCenterString( void ) {
-	char	*start;
+	char	*start, temp[1024];
 	int		l, len;
 	int		x, y, w;
 	int h;
@@ -4513,11 +4513,16 @@ static void CG_DrawCenterString( void ) {
 
 	trap_R_SetColor( color );
 
-	start = cg.centerPrint;
+	Q_strncpyz(temp, cg.centerPrint, sizeof(temp));
 
-	len = Q_PrintColorStrlen(start) - Q_PrintStrlen(start);
+	len = Q_PrintColorStrlen(cg.centerPrint);
+	Q_StripColor(cg.centerPrint);
+	len -= Q_PrintStrlen(cg.centerPrint);
 	if (len < 0) //must never happen
 		len = 0;
+
+	Q_strncpyz(cg.centerPrint, temp, sizeof(cg.centerPrint));
+	start = cg.centerPrint;
 
 	if( mov_fragsOnly.integer != 0 ) {
 		char sKilledStr[256];
@@ -4531,7 +4536,7 @@ static void CG_DrawCenterString( void ) {
 		if (cg.centerPrintLines > 1) {
 			char linebuffer[1024];
 
-			for ( l = 0; l < 50; l++ ) {
+			for ( l = 0; l < 50+len; l++ ) {
 				if ( !start[l] || start[l] == '\n' ) {
 					break;
 				}
