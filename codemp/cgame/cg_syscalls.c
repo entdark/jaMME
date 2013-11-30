@@ -707,6 +707,26 @@ void trap_FX_PlayPortalEffectID( int id, vec3_t org, vec3_t fwd, int vol, int ra
 void trap_FX_PlayEntityEffectID( int id, vec3_t org, 
 						vec3_t axis[3], const int boltInfo, const int entNum, int vol, int rad )
 {
+	if( id == cgs.effects.forceLightning			||
+		id == cgs.effects.forceLightningWide		||
+		id == cgs.effects.forceDrainWide			||
+		id == cgs.effects.forceDrain ) {
+			if (fx_vfps.integer <= 0)
+				fx_vfps.integer = 1;
+			if (fxT > cg.time)
+				fxT = cg.time;
+			if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
+			{
+				doFX = qtrue;
+				fxT = cg.time;
+			}
+			else 
+			{
+				doFX = qfalse;
+				//syscall( CG_FX_ADJUST_TIME, time );
+				return;
+			}
+	}
 	Q_syscall( CG_FX_PLAY_ENTITY_EFFECT_ID, id, org, axis, boltInfo, entNum, vol, rad );
 }
 

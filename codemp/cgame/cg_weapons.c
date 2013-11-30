@@ -479,7 +479,11 @@ Ghoul2 Insert Start
 			cent->currentState.trickedentindex4,
 			cg.snap->ps.clientNum))
 		{
-			if (cg.predictedPlayerState.zoomMode && cg.playerPredicted) goto getFlash;
+			if ((cg.playerPredicted && cg.predictedPlayerState.zoomMode)
+				|| (!cg.playerPredicted
+				&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+				|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))) goto getFlash;
+
 			CG_AddWeaponWithPowerups( &gun, cent->currentState.powerups ); //don't draw the weapon if the player is invisible
 			/*
 			if ( weaponNum == WP_STUN_BATON )
@@ -534,7 +538,12 @@ Ghoul2 Insert Start
 				{
 					CG_PositionRotatedEntityOnTag( &barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel3" );
 				}
-				if (cg.predictedPlayerState.zoomMode && cg.playerPredicted) goto getFlash;
+				
+				if ((cg.playerPredicted && cg.predictedPlayerState.zoomMode)
+					|| (!cg.playerPredicted
+					&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+					|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))) goto getFlash;
+
 				CG_AddWeaponWithPowerups( &barrel, cent->currentState.powerups );
 
 				i++;
@@ -557,7 +566,12 @@ Ghoul2 Insert Start
 				AnglesToAxis( angles, barrel.axis );
 
 				CG_PositionRotatedEntityOnTag( &barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel" );
-				if (cg.predictedPlayerState.zoomMode && cg.playerPredicted) goto getFlash;
+				
+				if ((cg.playerPredicted && cg.predictedPlayerState.zoomMode)
+					|| (!cg.playerPredicted
+					&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+					|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))) goto getFlash;
+
 				CG_AddWeaponWithPowerups( &barrel, cent->currentState.powerups );
 			}
 		}
@@ -1453,6 +1467,7 @@ void CG_NextWeapon_f( void ) {
 	else
 	{
 		trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
+		trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
 	}
 }
 
@@ -1519,6 +1534,7 @@ void CG_PrevWeapon_f( void ) {
 	else
 	{
 		trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
+		trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
 	}
 }
 
@@ -1643,6 +1659,7 @@ void CG_Weapon_f( void ) {
 	if (cg.weaponSelect != num)
 	{
 		trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
+		trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
 	}
 
 	cg.weaponSelect = num;
@@ -1759,6 +1776,7 @@ void CG_WeaponClean_f( void ) {
 	if (cg.weaponSelect != num)
 	{
 		trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
+		trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
 	}
 
 	cg.weaponSelect = num;
@@ -1799,6 +1817,7 @@ void CG_OutOfAmmoChange( int oldWeapon )
 		}
 	}
 
+	trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
 	trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
 }
 
@@ -1843,7 +1862,7 @@ Caused by an EV_FIRE_WEAPON event
 */
 void CG_FireWeapon( centity_t *cent, qboolean altFire ) {
 	entityState_t *ent;
-	int				c;
+	int				c, i;
 	weaponInfo_t	*weap;
 
 	ent = &cent->currentState;
@@ -1924,13 +1943,24 @@ void CG_FireWeapon( centity_t *cent, qboolean altFire ) {
 		}
 	}
 
-	#ifdef BASE_COMPAT
-		// play quad sound if needed
-		if ( cent->currentState.powerups & ( 1 << PW_QUAD ) ) {
-			//trap_S_StartSound (NULL, cent->currentState.number, CHAN_ITEM, cgs.media.quadSound );
-		}
-	#endif // BASE_COMPAT
+#ifdef BASE_COMPAT
+	// play quad sound if needed
+	if ( cent->currentState.powerups & ( 1 << PW_QUAD ) ) {
+		//trap_S_StartSound (NULL, cent->currentState.number, CHAN_ITEM, cgs.media.quadSound );
+	}
+#endif // BASE_COMPAT
 
+	for (i = 0; i < WP_NUM_WEAPONS; i++ ) {
+		if (cg_weapons[i].chargeSound)
+			trap_S_StopSound(ent->number, CHAN_WEAPON, cg_weapons[i].chargeSound);
+		if (cg_weapons[i].altChargeSound)
+			trap_S_StopSound(ent->number, CHAN_WEAPON, cg_weapons[i].altChargeSound);
+	}
+	
+	if (ent->weapon == WP_DISRUPTOR && cg.charging
+		&& cg.playerCent && cg.playerCent->currentState.weapon == WP_DISRUPTOR
+		&& ent->number == cg.playerCent->currentState.number)
+		cg.charging = qfalse;
 
 	// play a sound
 	if (altFire) {
@@ -1940,17 +1970,11 @@ void CG_FireWeapon( centity_t *cent, qboolean altFire ) {
 				break;
 			}
 		}
-		if(weap->altChargeSound)
-			trap_S_StopSound(ent->number, CHAN_WEAPON, weap->altChargeSound );
 		if ( c > 0 ) {
 			c = rand() % c;
 			if ( weap->altFlashSound[c] )
 				trap_S_StartSound( NULL, ent->number, CHAN_WEAPON, weap->altFlashSound[c] );
 		}
-//		if ( weap->altFlashSnd )
-//		{
-//			trap_S_StartSound( NULL, ent->number, CHAN_WEAPON, weap->altFlashSnd );
-//		}
 	} else {
 		// play a sound
 		for ( c = 0 ; c < 4 ; c++ ) {
@@ -1958,8 +1982,6 @@ void CG_FireWeapon( centity_t *cent, qboolean altFire ) {
 				break;
 			}
 		}
-		if(weap->chargeSound)
-			trap_S_StopSound(ent->number, CHAN_WEAPON, weap->chargeSound );
 		if ( c > 0 ) {
 			c = rand() % c;
 			if ( weap->flashSound[c] )

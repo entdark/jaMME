@@ -3141,7 +3141,10 @@ Ghoul2 Insert End
 
 	CG_ParseEntitiesFromString();
 
-	cgs.widthRatioCoef = (640.0*cgs.glconfig.vidHeight) / (480.0*cgs.glconfig.vidWidth);
+	if (mov_ratioFix.integer)
+		cgs.widthRatioCoef = (640.0*cgs.glconfig.vidHeight) / (480.0*cgs.glconfig.vidWidth);
+	else
+		cgs.widthRatioCoef = 1.0f;
 
 	//Raz: warn for poor settings
 	trap_Cvar_VariableStringBuffer( "rate", buf, sizeof( buf ) );

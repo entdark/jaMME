@@ -1050,6 +1050,9 @@ Ghoul2 Insert End
 		unsigned int	SSF;
 	} japlus;
 
+	int					chargeTime;
+	qboolean			charging;
+
 } cg_t;
 
 #define MAX_TICS	14

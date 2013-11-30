@@ -10129,7 +10129,10 @@ void CG_Player( centity_t *cent ) {
 			if ( ( !cg_trueGuns.integer && cg.playerCent->currentState.weapon != WP_SABER 
 				&& cg.playerCent->currentState.weapon != WP_MELEE) 
 				|| (cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer )
-				|| (cg.predictedPlayerState.zoomMode && cg.playerPredicted))
+				|| ((cg.predictedPlayerState.zoomMode && cg.playerPredicted)
+				|| (!cg.playerPredicted
+				&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+				|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))))
 			//[/TrueView]
 #endif
 			{

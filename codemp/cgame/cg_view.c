@@ -1318,7 +1318,16 @@ static int CG_CalcFov( void ) {
 				fov_x = 160;
 			}
 		}
+
+		//will probably only work with base and base-based mods
+		if (!cg.playerPredicted
+			&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+			|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4)) {
+			fov_x *= 0.46f;
+			goto notZoom;
+		}
 		if (!cg.playerPredicted) goto notZoom;
+
 		if (cg.predictedPlayerState.zoomMode == 2)
 		{ //binoculars
 			if (zoomFov > 40.0f)

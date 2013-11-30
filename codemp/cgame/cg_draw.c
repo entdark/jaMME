@@ -322,7 +322,10 @@ static void CG_DrawZoomMask( void )
 			flip = !flip;
 		}
 	}
-	else if ( cg.predictedPlayerState.zoomMode)
+	else if (cg.playerPredicted && cg.predictedPlayerState.zoomMode
+		|| (!cg.playerPredicted
+		&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+		|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4)))
 	{
 		// disruptor zoom mode
 		level = (float)(50.0f - zoomFov) / 50.0f;//(float)(80.0f - zoomFov) / 80.0f;
@@ -336,6 +339,11 @@ static void CG_DrawZoomMask( void )
 		{
 			level = 1.0f;
 		}
+
+		if (!cg.playerPredicted
+			&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+			|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))
+			level = 0.46f;
 
 		// Using a magic number to convert the zoom level to a rotation amount that correlates more or less with the zoom artwork. 
 		level *= 103.0f;
@@ -385,18 +393,15 @@ static void CG_DrawZoomMask( void )
 */
 		//max = ( cg_entities[0].gent->health / 100.0f );
 
-		
-		if ( (cg.snap->ps.eFlags & EF_DOUBLE_AMMO) )
-		{
-			max = cg.snap->ps.ammo[weaponData[WP_DISRUPTOR].ammoIndex] / ((float)ammoData[weaponData[WP_DISRUPTOR].ammoIndex].max*2.0f);
-		}
-		else
-		{
-			max = cg.snap->ps.ammo[weaponData[WP_DISRUPTOR].ammoIndex] / (float)ammoData[weaponData[WP_DISRUPTOR].ammoIndex].max;
-		}
-		if ( max > 1.0f )
-		{
-			max = 1.0f;
+		if (cg.playerPredicted) {
+			if ( (cg.snap->ps.eFlags & EF_DOUBLE_AMMO) )
+				max = cg.snap->ps.ammo[weaponData[WP_DISRUPTOR].ammoIndex] / ((float)ammoData[weaponData[WP_DISRUPTOR].ammoIndex].max*2.0f);
+			else
+				max = cg.snap->ps.ammo[weaponData[WP_DISRUPTOR].ammoIndex] / (float)ammoData[weaponData[WP_DISRUPTOR].ammoIndex].max;
+			if ( max > 1.0f )
+				max = 1.0f;
+		} else {
+			max = 0.5f; // let it be half
 		}
 
 		color1[0] = (1.0f - max) * 2.0f; 
@@ -432,12 +437,19 @@ static void CG_DrawZoomMask( void )
 			CG_DrawRotatePic2( cx, cy, 12, 24, 90 - fi, cgs.media.disruptorInsertTick );
 		}
 
-		if ( cg.predictedPlayerState.weaponstate == WEAPON_CHARGING_ALT )
+		if ((cg.playerPredicted && cg.predictedPlayerState.weaponstate == WEAPON_CHARGING_ALT)
+			|| (!cg.playerPredicted
+			&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+			|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4) && cg.charging
+			&& cg.time > cg.chargeTime && cg.chargeTime))
 		{
 			trap_R_SetColor( colorTable[CT_WHITE] );
 
 			// draw the charge level
-			max = ( cg.time - cg.predictedPlayerState.weaponChargeTime ) / ( 50.0f * 30.0f ); // bad hardcodedness 50 is disruptor charge unit and 30 is max charge units allowed.
+			if (cg.playerPredicted)
+				max = ( cg.time - cg.predictedPlayerState.weaponChargeTime ) / ( 50.0f * 30.0f ); // bad hardcodedness 50 is disruptor charge unit and 30 is max charge units allowed.
+			else if (cg.time > cg.chargeTime && cg.chargeTime)
+				max = ( cg.time - cg.chargeTime ) / ( 50.0f * 30.0f );
 
 			if ( max > 1.0f )
 			{
@@ -4462,7 +4474,7 @@ void CG_CenterPrint( const char *str, int y, int charWidth ) {
 	// count the number of lines for centering
 	cg.centerPrintLines = 1;
 	s = cg.centerPrint;
-	Q_StripColor(s);
+	Q_StripColorNew(s);
 	while( *s ) 
 	{
 		//[BugFix19]
@@ -4495,7 +4507,7 @@ qboolean BG_IsWhiteSpace( char c )
 	return qfalse;
 }
 static void CG_DrawCenterString( void ) {
-	char	*start, temp[1024];
+	char	*start;
 	int		l, len;
 	int		x, y, w;
 	int h;
@@ -4513,15 +4525,11 @@ static void CG_DrawCenterString( void ) {
 
 	trap_R_SetColor( color );
 
-	Q_strncpyz(temp, cg.centerPrint, sizeof(temp));
-
-	len = Q_PrintColorStrlen(cg.centerPrint);
-	Q_StripColor(cg.centerPrint);
+	len = strlen(cg.centerPrint);
 	len -= Q_PrintStrlen(cg.centerPrint);
 	if (len < 0) //must never happen
 		len = 0;
 
-	Q_strncpyz(cg.centerPrint, temp, sizeof(cg.centerPrint));
 	start = cg.centerPrint;
 
 	if( mov_fragsOnly.integer != 0 ) {
@@ -5014,7 +5022,10 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 		return;
 	}
 
-	if ( cg.predictedPlayerState.zoomMode != 0 && cg.playerPredicted)
+	if ((cg.playerPredicted && cg.predictedPlayerState.zoomMode != 0)
+		|| (!cg.playerPredicted
+			&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+			|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4)))
 	{//not while scoped
 		return;
 	}
@@ -5807,7 +5818,10 @@ static void CG_DrawActivePowers(void)
 	int endx = icon_size;
 	int endy = icon_size;
 
-	if (cg.playerPredicted && cg.snap->ps.zoomMode)
+	if ((cg.playerPredicted && cg.snap->ps.zoomMode)
+		|| (!cg.playerPredicted
+		&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+		|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4)))
 	{ //don't display over zoom mask
 		return;
 	}
@@ -8327,7 +8341,7 @@ void CG_Draw2D( void ) {
 	}
 
 	if ( mov_fragsOnly.integer != 0 ) {
-		if(!cg.renderingThirdPerson && cg.playerPredicted && mov_fragsOnly.integer == 2)CG_DrawZoomMask();
+		if(!cg.renderingThirdPerson && mov_fragsOnly.integer == 2)CG_DrawZoomMask();
 		CG_DrawReward();
 		CG_DrawCenterString();
 		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
@@ -8464,6 +8478,7 @@ void CG_Draw2D( void ) {
 notPredicted:
 		if (cg.playerCent->currentState.forcePowersActive)
 			CG_DrawActivePowers();
+		CG_DrawZoomMask();
 		CG_DrawCrosshairNames();
 		if (cg_drawStatus.integer)
 			CG_DrawFlagStatus();

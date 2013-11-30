@@ -2199,7 +2199,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{
 			int weapon = es->eventParm;
 			weaponInfo_t *weaponInfo;
-			
+
+			if (cg_weapons[es->weapon].chargeSound)
+				trap_S_StopSound(es->number, CHAN_WEAPON, cg_weapons[es->weapon].chargeSound);
+			if (cg_weapons[es->weapon].altChargeSound)
+				trap_S_StopSound(es->number, CHAN_WEAPON, cg_weapons[es->weapon].altChargeSound);
+
 			if ( mov_duelIsolation.integer && (cg.predictedPlayerState.duelInProgress && (cg.predictedPlayerState.clientNum != es->clientNum && cg.predictedPlayerState.duelIndex != es->clientNum)) )
 				break;
 
@@ -2835,10 +2840,15 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_DISRUPTOR_ZOOMSOUND:
 		DEBUGNAME("EV_DISRUPTOR_ZOOMSOUND");
-		if (!(mov_soundDisable.integer & SDISABLE_ZOOM) && cg.playerCent && cg.playerPredicted
-			&& es->number == cg.snap->ps.clientNum)
+		if (mov_soundDisable.integer & SDISABLE_ZOOM)
+			break;
+		if ((cg.playerPredicted && es->number == cg.snap->ps.clientNum)
+			|| (!cg.playerPredicted && cg.playerCent
+			&& es->number == cg.playerCent->currentState.number))
 		{
-			if (cg.snap->ps.zoomMode)
+			if ((cg.playerPredicted && cg.snap->ps.zoomMode)
+				|| (!cg.playerPredicted && (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+				|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4)))
 			{
 				trap_S_StartLocalSound(trap_S_RegisterSound("sound/weapons/disruptor/zoomstart.wav"), CHAN_AUTO);
 			}
@@ -3505,6 +3515,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{
 			cg_entities[es->trickedentindex2].currentState.eFlags -= EF_SOUNDTRACKER;
 		}
+		trap_S_StopSound(es->trickedentindex2, es->trickedentindex, -1);
 		trap_S_MuteSound(es->trickedentindex2, es->trickedentindex);
 		CG_S_StopLoopingSound(es->trickedentindex2, -1);
 		break;
@@ -3818,6 +3829,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 		if (cg_weapons[es->eventParm].altChargeSound)
 		{
+			if (es->weapon == WP_DISRUPTOR
+				&& cg.playerCent && cg.playerCent->currentState.weapon == WP_DISRUPTOR
+				&& es->number == cg.playerCent->currentState.number) {
+				cg.charging = qtrue;
+				cg.chargeTime = cg.time;
+			}
 			trap_S_StartSound(NULL, es->number, CHAN_WEAPON, cg_weapons[es->eventParm].altChargeSound);
 		}
 		break;
