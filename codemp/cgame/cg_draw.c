@@ -4047,7 +4047,7 @@ static void CG_DrawPowerupIcons(int y)
 
 				if (j != PW_REDFLAG && j != PW_BLUEFLAG && secondsleft < 999)
 				{
-					UI_DrawProportionalString((640-(ico_size*1.1))+(ico_size/2) + xOffset, y-8, va("%i", secondsleft), UI_CENTER | UI_BIGFONT | UI_DROPSHADOW, colorTable[CT_WHITE]);
+					UI_DrawProportionalString((640-(ico_size*1.1)*cgs.widthRatioCoef)+(ico_size/2*cgs.widthRatioCoef) + xOffset, y-8, va("%i", secondsleft), UI_CENTER | UI_BIGFONT | UI_DROPSHADOW, colorTable[CT_WHITE]);
 				}
 
 				y += (ico_size/3);
@@ -8298,7 +8298,6 @@ void CG_CameraDraw2D( void ) {
 void CG_Draw2D( void ) {
 	float			inTime = cg.invenSelectTime+WEAPON_SELECT_TIME;
 	float			wpTime = cg.weaponSelectTime+WEAPON_SELECT_TIME;
-	float			fallTime; 
 	float			bestTime;
 	int				drawSelect = 0;
 	vec4_t			hcolor = {0, 0, 0, 0};
@@ -8332,10 +8331,6 @@ void CG_Draw2D( void ) {
 	}
 
 	if ( cg_draw2D.integer == 0 ) {
-		//Raz: If you fall to your death, then turn cg_draw2D off, your camera will not update
-		//		Clear the fall vector to avoid that.
-		gCGHasFallVector = qfalse;
-		VectorClear( gCGFallVector );
 		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 		return;
 	}
@@ -8489,45 +8484,6 @@ notPredicted:
 		CG_DrawCenterString();
 		CG_ChatBox_DrawStrings();
 		return;
-	}
-
-	if (cg.snap->ps.fallingToDeath)
-	{
-		vec4_t	hcolor;
-
-		fallTime = (float)(cg.time - cg.snap->ps.fallingToDeath);
-
-		fallTime /= (FALL_FADE_TIME/2);
-
-		if (fallTime < 0)
-		{
-			fallTime = 0;
-		}
-		if (fallTime > 1)
-		{
-			fallTime = 1;
-		}
-
-		hcolor[3] = fallTime;
-		hcolor[0] = 0;
-		hcolor[1] = 0;
-		hcolor[2] = 0;
-
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
-
-		if (!gCGHasFallVector)
-		{
-			VectorCopy(cg.snap->ps.origin, gCGFallVector);
-			gCGHasFallVector = qtrue;
-		}
-	}
-	else
-	{
-		if (gCGHasFallVector)
-		{
-			gCGHasFallVector = qfalse;
-			VectorClear(gCGFallVector);
-		}
 	}
 
 	CG_DrawVote();

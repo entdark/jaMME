@@ -15,7 +15,7 @@ void S_DMAStopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle) {
 	for (i = 0; i < DMA_SNDCHANNELS; i++) {
 		if (dmaChannels[i].entChan == entchannel
 			&& dmaChannels[i].entNum == entityNum
-			&& (dmaChannels[i].handle == sfxHandle || sfxHandle == -1)) {
+			&& (dmaChannels[i].handle == sfxHandle || sfxHandle < 0)) {
 			dmaChannels[i].entChan = 0;
 			dmaChannels[i].entNum = 0;
 			dmaChannels[i].handle = 0;
@@ -23,7 +23,8 @@ void S_DMAStopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle) {
 			VectorClear(dmaChannels[i].origin);
 			dmaChannels[i].index = 0;
 			dmaChannels[i].wasMixed = 0;
-			break;
+			if (sfxHandle >= -1)
+				break;
 		}
 	}
 }

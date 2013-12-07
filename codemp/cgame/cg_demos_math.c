@@ -478,8 +478,7 @@ void demoDrawRawLine(const vec3_t start, const vec3_t end, float width, polyVert
 	VectorMA( start, -width, up, verts[1].xyz);
 	VectorMA( end, -width, up, verts[2].xyz);
 	VectorMA( end, width, up, verts[3].xyz);
-	trap_R_AddPolyToScene( demo.media.additiveWhiteShader, 4, verts ); // lines are black :(
-//	trap_R_AddPolyToScene( cgs.media.whiteShader, 4, verts );
+	trap_R_AddPolyToScene( demo.media.additiveWhiteShader, 4, verts );
 }
 
 void demoDrawLine( const vec3_t p0, const vec3_t p1, const vec4_t color) {
@@ -549,6 +548,61 @@ void demoDrawCrosshair( void ) {
 	trap_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (cg.refdef.width - w), 
 		y + cg.refdef.y + 0.5 * (cg.refdef.height - h), 
 		w, h, 0, 0, 1, 1, hShader );
+}
+
+void demoNowTrajectory( const trajectory_t *tr, vec3_t result ) {
+	float		deltaTime;
+	float		phase;
+
+	switch( tr->trType ) {
+	case TR_STATIONARY:
+	case TR_INTERPOLATE:
+		VectorCopy( tr->trBase, result );
+		break;
+	case TR_LINEAR:
+		deltaTime = ( cg.time - tr->trTime ) * 0.001 + cg.timeFraction * 0.001;
+		VectorMA( tr->trBase, deltaTime, tr->trDelta, result );
+		break;
+	case TR_SINE:
+		deltaTime = ( cg.time - tr->trTime ) % tr->trDuration;
+		deltaTime = ( deltaTime + cg.timeFraction ) / (float) tr->trDuration;
+		phase = sin( deltaTime * M_PI * 2 );
+		VectorMA( tr->trBase, phase, tr->trDelta, result );
+		break;
+	case TR_LINEAR_STOP:
+		if ( cg.time > tr->trTime + tr->trDuration ) {
+			deltaTime = tr->trDuration * 0.001;
+		} else {
+			deltaTime = ( cg.time - tr->trTime ) * 0.001 + cg.timeFraction * 0.001;
+		}
+		if ( deltaTime < 0 ) {
+			deltaTime = 0;
+		}
+		VectorMA( tr->trBase, deltaTime, tr->trDelta, result );
+		break;
+	case TR_NONLINEAR_STOP: //probably ported wrong
+		if ( cg.time > tr->trTime + tr->trDuration ) {
+			deltaTime = tr->trDuration * 0.001;
+		} else {
+			deltaTime = ( cg.time - tr->trTime ) * 0.001 + cg.timeFraction * 0.001;
+		}
+		//new slow-down at end
+		if ( cg.time - tr->trTime > tr->trDuration || deltaTime <= 0  ) {
+			deltaTime = 0;
+		} else {//FIXME: maybe scale this somehow?  So that it starts out faster and stops faster?
+			deltaTime = tr->trDuration*0.001f*((float)cos( DEG2RAD(90.0f - (90.0f*((float)(cg.time-tr->trTime))/(float)tr->trDuration)) ));
+		}
+		VectorMA( tr->trBase, deltaTime, tr->trDelta, result );
+		break;
+	case TR_GRAVITY:
+		deltaTime = ( cg.time - tr->trTime ) * 0.001 + cg.timeFraction * 0.001;
+		VectorMA( tr->trBase, deltaTime, tr->trDelta, result );
+		result[2] -= 0.5 * DEFAULT_GRAVITY * deltaTime * deltaTime;		// FIXME: local gravity...
+		break;
+	default:
+		Com_Error( ERR_DROP, "BG_EvaluateTrajectory: unknown trType: %i", tr->trType );
+		break;
+	}
 }
 
 void demoRotatePoint(vec3_t point, const vec3_t matrix[3]) { 

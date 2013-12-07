@@ -119,7 +119,7 @@ static float cameraPointLength( demoCameraPoint_t *point ) {
 		for (i = 0; i < 10; i++) {
 			posGet( step+addStep, demo.camera.smoothPos, control, nextOrigin );
 			distance = VectorDistanceSquared( lastOrigin, nextOrigin);
-			if ( distance <= 0.25f)
+			if ( distance <= 0.01f)
 				break;
 			addStep *= 0.7f;
 		}
@@ -207,7 +207,7 @@ static qboolean cameraOriginAt( int time, float timeFraction, vec3_t origin ) {
 		for (i = 0; i < 10; i++) {
 			posGet( step+addStep, demo.camera.smoothPos, control, nextOrigin );
 			distance = VectorDistanceSquared( origin, nextOrigin);
-			if ( distance <= 0.25f)
+			if ( distance <= 0.01f)
 				break;
 			addStep *= 0.7f;
 		}

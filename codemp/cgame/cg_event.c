@@ -2842,8 +2842,12 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("EV_DISRUPTOR_ZOOMSOUND");
 		if (mov_soundDisable.integer & SDISABLE_ZOOM)
 			break;
+
+		if (!cg.playerCent) // local sounds don't sound in freecam
+			return;
+
 		if ((cg.playerPredicted && es->number == cg.snap->ps.clientNum)
-			|| (!cg.playerPredicted && cg.playerCent
+			|| (!cg.playerPredicted
 			&& es->number == cg.playerCent->currentState.number))
 		{
 			if ((cg.playerPredicted && cg.snap->ps.zoomMode)
@@ -2854,6 +2858,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			}
 			else
 			{
+				trap_S_StopSound(cg.playerCent->currentState.number, CHAN_WEAPON, cg_weapons[WP_DISRUPTOR].altChargeSound);
 				trap_S_StartLocalSound(trap_S_RegisterSound("sound/weapons/disruptor/zoomend.wav"), CHAN_AUTO);
 			}
 		}
@@ -3061,6 +3066,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 			CG_Trace(&tr, position, playerMins, playerMaxs, dpos, es->number, MASK_SOLID);
 			VectorCopy(tr.endpos, pos);
+
+			trap_S_StopSound(es->clientNum, CHAN_VOICE, CG_CustomSound( es->clientNum, "*falling1" ));
 
 			if (!(mov_soundDisable.integer & SDISABLE_TELESPAWN)) {
 				trap_S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.teleInSound );
@@ -3622,7 +3629,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 					{
 						CG_AddBufferedSound( cgs.media.blueFlagReturnedSound );
 					}
-					redOnStand = qtrue;
+					blueOnStand = qtrue;
 					break;
 				case GTS_BLUE_RETURN: // CTF red flag returned, 1FCTF: neutral flag returned
 					if (cgs.gametype == GT_CTY)
@@ -3633,7 +3640,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 					{
 						CG_AddBufferedSound( cgs.media.redFlagReturnedSound );
 					}
-					blueOnStand = qtrue;
+					redOnStand = qtrue;
 					break;
 				case GTS_RED_TAKEN: // CTF: red team took blue flag, 1FCTF: blue team took the neutral flag
 					// if this player picked up the flag then a sound is played in CG_CheckLocalSounds

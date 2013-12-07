@@ -370,6 +370,42 @@ extern qboolean cg_rangedFogging;
 
 extern int cg_siegeClassIndex;
 
+void CG_UpdateFallVector (void) {
+	if (!cg.playerPredicted || !cg.playerCent)
+		return;
+
+	if (cg.snap->ps.fallingToDeath) {
+		float	fallTime; 
+		vec4_t	hcolor;
+
+		fallTime = (float)(cg.time - cg.snap->ps.fallingToDeath);
+
+		fallTime /= (FALL_FADE_TIME/2);
+
+		if (fallTime < 0)
+			fallTime = 0;
+		else if (fallTime > 1)
+			fallTime = 1;
+
+		hcolor[3] = fallTime;
+		hcolor[0] = 0;
+		hcolor[1] = 0;
+		hcolor[2] = 0;
+
+		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+
+		if (!gCGHasFallVector) {
+			VectorCopy(cg.snap->ps.origin, gCGFallVector);
+			gCGHasFallVector = qtrue;
+		}
+	} else {
+		if (gCGHasFallVector) {
+			gCGHasFallVector = qfalse;
+			VectorClear(gCGFallVector);
+		}
+	}
+}
+
 void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	int deltaTime;
 	qboolean hadSkip;
@@ -379,6 +415,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	int blurTotal, blurIndex;
 	float blurFraction;
 	float stereo = CG_Cvar_Get("r_stereoSeparation");
+	static qboolean intermission = qfalse;
 
 	int inwater;
 	const char *cstr;
@@ -589,6 +626,11 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	demoProcessSnapShots( hadSkip );
 	trap_ROFF_UpdateEntities();
 
+	if ( !cg.snap ) {
+		CG_DrawInformation();
+		return;
+	}
+
 	if (cg.snap && cg.snap->ps.saberLockTime > cg.time) {
 		mSensitivity = 0.01f;
 	}
@@ -608,11 +650,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		veh = NULL; //this is done because I don't want an extra assign each frame because I am so perfect and super efficient.
 	} else {
 		trap_SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
-	}
-
-	if ( !cg.snap ) {
-		CG_DrawInformation();
-		return;
 	}
 
 	CG_DemosUpdatePlayer( );
@@ -641,7 +678,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	} else if ((cg.playerPredicted && cg.predictedPlayerState.zoomMode)
 		|| (!cg.playerPredicted
 		&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-		|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))) { //zooming with binoculars or sniper, set the fog range based on the zoom level -rww
+		|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))) {
+		//zooming with binoculars or sniper, set the fog range based on the zoom level -rww
 		cg_rangedFogging = qtrue;
 		//smaller the fov the less fog we have between the view and cull dist
 		trap_R_SetRangeFog(cg.refdef.fov_x*64.0f);
@@ -657,16 +695,12 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	CG_CalcScreenEffects();
 
-//	if ( !cg.hyperspace ) {
-		CG_AddPacketEntities(qfalse);			// adter calcViewValues, so predicted player state is correct
-		CG_AddMarks();
-		CG_AddParticles ();
-		CG_AddLocalEntities();
-//	}
-//	if ( !cg.hyperspace) {
-		trap_FX_AddScheduledEffects(qfalse);
-//	}
+	CG_AddPacketEntities(qfalse);	// adter calcViewValues, so predicted player state is correct
+	CG_AddMarks();
+	CG_AddParticles ();
+	CG_AddLocalEntities();
 
+	trap_FX_AddScheduledEffects(qfalse);
 	
 	if ( cg.playerCent == &cg_entities[cg.predictedPlayerState.clientNum] ) {
 		CG_PlayBufferedSounds();
@@ -745,6 +779,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		VectorCopy(gCGFallVector, cg.refdef.vieworg);
 		AnglesToAxis(lookAng, cg.refdef.viewaxis);
 	}
+	CG_UpdateFallVector();
 
 	//This is done from the vieworg to get origin for non-attenuated sounds
 	cstr = CG_ConfigString( CS_GLOBAL_AMBIENT_SET );
@@ -759,7 +794,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	trap_S_Respatialize( cg.playerCent ? cg.playerCent->currentState.number : ENTITYNUM_NONE, cg.refdef.vieworg, cg.refdef.viewaxis, inwater);
 
 	CG_DrawActive( stereoView );
-	
+
 	if ( demo.viewType == viewChase && cg.playerCent && ( cg.playerCent->currentState.number < MAX_CLIENTS ) ) {
 		CG_Draw2D();
 	} else if (cg_draw2D.integer) {
@@ -769,6 +804,17 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	} else {
 		vec4_t hcolor = {0, 0, 0, 0};
 		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+	}
+
+	//those looping sounds in intermission are annoying
+	if (cg.predictedPlayerState.pm_type == PM_INTERMISSION && !intermission) {
+		int i;
+		for (i = 0; i < MAX_GENTITIES; i++)
+			CG_S_StopLoopingSound(i, -1);
+		intermission = qtrue;
+	}
+	if (cg.predictedPlayerState.pm_type != PM_INTERMISSION){
+		intermission = qfalse;
 	}
 
 	CG_DrawAutoMap();

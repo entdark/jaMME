@@ -4,7 +4,7 @@ jaMME
 jaMME is an engine modification of Jedi Academy for making movies. It's a port of q3mme with most of its features and some new ones. The modification is based on early (May 2013th) version of OpenJK. Original source code belongs to Raven Software.
 
 # Features #
-* demo playback control
+* demo playback control (pause, rewind)
 * free camera mode
 * chase camera mode
 * time speed animation

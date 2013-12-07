@@ -653,6 +653,13 @@ weaponInfo_t		cg_weapons[MAX_WEAPONS];
 itemInfo_t			cg_items[MAX_ITEMS];
 
 
+static void CG_Set2DRatio(void) {
+	if (mov_ratioFix.integer)
+		cgs.widthRatioCoef = (640.0*cgs.glconfig.vidHeight) / (480.0*cgs.glconfig.vidWidth);
+	else
+		cgs.widthRatioCoef = 1.0f;
+}
+
 static void CG_SVRunningChange( void ) {
 	cgs.localServer = sv_running.integer;
 }
@@ -3141,10 +3148,7 @@ Ghoul2 Insert End
 
 	CG_ParseEntitiesFromString();
 
-	if (mov_ratioFix.integer)
-		cgs.widthRatioCoef = (640.0*cgs.glconfig.vidHeight) / (480.0*cgs.glconfig.vidWidth);
-	else
-		cgs.widthRatioCoef = 1.0f;
+	CG_Set2DRatio();
 
 	//Raz: warn for poor settings
 	trap_Cvar_VariableStringBuffer( "rate", buf, sizeof( buf ) );

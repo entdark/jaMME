@@ -990,7 +990,7 @@ static void CG_OffsetFirstPersonView( void ) {
 		VectorMA( angles, kickPerc, cg.kick_angles, angles );
 	}
 	// add angles based on damage kick
-	if ( cg.damageTime && cg.playerPredicted) { //mme: added cg.playerPredicted
+	if (cg.damageTime && cg.playerPredicted) { //mme: added cg.playerPredicted
 		ratio = cg.time - cg.damageTime;
 		if ( ratio < DAMAGE_DEFLECT_TIME ) {
 			ratio /= DAMAGE_DEFLECT_TIME;
@@ -2393,16 +2393,13 @@ Currently just for screen shaking (and music volume management)
 =================
 */
 void CG_CalcScreenEffects(void) {
-	//jamme - we don't need that shake, it makes game crash sometimes.
-//	CG_SE_UpdateShake(cg.refdef.vieworg, cg.refdef.viewangles);
+	if (fx_Vibrate.integer == 0)
+		CG_SE_UpdateShake(cg.refdef.vieworg, cg.refdef.viewangles);
 	CG_SE_UpdateMusic();
 }
 
 void CGCam_Shake( float intensity, int duration ) {
-/*	if (fx_Vibrate.integer > 0) {
-		return;
-	}
-*/	if ( intensity > MAX_SHAKE_INTENSITY )
+	if ( intensity > MAX_SHAKE_INTENSITY )
 		intensity = MAX_SHAKE_INTENSITY;
 
 	cgScreenEffects.shake_intensity = intensity;
@@ -2809,6 +2806,8 @@ extern qboolean PM_InKnockDown( playerState_t *ps );
 
 int cg_siegeClassIndex = -2;
 
+extern void CG_UpdateFallVector (void);
+
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayback ) {
 	int		inwater;
 	const char *cstr;
@@ -3117,6 +3116,8 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 			trap_Cvar_Set("timescale", va("%f", timescale.value));
 		}
 	}
+
+	CG_UpdateFallVector();
 
 	// actually issue the rendering calls
 	CG_DrawActive( stereoView );

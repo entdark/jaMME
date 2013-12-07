@@ -171,7 +171,7 @@ void S_MMEStopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle) {
 	for (i = 0; i < MME_SNDCHANNELS; i++) {
 		if (mmeSound.channels[i].entChan == entchannel
 			&& mmeSound.channels[i].entNum == entityNum
-			&& (mmeSound.channels[i].handle == sfxHandle || sfxHandle == -1)) {
+			&& (mmeSound.channels[i].handle == sfxHandle || sfxHandle < 0)) {
 			mmeSound.channels[i].entChan = 0;
 			mmeSound.channels[i].entNum = 0;
 			mmeSound.channels[i].handle = 0;
@@ -179,7 +179,8 @@ void S_MMEStopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle) {
 			VectorClear(mmeSound.channels[i].origin);
 			mmeSound.channels[i].index = 0;
 			mmeSound.channels[i].wasMixed = 0;
-			break;
+			if (sfxHandle >= -1)
+				break;
 		}
 	}
 }

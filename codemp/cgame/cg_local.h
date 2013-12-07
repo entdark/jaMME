@@ -341,6 +341,7 @@ typedef struct cgLoopSound_s {
 	sfxHandle_t sfx;
 } cgLoopSound_t;
 
+void demoNowTrajectory( const trajectory_t *tr, vec3_t result );
 // centity_t have a direct corespondence with gentity_t in the game, but
 // only the entityState_t is directly communicated to the cgame
 typedef struct centity_s {
