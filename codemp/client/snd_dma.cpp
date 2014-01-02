@@ -1107,32 +1107,36 @@ sfxHandle_t	S_RegisterSound( const char *name) {
 
 	/* begin the fix to assign meta sounds to chars w/o sounds */
 //	char *psVoice = strstr(fileName,"chars");
-//	if (psVoice) {
-		char sSoundNameNoExt[MAX_QPATH];
-		sfx_t	*sfx;
-		sfx = &s_knownSfx[0];
-		memset (sfx, 0, sizeof(*sfx));
-		COM_StripExtension(fileName,sSoundNameNoExt, sizeof( sSoundNameNoExt ));
-		Q_strncpyz(sfx->sSoundName, sSoundNameNoExt, sizeof(sfx->sSoundName));
+	char sSoundNameNoExt[MAX_QPATH];
+	sfx_t	*sfx;
+	sfx = &s_knownSfx[0];
+	memset (sfx, 0, sizeof(*sfx));
+	COM_StripExtension(fileName,sSoundNameNoExt, sizeof( sSoundNameNoExt ));
+	Q_strncpyz(sfx->sSoundName, sSoundNameNoExt, sizeof(sfx->sSoundName));
 #ifdef _WIN32
-		strlwr(sfx->sSoundName);//force it down low
+	strlwr(sfx->sSoundName);//force it down low
 #else
-		std::string s = sfx->sSoundName;
-		std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+	std::string s = sfx->sSoundName;
+	std::transform(s.begin(), s.end(), s.begin(), ::tolower);
 #endif
-		SND_TouchSFX(sfx);
-		sfx->bInMemory = qfalse;
-	//	Q_strncpyz(sfx->sSoundName, fileName, sizeof(sfx->sSoundName));
-		S_memoryLoad(sfx);
-		if ( sfx->bDefaultSound ) {
+	SND_TouchSFX(sfx);
+	sfx->bInMemory = qfalse;
+//	Q_strncpyz(sfx->sSoundName, fileName, sizeof(sfx->sSoundName));
+	S_memoryLoad(sfx);
+
+	if (sfx->lipSyncData)
+		Z_Free(sfx->lipSyncData);
+	if (sfx->pSoundData)
+		Z_Free(sfx->pSoundData);
+
+	if (sfx->bDefaultSound) {
 #ifndef FINAL_BUILD
-			if (!s_shutUp) {
-				Com_Printf( S_COLOR_YELLOW "WARNING: could not find %s - using default\n", sfx->sSoundName );
-			}
-#endif
-			return 0;
+		if (!s_shutUp) {
+			Com_Printf( S_COLOR_YELLOW "WARNING: could not find %s - using default\n", sfx->sSoundName );
 		}
-//	}
+#endif
+		return 0;
+	}
 	/* end the fix */
 
 
@@ -4940,6 +4944,9 @@ void S_RestartMusic( void )
 void S_StartBackgroundTrack( const char *intro, const char *loop, int bCalledByCGameStart ) {
 #ifdef SND_MME
 	if ( !intro || !intro[0] )
+		return;
+
+	if ( !s_musicVolume->value )
 		return;
 
 	if ( !loop || !loop[0] ) 

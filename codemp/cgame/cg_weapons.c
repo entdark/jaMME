@@ -480,7 +480,7 @@ Ghoul2 Insert Start
 			cg.snap->ps.clientNum))
 		{
 			if ((cg.playerPredicted && cg.predictedPlayerState.zoomMode)
-				|| (!cg.playerPredicted
+				|| (!cg.playerPredicted && cg.playerCent
 				&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
 				|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))) goto getFlash;
 
@@ -540,7 +540,7 @@ Ghoul2 Insert Start
 				}
 				
 				if ((cg.playerPredicted && cg.predictedPlayerState.zoomMode)
-					|| (!cg.playerPredicted
+					|| (!cg.playerPredicted && cg.playerCent
 					&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
 					|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))) goto getFlash;
 
@@ -568,7 +568,7 @@ Ghoul2 Insert Start
 				CG_PositionRotatedEntityOnTag( &barrel, parent/*&gun*/, /*weapon->weaponModel*/weapon->handsModel, "tag_barrel" );
 				
 				if ((cg.playerPredicted && cg.predictedPlayerState.zoomMode)
-					|| (!cg.playerPredicted
+					|| (!cg.playerPredicted && cg.playerCent
 					&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
 					|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))) goto getFlash;
 
@@ -584,7 +584,10 @@ getFlash:
 	CG_PositionEntityOnTag( &flash, &gun, gun.hModel, "tag_flash");
 
 	VectorCopy(flash.origin, cg.lastFPFlashPoint);
-	if (cg.predictedPlayerState.zoomMode && cg.playerPredicted) return;
+	if ((cg.playerPredicted && cg.predictedPlayerState.zoomMode)
+		|| (!cg.playerPredicted && cg.playerCent
+		&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+		|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))) return;
 	// Do special charge bits
 	//-----------------------
 	//[TrueView]
@@ -628,22 +631,22 @@ getFlash:
 			BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, flashdir);
 		}
 
-		if ( cent->currentState.weapon == WP_BRYAR_PISTOL ||
+		if (cent->currentState.weapon == WP_BRYAR_PISTOL ||
 			cent->currentState.weapon == WP_BRYAR_OLD)
 		{
 			// Hardcoded max charge time of 1 second
-			val = ( cg.time - cent->currentState.constantLight ) * 0.001f;
+			val = ((cg.time - cent->currentState.constantLight) + cg.timeFraction) * 0.001f;
 			shader = cgs.media.bryarFrontFlash;
 		}
-		else if ( cent->currentState.weapon == WP_BOWCASTER )
+		else if (cent->currentState.weapon == WP_BOWCASTER)
 		{
 			// Hardcoded max charge time of 1 second
-			val = ( cg.time - cent->currentState.constantLight ) * 0.001f;
+			val = ((cg.time - cent->currentState.constantLight) + cg.timeFraction) * 0.001f;
 			shader = cgs.media.greenFrontFlash;
 		}
-		else if ( cent->currentState.weapon == WP_DEMP2 )
+		else if (cent->currentState.weapon == WP_DEMP2)
 		{
-			val = ( cg.time - cent->currentState.constantLight ) * 0.001f;
+			val = ((cg.time - cent->currentState.constantLight) + cg.timeFraction) * 0.001f;
 			shader = cgs.media.lightningFlash;
 			scale = 1.75f;
 		}
@@ -668,7 +671,7 @@ getFlash:
 			}
 		}
 
-		val += random() * 0.5f;
+		val += flrand(0.0f, 1.0f) * 0.5f; //we want randomizer be not based on cg.time
 
 		VectorCopy(flashorigin, fxSArgs.origin);
 		VectorClear(fxSArgs.vel);
@@ -677,7 +680,7 @@ getFlash:
 		fxSArgs.dscale = 0.0f;
 		fxSArgs.sAlpha = 0.7f;
 		fxSArgs.eAlpha = 0.7f;
-		fxSArgs.rotation = random()*360;
+		fxSArgs.rotation = flrand(0.0f, 1.0f)*360; //we want randomizer be not based on cg.time
 		fxSArgs.bounce = 0.0f;
 		fxSArgs.life = 1.0f;
 		fxSArgs.shader = shader;

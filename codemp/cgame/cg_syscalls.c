@@ -651,14 +651,23 @@ void trap_FX_PlayEntityEffect( const char *file, vec3_t org,
 
 void trap_FX_PlayEffectID( int id, vec3_t org, vec3_t fwd, int vol, int rad )
 {
-	if( id == cgs.effects.rocketShotEffect			  ||
-		id == cgs.effects.repeaterAltProjectileEffect ||
-		id == cgs.effects.flechetteAltShotEffect 	  ||
-		id == cgs.effects.tripmineLaserFX 			  ||
-		id == cgs.effects.tripmineGlowFX 			  ||
-		id == cgs.effects.itemCone					  ||
-		id == cgs.effects.mSpawn					  ||
-		id == cgs.effects.mSparks ) {
+	if( id == cgs.effects.rocketShotEffect				||
+		id == cgs.effects.repeaterAltProjectileEffect	||
+		id == cgs.effects.flechetteAltShotEffect 		||
+		id == cgs.effects.tripmineLaserFX 				||
+		id == cgs.effects.tripmineGlowFX 				||
+		id == cgs.effects.itemCone						||
+		id == cgs.effects.mSpawn						||
+		id == cgs.effects.mSparks						||
+		id == cgs.effects.bryarPowerupShotEffect		||
+		id == cgs.effects.bryarShotEffect				||
+		id == cgs.effects.turretShotEffect				||
+		id == cgs.effects.blasterShotEffect				||
+		id == cgs.effects.bowcasterShotEffect			||//?
+		id == cgs.effects.repeaterProjectileEffect		||//?
+		id == cgs.effects.repeaterAltProjectileEffect	||//?
+		id == cgs.effects.demp2ProjectileEffect			||//?
+		id == cgs.effects.concussionShotEffect ) {		  //?
 			if (fx_vfps.integer <= 0)
 				fx_vfps.integer = 1;
 			if (fxT > cg.time)
@@ -766,9 +775,9 @@ void trap_FX_Reset ( void )
 	Q_syscall ( CG_FX_RESET );
 }
 
-void trap_FX_AdjustTime( int time )
+void trap_FX_AdjustTime( int time, float frametime, float timeFraction )
 {
-	Q_syscall( CG_FX_ADJUST_TIME, time );
+	Q_syscall( CG_FX_ADJUST_TIME, time, PASSFLOAT(frametime), PASSFLOAT(timeFraction) );
 }
 
 
@@ -789,6 +798,25 @@ void trap_FX_AddPrimitive( effectTrailArgStruct_t *p )
 
 void trap_FX_AddSprite( addspriteArgStruct_t *p )
 {
+	if( p->shader == cgs.media.bryarFrontFlash	||
+		p->shader == cgs.media.greenFrontFlash	||
+		p->shader == cgs.media.lightningFlash ) {
+			if (fx_vfps.integer <= 0)
+				fx_vfps.integer = 1;
+			if (fxT > cg.time)
+				fxT = cg.time;
+			if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
+			{
+				doFX = qtrue;
+				fxT = cg.time;
+			}
+			else 
+			{
+				doFX = qfalse;
+				//syscall( CG_FX_ADJUST_TIME, time );
+				return;
+			}
+	}
 	Q_syscall( CG_FX_ADDSPRITE, p );
 }
 
@@ -1209,7 +1237,7 @@ void trap_MME_Capture( const char *baseName, float fps, float focus ) {
 	Q_syscall( CG_MME_CAPTURE, baseName, PASSFLOAT(fps), PASSFLOAT( focus ) );
 }
 void trap_MME_CaptureStereo( const char *baseName, float fps, float focus ) {
-	Q_syscall( CG_MME_CAPTURE_STEREO, baseName, PASSFLOAT(fps), PASSFLOAT( focus ) );
+	Q_syscall( CG_MME_CAPTURE_STEREO, baseName, PASSFLOAT(fps), PASSFLOAT(focus) );
 }
 void trap_MME_BlurInfo( int* total, int* index ) {
 	Q_syscall( CG_MME_BLURINFO, total, index );
@@ -1218,7 +1246,13 @@ int trap_MME_SeekTime( int seekTime ) {
 	return Q_syscall( CG_MME_SEEKTIME, seekTime );
 }
 void trap_MME_Music( const char *musicName, float time, float length ) {
-	Q_syscall( CG_MME_MUSIC, musicName, PASSFLOAT(time), PASSFLOAT( length ) );
+	Q_syscall( CG_MME_MUSIC, musicName, PASSFLOAT(time), PASSFLOAT(length) );
+}
+void trap_R_RandomSeed( int time, float timeFraction ) {
+	Q_syscall( CG_R_RANDOMSEED, time, PASSFLOAT(timeFraction) );
+}
+void trap_FX_RandomSeed( int time, float timeFraction ) {
+	Q_syscall( CG_FX_RANDOMSEED, time, PASSFLOAT(timeFraction) );
 }
 void trap_S_UpdatePitch( float pitch ) {
 	Q_syscall( CG_S_UPDATE_PITCH, PASSFLOAT(pitch) );

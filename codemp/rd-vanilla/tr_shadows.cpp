@@ -616,14 +616,14 @@ void RB_DistortionFill(void)
 	}
 	else
 	{ //do slow stretchy effect
-		spost = sin(tr.refdef.time*0.0005f);
+		spost = sin(tr.refdef.time * 0.0005 + tr.refdef.timeFraction * 0.0005);
 		if (spost < 0.0f)
 		{
 			spost = -spost;
 		}
 		spost *= 0.2f;
 
-		spost2 = sin(tr.refdef.time*0.0005f);
+		spost2 = sin(tr.refdef.time * 0.0005 + tr.refdef.timeFraction * 0.0005);
 		if (spost2 < 0.0f)
 		{
 			spost2 = -spost2;
@@ -668,14 +668,14 @@ void RB_DistortionFill(void)
 			GL_State(GLS_SRCBLEND_SRC_ALPHA|GLS_DSTBLEND_SRC_ALPHA);
 		}
 
-		spost = sin(tr.refdef.time*0.0008f);
+		spost = sin(tr.refdef.time * 0.0008 + tr.refdef.timeFraction * 0.0008);
 		if (spost < 0.0f)
 		{
 			spost = -spost;
 		}
 		spost *= 0.08f;
 
-		spost2 = sin(tr.refdef.time*0.0008f);
+		spost2 = sin(tr.refdef.time * 0.0008 + tr.refdef.timeFraction * 0.0008);
 		if (spost2 < 0.0f)
 		{
 			spost2 = -spost2;

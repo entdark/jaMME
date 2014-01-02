@@ -28,6 +28,8 @@ extern void trap_MME_Capture( const char *baseName, float fps, float focus );
 extern void trap_MME_CaptureStereo( const char *baseName, float fps, float focus );
 extern int trap_MME_SeekTime( int seekTime );
 extern void trap_MME_Music( const char *musicName, float time, float length );
+extern void trap_R_RandomSeed( int time, float timeFraction );
+extern void trap_FX_RandomSeed( int time, float timeFraction );
 extern void trap_S_UpdatePitch( float pitch );
 int lastMusicStart;
 
@@ -89,23 +91,28 @@ static void CG_DemosUpdatePlayer( void ) {
 	}
 }
 
-#define RADIUS_LIMIT 701
+#define RADIUS_LIMIT 701.0f
 #define EFFECT_LENGTH 400 //msec
 
-static void VibrateView( const float range, const int eventTime, const int fxTime, const float wc, float scale, vec3_t origin, vec3_t angles) {
+static void VibrateView( const float range, const int eventTime, const float fxTime, const float wc, float scale, vec3_t origin, vec3_t angles) {
 	float shadingTime;
 	int sign;
-
-	scale *= fx_Vibrate.value * 100;
 
 	if (range > 1 || range < 0) {
 		return;
 	}
-	shadingTime = (float)((float)fxTime / 1000) - (float)((float)EFFECT_LENGTH / 1000);
+	scale *= fx_Vibrate.value * 100 * wc * range;
+
+	shadingTime = (fxTime - (float)EFFECT_LENGTH) / 1000.0f;
+
+	if (shadingTime < -(float)EFFECT_LENGTH / 1000.0f)
+		shadingTime = -(float)EFFECT_LENGTH / 1000.0f;
+	else if (shadingTime > 0)
+		shadingTime = 0;
 
 	sign = fxRandomSign( eventTime );
-	origin[2] += shadingTime * shadingTime * sin (shadingTime * M_PI * 23.0f) * range * scale * wc;
-	angles[ROLL] += shadingTime * shadingTime * sin (shadingTime * M_PI * 1.642f) * range * scale * wc * 0.7f * sign;
+	origin[2] += shadingTime * shadingTime * sinf(shadingTime * M_PI * 23.0f) * scale;
+	angles[ROLL] += shadingTime * shadingTime * sinf(shadingTime * M_PI * 1.642f) * scale * 0.7f * sign;
 }
 
 static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
@@ -115,7 +122,7 @@ static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
 	range = 1 - (cg.eventRadius / RADIUS_LIMIT);
 	oldRange = 1 - (cg.eventOldRadius / RADIUS_LIMIT);
 
-	if (cg.eventOldTime > cg.time) {
+	if (cg.eventOldTime > currentTime) {
 		cg.eventRadius = cg.eventOldRadius = 0;
 		cg.eventTime = cg.eventOldTime = 0;
 		cg.eventCoeff = cg.eventOldCoeff = 0;
@@ -131,9 +138,9 @@ static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
 	}
 
 	if ((currentTime >= cg.eventTime) && (currentTime <= (cg.eventTime + EFFECT_LENGTH))) {
-		int fxTime = currentTime - cg.eventTime;
+		float fxTime = currentTime - cg.eventTime;
 		range = 1 - (cg.eventRadius / RADIUS_LIMIT);
-		VibrateView(range, cg.eventTime, fxTime, cg.eventCoeff, scale, origin, angles);
+		VibrateView(range, cg.eventTime, fxTime + cg.timeFraction, cg.eventCoeff, scale, origin, angles);
 		cg.eventOldRadius = cg.eventRadius;
 		cg.eventOldTime = cg.eventTime;
 		cg.eventOldCoeff = cg.eventCoeff;
@@ -372,7 +379,7 @@ extern int cg_siegeClassIndex;
 
 void CG_UpdateFallVector (void) {
 	if (!cg.playerPredicted || !cg.playerCent)
-		return;
+		goto clearFallVector;
 
 	if (cg.snap->ps.fallingToDeath) {
 		float	fallTime; 
@@ -400,6 +407,7 @@ void CG_UpdateFallVector (void) {
 		}
 	} else {
 		if (gCGHasFallVector) {
+clearFallVector:
 			gCGHasFallVector = qfalse;
 			VectorClear(gCGFallVector);
 		}
@@ -613,10 +621,27 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	} else {
 		hadSkip = qfalse;
 	}
-	/* Make sure the random seed is the same each time we hit this frame */
-	srand( cg.time + cg.timeFraction * 1000);
 
-	trap_FX_AdjustTime( cg.time );
+	/* Make sure the random seed is the same each time we hit this frame */
+	{
+		int thing = (cg.time % 1000) * 10; //bad math :s
+		srand(cg.time + cg.timeFraction);
+		trap_R_RandomSeed(cg.time, cg.timeFraction);
+		trap_FX_RandomSeed(cg.time, cg.timeFraction);
+	}
+
+	//silly hack :s
+	if (demo.play.paused || !frameSpeed) {
+		static float lastValidFraction;
+		if (!frameSpeed)
+			trap_FX_AdjustTime(cg.time, cg.frametime, lastValidFraction);
+		else {
+			trap_FX_AdjustTime(cg.time, cg.frametime, 0);
+			lastValidFraction = cg.timeFraction;
+		}
+	} else
+		trap_FX_AdjustTime(cg.time, cg.frametime, cg.timeFraction);
+
 	CG_RunLightStyles();
 	/* Prepare to render the screen */		
 	trap_S_ClearLoopingSounds();
@@ -652,6 +677,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		trap_SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
 	}
 
+	CG_PreparePacketEntities( );
 	CG_DemosUpdatePlayer( );
 	chaseUpdate( demo.play.time, demo.play.fraction );
 	cameraUpdate( demo.play.time, demo.play.fraction );
@@ -714,6 +740,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	}
 
 	cg.refdef.time = cg.time;
+	cg.refdef.timeFraction = cg.timeFraction;
 	memcpy( cg.refdef.areamask, cg.snap->areamask, sizeof( cg.refdef.areamask ) );
 
 	/* Render some extra demo related stuff */
@@ -779,7 +806,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		VectorCopy(gCGFallVector, cg.refdef.vieworg);
 		AnglesToAxis(lookAng, cg.refdef.viewaxis);
 	}
-	CG_UpdateFallVector();
 
 	//This is done from the vieworg to get origin for non-attenuated sounds
 	cstr = CG_ConfigString( CS_GLOBAL_AMBIENT_SET );
@@ -805,6 +831,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		vec4_t hcolor = {0, 0, 0, 0};
 		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 	}
+
+	CG_UpdateFallVector();
 
 	//those looping sounds in intermission are annoying
 	if (cg.predictedPlayerState.pm_type == PM_INTERMISSION && !intermission) {

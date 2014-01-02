@@ -543,7 +543,7 @@ void S_PaintChannels( int endtime ) {
 
 static	mixSound_t		*mixSounds[SFX_SOUNDS];
 
-#define DEF_COMSOUNDMEGS "12"
+#define DEF_COMSOUNDMEGS "42"
 static  mixSound_t		*mixAllocSounds = 0;
 static  mixSound_t		mixEmptySound;
 
@@ -1183,9 +1183,9 @@ void S_MixInit( void ) {
 
 	cv = Cvar_Get( "com_soundMegs", DEF_COMSOUNDMEGS, CVAR_LATCH | CVAR_ARCHIVE );
 	allocSize = cv->integer * 1024 * 1024;
-	/* Sneakily force the soundmegs at atleast 12 mb */
-	if (allocSize < 12 * 1024 * 1024)
-		allocSize = 12 * 1024 * 1024;
+	/* Sneakily force the soundmegs at atleast 64 mb */
+	if (allocSize < 64 * 1024 * 1024)
+		allocSize = 64 * 1024 * 1024;
 	//Use calloc, seems faster when debugging
 	mixAllocSounds = (mixSound_t *)calloc( allocSize, 1 );
 	if (!mixAllocSounds) {

@@ -233,6 +233,7 @@ typedef struct {
 	void				(*Capture)								( const char *baseName, float fps, float focus );
 	void				(*CaptureStereo)								( const char *baseName, float fps, float focus );
 	void				(*BlurInfo)								( int* total, int* index );
+	void				(*DemoRandomSeed)						( int time, float timeFraction );
 } refexport_t;
 
 //

@@ -218,16 +218,22 @@ void CG_ParseServerinfo( void ) {
 	cgs.maxclients = Com_Clampi( 0, MAX_CLIENTS, atoi( Info_ValueForKey( info, "sv_maxclients" ) ) );
 
 	cg.japlus.detected = qfalse;
-	if ( !Q_stricmpn( Info_ValueForKey( info, "gamename" ), "JA+ Mod", 7 ) 
-		|| !Q_stricmpn( Info_ValueForKey( info, "gamename" ), "^4U^3A^5Galaxy", 14 ) ) {	//uag :s
+
+	CG_Printf("\n");
+	if (!Q_stricmpn(Info_ValueForKey(info, "gamename"), "JA+ Mod", 7) 
+		|| !Q_stricmpn(Info_ValueForKey(info, "gamename"), "^4U^3A^5Galaxy", 14)) {	//uag :s
 		cg.japlus.detected = qtrue;
 		cg.japlus.SSF = JAPLUS_SERVER_FLAGS;
-		CG_Printf( "JA+ demo detected\n" );
+		CG_Printf("JA+ demo detected\n");
+		Com_Printf("Server support hints: 0x%X\n", cg.japlus.SSF);
+	} else if (!Q_stricmpn(Info_ValueForKey(info, "gamename"), "MakerMod", 8)) {
+		CG_Printf("MakerMod demo detected\n");
+	} else if (!Q_stricmpn(Info_ValueForKey(info, "gamename"), "Lugormod", 8)) {
+		CG_Printf("Lugormod demo detected\n");
 	} else {
-		CG_Printf( "Base/Unknown demo detected\n" );
+		CG_Printf("Base/Unknown demo detected\n");
 	}
-
-	Com_Printf( "Server support hints: 0x%X\n", cg.japlus.SSF );
+	CG_Printf( "\n" );
 
 	mapname = Info_ValueForKey( info, "mapname" );
 

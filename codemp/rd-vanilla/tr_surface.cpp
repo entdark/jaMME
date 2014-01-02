@@ -969,9 +969,9 @@ static void DoBoltSeg( vec3_t start, vec3_t end, vec3_t right, float radius )
 		}
 
 		// create our level of deviation for this point
-		VectorScale( fwd, Q_crandom(&e->frame) * 3.0f, temp );				// move less in fwd direction, chaos also does not affect this
-		VectorMA( temp, Q_crandom(&e->frame) * 7.0f * e->axis[0][0], rt, temp );	// move more in direction perpendicular to line, angles is really the chaos
-		VectorMA( temp, Q_crandom(&e->frame) * 7.0f * e->axis[0][0], up, temp );	// move more in direction perpendicular to line
+		VectorScale( fwd, crandom() * 3.0f, temp );				// move less in fwd direction, chaos also does not affect this
+		VectorMA( temp, crandom() * 7.0f * e->axis[0][0], rt, temp );	// move more in direction perpendicular to line, angles is really the chaos
+		VectorMA( temp, crandom() * 7.0f * e->axis[0][0], up, temp );	// move more in direction perpendicular to line
 
 		// track our total level of offset from the ideal line
 		VectorAdd( off, temp, off );
@@ -994,7 +994,7 @@ static void DoBoltSeg( vec3_t start, vec3_t end, vec3_t right, float radius )
         ApplyShape( cur, old, right, newRadius, oldRadius, LIGHTNING_RECURSION_LEVEL );
   
 		// randomly split off to create little tendrils, but don't do it too close to the end and especially if we are not even of the forked variety
-        if ( ( e->renderfx & RF_FORKED ) && f_count > 0 && Q_random(&e->frame) > 0.94f && radius * (1.0f - perc) > 0.2f )
+        if ( ( e->renderfx & RF_FORKED ) && f_count > 0 && crandom() > 0.94f && radius * (1.0f - perc) > 0.2f )
 		{
 			vec3_t newDest;
 
@@ -1007,7 +1007,7 @@ static void DoBoltSeg( vec3_t start, vec3_t end, vec3_t right, float radius )
 			// And then add some crazy offset
 			for ( int t = 0; t < 3; t++ )
 			{
-				newDest[t] += Q_crandom(&e->frame) * 80;
+				newDest[t] += crandom() * 80;
 			}
 
 			// we could branch off using OLD and NEWDEST, but that would allow multiple forks...whereas, we just want simpler brancing
@@ -1041,7 +1041,7 @@ static void RB_SurfaceElectricity()
 	// see if we should grow from start to end
 	if ( e->renderfx & RF_GROW )
 	{
-		perc = 1.0f - ( e->axis[0][2]/*endTime*/ - tr.refdef.time ) / e->axis[0][1]/*duration*/;
+		perc = 1.0f - ((e->axis[0][2]/*endTime*/ - tr.refdef.time) - tr.refdef.timeFraction/*or e->axis[1][0]; timeFraction*/) / e->axis[0][1]/*duration*/;
 
 		if ( perc > 1.0f )
 		{
@@ -1136,7 +1136,7 @@ static void LerpMeshVertexes (md3Surface_t *surf, float backlerp)
 	float	oldXyzScale, newXyzScale;
 	float	oldNormalScale, newNormalScale;
 	int		vertNum;
-	unsigned lat, lng;
+	int		lat, lng;
 	int		numVerts;
 
 	outXyz = tess.xyz[tess.numVertexes];
@@ -1168,6 +1168,8 @@ static void LerpMeshVertexes (md3Surface_t *surf, float backlerp)
 			lng = ( newNormals[0] & 0xff );
 			lat *= (FUNCTABLE_SIZE/256);
 			lng *= (FUNCTABLE_SIZE/256);
+//			lat /= 256;
+//			lng /= 256;
 
 			// decode X as cos( lat ) * sin( long )
 			// decode Y as sin( lat ) * sin( long )
@@ -1175,6 +1177,9 @@ static void LerpMeshVertexes (md3Surface_t *surf, float backlerp)
 			outNormal[0] = tr.sinTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * tr.sinTable[lng];
 			outNormal[1] = tr.sinTable[lat] * tr.sinTable[lng];
 			outNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
+/*			outNormal[0] = NewCosTable(lat) * NewSinTable(lng);
+			outNormal[1] = NewSinTable(lat) * NewSinTable(lng);
+			outNormal[2] = NewCosTable(lng);*/
 		}
 	} else {
 		//
@@ -1203,18 +1208,29 @@ static void LerpMeshVertexes (md3Surface_t *surf, float backlerp)
 			lng = ( newNormals[0] & 0xff );
 			lat *= 4;
 			lng *= 4;
+//			lat /= 256;
+//			lng /= 256;
+
 			uncompressedNewNormal[0] = tr.sinTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * tr.sinTable[lng];
 			uncompressedNewNormal[1] = tr.sinTable[lat] * tr.sinTable[lng];
 			uncompressedNewNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
+/*			uncompressedNewNormal[0] = NewCosTable(lat) * NewSinTable(lng);
+			uncompressedNewNormal[1] = NewSinTable(lat) * NewSinTable(lng);
+			uncompressedNewNormal[2] = NewCosTable(lng);*/
 
 			lat = ( oldNormals[0] >> 8 ) & 0xff;
 			lng = ( oldNormals[0] & 0xff );
 			lat *= 4;
 			lng *= 4;
+//			lat /= 256;
+//			lng /= 256;
 
 			uncompressedOldNormal[0] = tr.sinTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * tr.sinTable[lng];
 			uncompressedOldNormal[1] = tr.sinTable[lat] * tr.sinTable[lng];
 			uncompressedOldNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
+/*			uncompressedOldNormal[0] = NewCosTable(lat) * NewSinTable(lng);
+			uncompressedOldNormal[1] = NewSinTable(lat) * NewSinTable(lng);
+			uncompressedOldNormal[2] = NewCosTable(lng);*/
 
 			outNormal[0] = uncompressedOldNormal[0] * oldNormalScale + uncompressedNewNormal[0] * newNormalScale;
 			outNormal[1] = uncompressedOldNormal[1] * oldNormalScale + uncompressedNewNormal[1] * newNormalScale;

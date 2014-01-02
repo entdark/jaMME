@@ -278,7 +278,8 @@ void CG_AddFragment( localEntity_t *le ) {
 	}
 
 	// calculate new position
-	BG_EvaluateTrajectory( &le->pos, cg.time, newOrigin );
+//	BG_EvaluateTrajectory( &le->pos, cg.time, newOrigin );
+	demoNowTrajectory( &le->pos, newOrigin );
 
 	// trace a line from previous position to new position
 	CG_Trace( &trace, le->refEntity.origin, NULL, NULL, newOrigin, -1, CONTENTS_SOLID );
@@ -289,7 +290,8 @@ void CG_AddFragment( localEntity_t *le ) {
 		if ( le->leFlags & LEF_TUMBLE ) {
 			vec3_t angles;
 
-			BG_EvaluateTrajectory( &le->angles, cg.time, angles );
+//			BG_EvaluateTrajectory( &le->angles, cg.time, angles );
+			demoNowTrajectory( &le->angles, angles );
 			AnglesToAxis( angles, le->refEntity.axis );
 			ScaleModelAxis(&le->refEntity);
 		}
@@ -352,7 +354,7 @@ void CG_AddFadeRGB( localEntity_t *le ) {
 
 	re = &le->refEntity;
 
-	c = ( le->endTime - cg.time ) * le->lifeRate;
+	c = ( le->endTime - cg.time - cg.timeFraction) * le->lifeRate;
 	c *= 0xff;
 
 	re->shaderRGBA[0] = le->color[0] * c;
@@ -367,7 +369,7 @@ static void CG_AddFadeScaleModel( localEntity_t *le )
 {
 	refEntity_t	*ent = &le->refEntity;
 
-	float frac = ( cg.time - le->startTime )/((float)( le->endTime - le->startTime ));
+	float frac = ((cg.time - le->startTime) + cg.timeFraction)/((float)(le->endTime - le->startTime));
 
 	frac *= frac * frac; // yes, this is completely ridiculous...but it causes the shell to grow slowly then "explode" at the end
 
@@ -405,11 +407,11 @@ static void CG_AddMoveScaleFade( localEntity_t *le ) {
 
 	if ( le->fadeInTime > le->startTime && cg.time < le->fadeInTime ) {
 		// fade / grow time
-		c = 1.0 - (float) ( le->fadeInTime - cg.time ) / ( le->fadeInTime - le->startTime );
+		c = 1.0 - (( le->fadeInTime - cg.time) - cg.timeFraction) / ( le->fadeInTime - le->startTime );
 	}
 	else {
 		// fade / grow time
-		c = ( le->endTime - cg.time ) * le->lifeRate;
+		c = (( le->endTime - cg.time) - cg.timeFraction) * le->lifeRate;
 	}
 
 	re->shaderRGBA[3] = 0xff * c * le->color[3];
@@ -418,7 +420,8 @@ static void CG_AddMoveScaleFade( localEntity_t *le ) {
 		re->radius = le->radius * ( 1.0 - c ) + 8;
 	}
 
-	BG_EvaluateTrajectory( &le->pos, cg.time, re->origin );
+//	BG_EvaluateTrajectory( &le->pos, cg.time, re->origin );
+	demoNowTrajectory( &le->pos, re->origin );
 
 	// if the view would be "inside" the sprite, kill the sprite
 	// so it doesn't add too much overdraw
@@ -446,7 +449,7 @@ static void CG_AddPuff( localEntity_t *le ) {
 	re = &le->refEntity;
 
 	// fade / grow time
-	c = ( le->endTime - cg.time ) / (float)( le->endTime - le->startTime );
+	c = ((le->endTime - cg.time) - cg.timeFraction) / (le->endTime - le->startTime);
 
 	re->shaderRGBA[0] = le->color[0] * c;
 	re->shaderRGBA[1] = le->color[1] * c;
@@ -456,7 +459,8 @@ static void CG_AddPuff( localEntity_t *le ) {
 		re->radius = le->radius * ( 1.0 - c ) + 8;
 	}
 
-	BG_EvaluateTrajectory( &le->pos, cg.time, re->origin );
+//	BG_EvaluateTrajectory( &le->pos, cg.time, re->origin );
+	demoNowTrajectory(&le->pos, re->origin);
 
 	// if the view would be "inside" the sprite, kill the sprite
 	// so it doesn't add too much overdraw
@@ -488,7 +492,7 @@ static void CG_AddScaleFade( localEntity_t *le ) {
 	re = &le->refEntity;
 
 	// fade / grow time
-	c = ( le->endTime - cg.time ) * le->lifeRate;
+	c = ( le->endTime - cg.time - cg.timeFraction) * le->lifeRate;
 
 	re->shaderRGBA[3] = 0xff * c * le->color[3];
 	re->radius = le->radius * ( 1.0 - c ) + 8;
@@ -525,7 +529,7 @@ static void CG_AddFallScaleFade( localEntity_t *le ) {
 	re = &le->refEntity;
 
 	// fade time
-	c = ( le->endTime - cg.time ) * le->lifeRate;
+	c = ( le->endTime - cg.time - cg.timeFraction) * le->lifeRate;
 
 	re->shaderRGBA[3] = 0xff * c * le->color[3];
 
@@ -564,7 +568,7 @@ static void CG_AddExplosion( localEntity_t *ex ) {
 	if ( ex->light ) {
 		float		light;
 
-		light = (float)( cg.time - ex->startTime ) / ( ex->endTime - ex->startTime );
+		light = (float)( cg.time - ex->startTime + cg.timeFraction) / ( ex->endTime - ex->startTime );
 		if ( light < 0.5 ) {
 			light = 1.0;
 		} else {
@@ -586,7 +590,7 @@ static void CG_AddSpriteExplosion( localEntity_t *le ) {
 
 	re = le->refEntity;
 
-	c = ( le->endTime - cg.time ) / ( float ) ( le->endTime - le->startTime );
+	c = ( le->endTime - cg.time - cg.timeFraction) / ( float ) ( le->endTime - le->startTime );
 	if ( c > 1 ) {
 		c = 1.0;	// can happen during connection problems
 	}
@@ -605,7 +609,7 @@ static void CG_AddSpriteExplosion( localEntity_t *le ) {
 	if ( le->light ) {
 		float		light;
 
-		light = (float)( cg.time - le->startTime ) / ( le->endTime - le->startTime );
+		light = (( cg.time - le->startTime ) + cg.timeFraction) / ( le->endTime - le->startTime );
 		if ( light < 0.5 ) {
 			light = 1.0;
 		} else {
@@ -645,7 +649,7 @@ void CG_AddScorePlum( localEntity_t *le ) {
 
 	re = &le->refEntity;
 
-	c = ( le->endTime - cg.time ) * le->lifeRate;
+	c = ( le->endTime - cg.time - cg.timeFraction ) * le->lifeRate;
 
 	score = le->radius;
 	if (score < 0) {
@@ -688,8 +692,8 @@ void CG_AddScorePlum( localEntity_t *le ) {
 	// so it doesn't add too much overdraw
 	VectorSubtract( origin, cg.refdef.vieworg, delta );
 	len = VectorLength( delta );
-	if ( len < 20 ) {
-		CG_FreeLocalEntity( le );
+	if ( len < 20*20 ) {
+//		CG_FreeLocalEntity( le );
 		return;
 	}
 
@@ -730,7 +734,7 @@ void CG_AddOLine( localEntity_t *le )
 
 	re = &le->refEntity;
 
-	frac = (cg.time - le->startTime) / ( float ) ( le->endTime - le->startTime );
+	frac = ((cg.time - le->startTime) + cg.timeFraction) / (float) (le->endTime - le->startTime);
 	if ( frac > 1 ) 
 		frac = 1.0;	// can happen during connection problems
 	else if (frac < 0)

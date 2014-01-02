@@ -160,7 +160,7 @@ qboolean demoCentityBoxSize( const centity_t *cent, vec3_t container ) {
 		VectorSet( container, -5, 5, 5 );
 		break;
 	case ET_MOVER:
-		VectorSet( container, -24, 60, 20 );	//let's find out sizes for ET_SPECIAL, ET_HOLOCRON, ET_GENERAL, ET_MOVER
+		VectorSet( container, -10, 10, 10 );	//let's find out sizes for ET_SPECIAL, ET_HOLOCRON, ET_GENERAL, ET_MOVER
 		break;									//currently they have ET_PLAYER container
 	case ET_SPECIAL:
 		VectorSet( container, -24, 60, 20 );

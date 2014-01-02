@@ -3577,7 +3577,7 @@ static void CG_RunLerpFrame( centity_t *cent, clientInfo_t *ci, lerpFrame_t *lf,
 		if ( lf->frameTime == lf->oldFrameTime )
 			lf->backlerp = 0.0f;
 		else
-			lf->backlerp = 1.0f - (float)( cg.time - lf->oldFrameTime ) / ( lf->frameTime - lf->oldFrameTime );
+			lf->backlerp = 1.0 - (cg.timeFraction + ( cg.time - lf->oldFrameTime )) / ( lf->frameTime - lf->oldFrameTime );
 	}
 }
 
@@ -5314,7 +5314,7 @@ static void CG_ForcePushBlur( vec3_t org, centity_t *cent )
 		float scale;
 		float vLen;
 		float alpha;
-		int tDif;
+		float tDif;
 
 		if (!cent->bodyFadeTime)
 		{ //the duration for the expansion and fade
@@ -5323,7 +5323,7 @@ static void CG_ForcePushBlur( vec3_t org, centity_t *cent )
 
 		//closer tDif is to 0, the closer we are to
 		//being "done"
-		tDif = (cent->bodyFadeTime - cg.time);
+		tDif = (cent->bodyFadeTime - cg.time - cg.timeFraction);
 
 		if ((REFRACT_EFFECT_DURATION-tDif) < 200)
 		{ //stop following the hand after a little and stay in a fixed spot
@@ -5351,7 +5351,7 @@ static void CG_ForcePushBlur( vec3_t org, centity_t *cent )
 		}
 
 		//start alpha at 244, fade to 10
-		alpha = (float)tDif*0.488f;
+		alpha = tDif*0.488f;
 
 		if (alpha > 244.0f)
 		{
@@ -5640,7 +5640,7 @@ void CG_DrawPlayerShield(centity_t *cent, vec3_t origin)
 	ent.origin[2] += 10.0;
 	AnglesToAxis( cent->damageAngles, ent.axis );
 
-	alpha = 255.0 * ((cent->damageTime - cg.time) / MIN_SHIELD_TIME) + random()*16;
+	alpha = 255.0 * (((cent->damageTime - cg.time) - cg.timeFraction) / MIN_SHIELD_TIME) + random()*16;
 	if (alpha>255)
 		alpha=255;
 
@@ -6100,7 +6100,7 @@ void CG_DoSaber( vec3_t origin, vec3_t dir, float length, float lengthMax, float
 
 	sbak.shaderRGBA[0] = sbak.shaderRGBA[1] = sbak.shaderRGBA[2] = sbak.shaderRGBA[3] = 0xff;
 
-	lol = Q_fabs((sinf((float)cg.time / 400.0f)));
+	lol = Q_fabs((sinf((float)(cg.time + cg.timeFraction)/ 400.0f)));
 	lol = (lol * 0.1f) + 0.8f;//cg_saberWidth.value;
 	sbak.radius = lol;
 
@@ -6951,15 +6951,15 @@ CheckTrail:
 
 	// if we happen to be timescaled or running in a high framerate situation, we don't want to flood
 	//	the system with very small trail slices...but perhaps doing it by distance would yield better results?
-	if ( cg.time > saberTrail->lastTime + 2 || cg_saberTrail.integer == 2 ) // 2ms
+	if ( cg.time > saberTrail->lastTime || cg_saberTrail.integer == 2 ) // 2ms
 	{
 		if (!dontDraw)
 		{
-			if ( (BG_SuperBreakWinAnim(cent->currentState.torsoAnim)
+			if ((BG_SuperBreakWinAnim(cent->currentState.torsoAnim)
 				|| saberMoveData[cent->currentState.saberMove].trailLength > 0
 				|| ((cent->currentState.powerups & (1 << PW_SPEED) && (cg_speedTrail.integer || cg_saberTrail.integer == 3)))
 				|| (cent->currentState.saberInFlight && saberNum == 0))
-				&& cg.time < saberTrail->lastTime + 2000 ) // if we have a stale segment, don't draw until we have a fresh one
+				&& cg.time < saberTrail->lastTime + 2000) // if we have a stale segment, don't draw until we have a fresh one
 			{
 	#if 0
 				if (cg_saberTrail.integer == 2 && cg_shadows.integer != 2 && cgs.glconfig.stencilBits >= 4)
@@ -11049,9 +11049,9 @@ SkipTrueView:
 
 	if (!(mov_soundDisable.integer & SDISABLE_WEAPONS)
 		&& cent->currentState.weapon == WP_STUN_BATON
-		&& cent->currentState.number == cg.snap->ps.clientNum)
+		/*&& cent->currentState.number == cg.snap->ps.clientNum*/)
 	{
-		trap_S_AddLoopingSound( cent->currentState.number, cg.refdef.vieworg, vec3_origin, 
+		trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
 			trap_S_RegisterSound( "sound/weapons/baton/idle.wav" ) );
 	}
 
@@ -11828,8 +11828,8 @@ stillDoSaber:
 
 	if (cent->currentState.weapon == WP_SABER)
 	{
-		BG_SI_SetLengthGradual(&ci->saber[0], cg.time);
-		BG_SI_SetLengthGradual(&ci->saber[1], cg.time);
+		BG_SI_SetLengthGradual(&ci->saber[0], cg.time, cg.timeFraction);
+		BG_SI_SetLengthGradual(&ci->saber[1], cg.time, cg.timeFraction);
 	}
 
 	if (drawPlayerSaber)

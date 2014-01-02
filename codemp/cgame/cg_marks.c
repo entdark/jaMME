@@ -589,7 +589,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 		vec3_t	rotate_ang;
 
 		VectorSet (color, 1.0, 1.0, 0.5);
-		time = cg.time - p->time;
+		time = (cg.time - p->time) + cg.timeFraction;
 		time2 = p->endtime - p->time;
 		ratio = time / time2;
 
@@ -684,7 +684,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 		else
 			VectorSet (color, 1.0, 1.0, 1.0);
 
-		time = cg.time - p->time;
+		time = (cg.time - p->time) + cg.timeFraction;
 		time2 = p->endtime - p->time;
 		ratio = time / time2;
 		
@@ -870,7 +870,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 		else
 			VectorSet (color, 0.5, 0.5, 0.5);
 		
-		time = cg.time - p->time;
+		time = (cg.time - p->time) + cg.timeFraction;
 		time2 = p->endtime - p->time;
 		ratio = time / time2;
 
@@ -976,7 +976,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 		vec3_t	rotate_ang;
 		int i, j;
 
-		time = cg.time - p->time;
+		time = (cg.time - p->time) + cg.timeFraction;
 		time2 = p->endtime - p->time;
 		ratio = time / time2;
 		if (ratio >= 1.0f) {
@@ -1111,7 +1111,7 @@ void CG_AddParticles (void)
 
 		next = p->next;
 
-		time = (cg.time - p->time)*0.001;
+		time = ((cg.time - p->time) + cg.timeFraction)*0.001;
 
 		alpha = p->alpha + time*p->alphavel;
 		if (alpha <= 0)

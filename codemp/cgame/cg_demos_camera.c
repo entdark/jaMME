@@ -1079,7 +1079,7 @@ void demoCameraCommand_f(void) {
 		Com_Printf("camera shift time, move time indexes of camera points by certain amount.\n" );
 		Com_Printf("camera next/prev, go to time index of next or previous point.\n" );
 		Com_Printf("camera start/end, current time with be set as start/end of selection.\n" );
-		Com_Printf("camera pos/angles/fov (a)0 (a)0 (a)0, Directly control position/angles/fov, optional a before number to add to current value.\n" );
+		Com_Printf("camera pos/angles/fov (a)0 (a)0 (a)0, Directly control position/angles, optional a before number to add to current value.\n" );
 		Com_Printf("camera fov (a)0, Directly control fov, optional a before number to add to current value.\n" );
 		Com_Printf("camera target, Clear/Set the target currently being aimed at.\n" );
 		Com_Printf("camera targetNext/Prev, Go the next or previous player.\n" );

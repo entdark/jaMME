@@ -2034,11 +2034,12 @@ Ghoul2 Insert End
 		//instead of cg_items[es->modelindex].icon
 
 		MAKERGBA( ent.shaderRGBA, 255, 255, 255, 200 );
-		ent.origin[2] += 44 + 7.0f * sinf( (float)cg.time / 1000.0f * 1.337 );
+		ent.origin[2] += 44 + 7.0f * sinf(((float)cg.time + cg.timeFraction)/ 1000.0f * 1.337);
 		ent.renderfx |= RF_FORCE_ENT_ALPHA;
 		cent->currentState.apos.trType = TR_LINEAR;
 		VectorSet( cent->currentState.apos.trDelta, 0.0f, 128.0f, 0.0f );
-		BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, angs );
+//		BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, angs );
+		demoNowTrajectory(&cent->currentState.apos, angs);
 		angs[PITCH] = 0.0f;
 		angs[ROLL] = 0.0f;
 		AnglesToAxis( angs, ent.axis );
@@ -2118,8 +2119,9 @@ Ghoul2 Insert End
 		(item->giType == IT_WEAPON || item->giType == IT_POWERUP))
 	{
 		// items bob up and down continuously
-		scale = 0.005 + cent->currentState.number * 0.00001;
-		cent->lerpOrigin[2] += 4 + cos( ( cg.time + 1000 ) *  scale ) * 4;
+		scale = (2 * M_PI) / 1300;
+		//0.005 + cent->currentState.number * 0.00001;
+		cent->lerpOrigin[2] += 4 + cos( scale * (cg.timeFraction + (cg.time % 1300)) ) * 4;
 	}
 	else
 	{
@@ -2778,11 +2780,11 @@ Ghoul2 Insert End
 		{
 			if ( s1->eFlags & EF_MISSILE_STICK )
 			{
-				RotateAroundDirection( ent.axis, cg.time * 0.5f );//Did this so regular missiles don't get broken
+				RotateAroundDirection(ent.axis, 0.5 * cg.timeFraction + ((cg.time / 2) % 360));//Did this so regular missiles don't get broken
 			}
 			else
 			{
-				RotateAroundDirection( ent.axis, cg.time * 0.25f );//JFM:FLOAT FIX
+				RotateAroundDirection(ent.axis, 0.25 * cg.timeFraction + ((cg.time / 4) % 360));
 			}
 		} 
 		else 
@@ -3233,8 +3235,10 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 
 		if (veh->currentState.owner == cg.predictedPlayerState.clientNum)
 		{ //only do this if the vehicle is pilotted by this client and predicting properly
-			BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
-			BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
+//			BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
+//			BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
+			demoNowTrajectory( &cent->currentState.pos, cent->lerpOrigin );
+			demoNowTrajectory( &cent->currentState.apos, cent->lerpAngles );
 			return;
 		}
 	}
@@ -3260,8 +3264,10 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 	else
 	{
 		// just use the current frame and evaluate as best we can
-		BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
-		BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
+//		BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
+//		BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
+		demoNowTrajectory( &cent->currentState.pos, cent->lerpOrigin );
+		demoNowTrajectory( &cent->currentState.apos, cent->lerpAngles );
 	}
 #if 0
 	if (cent->hasRagOffset && cent->ragOffsetTime < cg.time)
@@ -3565,6 +3571,37 @@ Ghoul2 Insert End
 	}
 }
 
+
+void CG_PreparePacketEntities( void ) {
+	// set cg.frameInterpolation
+	if ( cg.nextSnap ) {
+		int		delta;
+
+		delta = (cg.nextSnap->serverTime - cg.snap->serverTime);
+		if ( delta == 0 ) {
+			cg.frameInterpolation = 0;
+		} else {
+			cg.frameInterpolation = (float)( (cg.time  - cg.snap->serverTime) + cg.timeFraction ) / delta;
+		}
+	} else {
+		cg.frameInterpolation = 0;	// actually, it should never be used, because 
+									// no entities should be marked as interpolating
+	}
+
+	// the auto-rotating items will all have the same axis
+	cg.autoAngles[0] = 0;
+	cg.autoAngles[1] = (( cg.time & 2047 ) + cg.timeFraction) * 360 / 2048.0;
+	cg.autoAngles[2] = 0;
+
+	cg.autoAnglesFast[0] = 0;
+	cg.autoAnglesFast[1] = (( cg.time & 1023 ) + + cg.timeFraction) * 360 / 1024.0f;
+	cg.autoAnglesFast[2] = 0;
+
+	AnglesToAxis( cg.autoAngles, cg.autoAxis );
+	AnglesToAxis( cg.autoAnglesFast, cg.autoAxisFast );
+}
+
+
 void CG_ManualEntityRender(centity_t *cent)
 {
 	CG_AddCEntity(cent);
@@ -3594,33 +3631,6 @@ void CG_AddPacketEntities( qboolean isPortal ) {
 		}
 		return;
 	}
-
-	// set cg.frameInterpolation
-	if ( cg.nextSnap ) {
-		int		delta;
-
-		delta = (cg.nextSnap->serverTime - cg.snap->serverTime);
-		if ( delta == 0 ) {
-			cg.frameInterpolation = 0;
-		} else {
-			cg.frameInterpolation = (float)( cg.time - cg.snap->serverTime ) / delta;
-		}
-	} else {
-		cg.frameInterpolation = 0;	// actually, it should never be used, because 
-									// no entities should be marked as interpolating
-	}
-
-	// the auto-rotating items will all have the same axis
-	cg.autoAngles[0] = 0;
-	cg.autoAngles[1] = ( cg.time & 2047 ) * 360 / 2048.0;
-	cg.autoAngles[2] = 0;
-
-	cg.autoAnglesFast[0] = 0;
-	cg.autoAnglesFast[1] = ( cg.time & 1023 ) * 360 / 1024.0f;
-	cg.autoAnglesFast[2] = 0;
-
-	AnglesToAxis( cg.autoAngles, cg.autoAxis );
-	AnglesToAxis( cg.autoAnglesFast, cg.autoAxisFast );
 
 	// Reset radar entities
 	cg.radarEntityCount = 0;

@@ -2879,7 +2879,7 @@ void BG_SI_SetDesiredLength(saberInfo_t *saber, float len, int bladeNum )
 }
 
 //also not in sp, added it for my own convenience
-void BG_SI_SetLengthGradual(saberInfo_t *saber, int time)
+void BG_SI_SetLengthGradual(saberInfo_t *saber, int time, float timeFraction)
 {
 	int i;
 	float amt, dLen;
@@ -2901,7 +2901,7 @@ void BG_SI_SetLengthGradual(saberInfo_t *saber, int time)
 		if (saber->blade[i].length == saber->blade[i].lengthMax ||
 			saber->blade[i].length == 0)
 		{
-			saber->blade[i].extendDebounce = time;
+			saber->blade[i].extendDebounce = time + timeFraction;
 			if (saber->blade[i].length == 0)
 			{
 				saber->blade[i].length++;
@@ -2912,7 +2912,7 @@ void BG_SI_SetLengthGradual(saberInfo_t *saber, int time)
 			}
 		}
 
-		amt = (time - saber->blade[i].extendDebounce)*0.01;
+		amt = ((time + timeFraction) - saber->blade[i].extendDebounce)*0.01;
 
 		if (amt < 0.2f)
 		{

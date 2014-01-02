@@ -1375,6 +1375,8 @@ void R_ShutdownWorldEffects(void)
 	R_InitWorldEffects();
 }
 
+static int lastElapsedTime = 0;
+static float lastElapsedTimeFraction = 0.0f;
 ////////////////////////////////////////////////////////////////////////////////////////
 // RB_RenderWorldEffects - If any particle clouds exist, this will update and render them
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -1396,13 +1398,22 @@ void RB_RenderWorldEffects(void)
 	// Calculate Elapsed Time For Scale Purposes
 	//-------------------------------------------
 	mMillisecondsElapsed = backEnd.refdef.frametime;
-	if (mMillisecondsElapsed<=0) {
+	if (mMillisecondsElapsed<=0)
 		mMillisecondsElapsed = 0.0f;
-	} else if (mMillisecondsElapsed>1000.0f) {
+	else if (mMillisecondsElapsed>1000.0f)
 		mMillisecondsElapsed = 1000.0f;
-	}
-	mSecondsElapsed = (mMillisecondsElapsed / 1000.0f);
 
+	//since it uses acceleration and not vel, it's hard to adjust :s
+/*	if (tr.refdef.time == lastElapsedTime)
+		if (tr.refdef.timeFraction == lastElapsedTimeFraction)
+			mSecondsElapsed = 0.0f;
+		else
+			mSecondsElapsed = tr.refdef.timeFraction / 1000.0f;
+	else*/
+		mSecondsElapsed = mMillisecondsElapsed / 1000.0f;
+
+	lastElapsedTime = tr.refdef.time;
+//	lastElapsedTimeFraction = tr.refdef.timeFraction;
 
 	// Make Sure We Are Always Outside Cached
 	//----------------------------------------

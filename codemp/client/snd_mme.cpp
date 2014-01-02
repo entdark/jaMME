@@ -8,7 +8,7 @@
 #define MME_SNDCHANNELS 128
 #define MME_LOOPCHANNELS 128
 
-#define SAMPLERATE	22050
+#define MME_SAMPLERATE	44100 //ja is full of 44kz mp3
 
 extern	cvar_t	*mme_saveWav;
 
@@ -64,7 +64,7 @@ void S_MMEWavClose(void) {
 	if (!mmeSound.fileHandle)
 		return;
 
-	S_MMEFillWavHeader( header, mmeSound.fileSize, SAMPLERATE );
+	S_MMEFillWavHeader( header, mmeSound.fileSize, MME_SAMPLERATE );
 	FS_Seek( mmeSound.fileHandle, 0, FS_SEEK_SET );
 	FS_Write( header, sizeof(header), mmeSound.fileHandle );
 	FS_FCloseFile( mmeSound.fileHandle );
@@ -97,7 +97,7 @@ void S_MMEUpdate( float scale ) {
 	if (count > MAXUPDATE)
 		count = MAXUPDATE;
 
-	speed = (scale * (MIX_SPEED << MIX_SHIFT)) / SAMPLERATE;
+	speed = (scale * (MIX_SPEED << MIX_SHIFT)) / MME_SAMPLERATE;
 	if (speed < 0 || (speed == 0 && scale) )
 		speed = 1;
 
@@ -130,7 +130,7 @@ void S_MMERecord( const char *baseName, float deltaTime ) {
 		}
 		Q_strncpyz( mmeSound.baseName, baseName, sizeof( mmeSound.baseName ));
 		mmeSound.deltaSamples = 0;
-		mmeSound.sampleRate = SAMPLERATE;
+		mmeSound.sampleRate = MME_SAMPLERATE;
 		FS_Seek( mmeSound.fileHandle, 0, FS_SEEK_END );
 		mmeSound.fileSize = FS_filelength( mmeSound.fileHandle );
 		if ( mmeSound.fileSize < WAV_HEADERSIZE) {

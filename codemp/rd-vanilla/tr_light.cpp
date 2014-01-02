@@ -173,7 +173,7 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent ) {
 		float			factor;
 		mgrid_t			*data;
 		unsigned short	*gridPos;
-		int				lat, lng;
+		double			lat, lng;
 		vec3_t			normal;
 
 		factor = 1.0;
@@ -222,16 +222,21 @@ static void R_SetupEntityLightingGrid( trRefEntity_t *ent ) {
 
 		lat = data->latLong[1];
 		lng = data->latLong[0];
-		lat *= (FUNCTABLE_SIZE/256);
-		lng *= (FUNCTABLE_SIZE/256);
+//		lat *= (FUNCTABLE_SIZE/256);
+//		lng *= (FUNCTABLE_SIZE/256);
+		lat /= 256;
+		lng /= 256;
 
 		// decode X as cos( lat ) * sin( long )
 		// decode Y as sin( lat ) * sin( long )
 		// decode Z as cos( long )
 
-		normal[0] = tr.sinTable[(lat + (FUNCTABLE_SIZE / 4)) & FUNCTABLE_MASK] * tr.sinTable[lng];
+/*		normal[0] = tr.sinTable[(lat + (FUNCTABLE_SIZE / 4)) & FUNCTABLE_MASK] * tr.sinTable[lng];
 		normal[1] = tr.sinTable[lat] * tr.sinTable[lng];
-		normal[2] = tr.sinTable[(lng + (FUNCTABLE_SIZE / 4)) & FUNCTABLE_MASK];
+		normal[2] = tr.sinTable[(lng + (FUNCTABLE_SIZE / 4)) & FUNCTABLE_MASK];*/
+		normal[0] = NewCosTable(lat) * NewSinTable(lng);
+		normal[1] = NewSinTable(lat) * NewSinTable(lng);
+		normal[2] = NewCosTable(lng);
 
 		VectorMA( direction, factor, normal, direction );
 	}

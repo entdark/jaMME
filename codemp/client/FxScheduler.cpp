@@ -777,7 +777,7 @@ void GetRGB_Colors( CPrimitiveTemplate *fx, vec3_t outStartRGB, vec3_t outEndRGB
 
 	if ( fx->mSpawnFlags & FX_RGB_COMPONENT_INTERP )
 	{
-		percent = flrand(0.0f, 1.0f);
+		percent = random();
 
 		VectorSet( outStartRGB, fx->mRedStart.GetVal(percent), fx->mGreenStart.GetVal(percent), fx->mBlueStart.GetVal(percent) );
 		VectorSet( outEndRGB, fx->mRedEnd.GetVal(percent), fx->mGreenEnd.GetVal(percent), fx->mBlueEnd.GetVal(percent) );
@@ -1260,8 +1260,8 @@ void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, ve
 
 	if( fx->mSpawnFlags & FX_RAND_ROT_AROUND_FWD )
 	{
-		RotatePointAroundVector( ax[1], ax[0], axis[1], flrand(0.0f, 360.0f) );
-		CrossProduct( ax[0], ax[1], ax[2] );
+		RotatePointAroundVector(ax[1], ax[0], axis[1], random() * 360.0f);
+		CrossProduct(ax[0], ax[1], ax[2]);
 	}
 
 	// Origin calculations
@@ -1289,8 +1289,8 @@ void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, ve
 		float x, y;
 		float width, height;
 		
-		x = DEG2RAD( flrand(0.0f, 360.0f) );
-		y = DEG2RAD( flrand(0.0f, 180.0f) );
+		x = DEG2RAD(random() * 360.0f);
+		y = DEG2RAD(random() * 180.0f);
 
 		width = fx->mRadius.GetVal();
 		height = fx->mHeight.GetVal();
@@ -1311,9 +1311,9 @@ void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, ve
 		vec3_t	pt;
 
 		// set up our point, then rotate around the current direction to.  Make unrotated cylinder centered around 0,0,0
-		VectorScale( ax[1], fx->mRadius.GetVal(), pt );
-		VectorMA( pt, flrand(-1.0f, 1.0f) * 0.5f * fx->mHeight.GetVal(), ax[0], pt );
-		RotatePointAroundVector( temp, ax[0], pt, flrand(0.0f, 360.0f) );
+		VectorScale(ax[1], fx->mRadius.GetVal(), pt);
+		VectorMA(pt, crandom() * 0.5f * fx->mHeight.GetVal(), ax[0], pt);
+		RotatePointAroundVector(temp, ax[0], pt, random() * 360.0f);
 
 		VectorAdd( org, temp, org );
 

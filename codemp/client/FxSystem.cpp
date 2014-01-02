@@ -51,10 +51,10 @@ void SFxHelper::Print( const char *msg, ... )
 }
 
 //------------------------------------------------------
-void SFxHelper::AdjustTime( int frametime )
+void SFxHelper::AdjustTime(int time, float frametime, float timeFraction)
 {
 #ifdef _DEBUG
-	if ( fx_freeze->integer || ( frametime <= 0 ))
+	if ( fx_freeze->integer || ( time <= 0 ))
 #else
 	if ( frametime <= 0 )
 #endif
@@ -66,11 +66,12 @@ void SFxHelper::AdjustTime( int frametime )
 	else
 	{
 		mOldTime = mTime;
-		mTime = frametime;
-		mFrameTime = mTime - mOldTime;
+		mTime = time;
+		mFrameTime = frametime;
 		
+		//hmm, seems working... maybe buggy only on veeery slow game speed like 0.001
+		mTimeFraction = timeFraction;
 		mRealTime = mFrameTime * 0.001f;
-
 
 /*		mFrameTime = frametime;
 		mTime += mFrameTime;
@@ -127,4 +128,8 @@ qboolean SFxHelper::GetOriginAxisFromBolt(CGhoul2Info_v *pGhoul2, int mEntNum, i
 		axis[2][2] = boltMatrix.matrix[2][2];
 	}
 	return doesBoltExist;
+}
+
+void SFxHelper::DemoRandomSeed( int time, float timeFraction ) {
+	srand(time + timeFraction);
 }

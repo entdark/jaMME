@@ -1026,15 +1026,15 @@ static void CG_RegisterSounds( void ) {
 	trap_FX_RegisterEffect("effects/mp/test_sparks.efx");
 	trap_FX_RegisterEffect("effects/mp/test_wall_impact.efx");
 
-	cgs.media.oneMinuteSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM004.mp3" );
-	cgs.media.fiveMinuteSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM005.mp3" );
-	cgs.media.oneFragSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM001.mp3" );
-	cgs.media.twoFragSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM002.mp3" );
-	cgs.media.threeFragSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM003.mp3");
-	cgs.media.count3Sound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM035.mp3" );
-	cgs.media.count2Sound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM036.mp3" );
-	cgs.media.count1Sound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM037.mp3" );
-	cgs.media.countFightSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM038.mp3" );
+	cgs.media.oneMinuteSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM004.wav" );
+	cgs.media.fiveMinuteSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM005.wav" );
+	cgs.media.oneFragSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM001.wav" );
+	cgs.media.twoFragSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM002.wav" );
+	cgs.media.threeFragSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM003.wav");
+	cgs.media.count3Sound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM035.wav" );
+	cgs.media.count2Sound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM036.wav" );
+	cgs.media.count1Sound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM037.wav" );
+	cgs.media.countFightSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM038.wav" );
 
 	cgs.media.hackerIconShader			= trap_R_RegisterShaderNoMip("gfx/mp/c_icon_tech");
 
@@ -1207,24 +1207,24 @@ static void CG_RegisterSounds( void ) {
 #ifdef JK2AWARDS
 		cgs.media.captureAwardSound = trap_S_RegisterSound( "sound/chars/protocol/misc/capture.wav" );
 #endif
-		cgs.media.redLeadsSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM046.mp3");
-		cgs.media.blueLeadsSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM045.mp3");
-		cgs.media.teamsTiedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM032.mp3" );
+		cgs.media.redLeadsSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM046.wav");
+		cgs.media.blueLeadsSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM045.wav");
+		cgs.media.teamsTiedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM032.wav" );
 
-		cgs.media.redScoredSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM044.mp3");
-		cgs.media.blueScoredSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM043.mp3" );
+		cgs.media.redScoredSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM044.wav");
+		cgs.media.blueScoredSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM043.wav" );
 
 		if ( cgs.gametype == GT_CTF || com_buildScript.integer ) {
-			cgs.media.redFlagReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM042.mp3" );
-			cgs.media.blueFlagReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM041.mp3" );
-			cgs.media.redTookFlagSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM040.mp3" );
-			cgs.media.blueTookFlagSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM039.mp3" );
+			cgs.media.redFlagReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM042.wav" );
+			cgs.media.blueFlagReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM041.wav" );
+			cgs.media.redTookFlagSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM040.wav" );
+			cgs.media.blueTookFlagSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM039.wav" );
 		}
 		if ( cgs.gametype == GT_CTY /*|| com_buildScript.integer*/ ) {	//we don't hav them in JA assets
-			cgs.media.redYsalReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM050.mp3" );
-			cgs.media.blueYsalReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM049.mp3" );
-			cgs.media.redTookYsalSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM048.mp3" );
-			cgs.media.blueTookYsalSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM047.mp3" );
+			cgs.media.redYsalReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM050.wav" );
+			cgs.media.blueYsalReturnedSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM049.wav" );
+			cgs.media.redTookYsalSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM048.wav" );
+			cgs.media.blueTookYsalSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM047.wav" );
 		}
 	}
 
@@ -1458,8 +1458,8 @@ static void CG_RegisterSounds( void ) {
 	cgs.media.deploySeeker = trap_S_RegisterSound ("sound/chars/seeker/misc/hiss.wav");
 	cgs.media.medkitSound = trap_S_RegisterSound ("sound/items/use_bacta.wav");
 	
-	cgs.media.winnerSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM006.mp3" );
-	cgs.media.loserSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM010.mp3" );
+	cgs.media.winnerSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM006.wav" );
+	cgs.media.loserSound = trap_S_RegisterSound( "sound/chars/protocol/misc/40MOM010.wav" );
 }
 
 

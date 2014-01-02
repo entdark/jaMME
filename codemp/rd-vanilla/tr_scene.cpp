@@ -19,7 +19,7 @@ static	int			r_firstSceneDrawSurf;
 static	int			r_numdlights;
 static	int			r_firstSceneDlight;
 
-static	int			r_numentities;
+static	int64_t		r_numentities;
 static	int			r_firstSceneEntity;
 static	int			r_numminientities;
 static	int			r_firstSceneMiniEntity;
@@ -661,16 +661,16 @@ static inline void R_AddDecals ( void )
 			{				
 				if ( p->fadetime )
 				{
-					int t;
+					float t;
 
 					// fade all marks out with time
-					t = tr.refdef.time - p->time;
+					t = (tr.refdef.time - p->time) + tr.refdef.timeFraction;
 					if ( t < DECAL_FADE_TIME ) 
 					{
 						float fade;
 						int	  j;
 
-						fade = 255.0f * (1.0f - ((float)t / DECAL_FADE_TIME));
+						fade = 255.0f * (1.0f - (t / DECAL_FADE_TIME));
 						
 						for ( j = 0 ; j < p->poly.numVerts ; j++ ) 
 						{
@@ -750,6 +750,7 @@ void RE_RenderScene( const refdef_t *fd ) {
 	VectorCopy( fd->viewaxis[2], tr.refdef.viewaxis[2] );
 
 	tr.refdef.time = fd->time;
+	tr.refdef.timeFraction = fd->timeFraction;
 	tr.refdef.frametime = fd->time - lastTime;
 
 	if (fd->rdflags & RDF_SKYBOXPORTAL)

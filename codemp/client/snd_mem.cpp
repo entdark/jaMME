@@ -768,8 +768,7 @@ static sboolean S_SwitchLang(char *psFilename) {
 			psVoice = NULL;	// use this ptr as a flag as to whether or not we substituted with a foreign version
 		}
 		return 0;
-	}
-	else {
+	} else {
 		psVoice = strstr(psFilename,"chr_d");
 		if (psVoice) {
 			strncpy(psVoice,"chars",5);
@@ -1672,6 +1671,16 @@ static openSound_t *S_MP3Open( const char *fileName ) {
 
 #endif
 
+//ZTM's super replacer
+static void S_SoundChangeExt(char *fileName, const char *ext) {
+	char *p = strchr(fileName, '.');			/* find first '.' */
+	if (p != NULL) {							/* found '.' */
+		Q_strncpyz(p, ext, strlen(ext) + 1);	/* change ext */
+	} else {									/* should never happen */
+		strcat(fileName, ext);					/* has no ext, so just add it */
+	}
+}
+
 openSound_t *S_SoundOpen( char *fileName ) {
 	const char *fileExt;
 	openSound_t *open;
@@ -1684,7 +1693,7 @@ openSound_t *S_SoundOpen( char *fileName ) {
 #endif
 
 	if (!fileName || !fileName[0]) {
-		Com_Printf("SoundOpen:Filename is empty\n" );
+		Com_Printf("SoundOpen:Filename is empty\n");
 		return 0;
 	}
 
@@ -1693,123 +1702,67 @@ openSound_t *S_SoundOpen( char *fileName ) {
 		S_SwitchLang(fileName);
 
 	/* sound/mp_generic_female/sound -> sound/chars/mp_generic_female/misc/sound */
-	char *match = strstr( fileName, "sound/mp_generic_female" );
-	if ( match ) {
+	char *match = strstr(fileName, "sound/mp_generic_female");
+	if (match) {
 		char out[MAX_QPATH];
-		Q_strncpyz( out, fileName, MAX_QPATH );
-		char *pos = strstr( match, "le/" );
-		pos = strchr( pos, '/' );
-		Q_strncpyz( out, "sound/chars/mp_generic_female/misc", MAX_QPATH );
-		Q_strcat( out, sizeof( out ), pos );
+		Q_strncpyz(out, fileName, MAX_QPATH);
+		char *pos = strstr(match, "le/");
+		pos = strchr(pos, '/');
+		Q_strncpyz(out, "sound/chars/mp_generic_female/misc", MAX_QPATH);
+		Q_strcat(out, sizeof(out), pos);
 		fileName = out;
 	} else {
 	/* or sound/mp_generic_male/sound -> sound/chars/mp_generic_male/misc/sound */
-		match = strstr( fileName, "sound/mp_generic_male" );
-		if ( match ) {
+		match = strstr(fileName, "sound/mp_generic_male");
+		if (match) {
 			char out[MAX_QPATH];
-			Q_strncpyz( out, fileName, MAX_QPATH );
-			char *pos = strstr( match, "le/" );
-			pos = strchr( pos, '/' );
-			Q_strncpyz( out, "sound/chars/mp_generic_male/misc", MAX_QPATH );
-			Q_strcat( out, sizeof( out ), pos );
+			Q_strncpyz(out, fileName, MAX_QPATH);
+			char *pos = strstr(match, "le/");
+			pos = strchr(pos, '/');
+			Q_strncpyz(out, "sound/chars/mp_generic_male/misc", MAX_QPATH);
+			Q_strcat(out, sizeof(out), pos);
 			fileName = out;
 		}
 	}
 
-tryAgainThisSound:
-	fileExt = Q_strrchr( fileName, '.' );
+	fileExt = Q_strrchr(fileName, '.');
 	if (!fileExt) {
-		char *blah = fileName;
+		strcat(fileName, ".wav");
+	} else if (!Q_stricmp(fileExt, ".mp3")) { //we want to start seeking .wav at first
+		S_SoundChangeExt(fileName, ".wav");
+	} else if (Q_stricmp(fileExt, ".wav")
 #ifdef HAVE_LIBMAD
-		if (!doNotYell)
-			Com_Printf("File %s has no extension, trying to use .mp3\n", fileName );
-		strcat( blah, ".mp3" );
-		open = S_MP3Open( blah );
-		if (open) {
-			return open;
-		}
-		else
+		&& Q_stricmp(fileExt, ".mp3")
 #endif
-		{
-			if (!doNotYell)
-				Com_Printf("File %s has no extension or .mp3 did not work, trying to use .wav\n", fileName );
-			char *p = strchr( blah, '.' ); /* find first '.' */
-			if ( p != NULL ) {/* found '.' */
-				Q_strncpyz(p, ".wav", sizeof (blah) + 1); /* change ext */
-			} else {
-				strcat( blah, ".wav" );
-			}
-			open = S_WavOpen( blah );
-			if (open) {
-				return open;
-			} else if (Q_stricmp(s_language->string, "english")) {
-				if (S_SwitchLang(fileName)) {
-					if (!doNotYell)
-						Com_Printf("File %s doesn't exist in %s, retrying with english\n", fileName, s_language->string );
-					goto tryAgainThisSound;
-				}
-			}
-		}
-		Com_Printf("SoundOpen:File %s does not exist\n", fileName );
-		return 0;
-	}	
-	if (!Q_stricmp( fileExt, ".wav")) {
-		open = S_WavOpen( fileName );
-		if (open) {
-			return open;
-#ifdef HAVE_LIBMAD
-		} else {
-			//ZTM's super replacer
-			char *blah = fileName; /* need to set blah */
-			char *p = strchr( blah, '.' ); /* find first '.' */
-			if ( p != NULL ) {/* found '.' */
-				Q_strncpyz(p, ".mp3", sizeof (blah) + 1); /* change ext */
-			} else { //should never happen
-				strcat( blah, ".mp3" ); /* has no ext, so just add it */
-			}
-			open = S_MP3Open( blah );
-			if (open) {
-				return open;
-			} else if (Q_stricmp(s_language->string, "english") && !wasHere) {
-				if (S_SwitchLang(fileName)) {
-					wasHere = qtrue;
-					if (!doNotYell)
-						Com_Printf("File %s doesn't exist in %s, retrying with english\n", fileName, s_language->string );
-					goto tryAgainThisSound;
-				}
-			}
-#endif
-		}
-#ifdef HAVE_LIBMAD
-	} else if (!Q_stricmp( fileExt, ".mp3")) {
-		open = S_MP3Open( fileName );
-		if (open) {
-			return open;
-		} else {
-			//ZTM's super replacer
-			char *blah = fileName; /* need to set blah */
-			char *p = strchr( blah, '.' ); /* find first '.' */
-			if ( p != NULL ) {/* found '.' */
-				Q_strncpyz(p, ".wav", sizeof (blah) + 1); /* change ext */
-			} else { //should never happen
-				strcat( blah, ".wav" ); /* has no ext, so just add it */
-			}
-			open = S_WavOpen( blah );
-			if (open) {
-				return open;
-			} else if (Q_stricmp(s_language->string, "english") && !wasHere) {
-				if (S_SwitchLang(fileName)) {
-					wasHere = qtrue;
-					if (!doNotYell)
-						Com_Printf("File %s doesn't exist in %s, retrying with english\n", fileName, s_language->string );
-					goto tryAgainThisSound;
-				}
-			}
-		}
-#endif
-	} else {
+		){
 		Com_Printf("SoundOpen:File %s has unknown extension %s\n", fileName, fileExt );
 		return 0;
+	}
+
+tryAgainThisSound:
+	open = S_WavOpen(fileName);
+	if (open) {
+		return open;
+	} else {
+#ifdef HAVE_LIBMAD
+		S_SoundChangeExt(fileName, ".mp3");
+		open = S_MP3Open(fileName);
+		if (open) {
+			return open;
+		} else
+#endif
+		if (Q_stricmp(s_language->string, "english") && !wasHere) {
+			if (S_SwitchLang(fileName)) {
+				wasHere = qtrue;
+				if (!doNotYell)
+					Com_Printf("SoundOpen:File %s doesn't exist in %s, retrying with english\n", fileName, s_language->string );
+#ifdef HAVE_LIBMAD
+				//set back to wav
+				S_SoundChangeExt(fileName, ".wav");
+#endif
+				goto tryAgainThisSound;
+			}
+		}
 	}
 }
 

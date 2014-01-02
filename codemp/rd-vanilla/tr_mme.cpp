@@ -35,6 +35,8 @@ static struct {
 
 // MME cvars
 cvar_t	*mme_aviFormat;
+cvar_t	*mme_aviAppend;
+
 cvar_t	*mme_screenShotFormat;
 cvar_t	*mme_screenShotGamma;
 cvar_t	*mme_screenShotAlpha;
@@ -642,15 +644,23 @@ void R_MME_BlurInfo( int* total, int *index ) {
 }
 
 void R_MME_Shutdown(void) {
-	aviClose( &shotData.main.avi );
-	aviClose( &shotData.depth.avi );
-	aviClose( &shotData.stencil.avi );
+	if (mme_aviAppend->integer) {
+		aviCloseAppend( &shotData.main.avi );
+		aviCloseAppend( &shotData.depth.avi );
+		aviCloseAppend( &shotData.stencil.avi );
+	} else {
+		aviClose( &shotData.main.avi );
+		aviClose( &shotData.depth.avi );
+		aviClose( &shotData.stencil.avi );
+	}
 }
 
 void R_MME_Init(void) {
 
 	// MME cvars
 	mme_aviFormat = ri.Cvar_Get ("mme_aviFormat", "0", CVAR_ARCHIVE);
+	mme_aviAppend = ri.Cvar_Get ("mme_aviAppend", "0", CVAR_INTERNAL);//CVAR_ARCHIVE); //working wrong, let it be always 0 until good times
+
 	mme_jpegQuality = ri.Cvar_Get ("mme_jpegQuality", "90", CVAR_ARCHIVE);
 	mme_jpegDownsampleChroma = ri.Cvar_Get ("mme_jpegDownsampleChroma", "0", CVAR_ARCHIVE);
 	mme_jpegOptimizeHuffman = ri.Cvar_Get ("mme_jpegOptimizeHuffman", "1", CVAR_ARCHIVE);

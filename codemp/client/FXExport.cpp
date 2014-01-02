@@ -99,7 +99,12 @@ qboolean FX_FreeSystem( void )
 	return (qboolean)FX_Free( true );
 }
 
-void FX_AdjustTime( int time )
+void FX_AdjustTime( int time, float frametime, float timeFraction )
 {
-	theFxHelper.AdjustTime(time);
+	theFxHelper.AdjustTime(time, frametime, timeFraction);
+}
+
+void FX_DemoRandomSeed( int time, float timeFraction )
+{
+	theFxHelper.DemoRandomSeed(time, timeFraction);
 }

@@ -2,22 +2,32 @@
 
 #include "tr_local.h"
 
-#define AVI_MAX_FRAMES	20000
-#define AVI_MAX_SIZE	((2*1024-10)*1024*1024)
-#define AVI_HEADER_SIZE	2048
+#define AVI_MAX_FRAMES			2000000
+#define AVI_MAX_SIZE			((2*1024-10)*1024*1024)
+#define AVI_HEADER_SIZE			2048
+#define AVI_MAX_FILES			1000
+
+#define AVI_MAX_SIZE_APPEND		(64*1024*1024)
+#define AVI_HEADER_SIZE_APPEND	AVI_HEADER_SIZE*4
+#define AVI_MAX_APPEND_SEGMENTS	100000
+#define AVI_MAX_OPENDML_INDEXES	512
+#define AVI_MAX_OPENDML_APPEND	((((unsigned __int64)4)*1024-10)*1024*1024)
 
 #define BLURMAX 256
 
 typedef struct mmeAviFile_s {
 	char name[MAX_OSPATH];
-//	FILE *file;
 	fileHandle_t f;
 	float fps;
 	int	width, height;
-	int frames;
+	unsigned int frames;
 	int index[AVI_MAX_FRAMES];
 	int	written;
+	unsigned __int64 writtenTotal;
 	int format;
+	int openDMLindexes;
+	unsigned int openDMLframes[AVI_MAX_OPENDML_INDEXES];
+	unsigned __int64 openDMLsize;
 	mmeShotType_t type;
 } mmeAviFile_t;
 
@@ -55,6 +65,7 @@ void R_MME_SaveShot( mmeShot_t *shot, int width, int height, float fps, byte *in
 
 void mmeAviShot( mmeAviFile_t *aviFile, const char *name, mmeShotType_t type, int width, int height, float fps, byte *inBuf );
 void aviClose( mmeAviFile_t *aviFile );
+void aviCloseAppend( mmeAviFile_t *aviFile );
 void R_MME_JitterTable(float *jitarr, int num);
 
 void MME_AccumClearSSE( void *w, const void *r, short int mul, int count );
@@ -67,6 +78,7 @@ void R_MME_BlurAccumShift( mmeBlurBlock_t *block  );
 void blurCreate( mmeBlurControl_t* control, const char* type, int frames );
 
 extern cvar_t	*mme_aviFormat;
+extern cvar_t	*mme_aviAppend;
 
 ID_INLINE byte * R_MME_BlurOverlapBuf( mmeBlurBlock_t *block ) {
 	mmeBlurControl_t* control = block->control;

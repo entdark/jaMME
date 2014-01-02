@@ -1284,7 +1284,7 @@ void Com_Init( char *commandLine ) {
 			if ( !com_dedicated->integer ) 
 			{
 #ifndef _DEBUG
-				Cbuf_AddText ("cinematic openinglogos.roq\n");
+//				Cbuf_AddText ("cinematic openinglogos.roq\n");
 #endif
 				// intro.roq is iD's.
 //				if( !com_introPlayed->integer ) {

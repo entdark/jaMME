@@ -5374,7 +5374,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 	if ( corona ) // drawing extra bits
 	{
 		ecolor[3] = 0.5f;
-		ecolor[0] = ecolor[1] = ecolor[2] = (1 - ecolor[3]) * ( sin( cg.time * 0.001f ) * 0.08f + 0.35f ); // don't draw full color
+		ecolor[0] = ecolor[1] = ecolor[2] = (1 - ecolor[3]) * ( sinf(cg.time * 0.001f + cg.timeFraction * 0.001f) * 0.08f + 0.35f ); // don't draw full color
 		ecolor[3] = 1.0f;
 
 		trap_R_SetColor( ecolor );

@@ -587,10 +587,10 @@ void demoNowTrajectory( const trajectory_t *tr, vec3_t result ) {
 			deltaTime = ( cg.time - tr->trTime ) * 0.001 + cg.timeFraction * 0.001;
 		}
 		//new slow-down at end
-		if ( cg.time - tr->trTime > tr->trDuration || deltaTime <= 0  ) {
+		if ( deltaTime > tr->trDuration || deltaTime <= 0  ) {
 			deltaTime = 0;
 		} else {//FIXME: maybe scale this somehow?  So that it starts out faster and stops faster?
-			deltaTime = tr->trDuration*0.001f*((float)cos( DEG2RAD(90.0f - (90.0f*((float)(cg.time-tr->trTime))/(float)tr->trDuration)) ));
+			deltaTime = tr->trDuration*0.001f*((float)cos( DEG2RAD(90.0f - (90.0f*(((cg.time-tr->trTime)+cg.timeFraction))/(float)tr->trDuration)) ));
 		}
 		VectorMA( tr->trBase, deltaTime, tr->trDelta, result );
 		break;
@@ -600,7 +600,7 @@ void demoNowTrajectory( const trajectory_t *tr, vec3_t result ) {
 		result[2] -= 0.5 * DEFAULT_GRAVITY * deltaTime * deltaTime;		// FIXME: local gravity...
 		break;
 	default:
-		Com_Error( ERR_DROP, "BG_EvaluateTrajectory: unknown trType: %i", tr->trType );
+		Com_Error( ERR_DROP, "demoNowTrajectory: unknown trType: %i", tr->trType );
 		break;
 	}
 }

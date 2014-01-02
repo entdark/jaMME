@@ -1500,7 +1500,7 @@ void BG_IK_MoveArm(void *ghoul2, int lHandBolt, int time, entityState_t *ent, in
 void BG_G2PlayerAngles(void *ghoul2, int motionBolt, entityState_t *cent, int time, vec3_t cent_lerpOrigin,
 					   vec3_t cent_lerpAngles, vec3_t legs[3], vec3_t legsAngles, qboolean *tYawing,
 					   qboolean *tPitching, qboolean *lYawing, float *tYawAngle, float *tPitchAngle,
-					   float *lYawAngle, /*int*/float frametime, vec3_t turAngles, vec3_t modelScale, int ciLegs,
+					   float *lYawAngle, float frametime, vec3_t turAngles, vec3_t modelScale, int ciLegs,
 					   int ciTorso, int *corrTime, vec3_t lookAngles, vec3_t lastHeadAngles, int lookTime,
 					   entityState_t *emplaced, int *crazySmoothFactor);
 void BG_G2ATSTAngles(void *ghoul2, int time, vec3_t cent_lerpAngles );
@@ -1583,7 +1583,7 @@ void BG_SI_BladeActivate( saberInfo_t *saber, int iBlade, qboolean bActive );
 qboolean BG_SI_Active(saberInfo_t *saber);
 void BG_SI_SetLength( saberInfo_t *saber, float length );
 void BG_SI_SetDesiredLength(saberInfo_t *saber, float len, int bladeNum);
-void BG_SI_SetLengthGradual( saberInfo_t *saber, int time );
+void BG_SI_SetLengthGradual( saberInfo_t *saber, int time, float timeFraction );
 float BG_SI_Length(saberInfo_t *saber);
 float BG_SI_LengthMax(saberInfo_t *saber);
 void BG_SI_ActivateTrail ( saberInfo_t *saber, float duration );

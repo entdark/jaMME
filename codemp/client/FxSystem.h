@@ -48,9 +48,10 @@ class SFxHelper
 public:
 	int		mTime;
 	int		mOldTime;
-	int		mFrameTime;
+	float	mFrameTime;
 	bool	mTimeFrozen;
 	float	mRealTime;
+	float	mTimeFraction;
 	refdef_t*	refdef;
 #ifdef _DEBUG
 	int		mMainRefs;
@@ -64,7 +65,8 @@ public:
 	inline	int	GetFrameTime(void) { return mFrameTime; }
 
 	void	ReInit(refdef_t* pRefdef);
-	void	AdjustTime( int time );
+	void	AdjustTime( int time, float frametime, float timeFraction );
+	void	DemoRandomSeed( int time, float timeFraction );
 
 	// These functions are wrapped and used by the fx system in case it makes things a bit more portable
 	void	Print( const char *msg, ... );

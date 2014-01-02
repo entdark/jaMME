@@ -1922,6 +1922,7 @@ void CG_S_UpdateLoopingSounds(int entityNum);
 
 void CG_SetEntitySoundPosition( centity_t *cent );
 void CG_CalcEntityLerpPositions( centity_t *cent );
+void CG_PreparePacketEntities( void );
 void CG_AddPacketEntities( qboolean isPortal );
 void CG_ManualEntityRender(centity_t *cent);
 void CG_Beam( centity_t *cent );
@@ -2355,7 +2356,7 @@ void		trap_FX_PlayBoltedEffectID	( int id, vec3_t org, void *pGhoul2, const int 
 void		trap_FX_AddScheduledEffects	( qboolean skyPortal );
 void		trap_FX_Draw2DEffects		( float screenXScale, float screenYScale );
 qboolean	trap_FX_FreeSystem			( void );
-void		trap_FX_AdjustTime			( int time );
+void		trap_FX_AdjustTime			( int time, float frametime, float timeFraction );
 void		trap_FX_Reset				( void );
 
 //rww - additional funcs for adding custom incode stuff

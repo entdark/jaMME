@@ -2859,7 +2859,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 		return;
 	}
 
-	trap_FX_AdjustTime( cg.time );
+	trap_FX_AdjustTime(cg.time, cg.frametime, cg.timeFraction);
 
 	CG_RunLightStyles();
 
@@ -2905,6 +2905,8 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 		CG_DrawInformation();
 		return;
 	}
+
+	CG_PreparePacketEntities( );
 
 	// let the client system know what our weapon and zoom settings are
 	if (cg.snap && cg.snap->ps.saberLockTime > cg.time)
@@ -3117,10 +3119,10 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 		}
 	}
 
-	CG_UpdateFallVector();
-
 	// actually issue the rendering calls
 	CG_DrawActive( stereoView );
+
+	CG_UpdateFallVector();
 
 	CG_DrawAutoMap();
 

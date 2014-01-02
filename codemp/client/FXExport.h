@@ -16,4 +16,5 @@ void		FX_Draw2DEffects ( float screenXScale, float screenYScale );
 int			FX_InitSystem( refdef_t* refdef );	// called in CG_Init to purge the fx system.
 void		FX_SetRefDefFromCGame( refdef_t* refdef );
 qboolean	FX_FreeSystem( void );	// ditches all active effects;
-void		FX_AdjustTime( int time );
+void		FX_AdjustTime( int time, float frametime, float timeFraction );
+void		FX_DemoRandomSeed( int time, float timeFraction );

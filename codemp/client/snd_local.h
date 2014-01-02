@@ -35,7 +35,7 @@ extern void AS_Free( void );
 #define	PAINTBUFFER_SIZE	1024
 
 
-#define		SFX_SOUNDS		2048
+#define		SFX_SOUNDS		10000
 #define		SFX_HASH		256
 
 typedef struct sfxEntry_s {

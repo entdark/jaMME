@@ -1134,7 +1134,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return FX_FreeSystem();
 
 	case CG_FX_ADJUST_TIME:
-		FX_AdjustTime(args[1]);
+		FX_AdjustTime(args[1], VMF(2), VMF(3));
 		return 0;
 
 	case CG_FX_RESET:
@@ -1725,6 +1725,12 @@ Ghoul2 Insert End
 	case CG_MME_MUSIC:
 		S_MMEMusic( (const char *)VMA(1), VMF(2), VMF(3) );
         return 0; 	
+	case CG_R_RANDOMSEED:
+		re.DemoRandomSeed( args[1], VMF(2) );
+        return 0; 
+	case CG_FX_RANDOMSEED:
+		FX_DemoRandomSeed( args[1], VMF(2) );
+        return 0;
 	case CG_S_UPDATE_PITCH:
 		S_UpdatePitch(VMF(1));
 		return 0;
