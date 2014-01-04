@@ -1084,7 +1084,7 @@ void G2_TimingModel(boneInfo_t &bone,int currentTime,int numFramesInFile,int &cu
 	}
 	else
 	{			
-		time = (currentTime - bone.startTime) / 50.0f;
+		time = ((currentTime - bone.startTime) + tr.refdef.timeFraction) / 50.0f;
 	}
 	if (time<0.0f)
 	{
@@ -1474,13 +1474,15 @@ void G2_TransformBone (int child,CBoneCache &BC)
 		// set blending stuff if we need to
 		if (boneList[boneListIndex].flags & BONE_ANIM_BLEND)
 		{
-			float blendTime = BC.incomingTime - boneList[boneListIndex].blendStart;
+			float blendTime = (/*BC.incomingTime*/tr.refdef.time - boneList[boneListIndex].blendStart) + tr.refdef.timeFraction;
 			// only set up the blend anim if we actually have some blend time left on this bone anim - otherwise we might corrupt some blend higher up the hiearchy
 			if (blendTime>=0.0f&&blendTime < boneList[boneListIndex].blendTime)
 			{
 				TB.blendFrame	 = boneList[boneListIndex].blendFrame;
 				TB.blendOldFrame = boneList[boneListIndex].blendLerpFrame;
 				TB.blendLerp = (blendTime / boneList[boneListIndex].blendTime);
+				if (TB.blendLerp > 1)
+					TB.blendLerp = 1.0f;
 				TB.blendMode = true;
 			}
 			else
@@ -1604,7 +1606,7 @@ void G2_TransformBone (int child,CBoneCache &BC)
 	if (TB.blendMode)
 	{
 		float backlerp = TB.blendFrame - (int)TB.blendFrame;
-		float frontlerp = 1.0 - backlerp;
+		float frontlerp = 1.0f - backlerp;
 		
 // 		MC_UnCompress(tbone[3].matrix,compBonePointer[bFrame->boneIndexes[child]].Comp);
 // 		MC_UnCompress(tbone[4].matrix,compBonePointer[boldFrame->boneIndexes[child]].Comp);
@@ -1629,7 +1631,7 @@ void G2_TransformBone (int child,CBoneCache &BC)
 		// blend in the other frame if we need to
 		if (TB.blendMode)
 		{
-			float blendFrontlerp = 1.0 - TB.blendLerp;
+			float blendFrontlerp = 1.0f - TB.blendLerp;
 	  		for ( j = 0 ; j < 12 ; j++ ) 
 			{
   				((float *)&tbone[2])[j] = (TB.blendLerp * ((float *)&tbone[2])[j])
@@ -1645,7 +1647,7 @@ void G2_TransformBone (int child,CBoneCache &BC)
   	}
 	else
   	{
-		float frontlerp = 1.0 - TB.backlerp;
+		float frontlerp = 1.0f - TB.backlerp;
 // 		MC_UnCompress(tbone[0].matrix,compBonePointer[aFrame->boneIndexes[child]].Comp);
 //		MC_UnCompress(tbone[1].matrix,compBonePointer[aoldFrame->boneIndexes[child]].Comp);
 		UnCompressBone(tbone[0].matrix, child, BC.header, TB.newFrame);
@@ -1660,7 +1662,7 @@ void G2_TransformBone (int child,CBoneCache &BC)
 		// blend in the other frame if we need to
 		if (TB.blendMode)
 		{
-			float blendFrontlerp = 1.0 - TB.blendLerp;
+			float blendFrontlerp = 1.0f - TB.blendLerp;
 	  		for ( j = 0 ; j < 12 ; j++ ) 
 			{
   				((float *)&tbone[2])[j] = (TB.blendLerp * ((float *)&tbone[2])[j])
@@ -1716,7 +1718,7 @@ void G2_TransformBone (int child,CBoneCache &BC)
 
  			Multiply_3x4Matrix(&temp, &toMatrix,&skel->BasePoseMatInv); //dest first arg
 
-			float blendTime = BC.incomingTime - boneList[boneListIndex].boneBlendStart;
+			float blendTime = (/*BC.incomingTime*/tr.refdef.time - boneList[boneListIndex].boneBlendStart) + tr.refdef.timeFraction;
 			float blendLerp = (blendTime / boneList[boneListIndex].boneBlendTime);
 			if (blendLerp>0.0f)
 			{
@@ -1731,7 +1733,7 @@ void G2_TransformBone (int child,CBoneCache &BC)
 				{
 //					mdxaBone_t lerp;
 					// now do the blend into the destination
-					float blendFrontlerp = 1.0 - blendLerp;
+					float blendFrontlerp = 1.0f - blendLerp;
 	  				for ( j = 0 ; j < 12 ; j++ ) 
 					{
   						((float *)&bone)[j] = (blendLerp * ((float *)&temp)[j])
@@ -1749,10 +1751,10 @@ void G2_TransformBone (int child,CBoneCache &BC)
 			Multiply_3x4Matrix(&firstPass, &BC.mFinalBones[parent].boneMatrix, &tbone[2]);
 
 			// are we attempting to blend with the base animation? and still within blend time?
-			if (boneOverride.boneBlendTime && (((boneOverride.boneBlendTime + boneOverride.boneBlendStart) < BC.incomingTime)))
+			if (boneOverride.boneBlendTime && (((boneOverride.boneBlendTime + boneOverride.boneBlendStart) < /*BC.incomingTime*/tr.refdef.time)))
 			{
 				// ok, we are supposed to be blending. Work out lerp
-				float blendTime = BC.incomingTime - boneList[boneListIndex].boneBlendStart;
+				float blendTime = (/*BC.incomingTime*/tr.refdef.time - boneList[boneListIndex].boneBlendStart) + tr.refdef.timeFraction;
 				float blendLerp = (blendTime / boneList[boneListIndex].boneBlendTime);
 
 				if (blendLerp <= 1)
@@ -1801,7 +1803,7 @@ void G2_TransformBone (int child,CBoneCache &BC)
  					Multiply_3x4Matrix(&temp, &newMatrixTemp,&skel->BasePoseMatInv);
 
 					// now do the blend into the destination
-					float blendFrontlerp = 1.0 - blendLerp;
+					float blendFrontlerp = 1.0f - blendLerp;
 	  				for ( j = 0 ; j < 12 ; j++ ) 
 					{
   						((float *)&bone)[j] = (blendLerp * ((float *)&temp)[j])

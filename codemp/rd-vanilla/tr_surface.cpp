@@ -1136,7 +1136,7 @@ static void LerpMeshVertexes (md3Surface_t *surf, float backlerp)
 	float	oldXyzScale, newXyzScale;
 	float	oldNormalScale, newNormalScale;
 	int		vertNum;
-	int		lat, lng;
+	float	lat, lng;
 	int		numVerts;
 
 	outXyz = tess.xyz[tess.numVertexes];
@@ -1166,20 +1166,20 @@ static void LerpMeshVertexes (md3Surface_t *surf, float backlerp)
 
 			lat = ( newNormals[0] >> 8 ) & 0xff;
 			lng = ( newNormals[0] & 0xff );
-			lat *= (FUNCTABLE_SIZE/256);
-			lng *= (FUNCTABLE_SIZE/256);
-//			lat /= 256;
-//			lng /= 256;
+//			lat *= (FUNCTABLE_SIZE/256);
+//			lng *= (FUNCTABLE_SIZE/256);
+			lat /= 256;
+			lng /= 256;
 
 			// decode X as cos( lat ) * sin( long )
 			// decode Y as sin( lat ) * sin( long )
 			// decode Z as cos( long )
-			outNormal[0] = tr.sinTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * tr.sinTable[lng];
+/*			outNormal[0] = tr.sinTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * tr.sinTable[lng];
 			outNormal[1] = tr.sinTable[lat] * tr.sinTable[lng];
-			outNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
-/*			outNormal[0] = NewCosTable(lat) * NewSinTable(lng);
+			outNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];*/
+			outNormal[0] = NewCosTable(lat) * NewSinTable(lng);
 			outNormal[1] = NewSinTable(lat) * NewSinTable(lng);
-			outNormal[2] = NewCosTable(lng);*/
+			outNormal[2] = NewCosTable(lng);
 		}
 	} else {
 		//
@@ -1206,31 +1206,31 @@ static void LerpMeshVertexes (md3Surface_t *surf, float backlerp)
 			// FIXME: interpolate lat/long instead?
 			lat = ( newNormals[0] >> 8 ) & 0xff;
 			lng = ( newNormals[0] & 0xff );
-			lat *= 4;
-			lng *= 4;
-//			lat /= 256;
-//			lng /= 256;
+//			lat *= 4;
+//			lng *= 4;
+			lat /= 256;
+			lng /= 256;
 
-			uncompressedNewNormal[0] = tr.sinTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * tr.sinTable[lng];
+/*			uncompressedNewNormal[0] = tr.sinTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * tr.sinTable[lng];
 			uncompressedNewNormal[1] = tr.sinTable[lat] * tr.sinTable[lng];
-			uncompressedNewNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
-/*			uncompressedNewNormal[0] = NewCosTable(lat) * NewSinTable(lng);
+			uncompressedNewNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];*/
+			uncompressedNewNormal[0] = NewCosTable(lat) * NewSinTable(lng);
 			uncompressedNewNormal[1] = NewSinTable(lat) * NewSinTable(lng);
-			uncompressedNewNormal[2] = NewCosTable(lng);*/
+			uncompressedNewNormal[2] = NewCosTable(lng);
 
 			lat = ( oldNormals[0] >> 8 ) & 0xff;
 			lng = ( oldNormals[0] & 0xff );
-			lat *= 4;
-			lng *= 4;
-//			lat /= 256;
-//			lng /= 256;
+//			lat *= 4;
+//			lng *= 4;
+			lat /= 256;
+			lng /= 256;
 
-			uncompressedOldNormal[0] = tr.sinTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * tr.sinTable[lng];
+/*			uncompressedOldNormal[0] = tr.sinTable[(lat+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK] * tr.sinTable[lng];
 			uncompressedOldNormal[1] = tr.sinTable[lat] * tr.sinTable[lng];
-			uncompressedOldNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];
-/*			uncompressedOldNormal[0] = NewCosTable(lat) * NewSinTable(lng);
+			uncompressedOldNormal[2] = tr.sinTable[(lng+(FUNCTABLE_SIZE/4))&FUNCTABLE_MASK];*/
+			uncompressedOldNormal[0] = NewCosTable(lat) * NewSinTable(lng);
 			uncompressedOldNormal[1] = NewSinTable(lat) * NewSinTable(lng);
-			uncompressedOldNormal[2] = NewCosTable(lng);*/
+			uncompressedOldNormal[2] = NewCosTable(lng);
 
 			outNormal[0] = uncompressedOldNormal[0] * oldNormalScale + uncompressedNewNormal[0] * newNormalScale;
 			outNormal[1] = uncompressedOldNormal[1] * oldNormalScale + uncompressedNewNormal[1] * newNormalScale;

@@ -514,7 +514,7 @@ static void CG_InterpolateVehiclePlayerState( qboolean grabAngles ) {
 		return;
 	}
 
-	f = (float)( cg.time - prev->serverTime ) / ( next->serverTime - prev->serverTime );
+	f = (cg.timeFraction + ( cg.time - prev->serverTime )) / ( next->serverTime - prev->serverTime );
 
 	i = next->vps.bobCycle;
 	if ( i < prev->vps.bobCycle ) {

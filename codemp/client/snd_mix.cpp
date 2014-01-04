@@ -543,7 +543,7 @@ void S_PaintChannels( int endtime ) {
 
 static	mixSound_t		*mixSounds[SFX_SOUNDS];
 
-#define DEF_COMSOUNDMEGS "42"
+#define DEF_COMSOUNDMEGS "64"
 static  mixSound_t		*mixAllocSounds = 0;
 static  mixSound_t		mixEmptySound;
 

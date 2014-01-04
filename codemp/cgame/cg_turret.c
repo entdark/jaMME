@@ -6,16 +6,16 @@
 
 void CreepToPosition(vec3_t ideal, vec3_t current)
 {
-	float max_degree_switch = 90;
-	int degrees_negative = 0;
-	int degrees_positive = 0;
-	int doNegative = 0;
+	int max_degree_switch = 90;
+	float degrees_negative = 0.0f;
+	float degrees_positive = 0.0f;
+	qboolean doNegative = qfalse;
 
-	int angle_ideal;
-	int angle_current;
+	float angle_ideal;
+	float angle_current;
 
-	angle_ideal = (int)ideal[YAW];
-	angle_current = (int)current[YAW];
+	angle_ideal = ideal[YAW];
+	angle_current = current[YAW];
 
 	if (angle_ideal <= angle_current)
 	{
@@ -32,7 +32,7 @@ void CreepToPosition(vec3_t ideal, vec3_t current)
 
 	if (degrees_negative < degrees_positive)
 	{
-		doNegative = 1;
+		doNegative = qtrue;
 	}
 
 	if (doNegative)
@@ -69,10 +69,10 @@ void CreepToPosition(vec3_t ideal, vec3_t current)
 		ideal[PITCH] += 360;
 	}
 
-	angle_ideal = (int)ideal[PITCH];
-	angle_current = (int)current[PITCH];
+	angle_ideal = ideal[PITCH];
+	angle_current = current[PITCH];
 
-	doNegative = 0;
+	doNegative = qfalse;
 
 	if (angle_ideal <= angle_current)
 	{
@@ -89,7 +89,7 @@ void CreepToPosition(vec3_t ideal, vec3_t current)
 
 	if (degrees_negative < degrees_positive)
 	{
-		doNegative = 1;
+		doNegative = qtrue;
 	}
 
 	if (doNegative)
@@ -216,7 +216,7 @@ void TurretClientRun(centity_t *ent)
 			ent->dustTrailTime = cg.time;
 		}
 
-		turnAmount = (cg.time-ent->dustTrailTime)*0.03;
+		turnAmount = ((cg.time - ent->dustTrailTime) + cg.timeFraction) * 0.03f;
 
 		if (turnAmount > 360)
 		{

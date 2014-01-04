@@ -69,7 +69,6 @@ void SFxHelper::AdjustTime(int time, float frametime, float timeFraction)
 		mTime = time;
 		mFrameTime = frametime;
 		
-		//hmm, seems working... maybe buggy only on veeery slow game speed like 0.001
 		mTimeFraction = timeFraction;
 		mRealTime = mFrameTime * 0.001f;
 

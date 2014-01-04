@@ -1513,10 +1513,10 @@ Ghoul2 Insert End
 	if ( cent->currentState.time > cg.time && cent->currentState.weapon == WP_EMPLACED_GUN )
 	{
 		// make the gun pulse red to warn about it exploding
-		val = (1.0f - (float)(cent->currentState.time - cg.time) / 3200.0f ) * 0.3f;
+		val = (1.0f - ((cent->currentState.time - cg.time) - cg.timeFraction) / 3200.0f ) * 0.3f;
 
 		ent.customShader = trap_R_RegisterShader( "gfx/effects/turretflashdie" );
-		ent.shaderRGBA[0] = (sin( cg.time * 0.04f ) * val * 0.4f + val) * 255;
+		ent.shaderRGBA[0] = (sin((double)(cg.time + cg.timeFraction)* 0.04) * val * 0.4f + val) * 255;
 		ent.shaderRGBA[1] = ent.shaderRGBA[2] = 0;
 
 		ent.shaderRGBA[3] = 100;
@@ -1697,7 +1697,7 @@ skipDisintegration:
 
 		ent.customShader = cgs.media.solidWhite;
 		ent.renderfx = RF_RGB_TINT;
-		wv = sin( cg.time * 0.003f ) * 0.08f + 0.1f;
+		wv = sin(cg.time * 0.003 + cg.timeFraction * 0.003) * 0.08f + 0.1f;
 		ent.shaderRGBA[0] = wv * 255;
 		ent.shaderRGBA[1] = wv * 255;
 		ent.shaderRGBA[2] = wv * 0;
@@ -1734,7 +1734,7 @@ skipDisintegration:
 
 		ent.customShader = cgs.media.solidWhite;
 		ent.renderfx = RF_RGB_TINT;
-		wv = sin( cg.time * 0.005f ) * 0.08f + 0.1f; //* 0.08f + 0.1f;
+		wv = sin(cg.time * 0.005 + cg.timeFraction * 0.005) * 0.08f + 0.1f; //* 0.08f + 0.1f;
 
 		if (cent->currentState.trickedentindex3 == 1)
 		{ //dark
@@ -1779,7 +1779,7 @@ skipDisintegration:
 
 		org[2] += 18;
 
-		wv = sin( cg.time * 0.002f ) * 0.08f + 0.1f; //* 0.08f + 0.1f;
+		wv = sin(cg.time * 0.002 + cg.timeFraction * 0.002) * 0.08f + 0.1f; //* 0.08f + 0.1f;
 
 		VectorCopy(org, fxSArgs.origin);
 		VectorClear(fxSArgs.vel);
@@ -1936,7 +1936,7 @@ static void CG_Item( centity_t *cent ) {
 	refEntity_t		ent;
 	entityState_t	*es;
 	gitem_t			*item;
-	int				msec;
+	float			msec;
 	float			scale;
 	weaponInfo_t	*wi;
 
@@ -2034,11 +2034,10 @@ Ghoul2 Insert End
 		//instead of cg_items[es->modelindex].icon
 
 		MAKERGBA( ent.shaderRGBA, 255, 255, 255, 200 );
-		ent.origin[2] += 44 + 7.0f * sinf(((float)cg.time + cg.timeFraction)/ 1000.0f * 1.337);
+		ent.origin[2] += 44 + 7.0f * sin((double)((double)cg.time + cg.timeFraction) / 1000.0 * 1.337);
 		ent.renderfx |= RF_FORCE_ENT_ALPHA;
 		cent->currentState.apos.trType = TR_LINEAR;
 		VectorSet( cent->currentState.apos.trDelta, 0.0f, 128.0f, 0.0f );
-//		BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, angs );
 		demoNowTrajectory(&cent->currentState.apos, angs);
 		angs[PITCH] = 0.0f;
 		angs[ROLL] = 0.0f;
@@ -2081,7 +2080,7 @@ Ghoul2 Insert End
 			ent.shaderRGBA[0] = 200;
 			ent.shaderRGBA[1] = 200;
 			ent.shaderRGBA[2] = 200;
-			ent.shaderRGBA[3] = 150 + sin(cg.time*0.01)*30;
+			ent.shaderRGBA[3] = 150 + sin(cg.time * 0.01 + cg.timeFraction * 0.01) * 30;
 		}
 		else
 		{
@@ -2251,7 +2250,7 @@ Ghoul2 Insert End
 
 	// if just respawned, slowly scale up
 	
-	msec = cg.time - cent->miscTime;
+	msec = (cg.time - cent->miscTime) + cg.timeFraction;
 
 	if (CG_GreyItem(item->giType, item->giTag, cg.snap->ps.fd.forceSide))
 	{
@@ -2310,7 +2309,7 @@ Ghoul2 Insert End
 		float alpha;
 		int a;
 		
-		alpha = (float)msec / ITEM_SCALEUP_TIME;
+		alpha = msec / ITEM_SCALEUP_TIME;
 		a = alpha * 255.0;
 		if (a <= 0)
 			a=1;
@@ -2537,7 +2536,7 @@ static void CG_Missile( centity_t *cent ) {
 		if ( s1->generic1 )
 		{//Raz: Portals
 			vec3_t pos;
-			BG_EvaluateTrajectory( &s1->pos, cg.time, pos );
+			demoNowTrajectory( &s1->pos, pos );
 			trap_FX_PlayEffectID( (cent->currentState.eFlags & EF_ALT_FIRING) ? cgs.effects.mBobaJet : cgs.effects.itemCone, pos, s1->angles, -1, -1 );
 			return;
 		}
@@ -2561,7 +2560,7 @@ static void CG_Missile( centity_t *cent ) {
 			rHandPos[1] = boltMatrix.matrix[1][3];
 			rHandPos[2] = boltMatrix.matrix[2][3];
 
-			BG_EvaluateTrajectory( &s1->pos, cg.time, pos );
+			demoNowTrajectory( &s1->pos, pos );
 
 			CG_TestLine( rHandPos, pos, 1, 6, 1 );
 			return;
@@ -2823,7 +2822,7 @@ Ghoul2 Insert End
 
 		ent.customShader = cgs.media.solidWhite;
 		ent.renderfx = RF_RGB_TINT;
-		wv = sin( cg.time * 0.003f ) * 0.08f + 0.1f;
+		wv = sin(cg.time * 0.003 + cg.timeFraction * 0.003) * 0.08f + 0.1f;
 		ent.shaderRGBA[0] = wv * 255;
 		ent.shaderRGBA[1] = wv * 255;
 		ent.shaderRGBA[2] = wv * 0;
@@ -2983,7 +2982,7 @@ static void CG_Mover( centity_t *cent ) {
 			}
 			else if ( (cg.predictedVehicleState.eFlags2&EF2_HYPERSPACE) )
 			{//actually hyperspacing now
-				float timeFrac = ((float)(cg.time-cg.predictedVehicleState.hyperSpaceTime-1000))/(HYPERSPACE_TIME-1000);
+				float timeFrac = ((cg.time-cg.predictedVehicleState.hyperSpaceTime)+cg.timeFraction-1000)/(HYPERSPACE_TIME-1000);
 				if ( timeFrac < (HYPERSPACE_TELEPORT_FRAC+0.1f) )
 				{//still in hyperspace or just popped out
 					const float	alpha = timeFrac<0.5f?timeFrac/0.5f:1.0f;
@@ -3235,8 +3234,6 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 
 		if (veh->currentState.owner == cg.predictedPlayerState.clientNum)
 		{ //only do this if the vehicle is pilotted by this client and predicting properly
-//			BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
-//			BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
 			demoNowTrajectory( &cent->currentState.pos, cent->lerpOrigin );
 			demoNowTrajectory( &cent->currentState.apos, cent->lerpAngles );
 			return;
@@ -3264,8 +3261,6 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 	else
 	{
 		// just use the current frame and evaluate as best we can
-//		BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
-//		BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
 		demoNowTrajectory( &cent->currentState.pos, cent->lerpOrigin );
 		demoNowTrajectory( &cent->currentState.apos, cent->lerpAngles );
 	}
@@ -3647,7 +3642,7 @@ void CG_AddPacketEntities( qboolean isPortal ) {
 		//BG_PlayerStateToEntityState( &cg.predictedVehicleState, &cg_entities[cg.predictedPlayerState.m_iVehicleNum].currentState, qfalse );
 		//cg_entities[cg.predictedPlayerState.m_iVehicleNum].currentState.eType = ET_NPC;
 		//this fix seems working
-		centity_t *veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum/*cg.predictedPlayerState.clientNum*/];
+		centity_t *veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
 
 		if (veh->currentState.owner == cg.predictedPlayerState.clientNum)
 		{

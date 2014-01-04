@@ -161,7 +161,7 @@ void FX_Mortar_Missile( centity_t *cent, const struct weaponInfo_s *weapon )
 //	SE_R_AddRefEntityToScene( &ent, cent->currentState.number );
 	trap_R_AddRefEntityToScene( &ent, cent->currentState.number );
 
-	scale = (1.15 + Q_fabs( sinf( cg.time / 80.0f ) )*0.65f);
+	scale = (1.15 + Q_fabs((float)sin(cg.time / 80.0 + cg.timeFraction / 80.0))*0.65f);
 	VectorScale( ent.axis[0], scale, ent.axis[0] );
 	VectorScale( ent.axis[1], scale, ent.axis[1] );
 	VectorScale( ent.axis[2], scale, ent.axis[2] );

@@ -205,7 +205,7 @@ CG_CalculateWeaponPosition
 */
 static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 	float	scale;
-	int		delta;
+	float	delta;
 	float	fracsin;
 
 	playerEntity_t *pe = &cg.playerCent->pe;
@@ -231,7 +231,7 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 	// Ensiform: Allow toggling of this feature
 	if ( cg_fallingBob.value ) {
 		//mme
-		delta = cg.time - pe->landTime;
+		delta = (cg.time - pe->landTime) + cg.timeFraction;
 		if ( delta < LAND_DEFLECT_TIME ) {
 			origin[2] += pe->landChange*0.25 * delta / LAND_DEFLECT_TIME;
 		} else if ( delta < LAND_DEFLECT_TIME + LAND_RETURN_TIME ) {
@@ -254,7 +254,7 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 	if ( cg_weaponBob.value ) {
 		// idle drift
 		scale = cg.xyspeed + 40;
-		fracsin = sin( cg.time * 0.001 );
+		fracsin = sin(cg.time * 0.001 + cg.timeFraction * 0.001);
 		angles[ROLL] += scale * fracsin * 0.01;
 		angles[YAW] += scale * fracsin * 0.01;
 		angles[PITCH] += scale * fracsin * 0.01;
@@ -945,7 +945,8 @@ WEAPON SELECTION
 
 void CG_DrawIconBackground(void)
 {
-	int				height,xAdd,x2,y2,t;
+	int				height,xAdd,x2,y2;
+	float			t;
 //	int				prongLeftX,prongRightX;
 	float			inTime = cg.invenSelectTime+WEAPON_SELECT_TIME;
 	float			wpTime = cg.weaponSelectTime+WEAPON_SELECT_TIME;
@@ -991,9 +992,8 @@ void CG_DrawIconBackground(void)
 	{
 		if (cg.iconHUDActive)		// The time is up, but we still need to move the prongs back to their original position
 		{
-			t =  cg.time - (cg.iconSelectTime+WEAPON_SELECT_TIME);
-			cg.iconHUDPercent = t/ 130.0f;
-			cg.iconHUDPercent = 1 - cg.iconHUDPercent;
+			t =  cg.time - (cg.iconSelectTime+WEAPON_SELECT_TIME) + cg.timeFraction;
+			cg.iconHUDPercent = 1.0f - t / 130.0f;
 
 			if (cg.iconHUDPercent<0)
 			{
@@ -1020,8 +1020,8 @@ void CG_DrawIconBackground(void)
 
 	if (!cg.iconHUDActive)
 	{
-		t = cg.time - cg.iconSelectTime;
-		cg.iconHUDPercent = t/ 130.0f;
+		t = (cg.time - cg.iconSelectTime) + cg.timeFraction;
+		cg.iconHUDPercent = t / 130.0f;
 
 		// Calc how far into opening sequence we are
 		if (cg.iconHUDPercent>1)

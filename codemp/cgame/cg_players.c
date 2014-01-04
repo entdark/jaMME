@@ -5323,7 +5323,7 @@ static void CG_ForcePushBlur( vec3_t org, centity_t *cent )
 
 		//closer tDif is to 0, the closer we are to
 		//being "done"
-		tDif = (cent->bodyFadeTime - cg.time - cg.timeFraction);
+		tDif = (cent->bodyFadeTime - cg.time) - cg.timeFraction;
 
 		if ((REFRACT_EFFECT_DURATION-tDif) < 200)
 		{ //stop following the hand after a little and stay in a fixed spot
@@ -5477,7 +5477,7 @@ static void CG_ForceGripEffect( vec3_t org )
 	static int lastGripTime = 0;
 	int timeDif = 0;
 	int gripAmount = 0;
-	float wv = sin( cg.time * 0.004f ) * 0.08f + 0.1f;
+	float wv = sin(cg.time * 0.004 + cg.timeFraction * 0.004) * 0.08f + 0.1f;
 /*
 	timeDif = (cg.time - lastGripTime);
 	if (timeDif < 0) {
@@ -6100,7 +6100,7 @@ void CG_DoSaber( vec3_t origin, vec3_t dir, float length, float lengthMax, float
 
 	sbak.shaderRGBA[0] = sbak.shaderRGBA[1] = sbak.shaderRGBA[2] = sbak.shaderRGBA[3] = 0xff;
 
-	lol = Q_fabs((sinf((float)(cg.time + cg.timeFraction)/ 400.0f)));
+	lol = Q_fabs((float)sin(cg.time / 400.0 + cg.timeFraction / 400.0));
 	lol = (lol * 0.1f) + 0.8f;//cg_saberWidth.value;
 	sbak.radius = lol;
 
@@ -7105,7 +7105,7 @@ CheckTrail:
 					VectorCopy( saberTrail->tip, fx.mVerts[2].origin );
 					VectorCopy( saberTrail->base, fx.mVerts[3].origin );
 
-					diff = cg.time - saberTrail->lastTime;
+					diff = (cg.time - saberTrail->lastTime) + cg.timeFraction;
 
 					// I'm not sure that clipping this is really the best idea
 					//This prevents the trail from showing at all in low framerate situations.
@@ -9655,7 +9655,7 @@ void CG_Player( centity_t *cent ) {
 	float			shadowPlane = 0;
 	qboolean		dead = qfalse;
 	vec3_t			rootAngles;
-	float			angle;
+	double			angle;
 	vec3_t			angles, dir, elevated, enang, seekorg;
 	int				iwantout = 0, successchange = 0;
 	int				team;
@@ -10373,7 +10373,7 @@ void CG_Player( centity_t *cent ) {
 		seeker.renderfx = 0; //renderfx;
 							 //don't show in first person?
 
-		angle = ((cg.time / 12) & 255) * (M_PI * 2) / 255;
+		angle = (((cg.time / 12) & 255) + cg.timeFraction / 12) * (M_PI * 2) / 255;
 		dir[0] = cos(angle) * 20;
 		dir[1] = sin(angle) * 20;
 		dir[2] = cos(angle) * 5;
@@ -10383,7 +10383,7 @@ void CG_Player( centity_t *cent ) {
 
 		if (cent->currentState.genericenemyindex > MAX_GENTITIES)
 		{
-			float prefig = (cent->currentState.genericenemyindex-cg.time)/80;
+			float prefig = ((cent->currentState.genericenemyindex-cg.time)-cg.timeFraction)/80;
 
 			if (prefig > 55)
 			{
@@ -10396,7 +10396,7 @@ void CG_Player( centity_t *cent ) {
 
 			elevated[2] -= 55-prefig;
 
-			angle = ((cg.time / 12) & 255) * (M_PI * 2) / 255;
+			angle = (((cg.time / 12) & 255) + cg.timeFraction / 12) * (M_PI * 2) / 255;
 			dir[0] = cos(angle) * 20;
 			dir[1] = sin(angle) * 20;
 			dir[2] = cos(angle) * 5;
@@ -11114,7 +11114,7 @@ SkipTrueView:
 				legs.shaderRGBA[2] = 0;
 			}
 
-			legs.shaderRGBA[3] = ((cent->teamPowerEffectTime - cg.time)/8);
+			legs.shaderRGBA[3] = (((cent->teamPowerEffectTime - cg.time) - cg.timeFraction) / 8); // MOAR PRECISION FOR BYTE
 
 			legs.customShader = trap_R_RegisterShader( "powerups/ysalimarishell" );
 			trap_R_AddRefEntityToScene(&legs);
@@ -11196,7 +11196,7 @@ SkipTrueView:
 
 				if (renderedHolos == 0)
 				{
-					angle = ((cg.time / 8) & 255) * (M_PI * 2) / 255;
+					angle = (((cg.time / 8) & 255) + cg.timeFraction / 8) * (M_PI * 2) / 255;
 					dir[0] = cos(angle) * 20;
 					dir[1] = sin(angle) * 20;
 					dir[2] = cos(angle) * 20;
@@ -11211,7 +11211,7 @@ SkipTrueView:
 				}
 				else if (renderedHolos == 1)
 				{
-					angle = ((cg.time / 8) & 255) * (M_PI * 2) / 255 + M_PI;
+					angle = (((cg.time / 8) & 255) + cg.timeFraction / 8) * (M_PI * 2) / 255 + M_PI;
 					if (angle > M_PI * 2)
 						angle -= (float)M_PI * 2;
 					dir[0] = sin(angle) * 20;
@@ -11228,7 +11228,7 @@ SkipTrueView:
 				}
 				else
 				{
-					angle = ((cg.time / 6) & 255) * (M_PI * 2) / 255 + 0.5 * M_PI;
+					angle = (((cg.time / 6) & 255) + cg.timeFraction / 6) * (M_PI * 2) / 255 + 0.5 * M_PI;
 					if (angle > M_PI * 2)
 						angle -= (float)M_PI * 2;
 					dir[0] = sin(angle) * 20;
@@ -11256,7 +11256,7 @@ SkipTrueView:
 					holoCenter[1] = holoRef.origin[1] + holoRef.axis[2][1]*18;
 					holoCenter[2] = holoRef.origin[2] + holoRef.axis[2][2]*18;
 
-					wv = sin( cg.time * 0.004f ) * 0.08f + 0.1f;
+					wv = sin(cg.time * 0.004 + cg.timeFraction * 0.004) * 0.08f + 0.1f;
 
 					VectorCopy(holoCenter, fxSArgs.origin);
 					VectorClear(fxSArgs.vel);
@@ -11607,7 +11607,7 @@ stillDoSaber:
 				{
 					if (cent->bolt3 < 90)
 					{
-						cent->bolt3 += (cg.time - cent->bolt2)*0.5;
+						cent->bolt3 += ((cg.time - cent->bolt2) + cg.timeFraction) * 0.5f;
 
 						if (cent->bolt3 > 90)
 						{
@@ -11616,7 +11616,7 @@ stillDoSaber:
 					}
 					else if (cent->bolt3 > 90)
 					{
-						cent->bolt3 -= (cg.time - cent->bolt2)*0.5;
+						cent->bolt3 -= ((cg.time - cent->bolt2) + cg.timeFraction) * 0.5f;
 
 						if (cent->bolt3 < 90)
 						{
@@ -11733,7 +11733,7 @@ stillDoSaber:
 				efOrg[1] = boltMatrix.matrix[1][3];
 				efOrg[2] = boltMatrix.matrix[2][3];
 
-				wv = sin( cg.time * 0.003f ) * 0.08f + 0.1f;
+				wv = sin(cg.time * 0.003 + cg.timeFraction * 0.003) * 0.08f + 0.1f;
 
 				//trap_FX_AddSprite( NULL, efOrg, NULL, NULL, 8.0f, 8.0f, wv, wv, 0.0f, 0.0f, 1.0f, cgs.media.yellowSaberGlowShader, 0x08000000 );
 				VectorCopy(efOrg, fxSArgs.origin);
@@ -12115,7 +12115,7 @@ stillDoSaber:
 		}
 		else
 		{
-			float perc = (float)(cent->uncloaking - cg.time) / 2000.0f;
+			float perc = ((cent->uncloaking - cg.time) - cg.timeFraction) / 2000.0f;
 			if (( cent->currentState.powerups & ( 1 << PW_CLOAKED ))) 
 			{//actually cloaking, so reverse it
 				perc = 1.0f - perc;
@@ -12256,7 +12256,7 @@ skipCloaked:
 		}
 
 		reframe_hold.renderfx |= RF_FORCE_ENT_ALPHA;
-		reframe_hold.shaderRGBA[3] = (cent->frame_hold_time - cg.time);
+		reframe_hold.shaderRGBA[3] = (cent->frame_hold_time - cg.time) - cg.timeFraction; // MOAR PRECISION FOR BYTE
 		if (reframe_hold.shaderRGBA[3] > 254)
 		{
 			reframe_hold.shaderRGBA[3] = 254;
@@ -12345,7 +12345,7 @@ skipCloaked:
 		legs.shaderRGBA[0] = 255;
 		legs.shaderRGBA[1] = 255;
 		legs.shaderRGBA[2] = 255;
-		legs.shaderRGBA[3] = 10.0f+(sin((float)(cg.time/4))*128.0f);//112.0 * ((cent->damageTime - cg.time) / MIN_SHIELD_TIME) + random()*16;
+		legs.shaderRGBA[3] = 10.0f+(sin((double)((double)(cg.time / 4) + cg.timeFraction / 4))*128.0f);//112.0 * ((cent->damageTime - cg.time) / MIN_SHIELD_TIME) + random()*16;
 
 		legs.renderfx &= ~RF_RGB_TINT;
 		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
@@ -12511,7 +12511,7 @@ skipCloaked:
 	//------------------------------------------------
 	if ( cent->currentState.emplacedOwner > cg.time ) 
 	{
-		int	dif = cent->currentState.emplacedOwner - cg.time;
+		float dif = (cent->currentState.emplacedOwner - cg.time) - cg.timeFraction;
 		vec3_t tempAngles;
 
 		if ( dif > 0 && random() > 0.4f )
@@ -12678,8 +12678,8 @@ void CG_ResetPlayerEntity( centity_t *cent )
 		CG_ClearLerpFrame( cent, ci, &cent->pe.legs, cent->currentState.legsAnim, qfalse);
 		CG_ClearLerpFrame( cent, ci, &cent->pe.torso, cent->currentState.torsoAnim, qtrue);
 
-		BG_EvaluateTrajectory( &cent->currentState.pos, cg.time, cent->lerpOrigin );
-		BG_EvaluateTrajectory( &cent->currentState.apos, cg.time, cent->lerpAngles );
+		demoNowTrajectory( &cent->currentState.pos, cent->lerpOrigin );
+		demoNowTrajectory( &cent->currentState.apos, cent->lerpAngles );
 
 //		VectorCopy( cent->lerpOrigin, cent->rawOrigin );
 		VectorCopy( cent->lerpAngles, cent->rawAngles );

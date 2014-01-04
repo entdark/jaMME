@@ -222,7 +222,7 @@ void CG_AddMarks( void ) {
 	int			j;
 	markPoly_t	*mp, *next;
 	int			t;
-	int			fade;
+	float		fade;
 
 	if ( !cg_marks.integer ) {
 		return;
@@ -244,7 +244,7 @@ void CG_AddMarks( void ) {
 		//if ( mp->markShader == cgs.media.energyMarkShader ) {
 		if (0) {
 
-			fade = 450 - 450 * ( (cg.time - mp->time ) / 3000.0 );
+			fade = 450 - 450 * (((cg.time - mp->time) + cg.timeFraction) / 3000.0);
 			if ( fade < 255 ) {
 				if ( fade < 0 ) {
 					fade = 0;
@@ -260,7 +260,7 @@ void CG_AddMarks( void ) {
 		}
 
 		// fade all marks out with time
-		t = mp->time + MARK_TOTAL_TIME - cg.time;
+		t = (mp->time + MARK_TOTAL_TIME - cg.time) - cg.timeFraction;
 		if ( t < MARK_FADE_TIME ) {
 			fade = 255 * t / MARK_FADE_TIME;
 			if ( mp->alphaFade ) {
@@ -690,7 +690,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 		
 		if (cg.time > p->startfade)
 		{
-			invratio = 1 - ( (cg.time - p->startfade) / (p->endtime - p->startfade) );
+			invratio = 1 - ((cg.time - p->startfade) + cg.timeFraction) / (p->endtime - p->startfade);
 
 			if (p->color == EMISIVEFADE)
 			{
@@ -1097,7 +1097,7 @@ void CG_AddParticles (void)
 	VectorCopy( cg.refdef.viewaxis[2], pvup );
 
 	vectoangles( cg.refdef.viewaxis[0], rotate_ang );
-	roll += ((cg.time - oldtime) * 0.1) ;
+	roll += ((cg.time - oldtime) + cg.timeFraction) * 0.1f;
 	rotate_ang[ROLL] += (roll*0.9);
 	AngleVectors ( rotate_ang, rforward, rright, rup);
 	
@@ -1754,7 +1754,7 @@ void CG_Particle_OilParticle (qhandle_t pshader, centity_t *cent)
 	time = cg.time;
 	time2 = cg.time + cent->currentState.time;
 
-	ratio =(float)1 - ((float)time / (float)time2);
+	ratio = 1.0f - (time + cg.timeFraction) / (float)time2;
 
 	if (!pshader)
 		CG_Printf ("CG_Particle_OilParticle == ZERO!\n");

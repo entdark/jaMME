@@ -25,7 +25,7 @@ menuDef_t *menuScoreboard = NULL;
 int sortedTeamPlayers[TEAM_MAXOVERLAY];
 int	numSortedTeamPlayers;
 
-int lastvalidlockdif;
+float lastvalidlockdif;
 
 extern float zoomFov; //this has to be global client-side
 
@@ -286,7 +286,7 @@ static void CG_DrawZoomMask( void )
 
 		CG_DrawPic( 212, 367, 200, 28, cgs.media.binocularOverlay );
 
-		color1[0] = sin( cg.time * 0.01f ) * 0.5f + 0.5f;
+		color1[0] = sin( cg.time * 0.01 + cg.timeFraction * 0.01 ) * 0.5f + 0.5f;
 		color1[0] = color1[0] * color1[0];
 		color1[1] = color1[0];
 		color1[2] = color1[0];
@@ -359,7 +359,7 @@ static void CG_DrawZoomMask( void )
 			color1[0] = 1.0f; 
 			color1[1] = 1.0f;
 			color1[2] = 1.0f;
-			color1[3] = 0.7f + sin( cg.time * 0.01f ) * 0.3f;
+			color1[3] = 0.7f + sin( cg.time * 0.01 + cg.timeFraction * 0.01 ) * 0.3f;
 
 			trap_R_SetColor( color1 );
 		}
@@ -441,15 +441,15 @@ static void CG_DrawZoomMask( void )
 			|| (!cg.playerPredicted
 			&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
 			|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4) && cg.charging
-			&& cg.time > cg.chargeTime && cg.chargeTime))
+			&& cg.chargeTime && cg.time > cg.chargeTime))
 		{
 			trap_R_SetColor( colorTable[CT_WHITE] );
 
 			// draw the charge level
 			if (cg.playerPredicted)
-				max = ( cg.time - cg.predictedPlayerState.weaponChargeTime ) / ( 50.0f * 30.0f ); // bad hardcodedness 50 is disruptor charge unit and 30 is max charge units allowed.
+				max = ((cg.time - cg.predictedPlayerState.weaponChargeTime) + cg.timeFraction) / (50.0f * 30.0f); // bad hardcodedness 50 is disruptor charge unit and 30 is max charge units allowed.
 			else if (cg.time > cg.chargeTime && cg.chargeTime)
-				max = ( cg.time - cg.chargeTime ) / ( 50.0f * 30.0f );
+				max = ((cg.time - cg.chargeTime) + cg.timeFraction) / (50.0f * 30.0f);
 
 			if ( max > 1.0f )
 			{
@@ -574,7 +574,7 @@ void CG_DrawFlagModel( float x, float y, float w, float h, int team, qboolean fo
 		len = 0.5 * ( maxs[2] - mins[2] );		
 		origin[0] = len / 0.268;	// len / tan( fov/2 )
 
-		angles[YAW] = 60 * sin( cg.time / 2000.0 );;
+		angles[YAW] = 60 * sin((double)((double)cg.time + cg.timeFraction) / 2000.0);;
 
 		if( team == TEAM_RED ) {
 			handle = cgs.media.redFlagModel;
@@ -1874,7 +1874,7 @@ qboolean CG_CheckTargetVehicle( centity_t **pTargetVeh, float *alpha )
 		if ( cg.time-cg_targVehLastTime < 1000 )
 			*alpha = 1.0f;
 		else //fade out over 2 secs
-			*alpha = 1.0f-((cg.time-cg_targVehLastTime-1000)/2000.0f);
+			*alpha = 1.0f-(((cg.time-cg_targVehLastTime)+cg.timeFraction-1000)/2000.0f);
 	}
 	return qfalse;
 }
@@ -1993,7 +1993,7 @@ void CG_DrawVehicleAmmo( const menuDef_t *menuHUD, const centity_t *veh )
 			&& cg_vehicleAmmoWarning == 0 )
 		{
 			memcpy(calcColor, g_color_table[ColorIndex(COLOR_RED)], sizeof(vec4_t));
-			calcColor[3] = sin(cg.time*0.005)*0.5f+0.5f;
+			calcColor[3] = sin(cg.time*0.005+cg.timeFraction*0.005)*0.5f+0.5f;
 		}
 		else
 		{
@@ -2064,7 +2064,7 @@ void CG_DrawVehicleAmmoUpper( const menuDef_t *menuHUD, const centity_t *veh )
 			&& cg_vehicleAmmoWarning == 0 )
 		{
 			memcpy(calcColor, g_color_table[ColorIndex(COLOR_RED)], sizeof(vec4_t));
-			calcColor[3] = sin(cg.time*0.005)*0.5f+0.5f;
+			calcColor[3] = sin(cg.time*0.005+cg.timeFraction*0.005)*0.5f+0.5f;
 		}
 		else
 		{
@@ -2136,7 +2136,7 @@ void CG_DrawVehicleAmmoLower( const menuDef_t *menuHUD, const centity_t *veh )
 			&& cg_vehicleAmmoWarning == 1 )
 		{
 			memcpy(calcColor, g_color_table[ColorIndex(COLOR_RED)], sizeof(vec4_t));
-			calcColor[3] = sin(cg.time*0.005)*0.5f+0.5f;
+			calcColor[3] = sin(cg.time*0.005+cg.timeFraction*0.005)*0.5f+0.5f;
 		}
 		else
 		{
@@ -2167,37 +2167,28 @@ void CG_DrawVehicleAmmoLower( const menuDef_t *menuHUD, const centity_t *veh )
 }
 
 // The HUD.menu file has the graphic print with a negative height, so it will print from the bottom up.
-void CG_DrawVehicleTurboRecharge( const menuDef_t	*menuHUD, const centity_t *veh )
+void CG_DrawVehicleTurboRecharge(const menuDef_t *menuHUD, const centity_t *veh)
 {
 	itemDef_t	*item;
-	int			height;
 
-	item = Menu_FindItemByName( (menuDef_t	*) menuHUD, "turborecharge");
+	item = Menu_FindItemByName((menuDef_t *)menuHUD, "turborecharge");
 
-	if (item)
-	{
-		float percent=0.0f;
-		int diff = ( cg.time - veh->m_pVehicle->m_iTurboTime );
+	if (item) {
+		float height = item->window.rect.h;
+		float percent = 0.0f;
+		float diff = (cg.time - veh->m_pVehicle->m_iTurboTime) + cg.timeFraction;
 
-		height = item->window.rect.h;
-
-		if (diff > veh->m_pVehicle->m_pVehicleInfo->turboRecharge)
-		{
+		if (diff > veh->m_pVehicle->m_pVehicleInfo->turboRecharge) {
 			percent = 1.0f;
-			trap_R_SetColor( colorTable[CT_GREEN] );
-		}
-		else 
-		{
-			percent = (float) diff / veh->m_pVehicle->m_pVehicleInfo->turboRecharge;
+			trap_R_SetColor(colorTable[CT_GREEN]);
+		} else {
+			percent = diff / veh->m_pVehicle->m_pVehicleInfo->turboRecharge;
 			if (percent < 0.0f)
-			{
 				percent = 0.0f;
-			}
-			trap_R_SetColor( colorTable[CT_RED] );
+			trap_R_SetColor(colorTable[CT_RED]);
 		}
 
 		height *= percent;
-
 		CG_DrawPic( 
 			item->window.rect.x, 
 			item->window.rect.y, 
@@ -2533,23 +2524,21 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 	{
 		if (veh->m_pVehicle->m_pVehicleInfo->dmgIndicBackgroundHandle)
 		{
-			if ( veh->damageTime > cg.time )
+			if (veh->damageTime > cg.time)
 			{//ship shields currently taking damage
 				//NOTE: cent->damageAngle can be accessed to get the direction from the ship origin to the impact point (in 3-D space)
-				float perc = 1.0f - ((veh->damageTime - cg.time) / 2000.0f/*MIN_SHIELD_TIME*/);
-				if ( perc < 0.0f )
-				{
+				float perc = 1.0f - (((veh->damageTime - cg.time) - cg.timeFraction) / 2000.0f/*MIN_SHIELD_TIME*/);
+				
+				if (perc < 0.0f)
 					perc = 0.0f;
-				}
-				else if ( perc > 1.0f )
-				{
+				else if (perc > 1.0f)
 					perc = 1.0f;
-				}
+
 				color[0] = item->window.foreColor[0];//flash red
 				color[1] = item->window.foreColor[1]*perc;//fade other colors back in over time
 				color[2] = item->window.foreColor[2]*perc;//fade other colors back in over time
 				color[3] = item->window.foreColor[3];//always normal alpha
-				trap_R_SetColor( color );
+				trap_R_SetColor(color);
 			}
 			else
 			{
@@ -3589,7 +3578,7 @@ float CG_DrawRadar ( float y )
 						//alpha out the longer it's been since it was considered dangerous
 						if ( (cg.time-impactSoundDebounceTime) > 100 )
 						{
-							asteroidColor[3] = (float)((cg.time-impactSoundDebounceTime)-100)/900.0f;
+							asteroidColor[3] = (float)((cg.time-impactSoundDebounceTime)+cg.timeFraction-100.0f)/900.0f;
 						}
 
 						trap_R_SetColor ( asteroidColor );
@@ -3719,7 +3708,7 @@ float CG_DrawRadar ( float y )
 				// Pulse the radar icon after a voice message
 				if ( cent->vChatTime + 2000 > cg.time )
 				{
-					float f = (cent->vChatTime + 2000 - cg.time) / 3000.0f;
+					float f = ((cent->vChatTime + 2000 - cg.time) - cg.timeFraction) / 3000.0f;
 					arrowBaseScale = 16.0f + 4.0f * f;
 					color[0] = teamColor[0] + (1.0f - teamColor[0]) * f;
 					color[1] = teamColor[1] + (1.0f - teamColor[1]) * f;
@@ -4851,7 +4840,7 @@ void CG_DrawHaqrBar(float chX, float chY, float chW, float chH)
 	vec4_t cColor;
 	float x = chX+((chW/2)-(HEALTH_WIDTH/2)*cgs.widthRatioCoef);
 	float y = (chY+chH) + 8.0f;
-	float percent = (((float)cg.predictedPlayerState.hackingTime-(float)cg.time)/(float)cg.predictedPlayerState.hackingBaseTime)*HEALTH_WIDTH*cgs.widthRatioCoef;
+	float percent = ((((float)cg.predictedPlayerState.hackingTime-(float)cg.time)-cg.timeFraction)/(float)cg.predictedPlayerState.hackingBaseTime)*HEALTH_WIDTH*cgs.widthRatioCoef;
 
 	if (percent > HEALTH_WIDTH*cgs.widthRatioCoef ||
 		percent < 1.0f)
@@ -4905,7 +4894,7 @@ void CG_DrawGenericTimerBar(void)
 	vec4_t cColor;
 	float x = CGTIMERBAR_X;
 	float y = CGTIMERBAR_Y;
-	float percent = ((float)(cg_genericTimerBar-cg.time)/(float)cg_genericTimerDur)*CGTIMERBAR_H;
+	float percent = (((cg_genericTimerBar-cg.time)-cg.timeFraction)/(float)cg_genericTimerDur)*CGTIMERBAR_H;
 
 	if (percent > CGTIMERBAR_H)
 	{
@@ -5298,7 +5287,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 
 	// pulse the size of the crosshair when picking up items
 	if (cg.playerPredicted) {
-		f = cg.time - cg.itemPickupBlendTime;
+		f = (cg.time - cg.itemPickupBlendTime) + cg.timeFraction;
 	}
 	if ( f > 0 && f < ITEM_BLOB_TIME ) {
 		f /= ITEM_BLOB_TIME;
@@ -5374,7 +5363,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 	if ( corona ) // drawing extra bits
 	{
 		ecolor[3] = 0.5f;
-		ecolor[0] = ecolor[1] = ecolor[2] = (1 - ecolor[3]) * ( sinf(cg.time * 0.001f + cg.timeFraction * 0.001f) * 0.08f + 0.35f ); // don't draw full color
+		ecolor[0] = ecolor[1] = ecolor[2] = (1 - ecolor[3]) * ((float)sin(cg.time * 0.001 + cg.timeFraction * 0.001) * 0.08f + 0.35f); // don't draw full color
 		ecolor[3] = 1.0f;
 
 		trap_R_SetColor( ecolor );
@@ -5435,14 +5424,15 @@ int cg_saberFlashTime = 0;
 vec3_t cg_saberFlashPos = {0, 0, 0};
 void CG_SaberClashFlare( void ) 
 {
-	int				t, maxTime = 150;
+	int				maxTime = 150;
+	float t;
 	vec3_t dif;
 	vec3_t color;
 	int x,y;
 	float v, len;
 	trace_t tr;
 
-	t = cg.time - cg_saberFlashTime;
+	t = (cg.time - cg_saberFlashTime) + cg.timeFraction;
 
 	if ( t <= 0 || t >= maxTime ) 
 	{
@@ -5478,7 +5468,7 @@ void CG_SaberClashFlare( void )
 		return;
 	}
 
-	v = ( 1.0f - ((float)t / maxTime )) * ((1.0f - ( len / 800.0f )) * 2.0f + 0.35f);
+	v =  (1.0f - (t / maxTime )) * ((1.0f - (len / 800.0f)) * 2.0f + 0.35f);
 	if (v < 0.001f)
 	{
 		v = 0.001f;
@@ -5863,12 +5853,12 @@ static void CG_DrawRocketLocking( int lockEntNum, int lockTime )
 {
 	int		cx, cy;
 	vec3_t	org;
-	static	int oldDif = 0;
+	static float oldDif = 0;
 	centity_t *cent = &cg_entities[lockEntNum];
 	vec4_t color={0.0f,0.0f,0.0f,0.0f};
 	float lockTimeInterval = ((cgs.gametype==GT_SIEGE)?2400.0f:1200.0f)/16.0f;
 	//FIXME: if in a vehicle, use the vehicle's lockOnTime...
-	int dif = (cg.time - cg.snap->ps.rocketLockTime)/lockTimeInterval;
+	float dif = ((cg.time - cg.snap->ps.rocketLockTime) + cg.timeFraction) / lockTimeInterval;
 	int i;
 
 	if (!cg.snap->ps.rocketLockTime)
@@ -5912,7 +5902,7 @@ static void CG_DrawRocketLocking( int lockEntNum, int lockTime )
 				else
 				{//use the custom vehicle lockOnTime
 					lockTimeInterval = (vehWeapon->iLockOnTime/16.0f);
-					dif = (cg.time - cg.snap->ps.rocketLockTime)/lockTimeInterval;
+					dif = ((cg.time - cg.snap->ps.rocketLockTime) + cg.timeFraction) / lockTimeInterval;
 				}
 			}
 		}
@@ -6055,7 +6045,7 @@ static void CG_DrawRocketLocking( int lockEntNum, int lockTime )
 		// we are locked and loaded baby
 		if ( dif == 8 )
 		{
-			color[0] = color[1] = color[2] = sin( cg.time * 0.05f ) * 0.5f + 0.5f;
+			color[0] = color[1] = color[2] = sin(cg.time * 0.05 + cg.timeFraction * 0.05) * 0.5f + 0.5f;
 			color[3] = 1.0f; // this art is additive, so the alpha value does nothing
 
 			trap_R_SetColor( color );
@@ -7882,7 +7872,7 @@ static void CG_Draw2DScreenTints( void )
 				cgRageTime = cg.time;
 			}
 			
-			rageTime = (float)(cg.time - cgRageTime);
+			rageTime = (cg.time - cgRageTime) + cg.timeFraction;
 			
 			rageTime /= 9000;
 			
@@ -7918,7 +7908,7 @@ static void CG_Draw2DScreenTints( void )
 			
 			rageTime = cgRageFadeVal;
 			
-			cgRageFadeVal -= (cg.time - cgRageFadeTime)*0.000005;
+			cgRageFadeVal -= ((cg.time - cgRageFadeTime) + cg.timeFraction)*0.000005;
 			
 			if (rageTime < 0)
 			{
@@ -7979,7 +7969,7 @@ static void CG_Draw2DScreenTints( void )
 				cgRageRecTime = cg.time;
 			}
 			
-			rageRecTime = (float)(cg.time - cgRageRecTime);
+			rageRecTime = (cg.time - cgRageRecTime) + cg.timeFraction;
 			
 			rageRecTime /= 9000;
 			
@@ -8015,7 +8005,7 @@ static void CG_Draw2DScreenTints( void )
 			
 			rageRecTime = cgRageRecFadeVal;
 			
-			cgRageRecFadeVal -= (cg.time - cgRageRecFadeTime)*0.000005;
+			cgRageRecFadeVal -= ((cg.time - cgRageRecFadeTime) + cg.timeFraction)*0.000005;
 			
 			if (rageRecTime < 0)
 			{
@@ -8048,7 +8038,7 @@ static void CG_Draw2DScreenTints( void )
 				cgAbsorbTime = cg.time;
 			}
 			
-			absorbTime = (float)(cg.time - cgAbsorbTime);
+			absorbTime = (cg.time - cgAbsorbTime) + cg.timeFraction;
 			
 			absorbTime /= 9000;
 			
@@ -8084,7 +8074,7 @@ static void CG_Draw2DScreenTints( void )
 			
 			absorbTime = cgAbsorbFadeVal;
 			
-			cgAbsorbFadeVal -= (cg.time - cgAbsorbFadeTime)*0.000005f;
+			cgAbsorbFadeVal -= ((cg.time - cgAbsorbFadeTime) + cg.timeFraction)*0.000005f;
 			
 			if (absorbTime < 0)
 			{
@@ -8117,7 +8107,7 @@ static void CG_Draw2DScreenTints( void )
 				cgProtectTime = cg.time;
 			}
 			
-			protectTime = (float)(cg.time - cgProtectTime);
+			protectTime = (cg.time - cgProtectTime) + cg.timeFraction;
 			
 			protectTime /= 9000;
 			
@@ -8153,7 +8143,7 @@ static void CG_Draw2DScreenTints( void )
 			
 			protectTime = cgProtectFadeVal;
 			
-			cgProtectFadeVal -= (cg.time - cgProtectFadeTime)*0.000005;
+			cgProtectFadeVal -= ((cg.time - cgProtectFadeTime) + cg.timeFraction)*0.000005;
 			
 			if (protectTime < 0)
 			{
@@ -8191,7 +8181,7 @@ static void CG_Draw2DScreenTints( void )
 				cgYsalTime = cg.time;
 			}
 			
-			ysalTime = (float)(cg.time - cgYsalTime);
+			ysalTime = (cg.time - cgYsalTime) + cg.timeFraction;
 			
 			ysalTime /= 9000;
 			
@@ -8227,7 +8217,7 @@ static void CG_Draw2DScreenTints( void )
 			
 			ysalTime = cgYsalFadeVal;
 			
-			cgYsalFadeVal -= (cg.time - cgYsalFadeTime)*0.000005f;
+			cgYsalFadeVal -= ((cg.time - cgYsalFadeTime) + cg.timeFraction)*0.000005f;
 			
 			if (ysalTime < 0)
 			{
@@ -8256,8 +8246,8 @@ static void CG_Draw2DScreenTints( void )
 
 	if ( (cg.refdef.viewContents&CONTENTS_LAVA) )
 	{//tint screen red
-		float phase = cg.time / 1000.0 * WAVE_FREQUENCY * M_PI * 2;
-		hcolor[3] = 0.5 + (0.15f*sin( phase ));
+		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
+		hcolor[3] = 0.5 + (0.15f*sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
 		hcolor[0] = 0.7f;
 		hcolor[1] = 0;
 		hcolor[2] = 0;
@@ -8266,8 +8256,8 @@ static void CG_Draw2DScreenTints( void )
 	}
 	else if ( (cg.refdef.viewContents&CONTENTS_SLIME) )
 	{//tint screen green
-		float phase = cg.time / 1000.0 * WAVE_FREQUENCY * M_PI * 2;
-		hcolor[3] = 0.4 + (0.1f*sin( phase ));
+		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
+		hcolor[3] = 0.4 + (0.1f*sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
 		hcolor[0] = 0;
 		hcolor[1] = 0.7f;
 		hcolor[2] = 0;
@@ -8277,7 +8267,7 @@ static void CG_Draw2DScreenTints( void )
 	else if ( (cg.refdef.viewContents&CONTENTS_WATER) )
 	{//tint screen light blue -- FIXME: don't do this if CONTENTS_FOG? (in case someone *does* make a water shader with fog in it?)
 		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
-		hcolor[3] = 0.3f + (0.05f*sinf( phase ));
+		hcolor[3] = 0.3f + (0.05f*(float)sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
 		hcolor[0] = 0;
 		hcolor[1] = 0.2f;
 		hcolor[2] = 0.8f;

@@ -54,7 +54,7 @@ qboolean strap_G2API_SetBoneIKState(void *ghoul2, int time, const char *boneName
 	return trap_G2API_SetBoneIKState(ghoul2, time, boneName, ikState, params);
 }
 
-qboolean strap_G2API_IKMove(void *ghoul2,int time, sharedIKMoveParams_t *params)
+qboolean strap_G2API_IKMove(void *ghoul2, int time, sharedIKMoveParams_t *params)
 {
 	return trap_G2API_IKMove(ghoul2, time, params);
 }

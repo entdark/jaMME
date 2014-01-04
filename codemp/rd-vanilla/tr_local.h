@@ -1319,7 +1319,7 @@ Ghoul2 Insert End
 */
 //====================================================================
 
-float R_NoiseGet4f( float x, float y, float z, float t );
+float R_NoiseGet4f( float x, float y, float z, double t );
 void  R_NoiseInit( void );
 
 void R_SwapBuffers( int );

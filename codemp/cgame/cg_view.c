@@ -211,11 +211,11 @@ static void CG_CalcVrect (void) {
 //==============================================================================
 // this causes a compiler bug on mac MrC compiler
 static void CG_StepOffset( void ) {
-	int		timeDelta;
+	float timeDelta;
 	
 	// smooth out stair climbing
 	//mme
-	timeDelta = cg.time - cg.playerCent->pe.stepTime;
+	timeDelta = (cg.time - cg.playerCent->pe.stepTime) + cg.timeFraction;
 	if ( timeDelta < STEP_TIME ) {
 		cg.refdef.vieworg[2] -= cg.playerCent->pe.stepChange 
 			* (STEP_TIME - timeDelta) / STEP_TIME;
@@ -927,8 +927,8 @@ static void CG_OffsetFirstPersonView( void ) {
 	float			speed;
 	float			f;
 	vec3_t			predictedVelocity;
-	int				timeDelta;
-	int				kickTime;
+	float			timeDelta;
+	float			kickTime;
 
 	//mme
 	centity_t		*cent = cg.playerCent;
@@ -974,7 +974,7 @@ static void CG_OffsetFirstPersonView( void ) {
 	}
 */
 	// add angles based on weapon kick
-	kickTime = (cg.time - cg.kick_time);
+	kickTime = (cg.time - cg.kick_time) + cg.timeFraction;
 	if ( kickTime < 800 )
 	{//kicks are always 1 second long.  Deal with it.
 		float kickPerc = 0.0f;
@@ -991,7 +991,7 @@ static void CG_OffsetFirstPersonView( void ) {
 	}
 	// add angles based on damage kick
 	if (cg.damageTime && cg.playerPredicted) { //mme: added cg.playerPredicted
-		ratio = cg.time - cg.damageTime;
+		ratio = (cg.time - cg.damageTime) + cg.timeFraction;
 		if ( ratio < DAMAGE_DEFLECT_TIME ) {
 			ratio /= DAMAGE_DEFLECT_TIME;
 			angles[PITCH] += ratio * cg.v_dmg_pitch;
@@ -1055,7 +1055,7 @@ static void CG_OffsetFirstPersonView( void ) {
 	}
 */
 	//mme
-	timeDelta = cg.time - pe->duckTime;
+	timeDelta = (cg.time - pe->duckTime) + cg.timeFraction;
 	if ( timeDelta >= 0 && timeDelta < DUCK_TIME) {
 		cg.refdef.vieworg[2] -= pe->duckChange 
 			* (DUCK_TIME - timeDelta) / DUCK_TIME;
@@ -1267,7 +1267,7 @@ float zoomFov; //this has to be global client-side
 
 static int CG_CalcFov( void ) {
 	float	x;
-	float	phase;
+	double	phase;
 	float	v;
 	float	fov_x, fov_y;
 	float	f;
@@ -1386,7 +1386,7 @@ static int CG_CalcFov( void ) {
 		{
 			zoomFov = 80;
 
-			f = ( cg.time - cg.predictedPlayerState.zoomTime ) / ZOOM_OUT_TIME;
+			f = ((cg.time - cg.predictedPlayerState.zoomTime) + cg.timeFraction) / ZOOM_OUT_TIME;
 			if ( f > 1.0 ) 
 			{
 				fov_x = fov_x;
@@ -1416,7 +1416,7 @@ notZoom:
 	// warp if underwater
 	cg.refdef.viewContents = CG_PointContents( cg.refdef.vieworg, -1 );
 	if ( cg.refdef.viewContents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ){
-		phase = cg.time / 1000.0 * WAVE_FREQUENCY * M_PI * 2;
+		phase = (cg.time + cg.timeFraction) / 1000.0 * WAVE_FREQUENCY * M_PI * 2;
 		v = WAVE_AMPLITUDE * sin( phase );
 		fov_x += v;
 		fov_y -= v;
@@ -1451,7 +1451,7 @@ CG_DamageBlendBlob
 ===============
 */
 void CG_DamageBlendBlob( void ) {
-	int			t;
+	float		t;
 	int			maxTime;
 	refEntity_t		ent;
 
@@ -1463,7 +1463,7 @@ void CG_DamageBlendBlob( void ) {
 		return;
 
 	maxTime = DAMAGE_TIME;
-	t = cg.time - cg.damageTime;
+	t = (cg.time - cg.damageTime) + cg.timeFraction;
 	if ( t <= 0 || t >= maxTime ) {
 		return;
 	}
@@ -1476,22 +1476,22 @@ void CG_DamageBlendBlob( void ) {
 	VectorMA( ent.origin, cg.damageX * -8, cg.refdef.viewaxis[1], ent.origin );
 	VectorMA( ent.origin, cg.damageY * 8, cg.refdef.viewaxis[2], ent.origin );
 
-	ent.radius = cg.damageValue * 3 * ( 1.0 - ((float)t / maxTime) );
+	ent.radius = cg.damageValue * 3 * ( 1.0f - (t / maxTime) );
 
 	if (cg.snap->ps.damageType == 0)
 	{ //pure health
 		ent.customShader = cgs.media.viewPainShader;
-		ent.shaderRGBA[0] = 180 * ( 1.0 - ((float)t / maxTime) );
-		ent.shaderRGBA[1] = 50 * ( 1.0 - ((float)t / maxTime) );
-		ent.shaderRGBA[2] = 50 * ( 1.0 - ((float)t / maxTime) );
+		ent.shaderRGBA[0] = 180 * ( 1.0f - (t / maxTime) );
+		ent.shaderRGBA[1] = 50 * ( 1.0f - (t / maxTime) );
+		ent.shaderRGBA[2] = 50 * ( 1.0f - (t / maxTime) );
 		ent.shaderRGBA[3] = 255;
 	}
 	else if (cg.snap->ps.damageType == 1)
 	{ //pure shields
 		ent.customShader = cgs.media.viewPainShader_Shields;
-		ent.shaderRGBA[0] = 50 * ( 1.0 - ((float)t / maxTime) );
-		ent.shaderRGBA[1] = 180 * ( 1.0 - ((float)t / maxTime) );
-		ent.shaderRGBA[2] = 50 * ( 1.0 - ((float)t / maxTime) );
+		ent.shaderRGBA[0] = 50 * ( 1.0f - (t / maxTime) );
+		ent.shaderRGBA[1] = 180 * ( 1.0f - (t / maxTime) );
+		ent.shaderRGBA[2] = 50 * ( 1.0f - (t / maxTime) );
 		ent.shaderRGBA[3] = 255;
 	}
 	else
@@ -2157,7 +2157,7 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 		// do smooth transitions for zooming
 		if (cg.predictedPlayerState.zoomMode)
 		{ //zoomed/zooming in
-			f = ( cg.time - cg.zoomTime ) / (float)ZOOM_OUT_TIME;
+			f = ((cg.time - cg.zoomTime) + cg.timeFraction) / (float)ZOOM_OUT_TIME;
 			if ( f > 1.0 ) {
 				fov_x = zoomFov;
 			} else {
@@ -2167,7 +2167,7 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 		}
 		else
 		{ //zooming out
-			f = ( cg.time - cg.zoomTime ) / (float)ZOOM_OUT_TIME;
+			f = ((cg.time - cg.zoomTime) + cg.timeFraction) / (float)ZOOM_OUT_TIME;
 			if ( f > 1.0 ) {
 				fov_x = fov_x;
 			} else {
@@ -2859,7 +2859,18 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 		return;
 	}
 
-	trap_FX_AdjustTime(cg.time, cg.frametime, cg.timeFraction);
+	srand(cg.time);
+
+	// make sure the lagometerSample and frame timing isn't done twice when in stereo
+	if ( stereoView != STEREO_RIGHT ) {
+		cg.frametime = cg.time - cg.oldTime;
+		if ( cg.frametime < 0 ) {
+			cg.frametime = 0;
+		}
+		cg.oldTime = cg.time;
+		CG_AddLagometerFrameInfo();
+	}
+	trap_FX_AdjustTime(cg.time, cg.frametime, 0.0f);
 
 	CG_RunLightStyles();
 
@@ -3094,15 +3105,6 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 	// update audio positions
 	trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater );
 
-	// make sure the lagometerSample and frame timing isn't done twice when in stereo
-	if ( stereoView != STEREO_RIGHT ) {
-		cg.frametime = cg.time - cg.oldTime;
-		if ( cg.frametime < 0 ) {
-			cg.frametime = 0;
-		}
-		cg.oldTime = cg.time;
-		CG_AddLagometerFrameInfo();
-	}
 	if (timescale.value != cg_timescaleFadeEnd.value) {
 		if (timescale.value < cg_timescaleFadeEnd.value) {
 			timescale.value += cg_timescaleFadeSpeed.value * ((float)cg.frametime) / 1000;

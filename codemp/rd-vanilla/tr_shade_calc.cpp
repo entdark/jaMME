@@ -9,8 +9,8 @@
 #define	WAVEVALUE( table, base, amplitude, phase, freq )  ((base) + table[ Q_ftol( ( ( (phase) + tess.shaderTime * (freq) ) * FUNCTABLE_SIZE ) ) & FUNCTABLE_MASK ] * (amplitude))
 
 float WAVEVALUENEW(genFunc_t func, float base, float amplitude, float phase, float freq) {
-	double angle = phase + tess.shaderTime * freq + tr.refdef.timeFraction * 0.001 * freq;
-	angle = fmod (angle, 360.0);
+	double angle = phase + /*tess.shaderTime*/tr.refdef.time * 0.001 * freq + tr.refdef.timeFraction * 0.001 * freq;
+	angle = fmod(angle, 1.0);
 
 	switch (func) {
 	case GF_SIN:
@@ -18,22 +18,26 @@ float WAVEVALUENEW(genFunc_t func, float base, float amplitude, float phase, flo
 	case GF_TRIANGLE:
 		return WAVEVALUE(tr.triangleTable, base, amplitude, phase, freq);
 	case GF_SQUARE:
-		return base + ((angle < 360.0 / 2) ? 1.0 : -1.0) * amplitude;
+		return WAVEVALUE(tr.squareTable, base, amplitude, phase, freq);
 	case GF_SAWTOOTH:
-		return base + (angle / 360.0) * amplitude;
+		return base + angle * amplitude;
 	case GF_INVERSE_SAWTOOTH:
-		return base + (1.0 - (angle / 360.0)) * amplitude;
+		return base + (1.0 - angle) * amplitude;
 	case GF_NONE:
 	default:
 		break;
 	}
+	Com_Printf("WAVEVALUENEW called with invalid function '%d' in shader '%s'\n", func, tess.shader->name);
+	return 0.0f;
 }
 
 // not even a table
 float NewSinTable (double jediAcademy) {
+	jediAcademy = fmod(jediAcademy, 1.0);
 	return sin(DEG2RAD(jediAcademy * 360.0));
 }
 float NewCosTable (double jediAcademy) {
+	jediAcademy = fmod(jediAcademy, 1.0);
 	return cos(DEG2RAD(jediAcademy * 360.0));
 }
 
@@ -202,17 +206,17 @@ void RB_CalcDeformNormals( deformStage_t *ds ) {
 	for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4 ) {
 		scale = 0.98f;
 		scale = R_NoiseGet4f( xyz[0] * scale, xyz[1] * scale, xyz[2] * scale,
-			tess.shaderTime * ds->deformationWave.frequency + tr.refdef.timeFraction * 0.001 * ds->deformationWave.frequency );
+			/*tess.shaderTime*/tr.refdef.time * 0.001 * ds->deformationWave.frequency + tr.refdef.timeFraction * 0.001 * ds->deformationWave.frequency );
 		normal[ 0 ] += ds->deformationWave.amplitude * scale;
 
 		scale = 0.98f;
 		scale = R_NoiseGet4f( 100 + xyz[0] * scale, xyz[1] * scale, xyz[2] * scale,
-			tess.shaderTime * ds->deformationWave.frequency + tr.refdef.timeFraction * 0.001 * ds->deformationWave.frequency );
+			/*tess.shaderTime*/tr.refdef.time * 0.001 * ds->deformationWave.frequency + tr.refdef.timeFraction * 0.001 * ds->deformationWave.frequency );
 		normal[ 1 ] += ds->deformationWave.amplitude * scale;
 
 		scale = 0.98f;
 		scale = R_NoiseGet4f( 200 + xyz[0] * scale, xyz[1] * scale, xyz[2] * scale,
-			tess.shaderTime * ds->deformationWave.frequency + tr.refdef.timeFraction * 0.001 * ds->deformationWave.frequency );
+			/*tess.shaderTime*/tr.refdef.time * 0.001 * ds->deformationWave.frequency + tr.refdef.timeFraction * 0.001 * ds->deformationWave.frequency );
 		normal[ 2 ] += ds->deformationWave.amplitude * scale;
 
 		VectorNormalizeFast( normal );
@@ -759,7 +763,7 @@ void RB_CalcWaveColor( const waveForm_t *wf, unsigned char *dstColors )
 
 
   if ( wf->func == GF_NOISE ) {
-		glow = wf->base + R_NoiseGet4f( 0, 0, 0, ( tess.shaderTime + wf->phase + tr.refdef.timeFraction * 0.001 ) * wf->frequency ) * wf->amplitude;
+		glow = wf->base + R_NoiseGet4f( 0, 0, 0, ( /*tess.shaderTime*/tr.refdef.time * 0.001 + wf->phase + tr.refdef.timeFraction * 0.001 ) * wf->frequency ) * wf->amplitude;
 	} else {
 		glow = EvalWaveForm( wf ) * tr.identityLight;
 	}
@@ -997,7 +1001,7 @@ void RB_CalcTurbulentTexCoords( const waveForm_t *wf, float *st )
 	int i;
 	double now;
 
-	now = (wf->phase + tess.shaderTime * wf->frequency/* + tr.refdef.timeFraction * 0.001 * wf->frequency*/);
+	now = (wf->phase + /*tess.shaderTime*/tr.refdef.time * 0.001 * wf->frequency + tr.refdef.timeFraction * 0.001 * wf->frequency);
 
 	for ( i = 0; i < tess.numVertexes; i++, st += 2 )
 	{
@@ -1071,9 +1075,9 @@ void RB_CalcTransformTexCoords( const texModInfo_t *tmi, float *st  )
 */
 void RB_CalcRotateTexCoords( float degsPerSecond, float *st )
 {
-	float timeScale = tess.shaderTime;
+	double timeScale = /*tess.shaderTime*/tr.refdef.time * 0.001;
 	double degs;
-	float index;
+	double index;
 	float sinValue, cosValue;
 	texModInfo_t tmi;
 

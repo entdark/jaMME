@@ -1734,7 +1734,7 @@ openSound_t *S_SoundOpen( char *fileName ) {
 #ifdef HAVE_LIBMAD
 		&& Q_stricmp(fileExt, ".mp3")
 #endif
-		){
+		) {
 		Com_Printf("SoundOpen:File %s has unknown extension %s\n", fileName, fileExt );
 		return 0;
 	}

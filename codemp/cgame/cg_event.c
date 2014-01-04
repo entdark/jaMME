@@ -1609,7 +1609,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("EV_STEP");
 	{
 		float	oldStep;
-		int		delta;
+		float	delta;
 		int		step;
 
 		if ( clientNum != cg.predictedPlayerState.clientNum ) {
@@ -1629,7 +1629,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		}
 */
 		//mme
-		delta = cg.time - pe->stepTime;
+		delta = (cg.time - pe->stepTime) + cg.timeFraction;
 		if (delta < STEP_TIME) {
 			oldStep = pe->stepChange * (STEP_TIME - delta) / STEP_TIME;
 		} else {

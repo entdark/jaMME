@@ -385,7 +385,7 @@ void CG_UpdateFallVector (void) {
 		float	fallTime; 
 		vec4_t	hcolor;
 
-		fallTime = (float)(cg.time - cg.snap->ps.fallingToDeath);
+		fallTime = (float)(cg.time - cg.snap->ps.fallingToDeath) + cg.timeFraction;
 
 		fallTime /= (FALL_FADE_TIME/2);
 
@@ -623,12 +623,9 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	}
 
 	/* Make sure the random seed is the same each time we hit this frame */
-	{
-		int thing = (cg.time % 1000) * 10; //bad math :s
-		srand(cg.time + cg.timeFraction);
-		trap_R_RandomSeed(cg.time, cg.timeFraction);
-		trap_FX_RandomSeed(cg.time, cg.timeFraction);
-	}
+	srand(cg.time + cg.timeFraction);
+	trap_R_RandomSeed(cg.time, cg.timeFraction);
+	trap_FX_RandomSeed(cg.time, cg.timeFraction);
 
 	//silly hack :s
 	if (demo.play.paused || !frameSpeed) {
