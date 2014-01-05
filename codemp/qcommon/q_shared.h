@@ -876,7 +876,7 @@ typedef struct
 	saberTrail_t	trail;
 	int			hitWallDebounceTime;
 	int			storageTime;
-	float		extendDebounce;
+	double		extendDebounce;
 } bladeInfo_t;
 #define MAX_BLADES 8
 

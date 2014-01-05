@@ -6699,8 +6699,13 @@ void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, in
 
 	saberEnt = &cg_entities[cent->currentState.saberEntityNum];
 	if ((cg.time - cg.oldTime) == 0) {
-		saberLen = client->saber[saberNum].blade[bladeNum].lengthOld;
-		client->saber[saberNum].blade[bladeNum].length = saberLen;
+		if (client->saber[saberNum].blade[bladeNum].lengthOld != client->saber[saberNum].blade[bladeNum].length) {
+			float lenDif = client->saber[saberNum].blade[bladeNum].length - client->saber[saberNum].blade[bladeNum].lengthOld;
+			saberLen = client->saber[saberNum].blade[bladeNum].lengthOld + lenDif * cg.timeFraction;
+			client->saber[saberNum].blade[bladeNum].length = client->saber[saberNum].blade[bladeNum].lengthOld;
+		} else {
+			saberLen = client->saber[saberNum].blade[bladeNum].lengthOld;
+		}
 	} else {
 		saberLen = client->saber[saberNum].blade[bladeNum].length;
 		client->saber[saberNum].blade[bladeNum].lengthOld = saberLen;
@@ -10722,14 +10727,22 @@ SkipTrueView:
 		cent->frame_minus2_refreshed = 0;
 	}
 
+	if (ci->shaderOverride) {
+		if (ci->shaderOverride == 2 && !cg_renderToTextureFX.integer)
+			legs.customShader = cgs.media.cloakedShader;
+		else
+			legs.customShader = ci->shaderOverride;
+		trap_R_AddRefEntityToScene( &legs );
+	}
+
 	if (cent->frame_minus1_refreshed ||
 		cent->frame_minus2_refreshed)
 	{
 		vec3_t			tDir;
-		int				distVelBase;
+		float			distVelBase;
 
 		VectorCopy(cent->currentState.pos.trDelta, tDir);
-		distVelBase = SPEED_TRAIL_DISTANCE*(VectorNormalize(tDir)*0.004);
+		distVelBase = SPEED_TRAIL_DISTANCE * (VectorNormalize(tDir) * 0.004f);
 
 		if (cent->frame_minus1_refreshed)
 		{
@@ -10744,7 +10757,12 @@ SkipTrueView:
 			//once per frame anyway, so we might end up with speed trails very spread out.
 			//in order to avoid that, we'll get the direction of the last trail from the player
 			//and place the trail refent a set distance from the player location this frame
-			VectorSubtract(cent->frame_minus1, legs.origin, tDir);
+			if (!cg.demoPlayback)
+				VectorSubtract(cent->frame_minus1, legs.origin, tDir);
+			else {
+				VectorCopy(cent->currentState.pos.trDelta, tDir);
+				VectorInverse(tDir);
+			}
 			VectorNormalize(tDir);
 
 			cent->frame_minus1[0] = legs.origin[0]+tDir[0]*distVelBase;
@@ -10769,7 +10787,12 @@ SkipTrueView:
 			reframe_minus2.shaderRGBA[3] = 50;
 
 			//Same as above but do it between trail points instead of the player and first trail entry
-			VectorSubtract(cent->frame_minus2, cent->frame_minus1, tDir);
+			if (!cg.demoPlayback)
+				VectorSubtract(cent->frame_minus2, cent->frame_minus1, tDir);
+			else {
+				VectorCopy(cent->currentState.pos.trDelta, tDir);
+				VectorInverse(tDir);
+			}
 			VectorNormalize(tDir);
 
 			cent->frame_minus2[0] = cent->frame_minus1[0]+tDir[0]*distVelBase;
@@ -12207,9 +12230,7 @@ stillDoSaber:
 skipCloaked:
 
 	//cent->frame_minus2 = cent->frame_minus1;
-	if (cg.time - cg.oldTime !=0) {
-		VectorCopy(cent->frame_minus1, cent->frame_minus2);
-	}
+	VectorCopy(cent->frame_minus1, cent->frame_minus2);
 	
 	if (cent->frame_minus1_refreshed)
 	{
@@ -12217,9 +12238,7 @@ skipCloaked:
 	}
 
 	//cent->frame_minus1 = legs;
-	if (cg.time - cg.oldTime !=0) {
-		VectorCopy(legs.origin, cent->frame_minus1);
-	}
+	VectorCopy(legs.origin, cent->frame_minus1);
 
 	cent->frame_minus1_refreshed = 1;
 
@@ -12569,13 +12588,6 @@ skipCloaked:
 		legs.renderfx &= ~RF_RGB_TINT;
 		legs.customShader = cgs.media.playerShieldDamage;
 		
-		trap_R_AddRefEntityToScene( &legs );
-	}
-	if (ci->shaderOverride) {
-		if (ci->shaderOverride == 2 && !cg_renderToTextureFX.integer)
-			legs.customShader = cgs.media.cloakedShader;
-		else
-			legs.customShader = ci->shaderOverride;
 		trap_R_AddRefEntityToScene( &legs );
 	}
 

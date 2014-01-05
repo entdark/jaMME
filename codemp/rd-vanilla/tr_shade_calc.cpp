@@ -9,7 +9,7 @@
 #define	WAVEVALUE( table, base, amplitude, phase, freq )  ((base) + table[ Q_ftol( ( ( (phase) + tess.shaderTime * (freq) ) * FUNCTABLE_SIZE ) ) & FUNCTABLE_MASK ] * (amplitude))
 
 float WAVEVALUENEW(genFunc_t func, float base, float amplitude, float phase, float freq) {
-	double angle = phase + /*tess.shaderTime*/tr.refdef.time * 0.001 * freq + tr.refdef.timeFraction * 0.001 * freq;
+	double angle = (double)phase + /*tess.shaderTime*/(double)tr.refdef.time * 0.001 * (double)freq + (double)tr.refdef.timeFraction * 0.001 * (double)freq;
 	angle = fmod(angle, 1.0);
 
 	switch (func) {
@@ -1075,7 +1075,7 @@ void RB_CalcTransformTexCoords( const texModInfo_t *tmi, float *st  )
 */
 void RB_CalcRotateTexCoords( float degsPerSecond, float *st )
 {
-	double timeScale = /*tess.shaderTime*/tr.refdef.time * 0.001;
+	double timeScale = /*tess.shaderTime*/(double)tr.refdef.time * 0.001;
 	double degs;
 	double index;
 	float sinValue, cosValue;

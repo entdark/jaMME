@@ -2828,6 +2828,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 	}
 
 	cg.time = serverTime;
+	cg.timeFraction = 0.0f;
 	cg.demoPlayback = demoPlayback;
 
 	if (cg.snap && ui_myteam.integer != cg.snap->ps.persistant[PERS_TEAM])
@@ -2859,17 +2860,6 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 		return;
 	}
 
-	srand(cg.time);
-
-	// make sure the lagometerSample and frame timing isn't done twice when in stereo
-	if ( stereoView != STEREO_RIGHT ) {
-		cg.frametime = cg.time - cg.oldTime;
-		if ( cg.frametime < 0 ) {
-			cg.frametime = 0;
-		}
-		cg.oldTime = cg.time;
-		CG_AddLagometerFrameInfo();
-	}
 	trap_FX_AdjustTime(cg.time, cg.frametime, 0.0f);
 
 	CG_RunLightStyles();
@@ -3105,6 +3095,15 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 	// update audio positions
 	trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater );
 
+	// make sure the lagometerSample and frame timing isn't done twice when in stereo
+	if ( stereoView != STEREO_RIGHT ) {
+		cg.frametime = cg.time - cg.oldTime;
+		if ( cg.frametime < 0 ) {
+			cg.frametime = 0;
+		}
+		cg.oldTime = cg.time;
+		CG_AddLagometerFrameInfo();
+	}
 	if (timescale.value != cg_timescaleFadeEnd.value) {
 		if (timescale.value < cg_timescaleFadeEnd.value) {
 			timescale.value += cg_timescaleFadeSpeed.value * ((float)cg.frametime) / 1000;

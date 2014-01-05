@@ -2901,7 +2901,7 @@ void BG_SI_SetLengthGradual(saberInfo_t *saber, int time, float timeFraction)
 		if (saber->blade[i].length == saber->blade[i].lengthMax ||
 			saber->blade[i].length == 0)
 		{
-			saber->blade[i].extendDebounce = time + timeFraction;
+			saber->blade[i].extendDebounce = (double)time + (double)timeFraction;
 			if (saber->blade[i].length == 0)
 			{
 				saber->blade[i].length++;
@@ -2912,7 +2912,7 @@ void BG_SI_SetLengthGradual(saberInfo_t *saber, int time, float timeFraction)
 			}
 		}
 
-		amt = ((time + timeFraction) - saber->blade[i].extendDebounce)*0.01;
+		amt = ((double)((double)time - saber->blade[i].extendDebounce) + timeFraction) * 0.01f;
 
 		if (amt < 0.2f)
 		{
