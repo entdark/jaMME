@@ -450,7 +450,7 @@ private:
 	void	AddPrimitiveToEffect( SEffectTemplate *fx, CPrimitiveTemplate *prim );
 	int		ParseEffect( const char *file, CGPGroup *base );
 
-	void	CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, vec3_t axis[3], int lateTime, int fxParm = -1,  int iGhoul2 = 0, int entNum = -1, int modelNum = -1, int boltNum = -1);
+	void	CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, vec3_t axis[3], float lateTime, int fxParm = -1,  int iGhoul2 = 0, int entNum = -1, int modelNum = -1, int boltNum = -1);
 	void	CreateEffect( CPrimitiveTemplate *fx, SScheduledEffect *schedFx );
 
 public:

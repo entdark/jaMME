@@ -616,16 +616,22 @@ void Con_DrawNotify (void)
 }
 
 //I want it be rainbow :>
-vec4_t		conColorRed		= {1, 0, 0, 1};
-vec4_t		conColorOrange	= {1, 0.5f, 0, 1};
-vec4_t		conColorYellow	= {1, 1, 0, 1};
-vec4_t		conColorGreen	= {0, 1, 0, 1};
-//vec4_t		conColorTurquoise= {0, 1, 0.5f, 1};
-vec4_t		conColorCyan	= {0, 1, 1, 1};
-vec4_t		conColorBlue	= {0, 0, 1, 1};
-vec4_t		conColorPurple	= {0.5f, 0, 1, 1};
-vec4_t		conColorPink	= {1, 0, 1, 1};
-//vec4_t		conColorMagenta	= {1, 0, 0.5f, 1};
+vec4_t		conColorRed			= {1, 0, 0, 1};
+vec4_t		conColorRedOrange	= {1, 0.25f, 0, 1};
+vec4_t		conColorOrange		= {1, 0.5f, 0, 1};
+vec4_t		conColorOrangeYellow= {1, 0.75f, 0, 1};
+vec4_t		conColorYellow		= {1, 1, 0, 1};
+vec4_t		conColorYellowGreen	= {0.5f, 1, 0, 1};
+vec4_t		conColorGreen		= {0, 1, 0, 1};
+vec4_t		conColorGreenTurq	= {0, 1, 0.25f, 1};
+vec4_t		conColorTurquoise	= {0, 1, 0.5f, 1};
+vec4_t		conColorCyan		= {0, 1, 1, 1};
+vec4_t		conColorCyanBlue	= {0, 0.5f, 1, 1};
+vec4_t		conColorBlue		= {0, 0, 1, 1};
+vec4_t		conColorBluePurple	= {0.25f, 0, 1, 1};
+vec4_t		conColorPurple		= {0.5f, 0, 1, 1};
+vec4_t		conColorPink		= {1, 0, 1, 1};
+vec4_t		conColorMagenta		= {1, 0, 0.5f, 1};
 
 /*
 ================
@@ -667,12 +673,12 @@ void Con_DrawSolidConsole( float frac ) {
 	re.DrawStretchPic( 0, y, SCREEN_WIDTH, 2, 0, 0, 0, 0, cls.whiteShader );
 
 	i = strlen( version );
-	y = (cls.realtime >> 9);
+	y = (cls.realtime >> 6);
 	for (x=0 ; x<i ; x++) {
 		if (version[x] ==' ')
 			continue;
 		/* Hackish use of color table */
-		re.SetColor( conColorRed + (y&7) * 4 );
+		re.SetColor( conColorRed + (y&15) * 4 );
 		y++;
 		SCR_DrawSmallChar( cls.glconfig.vidWidth - ( i - x ) * SMALLCHAR_WIDTH, 
 			(lines-(SMALLCHAR_HEIGHT+SMALLCHAR_HEIGHT/2)), version[x] );

@@ -1442,6 +1442,8 @@ void R_Init( void ) {
 
 	R_MME_Init();
 	R_MME_InitStereo();
+
+	R_BloomInit();
 	
 	max_polys = r_maxpolys->integer;
 	if (max_polys < MAX_POLYS)

@@ -221,8 +221,7 @@ CG_S_UpdateLoopingSounds
 Update any existing looping sounds on the entity.
 ==================
 */
-void CG_S_UpdateLoopingSounds(int entityNum)
-{
+void CG_S_UpdateLoopingSounds(int entityNum) {
 	centity_t *cent = &cg_entities[entityNum];
 	cgLoopSound_t *cSound;
 	vec3_t lerpOrg;
@@ -230,17 +229,12 @@ void CG_S_UpdateLoopingSounds(int entityNum)
 	int i = 0;
 
 	if (!cent->numLoopingSounds)
-	{
 		return;
-	}
 
-	if (cent->currentState.eType == ET_MOVER)
-	{
+	if (cent->currentState.eType == ET_MOVER) {
 		v = cgs.inlineModelMidpoints[ cent->currentState.modelindex ];
 		VectorAdd( cent->lerpOrigin, v, lerpOrg );
-	}
-	else
-	{
+	} else {
 		VectorCopy(cent->lerpOrigin, lerpOrg);
 	}
 
@@ -252,20 +246,18 @@ void CG_S_UpdateLoopingSounds(int entityNum)
 		Sil: you will hear it in origin where he turned it on
 		Sil: even if he is not there anymore
 	*/
-	if ( (cent->currentState.eFlags & EF_SOUNDTRACKER)
-		&& (!cg.snap || cent->currentState.trickedentindex != cg.snap->ps.clientNum) )
-	{//keep sound for this entity updated in accordance with its attached entity at all times
+	if ((cent->currentState.eFlags & EF_SOUNDTRACKER)
+		&& (cg.playerCent && cent->currentState.trickedentindex != cg.playerCent->currentState.number)) {
+		//keep sound for this entity updated in accordance with its attached entity at all times
 		//entity out of range
-		if ( !cg_entities[cent->currentState.trickedentindex].currentValid )
+		if (!cg_entities[cent->currentState.trickedentindex].currentValid)
 			return;
 
 		VectorCopy( cg_entities[cent->currentState.trickedentindex].lerpOrigin, lerpOrg );
 	}
 
-	while (i < cent->numLoopingSounds)
-	{
+	while (i < cent->numLoopingSounds) {
 		cSound = &cent->loopingSound[i];
-
 		//trap_S_AddLoopingSound(entityNum, cSound->origin, cSound->velocity, cSound->sfx);
 		//I guess just keep using lerpOrigin for now,
 		trap_S_AddLoopingSound(entityNum, lerpOrg, cSound->velocity, cSound->sfx);
@@ -409,13 +401,11 @@ void FX_DrawPortableShield(centity_t *cent)
 	localEntity_t	*le;
 	qhandle_t		shader;
 
-	if ( cl_paused.integer )
-	{ //rww - fix to keep from rendering repeatedly while HUD menu is up
+	if ( cl_paused.integer ) { //rww - fix to keep from rendering repeatedly while HUD menu is up
 		return;
 	}
 
-	if (cent->currentState.eFlags & EF_NODRAW)
-	{
+	if (cent->currentState.eFlags & EF_NODRAW) {
 		return;
 	}
 
@@ -423,16 +413,17 @@ void FX_DrawPortableShield(centity_t *cent)
 			fx_vfps.integer = 1;
 	if (fxT > cg.time)
 		fxT = cg.time;
-	if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
-	{
+	if (doFX || cg.time - fxT >= 1000 / fx_vfps.integer) {
 		doFX = qtrue;
 		fxT = cg.time;
-	}
-	else 
-	{
+	} else {
 		doFX = qfalse;
 		return;
 	}
+	if (!(cg.frametime > 0
+		&& ((cg.frametime < 6 && fmod((float)cg.time, 6.0f) <= cg.frametime)
+		|| cg.frametime >= 6)))
+		return;
 
 	// decode the data stored in time2
 	xaxis = ((cent->currentState.time2 >> 24) & 1);
@@ -447,13 +438,10 @@ void FX_DrawPortableShield(centity_t *cent)
 	VectorCopy(cent->lerpOrigin, start);
 	VectorCopy(cent->lerpOrigin, end);
 
-	if (xaxis) // drawing along x-axis
-	{
+	if (xaxis) { // drawing along x-axis
 		start[0] -= negWidth;
 		end[0] += posWidth;
-	}
-	else
-	{
+	} else {
 		start[1] -= negWidth;
 		end[1] += posWidth;
 	}
@@ -465,27 +453,15 @@ void FX_DrawPortableShield(centity_t *cent)
 	end[2] += height/2;
 
 	if (team == TEAM_RED)
-	{
 		if (cent->currentState.trickedentindex)
-		{
 			shader = trap_R_RegisterShader( "gfx/misc/red_dmgshield" );
-		}
 		else
-		{
 			shader = trap_R_RegisterShader( "gfx/misc/red_portashield" );
-		}
-	}
 	else
-	{
 		if (cent->currentState.trickedentindex)
-		{
 			shader = trap_R_RegisterShader( "gfx/misc/blue_dmgshield" );
-		}
 		else
-		{
 			shader = trap_R_RegisterShader( "gfx/misc/blue_portashield" );
-		}
-	}
 
 	le = FX_AddOrientedLine(start, end, normal, 1.0f, height, 0.0f, 1.0f, 1.0f, 50.0, shader);
 }
@@ -777,7 +753,7 @@ static qboolean CG_RenderTimeEntBolt(centity_t *cent)
 		return qfalse;
 	}
 
-	if (clientNum == cg.predictedPlayerState.clientNum &&
+	if (cg.playerCent && clientNum == cg.playerCent->currentState.number &&
 		!cg.renderingThirdPerson)
 	{ //If in first person and you have it then render the thing spinning around on your hud.
 		cgSiegeEntityRender = cent->currentState.number; //set it to render at the end of the frame.
@@ -923,11 +899,11 @@ static void CG_General( centity_t *cent ) {
 	if (cent->currentState.boltToPlayer)
 	{ //Shove it into the player's left hand then.
 		centity_t *pl = &cg_entities[cent->currentState.boltToPlayer-1];
-		if (CG_IsMindTricked(pl->currentState.trickedentindex,
+		if (cg.playerCent && CG_IsMindTricked(pl->currentState.trickedentindex,
 			pl->currentState.trickedentindex2,
 			pl->currentState.trickedentindex3,
 			pl->currentState.trickedentindex4,
-			cg.predictedPlayerState.clientNum))
+			cg.playerCent->currentState.number))
 		{ //don't show if this guy is mindtricking
             return;
 		}
@@ -1356,28 +1332,21 @@ static void CG_General( centity_t *cent ) {
 	}
 
 	if (cent->currentState.number >= MAX_CLIENTS &&
-		cent->currentState.activeForcePass == NUM_FORCE_POWERS+1&&
-		cent->currentState.NPC_class != CLASS_VEHICLE )
-	{
+		cent->currentState.activeForcePass == NUM_FORCE_POWERS + 1 &&
+		cent->currentState.NPC_class != CLASS_VEHICLE ) {
 		vec3_t				empAngles;
 		centity_t			*empOwn;
 
 		empOwn = &cg_entities[cent->currentState.emplacedOwner];
 
-		if (cg.snap->ps.clientNum == empOwn->currentState.number &&
+		if (cg.playerCent == empOwn &&
 			!cg.renderingThirdPerson)
-		{
 			VectorCopy(cg.refdef.viewangles, empAngles);
-		}
 		else
-		{
 			VectorCopy(empOwn->lerpAngles, empAngles);
-		}
 
 		if (empAngles[PITCH] > 40)
-		{
 			empAngles[PITCH] = 40;
-		}
 		empAngles[YAW] -= cent->currentState.angles[YAW];
 
 		trap_G2API_SetBoneAngles( cent->ghoul2, 0, "Bone02", empAngles, BONE_ANGLES_REPLACE, NEGATIVE_Y, NEGATIVE_X, POSITIVE_Z, NULL, 0, cg.time); 
@@ -1387,24 +1356,17 @@ static void CG_General( centity_t *cent ) {
 
 	// if set to invisible, skip
 	if ((!s1->modelindex) && !(trap_G2_HaveWeGhoul2Models(cent->ghoul2))) 
-	{
 		return;
-	}
 
-	if ( ( s1->eFlags & EF_NODRAW ) ) 
-	{
+	if ((s1->eFlags & EF_NODRAW)) 
 		return;
-	}
 
 	// set frame
-	if ( s1->eFlags & EF_SHADER_ANIM )
-	{
+	if (s1->eFlags & EF_SHADER_ANIM) {
 		// Deliberately setting it up so that shader anim will completely override any kind of model animation frame setting.
 		ent.renderfx|=RF_SETANIMINDEX;
 		ent.skinNum = s1->frame;
-	}
-	else
-	{
+	} else {
 		ent.frame = s1->frame;
 	}
 	ent.oldframe = ent.frame;
@@ -1492,26 +1454,22 @@ Ghoul2 Insert End
 	}
 
 	// player model
-	if (s1->number == cg.snap->ps.clientNum) {
+	if (cg.playerCent == cent) {
 		ent.renderfx |= RF_THIRD_PERSON;	// only draw from mirrors
 	}
 
 	// convert angles to axis
 	AnglesToAxis( cent->lerpAngles, ent.axis );
 
-	if (cent->currentState.iModelScale)
-	{ //if the server says we have a custom scale then set it now.
+	if (cent->currentState.iModelScale) { //if the server says we have a custom scale then set it now.
 		cent->modelScale[0] = cent->modelScale[1] = cent->modelScale[2] = cent->currentState.iModelScale/100.0f;
 		VectorCopy(cent->modelScale, ent.modelScale);
 		ScaleModelAxis(&ent);
-	}
-	else
-	{
+	} else {
 		VectorClear(cent->modelScale);
 	}
 
-	if ( cent->currentState.time > cg.time && cent->currentState.weapon == WP_EMPLACED_GUN )
-	{
+	if (cent->currentState.time > cg.time && cent->currentState.weapon == WP_EMPLACED_GUN) {
 		// make the gun pulse red to warn about it exploding
 		val = (1.0f - ((cent->currentState.time - cg.time) - cg.timeFraction) / 3200.0f ) * 0.3f;
 
@@ -1522,27 +1480,20 @@ Ghoul2 Insert End
 		ent.shaderRGBA[3] = 100;
 		trap_R_AddRefEntityToScene( &ent );
 		ent.customShader = 0;
-	}
-	else if ( cent->currentState.time == -1 && cent->currentState.weapon == WP_EMPLACED_GUN)
-	{
+	} else if (cent->currentState.time == -1 && cent->currentState.weapon == WP_EMPLACED_GUN) {
 		ent.customShader = trap_R_RegisterShader( "models/map_objects/imp_mine/turret_chair_dmg.tga" );
 		//trap_R_AddRefEntityToScene( &ent );
 	}
 
-	if ((cent->currentState.eFlags & EF_DISINTEGRATION) && cent->currentState.eType == ET_BODY)
-	{
-		if (!cent->dustTrailTime)
-		{
+	if ((cent->currentState.eFlags & EF_DISINTEGRATION) && cent->currentState.eType == ET_BODY) {
+		if (!cent->dustTrailTime) {
 			cent->dustTrailTime = cg.time;
 		}
 
 		CG_Disintegration(cent, &ent);
 		return;
-	}
-	else if (cent->currentState.eType == ET_BODY)
-	{
-		if (cent->bodyFadeTime > cg.time)
-		{
+	} else if (cent->currentState.eType == ET_BODY) {
+		if (cent->bodyFadeTime > cg.time) {
 			qboolean lightSide = cent->teamPowerType;
 			vec3_t hitLoc, tempAng;
 			float tempLength;
@@ -2636,7 +2587,19 @@ static void CG_Missile( centity_t *cent ) {
 			&& (g_vehWeaponInfo[s1->otherEntityNum2].iShotFX
 				|| g_vehWeaponInfo[s1->otherEntityNum2].iModel != NULL_HANDLE) )
 		{ //a vehicle with an override for the weapon trail fx or model
+			if (fx_vfps.integer <= 0)
+				fx_vfps.integer = 1;
+			if (fxT > cg.time)
+				fxT = cg.time;
+			if (doFX || cg.time - fxT >= (1000.0f / (float)fx_vfps.integer)) {
+				doFX = qtrue;
+				fxT = cg.time;
+			} else {
+				doFX = qfalse;
+				goto skipFX;
+			}
 			trap_FX_PlayEffectID( g_vehWeaponInfo[s1->otherEntityNum2].iShotFX, cent->lerpOrigin, forward, -1, -1 );
+skipFX:
 			if ( g_vehWeaponInfo[s1->otherEntityNum2].iLoopSound )
 			{
 				vec3_t	velocity;
@@ -2651,7 +2614,19 @@ static void CG_Missile( centity_t *cent ) {
 		}
 		else
 		{//a regular missile
+			if (fx_vfps.integer <= 0)
+				fx_vfps.integer = 1;
+			if (fxT > cg.time)
+				fxT = cg.time;
+			if (doFX || cg.time - fxT >= (1000.0f / (float)fx_vfps.integer)) {
+				doFX = qtrue;
+				fxT = cg.time;
+			} else {
+				doFX = qfalse;
+				goto skipFX2;
+			}
 			trap_FX_PlayEffectID( cgs.gameEffects[s1->otherEntityNum2], cent->lerpOrigin, forward, -1, -1 );
+skipFX2:
 			if ( s1->loopSound )
 			{
 				vec3_t	velocity;
@@ -3141,13 +3116,6 @@ void CG_AdjustPositionForMover( const vec3_t in, int moverNum, int fromTime, int
 	vec3_t	oldOrigin, origin, deltaOrigin;
 	vec3_t	oldAngles, angles, deltaAngles;
 
-	//Raz: Don't bother if we're a spectator
-	if ( cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_SPECTATOR )
-	{
-		VectorCopy( in, out );
-		return;
-	}
-
 	if ( moverNum <= 0 || moverNum >= ENTITYNUM_MAX_NORMAL ) {
 		VectorCopy( in, out );
 		return;
@@ -3325,9 +3293,7 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 #endif
 
 	if (goAway)
-	{
 		return;
-	}
 
 	// adjust for riding a mover if it wasn't rolled into the predicted
 	// player state
@@ -3611,7 +3577,6 @@ CG_AddPacketEntities
 void CG_AddPacketEntities( qboolean isPortal ) {
 	int					num;
 	centity_t			*cent;
-	playerState_t		*ps;
 
 	if (isPortal)
 	{
@@ -3630,12 +3595,6 @@ void CG_AddPacketEntities( qboolean isPortal ) {
 	// Reset radar entities
 	cg.radarEntityCount = 0;
 	cg.bracketedEntityCount = 0;
-
-	// generate and add the entity from the playerstate
-	ps = &cg.predictedPlayerState;
-
-	CG_CheckPlayerG2Weapons(ps, &cg_entities[cg.predictedPlayerState.clientNum]);
-	BG_PlayerStateToEntityState( ps, &cg_entities[cg.predictedPlayerState.clientNum].currentState, qfalse );
 	
 	if (cg.predictedPlayerState.m_iVehicleNum)
 	{ //add the vehicle I'm riding first

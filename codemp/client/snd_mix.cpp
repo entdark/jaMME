@@ -665,7 +665,7 @@ static const mixSound_t *S_MixGetSound( sfxHandle_t sfxHandle ) {
 	sound = S_MixAllocSound( openSound->totalSamples );
 	if (!sound) {
 		S_SoundClose( openSound );
-		Com_Printf( "Mixer:Failed to alloc memory for sound\n" );
+		Com_Printf( "Mixer:Failed to alloc memory for sound, try to increase com_soundMegs\n" );
 		return mixSounds[sfxHandle] = &mixEmptySound;
 	}
 	mixSounds[ sfxHandle ] = sound;
@@ -681,12 +681,11 @@ static const mixSound_t *S_MixGetSound( sfxHandle_t sfxHandle ) {
 	return sound;
 }
 
-void S_MixClipOutput (int count, const int *input, short *output, int outStart, int outMask) {
+void S_MixClipOutput(int count, const int *input, short *output, int outStart, int outMask) {
 	int		i;
 	int		val;
 
-	for (i=0 ; i<count ; i++)
-	{
+	for (i=0 ; i<count ; i++) {
 		val = input[i*2+0] >> MIX_SHIFT;
 		if (val > 0x7fff)
 			val = 0x7fff;
@@ -704,8 +703,7 @@ void S_MixClipOutput (int count, const int *input, short *output, int outStart, 
 	}
 }
 
-static void S_MixSpatialize(const vec3_t origin, float volume, int *left_vol, int *right_vol)
-{
+static void S_MixSpatialize(const vec3_t origin, float volume, int *left_vol, int *right_vol) {
     vec_t		dot;
     vec_t		dist;
     vec_t		lscale, rscale, scale;
@@ -751,13 +749,13 @@ extern int s_entityWavVol[MAX_GENTITIES];
 static void S_MixLipSync(const mixSound_t *sound, const mixChannel_t *ch) {
 	int indexAdd, indexLeft, index = 0;
 	int i, count;
-	int wavVol, maxSample = 0, sampleToCompare = 0;
+	int wavVol,/* maxSample = 0,*/ sampleToCompare = 0;
 	const short *data;
 	float lipForce;
 
 	data = sound->data;
 	indexAdd = sound->speed;
-	count = sound->samples / indexAdd;
+/*	count = sound->samples / indexAdd;
 
 	for (i = 0; i < count; i++) {
 		int sample;
@@ -768,7 +766,7 @@ static void S_MixLipSync(const mixSound_t *sound, const mixChannel_t *ch) {
 			maxSample = sample;
 		index += indexAdd;
 	}
-
+*/
 	count = 1024;
 	index = ch->index;
 	indexLeft = sound->samples - index;
@@ -786,7 +784,8 @@ static void S_MixLipSync(const mixSound_t *sound, const mixChannel_t *ch) {
 		index += indexAdd;
 	}
 
-	lipForce = (float)((float)sampleToCompare/(float)maxSample) * s_lip_threshold_4->value * 0.9f;
+//	lipForce = (float)((float)sampleToCompare/(float)maxSample) * s_lip_threshold_4->value * 1.042f;
+	lipForce = (float)((float)sampleToCompare / 32768.0f) * s_lip_threshold_4->value; // is this better?
 	if (lipForce < s_lip_threshold_1->value)
 		wavVol = -1;
 	else if (lipForce < s_lip_threshold_2->value)

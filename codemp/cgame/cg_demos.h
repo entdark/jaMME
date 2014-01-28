@@ -11,6 +11,7 @@ typedef enum {
 	editCamera,
 	editChase,
 	editLine,
+	editAnim,
 //	editEffect,
 //	editScript,
 	editLast,
@@ -40,7 +41,7 @@ typedef struct demoCameraPoint_s {
 	vec3_t			origin, angles;
 	float			fov;
 	int				time, flags;
-	float			len;
+	float			len, anglesLen;
 } demoCameraPoint_t;
 
 typedef struct demoChasePoint_s {
@@ -52,6 +53,14 @@ typedef struct demoChasePoint_s {
 	int				time;
 	float			len;
 } demoChasePoint_t;
+
+#define MAX_BONES 72
+
+typedef struct demoAnimPoint_s {
+	struct			demoAnimPoint_s *next, *prev;
+	vec3_t			angles[MAX_BONES];
+	int				time;
+} demoAnimPoint_t;
 
 typedef struct {
 	char lines[LOGLINES][1024];
@@ -137,6 +146,15 @@ typedef struct demoMain_s {
 	qboolean	initDone;
 	qboolean	autoLoad;
 	demoLog_t	log;
+	//at the end because initalizing *points[MAX_CLIENTS] affects vars and struct below
+	struct {
+		qboolean	locked;
+		int			target;
+		int			bone;
+		vec3_t		angles[MAX_BONES];
+		qboolean	override[MAX_CLIENTS];
+		demoAnimPoint_t *points[MAX_CLIENTS];
+	} anim;
 } demoMain_t;
 
 extern demoMain_t demo;
@@ -171,6 +189,15 @@ void demoMoveDeltaCmd( void );
 void demoCaptureCommand_f( void );
 void demoLoadCommand_f( void );
 void demoSaveCommand_f( void );
+
+#define PUGMOD_CONVERTER //none needs that except me :P
+
+#ifdef PUGMOD_CONVERTER
+extern int demoStartTime;
+void demoConvertCommand_f( void );
+void demoCamPoint_f(void);
+#endif
+
 qboolean demoProjectLoad( const char *fileName );
 qboolean demoProjectSave( const char *fileName );
 
@@ -181,6 +208,12 @@ void chaseEntityOrigin( centity_t *cent, vec3_t origin );
 demoChasePoint_t *chasePointSynch(int time );
 qboolean chaseParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data);
 void chaseSave( fileHandle_t fileHandle );
+
+void demoMoveAnim(void);
+void animUpdate(int time, float timeFraction);
+void demoAnimCommand_f(void);
+void animDraw(int time, float timeFraction);
+void animBoneOrigins(vec3_t *origins, int client);
 
 qboolean demoCentityBoxSize( const centity_t *cent, vec3_t container );
 int demoHitEntities( const vec3_t start, const vec3_t forward );

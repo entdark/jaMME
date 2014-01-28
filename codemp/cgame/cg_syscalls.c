@@ -199,7 +199,11 @@ void	trap_S_StartSound( vec3_t origin, int entityNum, int entchannel, sfxHandle_
 }
 
 void	trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum ) {
-	Q_syscall( CG_S_STARTLOCALSOUND, sfx, channelNum );
+	//announcer is always hearable, rite?
+	if ( channelNum == CHAN_ANNOUNCER )
+		Q_syscall( CG_S_STARTSOUND, 0, ENTITYNUM_NONE, CHAN_ANNOUNCER, sfx );
+	else
+		Q_syscall( CG_S_STARTLOCALSOUND, sfx, channelNum );
 }
 
 void	trap_S_ClearLoopingSounds(void) {
@@ -651,7 +655,7 @@ void trap_FX_PlayEntityEffect( const char *file, vec3_t org,
 
 void trap_FX_PlayEffectID( int id, vec3_t org, vec3_t fwd, int vol, int rad )
 {
-	if( id == cgs.effects.rocketShotEffect				||
+	if (id == cgs.effects.rocketShotEffect				||
 		id == cgs.effects.repeaterAltProjectileEffect	||
 		id == cgs.effects.flechetteAltShotEffect 		||
 		id == cgs.effects.tripmineLaserFX 				||
@@ -663,27 +667,30 @@ void trap_FX_PlayEffectID( int id, vec3_t org, vec3_t fwd, int vol, int rad )
 		id == cgs.effects.bryarShotEffect				||
 		id == cgs.effects.turretShotEffect				||
 		id == cgs.effects.blasterShotEffect				||
-		id == cgs.effects.bowcasterShotEffect			||//?
-		id == cgs.effects.repeaterProjectileEffect		||//?
-		id == cgs.effects.repeaterAltProjectileEffect	||//?
-		id == cgs.effects.demp2ProjectileEffect			||//?
-		id == cgs.effects.concussionShotEffect ) {		  //?
+		id == cgs.effects.bowcasterShotEffect			||
+		id == cgs.effects.repeaterProjectileEffect		||
+		id == cgs.effects.repeaterAltProjectileEffect	||
+		id == cgs.effects.demp2ProjectileEffect			||
+		id == cgs.effects.concussionShotEffect			||
+		id == cgs.effects.flechetteShotEffect) {
 			if (fx_vfps.integer <= 0)
 				fx_vfps.integer = 1;
 			if (fxT > cg.time)
 				fxT = cg.time;
-			if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
-			{
+			if (doFX || cg.time - fxT >= (1000.0f / (float)fx_vfps.integer)) {
 				doFX = qtrue;
 				fxT = cg.time;
-			}
-			else 
-			{
+			} else {
 				doFX = qfalse;
-				//syscall( CG_FX_ADJUST_TIME, time );
 				return;
 			}
 	}
+
+	if (id == cgs.effects.itemCone && !(cg.frametime > 0
+		&& ((cg.frametime < 17 && fmod((float)cg.time, 17.0f) <= cg.frametime)
+		|| cg.frametime >= 17)))
+		return;
+
 	Q_syscall( CG_FX_PLAY_EFFECT_ID, id, org, fwd, vol, rad );
 }
 
@@ -693,15 +700,11 @@ void trap_FX_PlayEffectIDFix( int id, vec3_t org, vec3_t fwd, int vol, int rad )
 		fx_vfps.integer = 1;
 	if (fxT > cg.time)
 		fxT = cg.time;
-	if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
-	{
+	if (doFX || cg.time - fxT >= 1000 / fx_vfps.integer) {
 		doFX = qtrue;
 		fxT = cg.time;
-	}
-	else 
-	{
+	} else {
 		doFX = qfalse;
-		//syscall( CG_FX_ADJUST_TIME, time );
 		return;
 	}
 
@@ -716,25 +719,28 @@ void trap_FX_PlayPortalEffectID( int id, vec3_t org, vec3_t fwd, int vol, int ra
 void trap_FX_PlayEntityEffectID( int id, vec3_t org, 
 						vec3_t axis[3], const int boltInfo, const int entNum, int vol, int rad )
 {
-	if( id == cgs.effects.forceLightning			||
+	if (id == cgs.effects.forceLightning			||
 		id == cgs.effects.forceLightningWide		||
 		id == cgs.effects.forceDrainWide			||
-		id == cgs.effects.forceDrain ) {
-			if (fx_vfps.integer <= 0)
-				fx_vfps.integer = 1;
-			if (fxT > cg.time)
-				fxT = cg.time;
-			if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
-			{
-				doFX = qtrue;
-				fxT = cg.time;
-			}
-			else 
-			{
-				doFX = qfalse;
-				//syscall( CG_FX_ADJUST_TIME, time );
-				return;
-			}
+		id == cgs.effects.forceDrain				||
+		id == cgs.effects.mForceConfustionOld) {
+
+		if (fx_vfps.integer <= 0)
+			fx_vfps.integer = 1;
+		if (fxT > cg.time)
+			fxT = cg.time;
+		if (doFX || cg.time - fxT >= 1000 / fx_vfps.integer) {
+			doFX = qtrue;
+			fxT = cg.time;
+		} else {
+			doFX = qfalse;
+			return;
+		}
+
+		if (!(cg.frametime > 0
+			&& ((cg.frametime < 17 && fmod((float)cg.time, 17.0f) <= cg.frametime)
+			|| cg.frametime >= 17)))
+			return;
 	}
 	Q_syscall( CG_FX_PLAY_ENTITY_EFFECT_ID, id, org, axis, boltInfo, entNum, vol, rad );
 }
@@ -798,9 +804,10 @@ void trap_FX_AddPrimitive( effectTrailArgStruct_t *p )
 
 void trap_FX_AddSprite( addspriteArgStruct_t *p )
 {
-	if( p->shader == cgs.media.bryarFrontFlash	||
-		p->shader == cgs.media.greenFrontFlash	||
-		p->shader == cgs.media.lightningFlash ) {
+	if( p->shader == cgs.media.bryarFrontFlash			||
+		p->shader == cgs.media.greenFrontFlash			||
+		p->shader == cgs.media.lightningFlash			||
+		p->shader == cgs.media.yellowDroppedSaberShader ) {
 			if (fx_vfps.integer <= 0)
 				fx_vfps.integer = 1;
 			if (fxT > cg.time)

@@ -236,6 +236,7 @@
     <ClCompile Include="tr_animation.cpp" />
     <ClCompile Include="tr_arioche.cpp" />
     <ClCompile Include="tr_backend.cpp" />
+    <ClCompile Include="tr_bloom.cpp" />
     <ClCompile Include="tr_bsp.cpp" />
     <ClCompile Include="tr_cmds.cpp" />
     <ClCompile Include="tr_curve.cpp" />

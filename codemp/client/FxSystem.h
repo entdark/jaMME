@@ -62,7 +62,7 @@ public:
 	SFxHelper(void);
 
 	inline	int	GetTime(void) { return mTime; }
-	inline	int	GetFrameTime(void) { return mFrameTime; }
+	inline	float GetFrameTime(void) { return mFrameTime; }
 
 	void	ReInit(refdef_t* pRefdef);
 	void	AdjustTime( int time, float frametime, float timeFraction );

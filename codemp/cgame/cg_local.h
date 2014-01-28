@@ -231,6 +231,7 @@ typedef struct {
 	vec3_t			color1;
 	vec3_t			color2;
 	qhandle_t		shaderOverride;
+	fxHandle_t		effectOverride;
 
 	int				icolor1;
 	int				icolor2;
@@ -976,6 +977,7 @@ typedef struct {
 	// temp working variables for player view
 	float		bobfracsin;
 	int			bobcycle;
+	int			bobcyclePrev;
 	float		xyspeed;
 	int     nextOrbitTime;
 
@@ -1885,6 +1887,8 @@ void CG_PlayerShieldHit(int entitynum, vec3_t angles, int amount);
 
 char *ConfigValue( const char *configs[4], const char *value );
 void CG_ClientOverride_f(void);
+
+qboolean CG_DemosPlayerAnimation(int client);
 
 
 //

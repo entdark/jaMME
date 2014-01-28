@@ -1136,7 +1136,7 @@ static void LerpMeshVertexes (md3Surface_t *surf, float backlerp)
 	float	oldXyzScale, newXyzScale;
 	float	oldNormalScale, newNormalScale;
 	int		vertNum;
-	float	lat, lng;
+	double	lat, lng;
 	int		numVerts;
 
 	outXyz = tess.xyz[tess.numVertexes];

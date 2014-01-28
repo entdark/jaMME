@@ -1681,8 +1681,10 @@ static void S_SoundChangeExt(char *fileName, const char *ext) {
 	}
 }
 
-openSound_t *S_SoundOpen( char *fileName ) {
+openSound_t *S_SoundOpen(const char *constFileName) {
 	const char *fileExt;
+	char temp[MAX_QPATH];
+	char *fileName;
 	openSound_t *open;
 	qboolean wasHere = qfalse;
 
@@ -1692,10 +1694,16 @@ openSound_t *S_SoundOpen( char *fileName ) {
 	doNotYell = qfalse;
 #endif
 
+	Q_strncpyz(temp, constFileName, sizeof(temp));
+	fileName = temp;
+
 	if (!fileName || !fileName[0]) {
 		Com_Printf("SoundOpen:Filename is empty\n");
 		return 0;
 	}
+
+	// do we still need language switcher
+	// and sound/mp_generic_female/sound -> sound/chars/mp_generic_female/misc/sound (or male) converter?
 
 	/* switch language: /chars/ -> /chr_f/, /chr_d/, /chr_e/ */
 	if (Q_stricmp(s_language->string, "english"))

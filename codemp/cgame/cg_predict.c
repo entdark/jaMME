@@ -15,19 +15,17 @@ static	int			cg_numTriggerEntities;
 static	centity_t	*cg_triggerEntities[MAX_ENTITIES_IN_SNAPSHOT];
 
 //is this client piloting this veh?
-static CGAME_INLINE qboolean CG_Piloting(int vehNum)
-{
+static CGAME_INLINE qboolean CG_Piloting(int vehNum) {
 	centity_t *veh;
 
-	if (!vehNum)
-	{
+	if (!vehNum) {
 		return qfalse;
 	}
 
 	veh = &cg_entities[vehNum];
 
-	if (veh->currentState.owner != cg.predictedPlayerState.clientNum)
-	{ //the owner should be the current pilot
+	//the owner should be the current pilot
+	if (veh->currentState.owner != cg.predictedPlayerState.clientNum) {
 		return qfalse;
 	}
 

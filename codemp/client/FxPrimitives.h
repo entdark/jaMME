@@ -2,7 +2,7 @@
 
 #include "FxSystem.h"
 
-#define MAX_EFFECTS			1<<13//1800
+#define MAX_EFFECTS			1<<15//1800
 
 // Generic group flags, used by parser, then get converted to the appropriate specific flags
 #define FX_PARM_MASK		0xC	// use this to mask off any transition types that use a parm

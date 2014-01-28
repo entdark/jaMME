@@ -194,6 +194,9 @@
     <ClCompile Include="cg_demos_capture.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cg_demos_anim.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\game\anims.h">

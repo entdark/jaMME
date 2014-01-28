@@ -214,9 +214,7 @@ void CG_CheckPlayerstateEvents( playerState_t *ps, playerState_t *ops ) {
 		CG_EntityEvent( cent, cent->lerpOrigin );
 	}
 
-//	cent = &cg_entities[ ps->clientNum ];
-	//mme
-	cent = &cg_entities[ cg.predictedPlayerState.clientNum ];
+	cent = &cg_entities[ ps->clientNum ];
 	// go through the predictable events buffer
 	for ( i = ps->eventSequence - MAX_PS_EVENTS ; i < ps->eventSequence ; i++ ) {
 		// if we have a new predictable event
@@ -249,9 +247,7 @@ void CG_CheckChangedPredictableEvents( playerState_t *ps ) {
 	int event;
 	centity_t	*cent;
 
-//	cent = &cg_entities[ps->clientNum];
-	//mme
-	cent = &cg_entities[ cg.predictedPlayerState.clientNum ];
+	cent = &cg_entities[ps->clientNum];
 	for ( i = ps->eventSequence - MAX_PS_EVENTS ; i < ps->eventSequence ; i++ ) {
 		//
 		if (i >= cg.eventSequence) {
@@ -294,6 +290,8 @@ static void pushReward(sfxHandle_t sfx, qhandle_t shader, int rewardCount) {
 #endif
 
 int cgAnnouncerTime = 0; //to prevent announce sounds from playing on top of each other
+int cgAnnouncerFragLimitTime = 0;
+int cgAnnouncerTimeLimitTime = 0;
 
 /*
 ==================
@@ -340,7 +338,7 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 	}
 
 	// health changes of more than -3 should make pain sounds
-	if (cg_oldPainSounds.integer)
+	if (cg_oldPainSounds.integer && cg.playerPredicted)
 	{
 		if ( ps->stats[STAT_HEALTH] < (ops->stats[STAT_HEALTH] - 3))
 		{
@@ -450,51 +448,90 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 		}
 	}
 
-	// timelimit warnings
-	if ( cgs.timelimit > 0 && cgAnnouncerTime < cg.time ) {
-		int		msec;
+	// reset if time went backward
+	if (cgs.timelimit > 0 && cg.time + 3000 < cgAnnouncerTimeLimitTime) {
+		int msec = cg.time - cgs.levelStartTime;
 
-		msec = cg.time - cgs.levelStartTime;
-		if ( !( cg.timelimitWarnings & 4 ) && msec > ( cgs.timelimit * 60 + 2 ) * 1000 ) {
+		if (msec < (cgs.timelimit - 5) * 60 * 1000)
+			cg.timelimitWarnings = 0;
+		else if (msec < (cgs.timelimit - 1) * 60 * 1000)
+			cg.timelimitWarnings = 1;
+		else if (msec < (cgs.timelimit * 60 + 2) * 1000)
+			cg.timelimitWarnings = 1 + 2;
+
+		cgAnnouncerTimeLimitTime = 0;
+	}
+
+	// timelimit warnings
+	if (cgs.timelimit > 0 && cgAnnouncerTimeLimitTime < cg.time) {
+		int msec = cg.time - cgs.levelStartTime;
+
+		if (!(cg.timelimitWarnings & 4) && msec > (cgs.timelimit * 60 + 2) * 1000) {
 			cg.timelimitWarnings |= 1 | 2 | 4;
 			//trap_S_StartLocalSound( cgs.media.suddenDeathSound, CHAN_ANNOUNCER );
-		}
-		else if ( !( cg.timelimitWarnings & 2 ) && msec > (cgs.timelimit - 1) * 60 * 1000 ) {
+		} else if (!(cg.timelimitWarnings & 2) && msec > (cgs.timelimit - 1) * 60 * 1000) {
 			cg.timelimitWarnings |= 1 | 2;
 			if (!(mov_soundDisable.integer & SDISABLE_ANNOUNCER)) {
-				trap_S_StartLocalSound( cgs.media.oneMinuteSound, CHAN_ANNOUNCER );
+				trap_S_StartLocalSound(cgs.media.oneMinuteSound, CHAN_ANNOUNCER);
 			}
-			cgAnnouncerTime = cg.time + 3000;
-		}
-		else if ( cgs.timelimit > 5 && !( cg.timelimitWarnings & 1 ) && msec > (cgs.timelimit - 5) * 60 * 1000 ) {
+			cgAnnouncerTimeLimitTime = cg.time + 3000;
+		} else if (cgs.timelimit > 5 && !(cg.timelimitWarnings & 1) && msec > (cgs.timelimit - 5) * 60 * 1000) {
 			cg.timelimitWarnings |= 1;
 			if (!(mov_soundDisable.integer & SDISABLE_ANNOUNCER)) {
-				trap_S_StartLocalSound( cgs.media.fiveMinuteSound, CHAN_ANNOUNCER );
+				trap_S_StartLocalSound(cgs.media.fiveMinuteSound, CHAN_ANNOUNCER);
 			}
-			cgAnnouncerTime = cg.time + 3000;
+			cgAnnouncerTimeLimitTime = cg.time + 3000;
+		// reset if time went backward
+		} else if (msec < (cgs.timelimit - 5) * 60 * 1000) {
+			cg.timelimitWarnings = 0;
+		} else if (msec < (cgs.timelimit - 1) * 60 * 1000) {
+			cg.timelimitWarnings = 1;
+		} else if (msec < (cgs.timelimit * 60 + 2) * 1000) {
+			cg.timelimitWarnings = 1 + 2;
 		}
 	}
 
-	// fraglimit warnings
-	if ( cgs.fraglimit > 0 && cgs.gametype < GT_CTF && cgs.gametype != GT_DUEL && cgs.gametype != GT_POWERDUEL && cgs.gametype != GT_SIEGE && cgAnnouncerTime < cg.time) {
+	// reset if time went backward
+	if (cgs.fraglimit > 0 && cgs.gametype < GT_CTF && cgs.gametype != GT_DUEL && cgs.gametype != GT_POWERDUEL && cgs.gametype != GT_SIEGE && cg.time + 3000 < cgAnnouncerFragLimitTime) {
 		highScore = cgs.scores1;
-		if ( cgs.gametype == GT_TEAM && cgs.scores2 > highScore )
+		if (cgs.gametype == GT_TEAM && cgs.scores2 > highScore)
 			highScore = cgs.scores2;
 
-		if ( !( cg.fraglimitWarnings & 4 ) && highScore == (cgs.fraglimit - 1) ) {
+		if (cgs.fraglimit > 3 && highScore < (cgs.fraglimit - 3))
+			cg.fraglimitWarnings = 0;
+		else if (cgs.fraglimit > 2 && highScore == (cgs.fraglimit - 3))
+			cg.fraglimitWarnings = 1;
+		else if (cgs.fraglimit > 1 && highScore == (cgs.fraglimit - 2))
+			cg.fraglimitWarnings = 1 + 2;
+
+		cgAnnouncerFragLimitTime = 0;
+	}
+
+	// fraglimit warnings
+	if (cgs.fraglimit > 0 && cgs.gametype < GT_CTF && cgs.gametype != GT_DUEL && cgs.gametype != GT_POWERDUEL && cgs.gametype != GT_SIEGE && cgAnnouncerFragLimitTime < cg.time) {
+		highScore = cgs.scores1;
+		if (cgs.gametype == GT_TEAM && cgs.scores2 > highScore)
+			highScore = cgs.scores2;
+
+		if (!(cg.fraglimitWarnings & 4) && highScore == (cgs.fraglimit - 1)) {
 			cg.fraglimitWarnings |= 1 | 2 | 4;
 			CG_AddBufferedSound(cgs.media.oneFragSound);
-			cgAnnouncerTime = cg.time + 3000;
-		}
-		else if ( cgs.fraglimit > 2 && !( cg.fraglimitWarnings & 2 ) && highScore == (cgs.fraglimit - 2) ) {
+			cgAnnouncerFragLimitTime = cg.time + 3000;
+		} else if (cgs.fraglimit > 2 && !(cg.fraglimitWarnings & 2) && highScore == (cgs.fraglimit - 2)) {
 			cg.fraglimitWarnings |= 1 | 2;
 			CG_AddBufferedSound(cgs.media.twoFragSound);
-			cgAnnouncerTime = cg.time + 3000;
-		}
-		else if ( cgs.fraglimit > 3 && !( cg.fraglimitWarnings & 1 ) && highScore == (cgs.fraglimit - 3) ) {
+			cgAnnouncerFragLimitTime = cg.time + 3000;
+		} else if (cgs.fraglimit > 3 && !(cg.fraglimitWarnings & 1) && highScore == (cgs.fraglimit - 3)) {
 			cg.fraglimitWarnings |= 1;
 			CG_AddBufferedSound(cgs.media.threeFragSound);
-			cgAnnouncerTime = cg.time + 3000;
+			cgAnnouncerFragLimitTime = cg.time + 3000;
+		// reset if time went backward
+		} else if (cgs.fraglimit > 3 && highScore < (cgs.fraglimit - 3)) {
+			cg.fraglimitWarnings = 0;
+		} else if (cgs.fraglimit > 2 && highScore == (cgs.fraglimit - 3)) {
+			cg.fraglimitWarnings = 1;
+		} else if (cgs.fraglimit > 1 && highScore == (cgs.fraglimit - 2)) {
+			cg.fraglimitWarnings = 1 + 2;
 		}
 	}
 }

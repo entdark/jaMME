@@ -27,6 +27,13 @@ static qboolean captureParseEnd( BG_XMLParse_t *parse,const char *line, void *da
 	return qtrue;
 }
 
+static qboolean captureParseSpeed( BG_XMLParse_t *parse,const char *line, void *data) {
+	if (!line[0]) 
+		return BG_XMLError( parse, "speed has empty line" );
+	demo.play.speed = atof( line );
+	return qtrue;
+}
+
 static qboolean captureParseView( BG_XMLParse_t *parse,const char *line, void *data) {
 	if (!Q_stricmp(line, "chase")) {
 		demo.viewType = viewChase;
@@ -147,7 +154,8 @@ static qboolean captureParseGroup( BG_XMLParse_t *parse, const struct BG_XMLPars
 qboolean captureParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data) {
 	static BG_XMLParseBlock_t captureParseBlock[] = {
 		{"start",	0,					captureParseStart },
-		{"end",		0,					captureParseEnd	},
+		{"end",		0,					captureParseEnd },
+		{"speed",	0,					captureParseSpeed },
 		{"view",	0,					captureParseView },
 		{"cvar",	captureParseCvar,	0 },
 		{"client",	captureParseClient,	0 },
@@ -180,6 +188,7 @@ void captureSave( fileHandle_t fileHandle ) {
 	demoSaveLine( fileHandle, "<capture>\n" );
 	demoSaveLine( fileHandle, "\t<start>%d</start>\n", demo.capture.start );
 	demoSaveLine( fileHandle, "\t<end>%d</end>\n", demo.capture.end );
+	demoSaveLine( fileHandle, "\t<speed>%2.8f</speed>\n", demo.play.speed );
 	switch (demo.viewType) {
 	case viewCamera:
 		viewString = "camera";
@@ -396,6 +405,119 @@ lastOne:
 	trap_FS_FCloseFile( fileHandle );
 	return ret;
 }
+
+#ifdef PUGMOD_CONVERTER
+typedef struct {
+	vec3_t		origin;
+	vec3_t		angle;
+	int			time;
+	float		fov;
+} demoCam_t;
+
+demoCam_t campoint[50];
+
+int nn = 0;
+
+int CharToTime (char time[23]) {
+	int i;
+	char *sec;
+	int totime;
+	for (i = 0; time[i] != ':' && time[i]; i++);
+	if (time[i] == 0)
+		sec = 0;
+	else {
+		time[i] = 0;
+		sec = time + i + 1;
+	}
+	return totime = (atoi(time) * 60000 + atof(sec) * 1000);
+}
+
+int demoStartTime = 0;
+
+void demoCamPoint_f(void) {
+	int i;
+	char number[3];
+	char origin0[23], origin1[23], origin2[23];
+	char angle0[23], angle1[23], angle2[23];
+	char time[23], fov[23];
+	int num;
+	trap_Argv(1, number, 3);
+	num = atoi(number);
+
+	//positions	
+	trap_Argv(3, origin0, 23);
+	campoint[num].origin[0] = atof(origin0);
+
+	trap_Argv(4, origin1, 23);
+	campoint[num].origin[1] = atof(origin1);
+
+	trap_Argv(5, origin2, 23);
+	campoint[num].origin[2] = atof(origin2);
+	//end positions
+
+	//angles
+	trap_Argv(7, angle0, 23);
+	campoint[num].angle[0] = atof(angle0);
+
+	trap_Argv(8, angle1, 23);
+	campoint[num].angle[1] = atof(angle1);
+
+	trap_Argv(9, angle2, 23);
+	campoint[num].angle[2] = atof(angle2);
+	//end angles
+
+	trap_Argv(11, time, 23);
+	campoint[num].time = CharToTime(time) - (demoStartTime - cgs.levelStartTime);
+
+	trap_Argv(15, fov, 23);
+	campoint[num].fov = atof(fov) - cg_fov.value;
+
+	nn = num + 1;
+}
+
+void demoConvertCommand_f( void ) {
+	char projectName[MAX_OSPATH];
+	fileHandle_t fileHandle;
+	char fileName[MAX_OSPATH];
+	int i;
+
+	if (trap_Argc() < 2) {
+		Com_Printf("Require a project name\n");
+		return;
+	}
+	Q_strncpyz(projectName, CG_Argv(1), sizeof(projectName));
+
+	Com_sprintf(fileName, sizeof(fileName), "project/%s/%s.cfg", mme_demoFileName.string, projectName);
+	trap_FS_FOpenFile( fileName, &fileHandle, FS_WRITE);
+	if (!fileHandle) {
+		Com_Printf("Failed to save to %s\n", fileName);
+	}
+
+	captureSave( fileHandle );
+
+	demoSaveLine( fileHandle, "<camera>\n" );
+	demoSaveLine( fileHandle, "\t<smoothPos>%d</smoothPos>\n", demo.camera.smoothPos );
+	demoSaveLine( fileHandle, "\t<smoothAngles>%d</smoothAngles>\n", demo.camera.smoothAngles );
+	demoSaveLine( fileHandle, "\t<locked>%d</locked>\n", 0 );
+	demoSaveLine( fileHandle, "\t<target>%d</target>\n", -1 );
+	for (i = 0; i < nn; i++) {
+		demoSaveLine( fileHandle, "\t<point>\n");
+		demoSaveLine( fileHandle, "\t\t<time>%10d</time>\n", campoint[i].time );
+		demoSaveLine( fileHandle, "\t\t<origin>%9.4f %9.4f %9.4f</origin>\n", campoint[i].origin[0], campoint[i].origin[1], campoint[i].origin[2] );
+		demoSaveLine( fileHandle, "\t\t<angles>%9.4f %9.4f %9.4f</angles>\n", campoint[i].angle[0], campoint[i].angle[1], campoint[i].angle[2]);
+		demoSaveLine( fileHandle, "\t\t<fov>%9.4f</fov>\n", campoint[i].fov );
+		demoSaveLine( fileHandle, "\t</point>\n");
+	}
+	demoSaveLine( fileHandle, "</camera>\n" );
+
+	chaseSave( fileHandle );
+	lineSave( fileHandle );
+
+	trap_FS_FCloseFile( fileHandle );
+	Com_Printf("Pugmod project converted and saved to %s, loading...\n", projectName);
+	trap_SendConsoleCommand(va("load %s", projectName));
+}
+#endif
 
 void demoSaveCommand_f( void ) {
 	char projectName[MAX_OSPATH];

@@ -1557,6 +1557,7 @@ const void *RB_RotatePic ( const void *data )
 		qglPushMatrix();
 
 		qglTranslatef(cmd->x+cmd->w,cmd->y,0);
+		qglScalef((640.0*glConfig.vidHeight)/(480.0*glConfig.vidWidth), 1.0, 1.0); 
 		qglRotatef(cmd->a, 0.0, 0.0, 1.0);
 		
 		GL_Bind( image );
@@ -1993,6 +1994,7 @@ void RB_ExecuteRenderCommands( const void *oldData ) {
 	t1 = ri.Milliseconds()*ri.Cvar_VariableValue( "timescale" );
 again:
 	data = oldData;
+	backEnd.doneBloom = qfalse;
 	while ( 1 ) {
 		data = PADP(data, sizeof(void *));
 		switch ( *(const int *)data ) {
@@ -2000,6 +2002,7 @@ again:
 			data = RB_SetColor( data );
 			break;
 		case RC_STRETCH_PIC:
+			R_BloomScreen();
 			data = RB_StretchPic( data );
 			break;
 		case RC_ROTATE_PIC:
@@ -2009,12 +2012,14 @@ again:
 			data = RB_RotatePic2( data );
 			break;
 		case RC_DRAW_SURFS:
+			backEnd.doneSurfaces = qtrue;
 			data = RB_DrawSurfs( data );
 			break;
 		case RC_DRAW_BUFFER:
 			data = RB_DrawBuffer( data );
 			break;
 		case RC_SWAP_BUFFERS:
+			R_BloomScreen();
 			data = RB_SwapBuffers( data );
 			if ( (int)data == -1)
 				goto again;

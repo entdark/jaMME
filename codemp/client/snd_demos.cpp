@@ -60,8 +60,8 @@ void S_DMAInit(void) {
 
 void S_DMA_Update( float scale ) {
 	int				ma, count;
-	static int		lastTime, lastPos;
-	int				thisTime, thisPos;
+	static int		lastPos;
+	int				thisPos;
 
 	int				lastWrite, lastRead;
 	int				bufSize, bufDone;
@@ -87,12 +87,6 @@ void S_DMA_Update( float scale ) {
 	}
 //	Com_Printf( "lastRead %d lastWrite %d done %d\n", lastRead, lastWrite, bufDone );
 	lastPos = thisPos;
-
-	/* How much time has passed since the last buffer fill */
-	/* TODO, maybe just use the cl values for time passed, why do another milli call */
-	thisTime = Com_Milliseconds();
-
-	lastTime = thisTime;
 
 	ma = s_mixahead->value * dma.speed;
 

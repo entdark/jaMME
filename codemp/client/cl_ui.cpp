@@ -1105,17 +1105,17 @@ Ghoul2 Insert Start
 		return 0;
 
 	case UI_G2_GETBOLT:
-		return re.G2API_GetBoltMatrix(*((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), VMF(7), (qhandle_t *)VMA(8), (float *)VMA(9));
+		return re.G2API_GetBoltMatrix(*((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), args[7], (qhandle_t *)VMA(8), (float *)VMA(9));
 
 	case UI_G2_GETBOLT_NOREC:
 		re.G2API_BoltMatrixReconstruction( qfalse );//gG2_GBMNoReconstruct = qtrue;
-		return re.G2API_GetBoltMatrix(*((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), VMF(7), (qhandle_t *)VMA(8), (float *)VMA(9));
+		return re.G2API_GetBoltMatrix(*((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), args[7], (qhandle_t *)VMA(8), (float *)VMA(9));
 
 	case UI_G2_GETBOLT_NOREC_NOROT:
 		//RAZFIXME: cgame reconstructs bolt matrix, why is this different?
 		re.G2API_BoltMatrixReconstruction( qfalse );//gG2_GBMNoReconstruct = qtrue;
 		re.G2API_BoltMatrixSPMethod( qtrue );//gG2_GBMUseSPMethod = qtrue;
-		return re.G2API_GetBoltMatrix(*((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), VMF(7), (qhandle_t *)VMA(8), (float *)VMA(9));
+		return re.G2API_GetBoltMatrix(*((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), args[7], (qhandle_t *)VMA(8), (float *)VMA(9));
 
 	case UI_G2_INITGHOUL2MODEL:
 #ifdef _FULL_G2_LEAK_CHECKING
@@ -1132,7 +1132,7 @@ Ghoul2 Insert Start
 	case UI_G2_ANGLEOVERRIDE:
 		return re.G2API_SetBoneAngles(*((CGhoul2Info_v *)args[1]), args[2], (const char *)VMA(3), (float *)VMA(4), args[5],
 							 (const Eorientations) args[6], (const Eorientations) args[7], (const Eorientations) args[8],
-							 (qhandle_t *)VMA(9), VMF(10), VMF(11) );
+							 (qhandle_t *)VMA(9), args[10], args[11] );
 	
 	case UI_G2_CLEANMODELS:
 #ifdef _FULL_G2_LEAK_CHECKING
@@ -1144,14 +1144,14 @@ Ghoul2 Insert Start
 
 	case UI_G2_PLAYANIM:
 		return re.G2API_SetBoneAnim(*((CGhoul2Info_v *)args[1]), args[2], (const char *)VMA(3), args[4], args[5],
-								args[6], VMF(7), VMF(8), VMF(9), VMF(10));
+								args[6], VMF(7), args[8], VMF(9), args[10]);
 
 	case UI_G2_GETBONEANIM:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
 			int modelIndex = args[10];
 
-			return re.G2API_GetBoneAnim(&g2[modelIndex], (const char*)VMA(2), VMF(3), (float *)VMA(4), (int *)VMA(5),
+			return re.G2API_GetBoneAnim(&g2[modelIndex], (const char*)VMA(2), args[3], (float *)VMA(4), (int *)VMA(5),
 								(int *)VMA(6), (int *)VMA(7), (float *)VMA(8), (int *)VMA(9));
 		}
 
@@ -1162,7 +1162,7 @@ Ghoul2 Insert Start
 			int iDontCare1 = 0, iDontCare2 = 0, iDontCare3 = 0;
 			float fDontCare1 = 0;
 
-			return re.G2API_GetBoneAnim(&g2[modelIndex], (const char*)VMA(2), VMF(3), (float *)VMA(4), &iDontCare1,
+			return re.G2API_GetBoneAnim(&g2[modelIndex], (const char*)VMA(2), args[3], (float *)VMA(4), &iDontCare1,
 								&iDontCare2, &iDontCare3, &fDontCare1, (int *)VMA(5));
 		}
 
@@ -1246,9 +1246,9 @@ Ghoul2 Insert End
 		break;
 
 	case UI_G2_SETBONEIKSTATE:
-		return re.G2API_SetBoneIKState(*((CGhoul2Info_v *)args[1]), VMF(2), (const char *)VMA(3), args[4], (sharedSetBoneIKStateParams_t *)VMA(5));
+		return re.G2API_SetBoneIKState(*((CGhoul2Info_v *)args[1]), args[2], (const char *)VMA(3), args[4], (sharedSetBoneIKStateParams_t *)VMA(5));
 	case UI_G2_IKMOVE:
-		return re.G2API_IKMove(*((CGhoul2Info_v *)args[1]), VMF(2), (sharedIKMoveParams_t *)VMA(3));
+		return re.G2API_IKMove(*((CGhoul2Info_v *)args[1]), args[2], (sharedIKMoveParams_t *)VMA(3));
 
 	case UI_G2_GETSURFACENAME:
 		{ //Since returning a pointer in such a way to a VM seems to cause MASSIVE FAILURE<tm>, we will shove data into the pointer the vm passes instead

@@ -229,7 +229,7 @@ void CG_AddMarks( void ) {
 	}
 
 	mp = cg_activeMarkPolys.nextMark;
-	for ( ; mp != &cg_activeMarkPolys ; mp = next ) {
+	for ( ;mp && mp != &cg_activeMarkPolys ; mp = next ) {
 		// grab next now, so if the local entity is freed we
 		// still have it
 		next = mp->nextMark;

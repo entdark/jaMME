@@ -1279,7 +1279,7 @@ void CG_ScorePlum( int client, vec3_t org, int score ) {
 	static vec3_t lastPos;
 
 	// only visualize for the client that scored
-	if (client != cg.predictedPlayerState.clientNum || cg_scorePlums.integer == 0) {
+	if ((cg.playerCent && client != cg.playerCent->currentState.number) || cg_scorePlums.integer == 0) {
 		return;
 	}
 
@@ -1288,7 +1288,7 @@ void CG_ScorePlum( int client, vec3_t org, int score ) {
 	le->leType = LE_SCOREPLUM;
 	le->startTime = cg.time;
 	le->endTime = cg.time + 4000;
-	le->lifeRate = 1.0 / ( le->endTime - le->startTime );
+	le->lifeRate = 1.0 / (le->endTime - le->startTime);
 
 	
 	le->color[0] = le->color[1] = le->color[2] = le->color[3] = 1.0;

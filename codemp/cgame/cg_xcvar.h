@@ -169,12 +169,14 @@ XCVAR_DEF( ui_tm3_cnt,							"0",					NULL,					CVAR_ROM|CVAR_INTERNAL )
 //jamme
 XCVAR_DEF( mme_demoFileName,					"",						NULL,					0 )
 XCVAR_DEF( mov_absorbShader,					"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( mov_absorbVisibility,				"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_chatBeep,						"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_seekInterval,					"4",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_deltaYaw,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_deltaPitch,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_deltaRoll,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_chaseRange,						"20",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( mov_smoothQuat,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_simpleFlags,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_captureCamera,					"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_captureCvars,					"",						NULL,					CVAR_TEMP )
@@ -191,7 +193,7 @@ XCVAR_DEF( mov_filterMask,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_musicFile,						"",						NULL,					CVAR_TEMP )
 XCVAR_DEF( mov_musicStart,						"0",					NULL,					CVAR_TEMP )
 XCVAR_DEF( fx_Vibrate,							"1",					NULL,					CVAR_ARCHIVE )
-XCVAR_DEF( fx_vfps,								"200",					NULL,					CVAR_ARCHIVE )	//teh's fix for laggy effects
+XCVAR_DEF( fx_vfps,								"340",					NULL,					CVAR_ARCHIVE )	//teh's fix for laggy effects
 XCVAR_DEF( fx_disruptTime,						"150",					NULL,					CVAR_ARCHIVE )	//from smod
 XCVAR_DEF( fx_disruptTeamColour,				"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( fx_disruptSpiral,					"0",					NULL,					CVAR_ARCHIVE )

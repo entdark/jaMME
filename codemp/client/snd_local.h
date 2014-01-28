@@ -287,7 +287,7 @@ typedef struct openSound_s {
 	char				data[0];
 } openSound_t;
 
-openSound_t *S_SoundOpen( char *fileName );
+openSound_t *S_SoundOpen( const char *constFileName );
 int S_SoundRead( openSound_t *open, qboolean stereo, int size, short *data );
 int S_SoundSeek( openSound_t *open, int samples );
 void S_SoundClose( openSound_t *open );

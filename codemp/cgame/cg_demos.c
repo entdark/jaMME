@@ -82,6 +82,9 @@ static void CG_DemosUpdatePlayer( void ) {
 	case editChase:
 		demoMoveChase();
 		break;
+	case editAnim:
+		demoMoveAnim();
+		break;
 /*	case editEffect:
 		demoEffectMove();
 		break;
@@ -110,7 +113,7 @@ static void VibrateView( const float range, const int eventTime, const float fxT
 	else if (shadingTime > 0)
 		shadingTime = 0;
 
-	sign = fxRandomSign( eventTime );
+	sign = fxRandomSign(eventTime);
 	origin[2] += shadingTime * shadingTime * sinf(shadingTime * M_PI * 23.0f) * scale;
 	angles[ROLL] += shadingTime * shadingTime * sinf(shadingTime * M_PI * 1.642f) * scale * 0.7f * sign;
 }
@@ -181,6 +184,7 @@ int demoSetupView( void) {
 	vec3_t forward;
 	qboolean zoomFix;	//to see disruptor zoom when we are chasing a player
 
+	cg.playerPredicted = qfalse;
 	cg.playerCent = 0;
 	demo.viewFocus = 0;
 	demo.viewTarget = -1;
@@ -193,10 +197,10 @@ int demoSetupView( void) {
 			if ( cent->currentState.number < MAX_CLIENTS ) {
 				cg.playerCent = cent;
 				cg.playerPredicted = cent == &cg_entities[cg.snap->ps.clientNum];
-//				if (!cg.playerPredicted ) {
+				if (!cg.playerPredicted ) {
 					//Make sure lerporigin of playercent is val
-//					CG_CalcEntityLerpPositions( cg.playerCent );
-//				}
+					CG_CalcEntityLerpPositions( cg.playerCent );
+				}
 				if (cg.playerPredicted)
 					CG_SetPredictedThirdPerson();
 				else
@@ -387,7 +391,7 @@ void CG_UpdateFallVector (void) {
 
 		fallTime = (float)(cg.time - cg.snap->ps.fallingToDeath) + cg.timeFraction;
 
-		fallTime /= (FALL_FADE_TIME/2);
+		fallTime /= (float)(FALL_FADE_TIME/2.0f);
 
 		if (fallTime < 0)
 			fallTime = 0;
@@ -450,23 +454,17 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	cg.demoPlayback = 2;
 
-	if (cg.snap && ui_myteam.integer != cg.snap->ps.persistant[PERS_TEAM])
-	{
+	if (cg.snap && ui_myteam.integer != cg.snap->ps.persistant[PERS_TEAM]) {
 		trap_Cvar_Set ( "ui_myteam", va("%i", cg.snap->ps.persistant[PERS_TEAM]) );
 	}
 	if (cgs.gametype == GT_SIEGE &&
 		cg.snap &&
-		cg_siegeClassIndex != cgs.clientinfo[cg.snap->ps.clientNum].siegeIndex)
-	{
+		cg_siegeClassIndex != cgs.clientinfo[cg.snap->ps.clientNum].siegeIndex) {
 		cg_siegeClassIndex = cgs.clientinfo[cg.snap->ps.clientNum].siegeIndex;
 		if (cg_siegeClassIndex == -1)
-		{
 			trap_Cvar_Set("ui_mySiegeClass", "<none>");
-		}
 		else
-		{
 			trap_Cvar_Set("ui_mySiegeClass", bgSiegeClasses[cg_siegeClassIndex].name);
-		}
 	}
 
 	// update cvars
@@ -592,7 +590,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	frameSpeed *= demo.play.speed;
 
 	cg.frametime = (cg.time - cg.oldTime) + (cg.timeFraction - cg.oldTimeFraction);
-	if (cg.frametime <0  || cg.frametime > 100) {
+	if (cg.frametime < 0/* || cg.frametime > 100*/) { //why to reset when over 100?
 		cg.frametime = 0;
 		hadSkip = qtrue;
 		cg.oldTime = cg.time;
@@ -600,8 +598,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		CG_InitLocalEntities();
 		CG_InitMarkPolys();
 		CG_ClearParticles ();
-		trap_FX_Reset( );
-		trap_R_ClearDecals ( );
+		trap_FX_Reset();
+		trap_R_ClearDecals();
 
 		cg.centerPrintTime = 0;
         cg.damageTime = 0;
@@ -629,12 +627,12 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	//silly hack :s
 	if (demo.play.paused || !frameSpeed) {
-		static float lastValidFraction;
+		static float lastTimeFraction = 0.0f;
 		if (!frameSpeed)
-			trap_FX_AdjustTime(cg.time, cg.frametime, lastValidFraction);
+			trap_FX_AdjustTime(cg.time, cg.frametime, lastTimeFraction);
 		else {
 			trap_FX_AdjustTime(cg.time, cg.frametime, 0);
-			lastValidFraction = cg.timeFraction;
+			lastTimeFraction = cg.timeFraction;
 		}
 	} else
 		trap_FX_AdjustTime(cg.time, cg.frametime, cg.timeFraction);
@@ -678,11 +676,14 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	CG_DemosUpdatePlayer( );
 	chaseUpdate( demo.play.time, demo.play.fraction );
 	cameraUpdate( demo.play.time, demo.play.fraction );
+	animUpdate( demo.play.time, demo.play.fraction );
 
 	cg.clientFrame++;
-//	CG_InterpolatePlayerState( qfalse );
-	CG_PredictPlayerState();
-	BG_PlayerStateToEntityState( &cg.predictedPlayerState, &cg_entities[cg.snap->ps.clientNum].currentState, qfalse );
+	CG_InterpolatePlayerState( qfalse );
+	// generate and add the entity from the playerstate	
+//	CG_PredictPlayerState();
+	CG_CheckPlayerG2Weapons(&cg.predictedPlayerState, &cg_entities[cg.predictedPlayerState.clientNum]);
+	BG_PlayerStateToEntityState(&cg.predictedPlayerState, &cg_entities[cg.snap->ps.clientNum].currentState, qfalse);
 
 	cg_entities[cg.snap->ps.clientNum].currentValid = qtrue;
 	VectorCopy( cg_entities[cg.snap->ps.clientNum].currentState.pos.trBase, cg_entities[cg.snap->ps.clientNum].lerpOrigin );
@@ -694,7 +695,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	if (cg_linearFogOverride) {
 		trap_R_SetRangeFog(-cg_linearFogOverride);
 	} else if (demo.viewType == viewCamera
-		|| ( demo.viewType == viewChase
+		|| (demo.viewType == viewChase
 		&& (cg.renderingThirdPerson
 		|| demo.chase.distance > mov_chaseRange.value))) {
 		trap_R_SetRangeFog(0.0f);
@@ -726,15 +727,11 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	trap_FX_AddScheduledEffects(qfalse);
 	
 	if ( cg.playerCent == &cg_entities[cg.predictedPlayerState.clientNum] ) {
-		CG_PlayBufferedSounds();
 		// warning sounds when powerup is wearing off
 		CG_PowerupTimerSounds();
-	} else if ( cg.playerCent && !cg.playerPredicted ) {
-		CG_PlayBufferedSounds();
-	} else {
-		trap_S_UpdateEntityPosition( ENTITYNUM_NONE, cg.refdef.vieworg );
-		CG_PlayBufferedSounds();
 	}
+	trap_S_UpdateEntityPosition(ENTITYNUM_NONE, cg.refdef.vieworg);
+	CG_PlayBufferedSounds();
 
 	cg.refdef.time = cg.time;
 	cg.refdef.timeFraction = cg.timeFraction;
@@ -749,32 +746,55 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		case editChase:
 			chaseDraw( demo.play.time, demo.play.fraction );
 			break;
-//		case editEffect:
-//			demoEffectDraw( demo.play.time, demo.play.fraction );
-//			break;
-		}
+		case editAnim:
+			animDraw( demo.play.time, demo.play.fraction );
+			break;
+/*		case editEffect:
+			demoEffectDraw( demo.play.time, demo.play.fraction );
+			break;
+*/		}
 		/* Add bounding boxes for easy aiming */
 		if ( demo.editType && ( demo.cmd.buttons & BUTTON_ATTACK) && ( demo.cmd.buttons & BUTTON_ALT_ATTACK)  ) {
 			int i;
-			centity_t *targetCent;
-			for (i = 0;i<MAX_GENTITIES;i++) {
-	            targetCent = demoTargetEntity( i );
+			if (demo.editType == editAnim && demo.anim.target >= 0 && demo.anim.target < MAX_CLIENTS && demo.anim.override[demo.anim.target]) {
+				centity_t *targetCent = demoTargetEntity(demo.anim.target);
 				if (targetCent) {
-					vec3_t container, traceStart, traceImpact, forward;
-					const float *color;
+					vec3_t origins[MAX_BONES];
+					for (i = 0;i<MAX_BONES;i++) {
+						vec3_t container = {-1.0f, 1.0f, 1.0f};
+						vec3_t traceStart, traceImpact, forward;
+						const float *color;
 
-					demoCentityBoxSize( targetCent, container );
-					VectorSubtract( demo.viewOrigin, targetCent->lerpOrigin, traceStart );
-					AngleVectors( demo.viewAngles, forward, 0, 0 );
-					if (BoxTraceImpact( traceStart, forward, container, traceImpact )) {
-						color = colorRed;
-					} else {
-						color = colorYellow;
+						animBoneOrigins(origins, demo.anim.target);
+						VectorSubtract( demo.viewOrigin, origins[i], traceStart );
+						AngleVectors( demo.viewAngles, forward, 0, 0 );
+						if (BoxTraceImpact( traceStart, forward, container, traceImpact )) {
+							color = colorRed;
+						} else {
+							color = colorYellow;
+						}
+						demoDrawBox( origins[i], container, color );
 					}
-					demoDrawBox( targetCent->lerpOrigin, container, color );
+				}
+			} else {
+				for (i = 0;i<MAX_GENTITIES;i++) {
+					centity_t *targetCent = demoTargetEntity( i );
+					if (targetCent) {
+						vec3_t container, traceStart, traceImpact, forward;
+						const float *color;
+
+						demoCentityBoxSize( targetCent, container );
+						VectorSubtract( demo.viewOrigin, targetCent->lerpOrigin, traceStart );
+						AngleVectors( demo.viewAngles, forward, 0, 0 );
+						if (BoxTraceImpact( traceStart, forward, container, traceImpact )) {
+							color = colorRed;
+						} else {
+							color = colorYellow;
+						}
+						demoDrawBox( targetCent->lerpOrigin, container, color );
+					}
 				}
 			}
-
 		}
 /*		if ( mov_gridStep.value > 0 && mov_gridRange.value > 0) {
 			vec4_t color;
@@ -842,6 +862,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		intermission = qfalse;
 	}
 
+	//do we need this here?
 	CG_DrawAutoMap();
 
 	if (captureFrame) {
@@ -965,6 +986,13 @@ static void demoEditCommand_f(void) {
 		}
 		demo.editType = editLine;
 		CG_DemosAddLog("Editing timeline");
+	} else if (!Q_stricmp(cmd, "anim")) {
+		if ( demo.cmd.upmove > 0 ) {
+			demoViewCommand_f();
+			return;
+		}
+		demo.editType = editAnim;
+		CG_DemosAddLog("Editing animation");
 /*	} else if (!Q_stricmp(cmd, "script")) {
 		demo.editType = editScript;
 		CG_DemosAddLog("Editing script");
@@ -985,6 +1013,9 @@ static void demoEditCommand_f(void) {
 			break;
 		case editLine:
 			demoLineCommand_f();
+			break;
+		case editAnim:
+			demoAnimCommand_f();
 			break;
 /*		case editScript:
 			demoScriptCommand_f();
@@ -1069,6 +1100,7 @@ static void demoFindCommand_f(void) {
 
 void demoPlaybackInit(void) {
 	char projectFile[MAX_OSPATH];
+	int i;
 
 	demo.initDone = qtrue;
 	demo.autoLoad = qfalse;
@@ -1080,7 +1112,7 @@ void demoPlaybackInit(void) {
 
 	demo.move.acceleration = 8;
 	demo.move.friction = 8;
-	demo.move.speed = 400;
+	demo.move.speed = 230;
 
 	demo.line.locked = qfalse;
 	demo.line.offset = 0;
@@ -1105,6 +1137,15 @@ void demoPlaybackInit(void) {
 	demo.chase.locked = qfalse;
 	demo.chase.target = -1;
 
+	demo.anim.locked = qfalse;
+	demo.anim.target = -1;
+	demo.anim.bone = 0;
+	for (i = 0; i < 72; i++) {
+		VectorSet(demo.anim.angles[i], 0.0f, 0.0f, 0.0f);
+		demo.anim.override[i] = qfalse;
+		demo.anim.points[i] = 0;
+	}
+
 	hudInitTables();
 	demoSynchMusic( -1, 0 );
 
@@ -1112,6 +1153,7 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("edit");
 	trap_AddCommand("view");
 	trap_AddCommand("chase");
+	trap_AddCommand("anim");
 	trap_AddCommand("speed");
 	trap_AddCommand("seek");
 	trap_AddCommand("demoSeek");
@@ -1122,6 +1164,10 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("hudToggle");
 	trap_AddCommand("line");
 	trap_AddCommand("save");
+#ifdef PUGMOD_CONVERTER
+	trap_AddCommand("pugConvert");
+	trap_AddCommand("camPoint");
+#endif
 	trap_AddCommand("load");
 	trap_AddCommand("+seek");
 	trap_AddCommand("-seek");
@@ -1218,6 +1264,8 @@ qboolean CG_DemosConsoleCommand( void ) {
 			demo.find = findNone;
 	} else if (!Q_stricmp(cmd, "chase")) {
 		demoChaseCommand_f();
+	} else if (!Q_stricmp(cmd, "anim")) {
+		demoAnimCommand_f();
 	} else if (!Q_stricmp(cmd, "hudInit")) {
 		hudInitTables();
 	} else if (!Q_stricmp(cmd, "hudToggle")) {
@@ -1232,6 +1280,13 @@ qboolean CG_DemosConsoleCommand( void ) {
 		demoLoadCommand_f();
 	} else if (!Q_stricmp(cmd, "save")) {
 		demoSaveCommand_f();
+#ifdef PUGMOD_CONVERTER
+	} else if (!Q_stricmp(cmd, "pugConvert")) {
+		demoConvertCommand_f();
+	} else if (!Q_stricmp(cmd, "camPoint")) {
+		demoStartTime = trap_MME_SeekTime(0);
+		demoCamPoint_f();
+#endif
 	} else if (!Q_stricmp(cmd, "clientOverride")) {
 		CG_ClientOverride_f();
 	} else if (!Q_stricmp(cmd, "musicPlay")) {

@@ -485,7 +485,7 @@ void demoDrawLine( const vec3_t p0, const vec3_t p1, const vec4_t color) {
 	polyVert_t verts[4];
 
 	demoDrawSetupVerts( verts, color );
-	demoDrawRawLine( p0, p1, 1, verts );
+	demoDrawRawLine( p0, p1, 0.1f, verts );
 }
 
 void demoDrawCross( const vec3_t origin, const vec4_t color ) {
@@ -520,9 +520,9 @@ void demoDrawBox( const vec3_t origin, const vec3_t container, const vec4_t colo
 		boxCorners[i][2] = origin[2] + container[i >>2];
 	}
 	for (i = 0; i < 4;i++) {
-		demoDrawRawLine( boxCorners[i], boxCorners[(i+1) & 3], 1.0f, verts );
-		demoDrawRawLine( boxCorners[4+i], boxCorners[4+((i+1) & 3)], 1.0f, verts );
-		demoDrawRawLine( boxCorners[i], boxCorners[4+i], 1.0f, verts );
+		demoDrawRawLine( boxCorners[i], boxCorners[(i+1) & 3], 0.1f, verts );
+		demoDrawRawLine( boxCorners[4+i], boxCorners[4+((i+1) & 3)], 0.1f, verts );
+		demoDrawRawLine( boxCorners[i], boxCorners[4+i], 0.1f, verts );
 	}
 }
 

@@ -1105,15 +1105,15 @@ void CFxScheduler::AddScheduledEffects( bool portal )
 
 						data->mEntityNum = (*itr)->mEntNum;
 						VM_Call( cgvm, CG_GET_LERP_ORIGIN );
-						CreateEffect( (*itr)->mpTemplate, 
+						CreateEffect((*itr)->mpTemplate, 
 									data->mPoint, (*itr)->mAxis, 
-									theFxHelper.mTime - (*itr)->mStartTime );
+									(theFxHelper.mTime - (*itr)->mStartTime) + theFxHelper.mTimeFraction);
 					}
 					else
 					{
-						CreateEffect( (*itr)->mpTemplate, 
+						CreateEffect((*itr)->mpTemplate, 
 									(*itr)->mOrigin, (*itr)->mAxis, 
-									theFxHelper.mTime - (*itr)->mStartTime );
+									(theFxHelper.mTime - (*itr)->mStartTime) + theFxHelper.mTimeFraction);
 					}
 				}
 				else
@@ -1142,9 +1142,9 @@ void CFxScheduler::AddScheduledEffects( bool portal )
 						}
 						else
 						{
-							CreateEffect( (*itr)->mpTemplate, 
+							CreateEffect((*itr)->mpTemplate, 
 										origin, axis, 
-										theFxHelper.mTime - (*itr)->mStartTime );
+										(theFxHelper.mTime - (*itr)->mStartTime) + theFxHelper.mTimeFraction);
 						}
 					}
 				}
@@ -1219,7 +1219,7 @@ void CFxScheduler::Draw2DEffects(float screenXScale, float screenYScale)
 // Return:
 //	none
 //------------------------------------------------------
-void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, vec3_t axis[3], int lateTime, int fxParm /*-1*/, int iGhoul2, int entNum, int modelNum, int boltNum  )
+void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, vec3_t axis[3], float lateTime, int fxParm /*-1*/, int iGhoul2, int entNum, int modelNum, int boltNum  )
 {
 	vec3_t	org, org2, temp,
 				vel, accel,

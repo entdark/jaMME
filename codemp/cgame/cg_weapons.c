@@ -233,10 +233,10 @@ static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
 		//mme
 		delta = (cg.time - pe->landTime) + cg.timeFraction;
 		if ( delta < LAND_DEFLECT_TIME ) {
-			origin[2] += pe->landChange*0.25 * delta / LAND_DEFLECT_TIME;
+			origin[2] += pe->landChange*0.25f * delta / (float)LAND_DEFLECT_TIME;
 		} else if ( delta < LAND_DEFLECT_TIME + LAND_RETURN_TIME ) {
-			origin[2] += pe->landChange*0.25 * 
-				(LAND_DEFLECT_TIME + LAND_RETURN_TIME - delta) / LAND_RETURN_TIME;
+			origin[2] += pe->landChange*0.25f * 
+				((float)(LAND_DEFLECT_TIME + LAND_RETURN_TIME) - delta) / (float)LAND_RETURN_TIME;
 		}
 	}
 
@@ -382,17 +382,14 @@ static void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups ) {
 	// add powerup effects
 	trap_R_AddRefEntityToScene( gun );
 
-	if (cg.predictedPlayerState.electrifyTime > cg.time)
-	{ //add electrocution shell
+	//use cent->currentState.emplacedOwner for non-predicted clients?
+	//add electrocution shell
+	if (cg.predictedPlayerState.electrifyTime > cg.time && cg.playerPredicted) {
 		int preShader = gun->customShader;
 		if ( rand() & 1 )
-		{
 			gun->customShader = cgs.media.electricBodyShader;	
-		}
 		else
-		{
 			gun->customShader = cgs.media.electricBody2Shader;
-		}
 		trap_R_AddRefEntityToScene( gun );
 		gun->customShader = preShader; //set back just to be safe
 	}
@@ -473,11 +470,11 @@ Ghoul2 Insert Start
 	
 		CG_PositionEntityOnTag( &gun, parent, parent->hModel, "tag_weapon");
 
-		if (!CG_IsMindTricked(cent->currentState.trickedentindex,
+		if (cg.playerCent && !CG_IsMindTricked(cent->currentState.trickedentindex,
 			cent->currentState.trickedentindex2,
 			cent->currentState.trickedentindex3,
 			cent->currentState.trickedentindex4,
-			cg.snap->ps.clientNum))
+			cg.playerCent->currentState.number))
 		{
 			if ((cg.playerPredicted && cg.predictedPlayerState.zoomMode)
 				|| (!cg.playerPredicted && cg.playerCent
@@ -1883,7 +1880,7 @@ void CG_FireWeapon( centity_t *cent, qboolean altFire ) {
 	cent->muzzleFlashTime = cg.time;
 	cent->muzzleFlash = qtrue;
 
-	if (cg.predictedPlayerState.clientNum == cent->currentState.number)
+	if (cg.playerCent == cent)
 	{
 		if ((ent->weapon == WP_BRYAR_PISTOL && altFire) ||
 			(ent->weapon == WP_BRYAR_OLD && altFire) ||
@@ -1914,23 +1911,23 @@ void CG_FireWeapon( centity_t *cent, qboolean altFire ) {
 			{
 				if (!cg.renderingThirdPerson )//gives an advantage to being in 3rd person, but would look silly otherwise
 				{//kick the view back
-					cg.kick_angles[PITCH] = flrand( -10, -15 );
+					cg.kick_angles[PITCH] = random() * 5  - 20;
 					cg.kick_time = cg.time;
 				}
 			}
 			else if (ent->weapon == WP_ROCKET_LAUNCHER)
 			{
-				CGCam_Shake(flrand(2, 3), 350);
+				CGCam_Shake(random() + 2, 350);
 			}
 			else if (ent->weapon == WP_REPEATER)
 			{
-				CGCam_Shake(flrand(2, 3), 350);
+				CGCam_Shake(random() + 2, 350);
 			}
 			else if (ent->weapon == WP_FLECHETTE)
 			{
 				if (altFire)
 				{
-					CGCam_Shake(flrand(2, 3), 350);
+					CGCam_Shake(random() + 2, 350);
 				}
 				else
 				{
@@ -2260,54 +2257,43 @@ qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 	centity_t	*cent;
 	int			anim;
 
-	if ( entityNum == cg.snap->ps.clientNum )
-	{ //I'm not exactly sure why we'd be rendering someone else's crosshair, but hey.
-		int weapontype = cg.snap->ps.weapon;
+	if (entityNum == cg.playerCent->currentState.number) {
+		//I'm not exactly sure why we'd be rendering someone else's crosshair, but hey.
+		int weapontype = cg.playerCent->currentState.weapon;
 		vec3_t weaponMuzzle;
-		centity_t *pEnt = &cg_entities[cg.predictedPlayerState.clientNum];
+		centity_t *pEnt = &cg_entities[cg.playerCent->currentState.number];
 
 		VectorCopy(WP_MuzzlePoint[weapontype], weaponMuzzle);
 
-		if (weapontype == WP_DISRUPTOR || weapontype == WP_STUN_BATON || weapontype == WP_MELEE || weapontype == WP_SABER)
-		{
+		if (weapontype == WP_DISRUPTOR || weapontype == WP_STUN_BATON || weapontype == WP_MELEE || weapontype == WP_SABER) {
 			VectorClear(weaponMuzzle);
 		}
 
-		if (cg.renderingThirdPerson)
-		{
+		if (cg.renderingThirdPerson) {
 			VectorCopy( pEnt->lerpOrigin, gunpoint );
 			AngleVectors( pEnt->lerpAngles, forward, right, NULL );
-		}
-		else
-		{
+		} else {
 			VectorCopy( cg.refdef.vieworg, gunpoint );
 			AngleVectors( cg.refdef.viewangles, forward, right, NULL );
 		}
 
-		if (weapontype == WP_EMPLACED_GUN && cg.snap->ps.emplacedIndex)
-		{
+		if (cg.playerPredicted && weapontype == WP_EMPLACED_GUN && cg.snap->ps.emplacedIndex) {
 			centity_t *gunEnt = &cg_entities[cg.snap->ps.emplacedIndex];
 
-			if (gunEnt)
-			{
+			if (gunEnt) {
 				vec3_t pitchConstraint;
 
 				VectorCopy(gunEnt->lerpOrigin, gunpoint);
 				gunpoint[2] += 46;
 
 				if (cg.renderingThirdPerson)
-				{
 					VectorCopy(pEnt->lerpAngles, pitchConstraint);
-				}
 				else
-				{
 					VectorCopy(cg.refdef.viewangles, pitchConstraint);
-				}
 
 				if (pitchConstraint[PITCH] > 40)
-				{
 					pitchConstraint[PITCH] = 40;
-				}
+
 				AngleVectors( pitchConstraint, forward, right, NULL );
 			}
 		}
@@ -2317,19 +2303,13 @@ qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 		VectorMA(muzzle, weaponMuzzle[0], forward, muzzle);
 		VectorMA(muzzle, weaponMuzzle[1], right, muzzle);
 
-		if (weapontype == WP_EMPLACED_GUN && cg.snap->ps.emplacedIndex)
-		{
+		if (cg.playerPredicted && weapontype == WP_EMPLACED_GUN && cg.snap->ps.emplacedIndex) {
 			//Do nothing
-		}
-		else if (cg.renderingThirdPerson)
-		{
-			muzzle[2] += cg.snap->ps.viewheight + weaponMuzzle[2];
-		}
-		else
-		{
+		} else if (cg.renderingThirdPerson) {
+			muzzle[2] += cg.playerCent->pe.viewHeight + weaponMuzzle[2];
+		} else {
 			muzzle[2] += weaponMuzzle[2];
 		}
-
 		return qtrue;
 	}
 

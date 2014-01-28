@@ -976,6 +976,7 @@ typedef struct {
 	trRefEntity_t	entity2D;	// currentEntity will point at this when doing 2D rendering
 	//mme
 	float			sceneZfar;
+	qboolean		doneBloom, doneSurfaces;
 } backEndState_t;
 
 /*
@@ -1596,6 +1597,7 @@ void RB_AddQuadStampExt( vec3_t origin, vec3_t left, vec3_t up, byte *color, flo
 
 void RB_ShowImages( void );
 
+void RB_SetGL2D(void);
 
 /*
 ============================================================
@@ -2053,6 +2055,10 @@ qboolean R_MME_JitterOrigin( float *x, float *y );
 
 int R_MME_MultiPassNext( );
 int R_MME_MultiPassNextStereo( );
+
+//Bloom Stuff
+void R_BloomInit( void );
+void R_BloomScreen( void );
 
 //Framebuffer stuff
 #define FB_FLOAT16 				0x01		//Have a float color buffer

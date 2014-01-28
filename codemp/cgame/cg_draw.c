@@ -2227,8 +2227,7 @@ void CG_DrawVehicleWeaponsLinked( const menuDef_t	*menuHUD, const centity_t *veh
 */
 	}
 
-	if ( cg_drawLink != drawLink )
-	{//state changed, play sound
+	if ( cg_drawLink != drawLink ) { //state changed, play sound
 		cg_drawLink = drawLink;
 		trap_S_StartSound (NULL, cg.predictedPlayerState.clientNum, CHAN_LOCAL, trap_S_RegisterSound( "sound/vehicles/common/linkweaps.wav" ) );
 	}
@@ -2904,42 +2903,25 @@ static float CG_DrawMiniScoreboard ( float y )
 CG_DrawEnemyInfo
 ================
 */
-static float CG_DrawEnemyInfo ( float y ) 
-{
+static float CG_DrawEnemyInfo ( float y ) {
 	float		size;
 	int			clientNum;
 	const char	*title;
 	clientInfo_t	*ci;
 	int xOffset = 0;
 
-	if (!cg.snap)
-	{
+	if (!cg.snap || !cg_drawEnemyInfo.integer || cgs.gametype == GT_POWERDUEL)
 		return y;
-	}
-
-	if ( !cg_drawEnemyInfo.integer ) 
-	{
-		return y;
-	}
 
 	if ( cg.playerPredicted && cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 ) 
-	{
 		return y;
-	}
-	
-	if (cgs.gametype == GT_POWERDUEL)
-	{ //just get out of here then
-		return y;
-	}
 
-	if ( cgs.gametype == GT_JEDIMASTER )
-	{
+	if ( cgs.gametype == GT_JEDIMASTER ) {
 		//title = "Jedi Master";
 		title = CG_GetStringEdString("MP_INGAME", "MASTERY7");
 		clientNum = cgs.jediMaster;
 
-		if ( clientNum < 0 )
-		{
+		if ( clientNum < 0 ) {
 			//return y;
 //			title = "Get Saber!";
 			title = CG_GetStringEdString("MP_INGAME", "GET_SABER");
@@ -2952,18 +2934,11 @@ static float CG_DrawEnemyInfo ( float y )
 
 			y += size;
 
-			/*
-			CG_Text_Paint( 630 - CG_Text_Width ( ci->name, 0.7f, FONT_MEDIUM ), y, 0.7f, colorWhite, ci->name, 0, 0, 0, FONT_MEDIUM );
-			y += 15;
-			*/
-
 			CG_Text_Paint( 630 - CG_Text_Width ( title, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, title, 0, 0, 0, FONT_MEDIUM );
 
 			return y + BIGCHAR_HEIGHT + 2;
 		}
-	}
-	else if ( cg.snap->ps.duelInProgress )
-	{
+	} else if ( cg.snap->ps.duelInProgress ) {
 //		title = "Dueling";
 		title = CG_GetStringEdString("MP_INGAME", "DUELING");
 		// good fix yeah?
@@ -2972,69 +2947,28 @@ static float CG_DrawEnemyInfo ( float y )
 		else
 			clientNum = cg.snap->ps.clientNum;
 	}
-	else if ( cgs.gametype == GT_DUEL && cgs.clientinfo[cg.snap->ps.clientNum].team != TEAM_SPECTATOR)
-	{
+	else if ( cgs.gametype == GT_DUEL && cgs.clientinfo[cg.playerCent->currentState.number].team != TEAM_SPECTATOR) {
 		title = CG_GetStringEdString("MP_INGAME", "DUELING");
 		if (cg.playerCent->currentState.number == cgs.duelist1)
-		{
 			clientNum = cgs.duelist2; //if power duel, should actually draw both duelists 2 and 3 I guess
-		}
 		else if (cg.playerCent->currentState.number == cgs.duelist2)
-		{
 			clientNum = cgs.duelist1;
-		}
 		else if (cg.playerCent->currentState.number == cgs.duelist3)
-		{
 			clientNum = cgs.duelist1;
-		}
 		else
-		{
 			return y;
-		}
-	}
-	else
-	{
-		/*
-		title = "Attacker";
-		clientNum = cg.predictedPlayerState.persistant[PERS_ATTACKER];
-
-		if ( clientNum < 0 || clientNum >= MAX_CLIENTS || clientNum == cg.snap->ps.clientNum ) 
-		{
-			return y;
-		}
-
-		if ( cg.time - cg.attackerTime > ATTACKER_HEAD_TIME ) 
-		{
-			cg.attackerTime = 0;
-			return y;
-		}
-		*/
+	} else {
 		//As of current, we don't want to draw the attacker. Instead, draw whoever is in first place.
 		if (cgs.duelWinner < 0 || cgs.duelWinner >= MAX_CLIENTS)
-		{
 			return y;
-		}
-
 
 		title = va("%s: %i",CG_GetStringEdString("MP_INGAME", "LEADER"), cgs.scores1);
 
-		/*
-		if (cgs.scores1 == 1)
-		{
-			title = va("%i kill", cgs.scores1);
-		}
-		else
-		{
-			title = va("%i kills", cgs.scores1);
-		}
-		*/
 		clientNum = cgs.duelWinner;
 	}
 
 	if ( clientNum >= MAX_CLIENTS || !(&cgs.clientinfo[ clientNum ]) )
-	{
 		return y;
-	}
 
 	ci = &cgs.clientinfo[ clientNum ];
 
@@ -3042,9 +2976,7 @@ static float CG_DrawEnemyInfo ( float y )
 	y += 5;
 
 	if ( ci->modelIcon )
-	{
 		CG_DrawPic( 640 - size*cgs.widthRatioCoef - 5 + xOffset, y, size*cgs.widthRatioCoef, size, ci->modelIcon );
-	}
 
 	y += size;
 
@@ -3055,8 +2987,8 @@ static float CG_DrawEnemyInfo ( float y )
 //	CG_Text_Paint( 630 - CG_Text_Width ( title, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, title, 0, 0, 0, FONT_MEDIUM );
 	CG_Text_Paint( 630 - CG_Text_Width ( title, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, title, 0, 0, 0, FONT_SMALL2 );
 
-	if ( (cgs.gametype == GT_DUEL || cgs.gametype == GT_POWERDUEL) && cgs.clientinfo[cg.snap->ps.clientNum].team != TEAM_SPECTATOR)
-	{//also print their score
+	if ( (cgs.gametype == GT_DUEL || cgs.gametype == GT_POWERDUEL) && cgs.clientinfo[cg.playerCent->currentState.number].team != TEAM_SPECTATOR) {
+		//also print their score
 		char text[1024];
 		y += 23;//15;
 		Com_sprintf(text, sizeof(text), "%i/%i", cgs.clientinfo[clientNum].score, cgs.fraglimit );
@@ -3064,17 +2996,12 @@ static float CG_DrawEnemyInfo ( float y )
 	}
 
 // nmckenzie: DUEL_HEALTH - fixme - need checks and such here.  And this is coded to duelist 1 right now, which is wrongly.
-	if ( cgs.showDuelHealths >= 2)
-	{
+	if ( cgs.showDuelHealths >= 2) {
 		y += 15;
 		if ( cgs.duelist1 == clientNum )
-		{
 			CG_DrawDuelistHealth ( 640 - size - 5 + xOffset, y, 64, 8, 1 );
-		}
 		else if ( cgs.duelist2 == clientNum )
-		{
 			CG_DrawDuelistHealth ( 640 - size - 5 + xOffset, y, 64, 8, 2 );
-		}
 	}
 
 	return y + BIGCHAR_HEIGHT + 2;
@@ -3223,27 +3150,16 @@ float CG_DrawRadar ( float y )
 	int				xOffset = 0;
 	int				radar_x;
 
-	if (!cg.snap)
-	{
-		return y;
-	}
-
 	// Make sure the radar should be showing
-	if ( cg.snap->ps.stats[STAT_HEALTH] <= 0 )
-	{
+	if (!cg.snap || cg.snap->ps.stats[STAT_HEALTH] <= 0 || !cg.playerPredicted)
 		return y;
-	}
 
 	if ( (cg.predictedPlayerState.pm_flags & PMF_FOLLOW) || cg.predictedPlayerState.persistant[PERS_TEAM] == TEAM_SPECTATOR )
-	{
 		return y;
-	}
 
 	local = &cgs.clientinfo[ cg.snap->ps.clientNum ];
 	if ( !local->infoValid )
-	{
 		return y;
-	}
 
 	radar_x = 640 - (640 - (580 - RADAR_RADIUS)) * cgs.widthRatioCoef;
 
@@ -4996,38 +4912,29 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 	centity_t	*crossEnt = NULL;
 	float		chX, chY;
 
-	if ( worldPoint )
-	{
+	if (worldPoint)
 		VectorCopy( worldPoint, cg_crosshairPos );
-	}
 
-	if ( !cg_drawCrosshair.integer ) 
-	{
+	if (!cg_drawCrosshair.integer)
 		return;
-	}
 
-	if (cg.snap->ps.fallingToDeath)
-	{
+	if (cg.playerPredicted && cg.snap->ps.fallingToDeath)
 		return;
-	}
 
+	//not while scoped
 	if ((cg.playerPredicted && cg.predictedPlayerState.zoomMode != 0)
 		|| (!cg.playerPredicted
-			&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-			|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4)))
-	{//not while scoped
+		&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+		|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))) {
 		return;
 	}
 
-	if ( cg_crosshairHealth.integer )
-	{
+	if (cg_crosshairHealth.integer) {
 		vec4_t		hcolor;
 
 		CG_ColorForHealth( hcolor );
 		trap_R_SetColor( hcolor );
-	}
-	else
-	{
+	} else {
 		//set color based on what kind of ent is under crosshair
 		if ( cg.crosshairClientNum >= ENTITYNUM_WORLD )
 		{
@@ -5266,8 +5173,8 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 		}
 	}
 
-	if ( cg.predictedPlayerState.m_iVehicleNum )
-	{//I'm in a vehicle
+	//I'm in a vehicle
+	if (cg.predictedPlayerState.m_iVehicleNum) {
 		centity_t *vehCent = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
 	    if ( vehCent 
 			&& vehCent->m_pVehicle 
@@ -5279,57 +5186,46 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 		//bigger by default
 		w = cg_crosshairSize.value*2.0f;
 		h = w;
-	}
-	else
-	{
+	} else {
 		w = h = cg_crosshairSize.value;
 	}
 
 	// pulse the size of the crosshair when picking up items
-	if (cg.playerPredicted) {
-		f = (cg.time - cg.itemPickupBlendTime) + cg.timeFraction;
-	}
+	f = (cg.time - cg.itemPickupBlendTime) + cg.timeFraction;
+
 	if ( f > 0 && f < ITEM_BLOB_TIME ) {
 		f /= ITEM_BLOB_TIME;
 		w *= ( 1 + f );
 		h *= ( 1 + f );
 	}
 
-	if ( worldPoint && VectorLength( worldPoint ) )
-	{
-		if ( !CG_WorldCoordToScreenCoordFloat( worldPoint, &x, &y ) )
-		{//off screen, don't draw it
+	if (worldPoint && VectorLength(worldPoint)){
+		if (!CG_WorldCoordToScreenCoordFloat(worldPoint, &x, &y)) {
+			//off screen, don't draw it
 			return;
 		}
 		//CG_LerpCrosshairPos( &x, &y );
 		x -= 320;
 		y -= 240;
-	}
-	else
-	{
+	} else {
 		x = cg_crosshairX.integer;
 		y = cg_crosshairY.integer;
 	}
 
-	if ( !hShader )
-	{
-		hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
-	}
+	if (!hShader)
+		hShader = cgs.media.crosshairShader[cg_drawCrosshair.integer % NUM_CROSSHAIRS];
 
 	chX = x + cg.refdef.x + 0.5 * (640 - w*cgs.widthRatioCoef);
 	chY = y + cg.refdef.y + 0.5 * (480 - h);
-	trap_R_DrawStretchPic( chX, chY, w*cgs.widthRatioCoef, h, 0, 0, 1, 1, hShader );
+	trap_R_DrawStretchPic(chX, chY, w*cgs.widthRatioCoef, h, 0, 0, 1, 1, hShader);
 
 	//draw a health bar directly under the crosshair if we're looking at something
 	//that takes damage
 	if (crossEnt &&
-		crossEnt->currentState.maxhealth)
-	{
+		crossEnt->currentState.maxhealth) {
 		CG_DrawHealthBar(crossEnt, chX, chY, w, h);
 		chY += HEALTH_HEIGHT*2;
-	}
-	else if (crossEnt && crossEnt->currentState.number < MAX_CLIENTS)
-	{
+	} else if (crossEnt && crossEnt->currentState.number < MAX_CLIENTS) {
 		if (cgs.gametype == GT_SIEGE)
 		{
 			CG_DrawSiegeInfo(crossEnt, chX, chY, w, h);
@@ -5350,18 +5246,16 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 		}
 	}
 
-	if (cg.predictedPlayerState.hackingTime)
-	{ //hacking something
+	//hacking something
+	if (cg.playerPredicted && cg.predictedPlayerState.hackingTime)
 		CG_DrawHaqrBar(chX, chY, w, h);
-	}
 
+	//draw generic timing bar, can be used for whatever
 	if (cg_genericTimerBar > cg.time)
-	{ //draw generic timing bar, can be used for whatever
 		CG_DrawGenericTimerBar();
-	}
 
-	if ( corona ) // drawing extra bits
-	{
+	// drawing extra bits
+	if (corona) {
 		ecolor[3] = 0.5f;
 		ecolor[0] = ecolor[1] = ecolor[2] = (1 - ecolor[3]) * ((float)sin(cg.time * 0.001 + cg.timeFraction * 0.001) * 0.08f + 0.35f); // don't draw full color
 		ecolor[3] = 1.0f;
@@ -5816,35 +5710,26 @@ static void CG_DrawActivePowers(void)
 		return;
 	}
 
-	if (cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR)
-	{
+	if (cgs.clientinfo[cg.playerCent->currentState.number].team == TEAM_SPECTATOR)
 		return;
-	}
 
 	trap_R_SetColor( NULL );
 
-	while (i < NUM_FORCE_POWERS)
-	{
+	while (i < NUM_FORCE_POWERS) {
 		if ((cg.playerCent->currentState.forcePowersActive & (1 << forcePowerSorted[i])) &&
-			CG_IsDurationPower(forcePowerSorted[i]))
-		{
+			CG_IsDurationPower(forcePowerSorted[i])) {
 			CG_DrawPic( startx, starty, endx*cgs.widthRatioCoef, endy, cgs.media.forcePowerIcons[forcePowerSorted[i]]);
 			startx += (icon_size+2)*cgs.widthRatioCoef; //+2 for spacing
-			if ((startx+icon_size) >= SCREEN_WIDTH-80)
-			{
+			if ((startx+icon_size) >= SCREEN_WIDTH-80) {
 				startx = icon_size*2+16;
 				starty += (icon_size+2);
 			}
 		}
-
 		i++;
 	}
-
 	//additionally, draw an icon force force rage recovery
 	if (cg.playerPredicted && cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
-	{
 		CG_DrawPic( startx, starty, endx*cgs.widthRatioCoef, endy, cgs.media.rageRecShader);
-	}
 }
 
 //--------------------------------------------------------------
@@ -5853,23 +5738,16 @@ static void CG_DrawRocketLocking( int lockEntNum, int lockTime )
 {
 	int		cx, cy;
 	vec3_t	org;
-	static float oldDif = 0;
+	static int oldDif = 0;
 	centity_t *cent = &cg_entities[lockEntNum];
 	vec4_t color={0.0f,0.0f,0.0f,0.0f};
 	float lockTimeInterval = ((cgs.gametype==GT_SIEGE)?2400.0f:1200.0f)/16.0f;
 	//FIXME: if in a vehicle, use the vehicle's lockOnTime...
-	float dif = ((cg.time - cg.snap->ps.rocketLockTime) + cg.timeFraction) / lockTimeInterval;
+	int dif = ((cg.time - cg.snap->ps.rocketLockTime)/* + cg.timeFraction*/) / lockTimeInterval;
 	int i;
 
-	if (!cg.snap->ps.rocketLockTime)
-	{
+	if (!cg.snap->ps.rocketLockTime || cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR)
 		return;
-	}
-
-	if (cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR)
-	{
-		return;
-	}
 
 	if ( cg.snap->ps.m_iVehicleNum )
 	{//driving a vehicle
@@ -5902,7 +5780,7 @@ static void CG_DrawRocketLocking( int lockEntNum, int lockTime )
 				else
 				{//use the custom vehicle lockOnTime
 					lockTimeInterval = (vehWeapon->iLockOnTime/16.0f);
-					dif = ((cg.time - cg.snap->ps.rocketLockTime) + cg.timeFraction) / lockTimeInterval;
+					dif = ((cg.time - cg.snap->ps.rocketLockTime)/* + cg.timeFraction*/) / lockTimeInterval;
 				}
 			}
 		}
@@ -6045,12 +5923,15 @@ static void CG_DrawRocketLocking( int lockEntNum, int lockTime )
 		// we are locked and loaded baby
 		if ( dif == 8 )
 		{
+			//since we have hardcoded rotated pic with ratio fix above,
+			//we want undepended (on mov_ratioFix) hardcoded coef here too
+			float ratioFix = (640.0*cgs.glconfig.vidHeight) / (480.0*cgs.glconfig.vidWidth);
 			color[0] = color[1] = color[2] = sin(cg.time * 0.05 + cg.timeFraction * 0.05) * 0.5f + 0.5f;
 			color[3] = 1.0f; // this art is additive, so the alpha value does nothing
 
 			trap_R_SetColor( color );
 
-			CG_DrawPic( cx - sz, cy - sz * 2, sz * 2, sz * 2, trap_R_RegisterShaderNoMip( "gfx/2d/lock" ));
+			CG_DrawPic( cx - sz * ratioFix, cy - sz * 2, sz * 2 * ratioFix, sz * 2, trap_R_RegisterShaderNoMip( "gfx/2d/lock" ));
 		}
 	}
 }
@@ -6275,18 +6156,16 @@ static void CG_ScanForCrosshairEntity( void ) {
 	else if (cg_dynamicCrosshair.integer)
 	{
 		vec3_t d_f, d_rt, d_up;
-		if (cg.snap && cg.playerCent->currentState.weapon == WP_EMPLACED_GUN && cg.playerCent->playerState->emplacedIndex &&
+		if (cg.playerCent->currentState.weapon == WP_EMPLACED_GUN && cg.playerCent->playerState->emplacedIndex &&
 			cg_entities[cg.playerCent->playerState->emplacedIndex].ghoul2 && cg_entities[cg.playerCent->playerState->emplacedIndex].currentState.weapon == WP_NONE)
 		{ //locked into our e-web, calc the muzzle from it
 			CG_CalcEWebMuzzlePoint(&cg_entities[cg.playerCent->playerState->emplacedIndex], start, d_f, d_rt, d_up);
 		}
 		else
 		{
-			if (cg.snap && cg.playerCent->currentState.weapon == WP_EMPLACED_GUN)
+			if (cg.playerCent->currentState.weapon == WP_EMPLACED_GUN)
 			{
 				vec3_t pitchConstraint;
-
-				ignore = cg.snap->ps.emplacedIndex;
 
 				VectorCopy(cg.refdef.viewangles, pitchConstraint);
 
@@ -6390,31 +6269,24 @@ static void CG_ScanForCrosshairEntity( void ) {
 		}
 	}
 
-	if (cg.snap->ps.persistant[PERS_TEAM] != TEAM_SPECTATOR)
-	{
-		if (trace.entityNum < /*MAX_CLIENTS*/ENTITYNUM_WORLD)
-		{
+	if (cgs.clientinfo[cg.playerCent->currentState.number].team != TEAM_SPECTATOR) {
+		if (trace.entityNum < /*MAX_CLIENTS*/ENTITYNUM_WORLD) {
 			cg.crosshairClientNum = trace.entityNum;
 			cg.crosshairClientTime = cg.time;
 
-			if (cg.crosshairClientNum < ENTITYNUM_WORLD)
-			{
+			if (cg.crosshairClientNum < ENTITYNUM_WORLD) {
 				centity_t *veh = &cg_entities[cg.crosshairClientNum];
 
 				if (veh->currentState.eType == ET_NPC &&
 					veh->currentState.NPC_class == CLASS_VEHICLE &&
-					veh->currentState.owner < MAX_CLIENTS)
-				{ //draw the name of the pilot then
+					veh->currentState.owner < MAX_CLIENTS) { //draw the name of the pilot then
 					cg.crosshairClientNum = veh->currentState.owner;
 					cg.crosshairVehNum = veh->currentState.number;
 					cg.crosshairVehTime = cg.time;
 				}
 			}
-
 			CG_DrawCrosshair(trace.endpos, 1);
-		}
-		else
-		{
+		} else {
 			CG_DrawCrosshair(trace.endpos, 0);
 		}
 	}
@@ -6481,7 +6353,7 @@ static void CG_SanitizeString( char *in, char *out )
 CG_DrawCrosshairNames
 =====================
 */
-static void CG_DrawCrosshairNames( void ) {
+static void CG_DrawCrosshairNames(void) {
 	float		*color;
 	vec4_t		tcolor;
 	char		*name;
@@ -6540,8 +6412,7 @@ static void CG_DrawCrosshairNames( void ) {
 		//if (cgs.gametype == GT_SIEGE)
 		if (1)
 		{ //instead of team-based we'll make it oriented based on which team we're on
-			//mme, taken from pugmod
-			if (cgs.clientinfo[cg.crosshairClientNum].team == (cg.playerCent->currentState.number!=-1?cgs.clientinfo[cg.playerCent->currentState.number].team:cg.predictedPlayerState.persistant[PERS_TEAM]))
+			if (cgs.clientinfo[cg.crosshairClientNum].team == cgs.clientinfo[cg.playerCent->currentState.number].team)
 			{
 				baseColor = CT_GREEN;
 			}
@@ -6566,9 +6437,8 @@ static void CG_DrawCrosshairNames( void ) {
 	{
 		//baseColor = CT_WHITE;
 		if (cgs.gametype == GT_POWERDUEL &&
-			//mme, taken from pugmod
-			cgs.clientinfo[cg.playerCent->currentState.number!=-1?cg.playerCent->currentState.number:cg.snap->ps.clientNum].team != TEAM_SPECTATOR &&
-			cgs.clientinfo[cg.crosshairClientNum].duelTeam == cgs.clientinfo[cg.predictedPlayerState.clientNum].duelTeam)
+			cgs.clientinfo[cg.playerCent->currentState.number].team != TEAM_SPECTATOR &&
+			cgs.clientinfo[cg.crosshairClientNum].duelTeam == cgs.clientinfo[cg.playerCent->currentState.number].duelTeam)
 		{ //on the same duel team in powerduel, so he's a friend
 			baseColor = CT_GREEN;
 		}
@@ -6578,15 +6448,13 @@ static void CG_DrawCrosshairNames( void ) {
 		}
 	}
 
-	if (cg.snap->ps.duelInProgress)
-	{
-		if (cg.crosshairClientNum != cg.snap->ps.duelIndex)
-		{ //grey out crosshair for everyone but your foe if you're in a duel
+	if (cg.playerPredicted && cg.snap->ps.duelInProgress) {
+		if (cg.crosshairClientNum != cg.snap->ps.duelIndex) {
+		  //grey out crosshair for everyone but your foe if you're in a duel
 			baseColor = CT_BLACK;
 		}
-	}
-	else if (cg_entities[cg.crosshairClientNum].currentState.bolt1)
-	{ //this fellow is in a duel. We just checked if we were in a duel above, so
+	} else if (cg_entities[cg.crosshairClientNum].currentState.bolt1) {
+	  //this fellow is in a duel. We just checked if we were in a duel above, so
 	  //this means we aren't and he is. Which of course means our crosshair greys out over him.
 		baseColor = CT_BLACK;
 	}
@@ -6594,21 +6462,16 @@ static void CG_DrawCrosshairNames( void ) {
 	tcolor[0] = colorTable[baseColor][0];
 	tcolor[1] = colorTable[baseColor][1];
 	tcolor[2] = colorTable[baseColor][2];
-	//mme, taken from pugmod
-//	tcolor[3] = color[3]*0.5f;
-	tcolor[3] = cg.playerCent->currentState.number!=-1?1.0f:color[3]*0.5f;
+	tcolor[3] = color[3]*0.5f;
 
 	CG_SanitizeString(name, sanitized);
 
-	if (isVeh)
-	{
+	if (isVeh) {
 		char str[MAX_STRING_CHARS];
 		//mme, taken from pugmod
 		Com_sprintf(str, MAX_STRING_CHARS, "%s (pilot)", sanitized);
 		UI_DrawProportionalString(320, 170, str, UI_CENTER, tcolor);
-	}
-	else
-	{
+	} else {
 		//mme, taken from pugmod
 		UI_DrawProportionalString(320, 170, sanitized, UI_CENTER, tcolor);
 	}
@@ -8169,11 +8032,6 @@ static void CG_Draw2DScreenTints( void )
 			}
 		}
 		
-		if (cg.snap->ps.rocketLockIndex != ENTITYNUM_NONE && (cg.time - cg.snap->ps.rocketLockTime) > 0)
-		{
-			CG_DrawRocketLocking( cg.snap->ps.rocketLockIndex, cg.snap->ps.rocketLockTime );
-		}
-		
 		if (BG_HasYsalamiri(cgs.gametype, &cg.snap->ps))
 		{
 			if (!cgYsalTime)
@@ -8285,20 +8143,18 @@ void CG_CameraDraw2D( void ) {
 	}
 }
 
-void CG_Draw2D( void ) {
+void CG_Draw2D (void) {
 	float			inTime = cg.invenSelectTime+WEAPON_SELECT_TIME;
 	float			wpTime = cg.weaponSelectTime+WEAPON_SELECT_TIME;
 	float			bestTime;
-	int				drawSelect = 0;
 	vec4_t			hcolor = {0, 0, 0, 0};
 
 	// if we are taking a levelshot for the menu, don't draw anything
-	if ( cg.levelShot ) {
+	if (cg.levelShot) {
 		return;
 	}
 
-	if (cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR)
-	{
+	if (cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR) {
 		cgRageTime = 0;
 		cgRageFadeTime = 0;
 		cgRageFadeVal = 0;
@@ -8327,7 +8183,8 @@ void CG_Draw2D( void ) {
 
 	if ( mov_fragsOnly.integer != 0 ) {
 		if(!cg.renderingThirdPerson && mov_fragsOnly.integer == 2)CG_DrawZoomMask();
-		CG_DrawReward();
+		if (cg.playerPredicted)
+			CG_DrawReward();
 		CG_DrawCenterString();
 		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 		return;
@@ -8339,128 +8196,9 @@ void CG_Draw2D( void ) {
 		return;
 	}
 
-	if ( !cg.playerCent )
+	if (!cg.playerCent)
 		return;
-	else if (!cg.playerPredicted)
-		goto notPredicted;
-
-	CG_Draw2DScreenTints();
-
-	if (cg.snap->ps.rocketLockIndex != ENTITYNUM_NONE && (cg.time - cg.snap->ps.rocketLockTime) > 0)
-	{
-		CG_DrawRocketLocking( cg.snap->ps.rocketLockIndex, cg.snap->ps.rocketLockTime );
-	}
-
-	if (cg.snap->ps.holocronBits)
-	{
-		CG_DrawHolocronIcons();
-	}
-	if (cg.snap->ps.fd.forcePowersActive || cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
-	{
-		CG_DrawActivePowers();
-	}
-
-	if (cg.snap->ps.jetpackFuel < 100)
-	{ //draw it as long as it isn't full
-        CG_DrawJetpackFuel();        
-	}
-	if (cg.snap->ps.cloakFuel < 100)
-	{ //draw it as long as it isn't full
-		CG_DrawCloakFuel();
-	}
-	if (cg.predictedPlayerState.emplacedIndex > 0)
-	{
-		centity_t *eweb = &cg_entities[cg.predictedPlayerState.emplacedIndex];
-
-		if (eweb->currentState.weapon == WP_NONE)
-		{ //using an e-web, draw its health
-			CG_DrawEWebHealth();
-		}
-	}
-
-	// Draw this before the text so that any text won't get clipped off
-	CG_DrawZoomMask();
-
-/*
-	if (cg.cameraMode) {
-		return;
-	}
-*/
-	if ( cg.playerPredicted ) {
-		if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
-//			CG_DrawSpectator();
-			CG_DrawCrosshair(NULL, 0);
-			CG_DrawCrosshairNames();
-			CG_SaberClashFlare();
-		} else {
-			// don't draw any status if dead or the scoreboard is being explicitly shown
-			if ( !cg.showScores && cg.snap->ps.stats[STAT_HEALTH] > 0 ) {
-      
-				//CG_DrawTemporaryStats();
-
-				CG_DrawAmmoWarning();
-
-				CG_DrawCrosshairNames();
-
-				if (cg_drawStatus.integer)
-				{
-					CG_DrawIconBackground();
-				}
-
-				if (inTime > wpTime)
-				{
-					drawSelect = 1;
-					bestTime = cg.invenSelectTime;
-				}
-				else //only draw the most recent since they're drawn in the same place
-				{
-					drawSelect = 2;
-					bestTime = cg.weaponSelectTime;
-				}
-
-				if (cg.forceSelectTime > bestTime)
-				{
-					drawSelect = 3;
-				}
-
-				switch(drawSelect)
-				{
-				case 1:
-					CG_DrawInvenSelect();
-					break;
-				case 2:
-					CG_DrawWeaponSelect();
-					break;
-				case 3:
-					CG_DrawForceSelect();
-					break;
-				default:
-					break;
-				}
-
-				if (cg_drawStatus.integer)
-				{
-					//Powerups now done with upperright stuff
-					//CG_DrawPowerupIcons();
-
-					CG_DrawFlagStatus();
-				}
-
-				CG_SaberClashFlare();
-
-				if (cg_drawStatus.integer)
-				{
-					CG_DrawStats();
-				}
-
-				CG_DrawPickupItem();
-				//Do we want to use this system again at some point?
-				CG_DrawReward();
-			}
-    
-		}
-	} else {
-notPredicted:
+	else if (!cg.playerPredicted) {
 		if (cg.playerCent->currentState.forcePowersActive)
 			CG_DrawActivePowers();
 		CG_DrawZoomMask();
@@ -8474,6 +8212,83 @@ notPredicted:
 		CG_DrawCenterString();
 		CG_ChatBox_DrawStrings();
 		return;
+	}
+
+	CG_Draw2DScreenTints();
+
+		if (cg.snap->ps.rocketLockIndex != ENTITYNUM_NONE && (cg.time - cg.snap->ps.rocketLockTime) > 0) {
+			CG_DrawRocketLocking( cg.snap->ps.rocketLockIndex, cg.snap->ps.rocketLockTime );
+		}
+
+	if (cg.snap->ps.holocronBits)
+		CG_DrawHolocronIcons();
+	if (cg.snap->ps.fd.forcePowersActive || cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
+		CG_DrawActivePowers();
+
+	if (cg.snap->ps.jetpackFuel < 100) //draw it as long as it isn't full
+        CG_DrawJetpackFuel();        
+	if (cg.snap->ps.cloakFuel < 100) //draw it as long as it isn't full
+		CG_DrawCloakFuel();
+	if (cg.predictedPlayerState.emplacedIndex > 0) {
+		centity_t *eweb = &cg_entities[cg.predictedPlayerState.emplacedIndex];
+		if (eweb->currentState.weapon == WP_NONE) //using an e-web, draw its health
+			CG_DrawEWebHealth();
+	}
+
+	// Draw this before the text so that any text won't get clipped off
+	CG_DrawZoomMask();
+
+	if (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR) {
+		if (!cg.demoPlayback)
+			CG_DrawSpectator();
+		CG_DrawCrosshair(NULL, 0);
+		CG_DrawCrosshairNames();
+		CG_SaberClashFlare();
+	} else {
+		// don't draw any status if dead or the scoreboard is being explicitly shown
+		if (!cg.showScores && cg.snap->ps.stats[STAT_HEALTH] > 0) {   
+			int drawSelect = 0;
+			//CG_DrawTemporaryStats();
+			CG_DrawAmmoWarning();
+			CG_DrawCrosshairNames();
+
+			if (cg_drawStatus.integer)
+				CG_DrawIconBackground();
+
+			if (inTime > wpTime) {
+				drawSelect = 1;
+				bestTime = cg.invenSelectTime;
+			} else { //only draw the most recent since they're drawn in the same place
+				drawSelect = 2;
+				bestTime = cg.weaponSelectTime;
+			}
+			if (cg.forceSelectTime > bestTime)
+				drawSelect = 3;
+
+			switch(drawSelect) {
+			case 1:
+				CG_DrawInvenSelect();
+				break;
+			case 2:
+				CG_DrawWeaponSelect();
+				break;
+			case 3:
+				CG_DrawForceSelect();
+				break;
+			default:
+				break;
+			}
+
+			if (cg_drawStatus.integer)
+				CG_DrawFlagStatus();
+			CG_SaberClashFlare();
+			if (cg_drawStatus.integer)
+				CG_DrawStats();
+
+			CG_DrawPickupItem();
+			//Do we want to use this system again at some point?
+			CG_DrawReward();
+		}   
 	}
 
 	CG_DrawVote();
@@ -8491,15 +8306,13 @@ notPredicted:
 		CG_DrawWarmup();
 	}
 
-	if (cgSiegeRoundState)
-	{
+	if (cgSiegeRoundState) {
 		char pStr[1024];
 		int rTime = 0;
 
 		//cgSiegeRoundBeganTime = 0;
 
-		switch (cgSiegeRoundState)
-		{
+		switch (cgSiegeRoundState) {
 		case 1:
 			CG_CenterPrint(CG_GetStringEdString("MP_INGAME", "WAITING_FOR_PLAYERS"), SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH);
 			break;
@@ -8507,31 +8320,23 @@ notPredicted:
 			rTime = (SIEGE_ROUND_BEGIN_TIME - (cg.time - cgSiegeRoundTime));
 		
 			if (rTime < 0)
-			{
 				rTime = 0;
-			}
-			if (rTime > SIEGE_ROUND_BEGIN_TIME)
-			{
+			else if (rTime > SIEGE_ROUND_BEGIN_TIME)
 				rTime = SIEGE_ROUND_BEGIN_TIME;
-			}
 
 			rTime /= 1000;
 
 			rTime += 1;
 
 			if (rTime < 1)
-			{
 				rTime = 1;
-			}
 
-			if (rTime <= 3 && rTime != cgSiegeRoundCountTime)
-			{
+			if (rTime <= 3 && rTime != cgSiegeRoundCountTime) {
 				cgSiegeRoundCountTime = rTime;
 
 				if (mov_soundDisable.integer & SDISABLE_ANNOUNCER) goto skipCounter;
 
-				switch (rTime)
-				{
+				switch (rTime) {
 				case 1:
 					trap_S_StartLocalSound( cgs.media.count1Sound, CHAN_ANNOUNCER );
 					break;
@@ -8553,113 +8358,78 @@ skipCounter:
 		default:
 			break;
 		}
-
 		cgSiegeEntityRender = 0;
-	}
-	else if (cgSiegeRoundTime)
-	{
+	} else if (cgSiegeRoundTime) {
 		CG_CenterPrint("", SCREEN_HEIGHT * 0.30, BIGCHAR_WIDTH);
 		cgSiegeRoundTime = 0;
 
 		//cgSiegeRoundBeganTime = cg.time;
 		cgSiegeEntityRender = 0;
-	}
-	else if (cgSiegeRoundBeganTime)
-	{ //Draw how much time is left in the round based on local info.
+	} else if (cgSiegeRoundBeganTime) { //Draw how much time is left in the round based on local info.
 		int timedTeam = TEAM_FREE;
 		int timedValue = 0;
 
+		//render the objective item model since this client has it
 		if (cgSiegeEntityRender)
-		{ //render the objective item model since this client has it
 			CG_DrawSiegeHUDItem();
-		}
 
-		if (team1Timed)
-		{
+		if (team1Timed) {
 			timedTeam = TEAM_RED; //team 1
 			if (cg_beatingSiegeTime)
-			{
 				timedValue = cg_beatingSiegeTime;
-			}
 			else
-			{
 				timedValue = team1Timed;
-			}
-		}
-		else if (team2Timed)
-		{
+		} else if (team2Timed) {
 			timedTeam = TEAM_BLUE; //team 2
 			if (cg_beatingSiegeTime)
-			{
 				timedValue = cg_beatingSiegeTime;
-			}
 			else
-			{
 				timedValue = team2Timed;
-			}
 		}
 
-		if (timedTeam != TEAM_FREE)
-		{ //one of the teams has a timer
+		if (timedTeam != TEAM_FREE) { //one of the teams has a timer
 			int timeRemaining;
 			qboolean isMyTeam = qfalse;
 
-			if (cgs.siegeTeamSwitch && !cg_beatingSiegeTime)
-			{ //in switchy mode but not beating a time, so count up.
+			//in switchy mode but not beating a time, so count up.
+			if (cgs.siegeTeamSwitch && !cg_beatingSiegeTime) {
 				timeRemaining = (cg.time-cgSiegeRoundBeganTime);
 				if (timeRemaining < 0)
-				{
 					timeRemaining = 0;
-				}
-			}
-			else
-			{
+			} else {
 				timeRemaining = (((cgSiegeRoundBeganTime)+timedValue) - cg.time);
 			}
 
 			if (timeRemaining > timedValue)
-			{
 				timeRemaining = timedValue;
-			}
 			else if (timeRemaining < 0)
-			{
 				timeRemaining = 0;
-			}
 
 			if (timeRemaining)
-			{
 				timeRemaining /= 1000;
-			}
 
+			//the team that's timed is the one this client is on
 			if (cg.predictedPlayerState.persistant[PERS_TEAM] == timedTeam)
-			{ //the team that's timed is the one this client is on
 				isMyTeam = qtrue;
-			}
 
 			CG_DrawSiegeTimer(timeRemaining, isMyTeam);
 		}
-	}
-	else
-	{
+	} else {
 		cgSiegeEntityRender = 0;
 	}
 
-	if ( cg_siegeDeathTime )
-	{
-		int timeRemaining = ( cg_siegeDeathTime - cg.time );
+	if (cg_siegeDeathTime) {
+		int timeRemaining = (cg_siegeDeathTime - cg.time);
 
-		if ( timeRemaining < 0 )
-		{
+		if (timeRemaining < 0 ) {
 			timeRemaining = 0;
 			cg_siegeDeathTime = 0;
 		}
 
-		if ( timeRemaining )
-		{
+		if (timeRemaining)
 			timeRemaining /= 1000;
-		}
 
-		CG_DrawSiegeDeathTimer( timeRemaining );
+		CG_DrawSiegeDeathTimer(timeRemaining);
 	}
 
 	// don't draw center string if scoreboard is up

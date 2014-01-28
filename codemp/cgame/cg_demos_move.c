@@ -162,11 +162,29 @@ qboolean demoCentityBoxSize( const centity_t *cent, vec3_t container ) {
 	case ET_MOVER:
 		VectorSet( container, -10, 10, 10 );	//let's find out sizes for ET_SPECIAL, ET_HOLOCRON, ET_GENERAL, ET_MOVER
 		break;									//currently they have ET_PLAYER container
-	case ET_SPECIAL:
-		VectorSet( container, -24, 60, 20 );
+	case ET_SPECIAL: //portable shield
+		VectorSet( container, 0, 20, 10 );
 		break;
 	case ET_HOLOCRON:
 		VectorSet( container, -24, 60, 20 );
+		break;
+	case ET_NPC:
+		//TODO: need to find out box sizes of other classes
+		switch (cent->currentState.NPC_class) {
+		case CLASS_VEHICLE:
+			VectorSet( container, 0, 100, 50 );
+			break;
+		case CLASS_R2D2:
+		case CLASS_R5D2:
+			VectorSet( container, 0, 64, 20 );
+			break;
+		case CLASS_SEEKER:
+			VectorSet( container, -5, 5, 5 );
+			break;
+		default:
+			VectorClear( container);
+			return qfalse;
+		}
 		break;
 	case ET_GENERAL:
 		VectorSet( container, 0, 10, 10 );		//trip mine is ET_GENERAL, so we set same container size as for ET_ITEM
@@ -178,15 +196,13 @@ qboolean demoCentityBoxSize( const centity_t *cent, vec3_t container ) {
 	return qtrue;
 }
 
-centity_t *demoTargetEntity( int num ) {
-	if (num <0 || num >= (MAX_GENTITIES -1) )
+centity_t *demoTargetEntity(int num) {
+	if (num < 0 || num >= (MAX_GENTITIES - 1))
 		return 0;
-	if (num == cg.snap->ps.clientNum) {
+	if (num == cg.snap->ps.clientNum)
 		return &cg_entities[cg.predictedPlayerState.clientNum];
-	}
-	if (cg_entities[num].currentValid) {
+	if (cg_entities[num].currentValid)
 		return &cg_entities[num];
-	}
 	return 0;
 }
 
@@ -660,9 +676,9 @@ void demoChaseCommand_f(void) {
 		}
 	} else if (!Q_stricmp(cmd, "del")) {
 		if (chasePointDel( demo.play.time) ) {
-			CG_DemosAddLog("Deleted chase chase point" );
+			CG_DemosAddLog("Deleted chase point" );
 		} else {
-			CG_DemosAddLog("Failed to add delete chase point" );
+			CG_DemosAddLog("Failed to delete chase point" );
 		}
 	} else if (!Q_stricmp(cmd, "start")) { 
 		demo.chase.start = demo.play.time;

@@ -328,6 +328,9 @@ void RE_BeginFrame( stereoFrame_t stereoFrame ) {
 	tr.frameCount++;
 	tr.frameSceneNum = 0;
 
+	backEnd.doneBloom = qfalse;
+	backEnd.doneSurfaces = qfalse;
+
 	//
 	// do overdraw measurement
 	//

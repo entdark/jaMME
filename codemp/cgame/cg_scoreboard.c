@@ -665,6 +665,7 @@ qboolean CG_DrawOldScoreboard( void ) {
 
 		maxClients -= team1MaxCl;
 		y = ((27 - CG_GetTeamCount(TEAM_SPECTATOR, maxClients)) * lineHeight) + BIGCHAR_HEIGHT;
+		y -= 11;
 		
 		n1 = CG_TeamScoreboard( y, TEAM_SPECTATOR, fade, maxClients, lineHeight, qfalse );
 		//y += (n1 * lineHeight) + BIGCHAR_HEIGHT;

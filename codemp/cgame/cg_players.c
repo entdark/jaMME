@@ -1688,6 +1688,10 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	else if ( v[0] )
 		newInfo.shaderOverride = trap_R_RegisterShader( v );
 
+	v = ConfigValue( strings, "effect");
+	if ( v[0] )
+		newInfo.effectOverride = trap_FX_RegisterEffect( v );
+
 	// bot skill
 	v = ConfigValue( strings, "skill");
 	//Raz: Players now have -1 skill so you can determine the bots from the scoreboard code
@@ -2145,7 +2149,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 
 static void CG_ShowOverride( const char *configString, const char *overrideString ) {
 	static char * entryList[] = {
-		"n", "t", "model", "c1", "c2", "st", "st2", "shader", 0
+		"n", "t", "model", "c1", "c2", "st", "st2", "shader", "effect", 0
 	};
 	int n;
 
@@ -2204,6 +2208,7 @@ void CG_ClientOverride_f(void) {
 		CG_Printf("st \"hiltname\", Change saber hilt\n" );
 		CG_Printf("st2 \"hiltname\", Change saber hilt2\n" );
 		CG_Printf("shader \"shadername\", Shader override to be use on the whole player\n" );
+		CG_Printf("effect \"effectname\", Effect .efx to run from the player's position\n" );
 		return;
 	}
 	if (!Q_stricmp( CG_Argv(1), "list")) {
@@ -4988,15 +4993,15 @@ static void CG_PlayerSprites( centity_t *cent ) {
 //	int		team;
 
 	//mme
-	if ( cent == cg.playerCent && !cg.renderingThirdPerson ) 
+	if (cent == cg.playerCent && !cg.renderingThirdPerson) 
 		return;
 
-	if (cg.snap &&
+	if (cg.playerCent &&
 		CG_IsMindTricked(cent->currentState.trickedentindex,
 		cent->currentState.trickedentindex2,
 		cent->currentState.trickedentindex3,
 		cent->currentState.trickedentindex4,
-		cg.snap->ps.clientNum))
+		cg.playerCent->currentState.number))
 	{
 		return; //this entity is mind-tricking the current client, so don't render it
 	}
@@ -5090,11 +5095,11 @@ static qboolean CG_PlayerShadow( centity_t *cent, float *shadowPlane ) {
 		return qfalse;
 	}
 
-	if (CG_IsMindTricked(cent->currentState.trickedentindex,
+	if (cg.playerCent && CG_IsMindTricked(cent->currentState.trickedentindex,
 		cent->currentState.trickedentindex2,
 		cent->currentState.trickedentindex3,
 		cent->currentState.trickedentindex4,
-		cg.snap->ps.clientNum))
+		cg.playerCent->currentState.number))
 	{
 		return qfalse; //this entity is mind-tricking the current client, so don't render it
 	}
@@ -5263,16 +5268,17 @@ static void CG_ForcePushBlur( vec3_t org, centity_t *cent )
 			fx_vfps.integer = 1;
 		if (fxT > cg.time)
 			fxT = cg.time;
-		if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
-		{
+		if (doFX || cg.time - fxT >= 1000 / fx_vfps.integer) {
 			doFX = qtrue;
 			fxT = cg.time;
-		}
-		else 
-		{
+		} else {
 			doFX = qfalse;
 			return;
 		}
+		if (!(cg.frametime > 0
+			&& ((cg.frametime < 8 && fmod((float)cg.time, 8.0f) <= cg.frametime)
+			|| cg.frametime >= 8)))
+			return;
 
 		ex = CG_AllocLocalEntity();
 		ex->leType = LE_PUFF;
@@ -5440,12 +5446,12 @@ static void CG_ForcePushBodyBlur( centity_t *cent )
 		return;
 	}
 
-	if (cg.snap &&
+	if (cg.playerCent &&
 		CG_IsMindTricked(cent->currentState.trickedentindex,
 		cent->currentState.trickedentindex2,
 		cent->currentState.trickedentindex3,
 		cent->currentState.trickedentindex4,
-		cg.snap->ps.clientNum))
+		cg.playerCent->currentState.number))
 	{
 		return; //this entity is mind-tricking the current client, so don't render it
 	}
@@ -5500,16 +5506,17 @@ static void CG_ForceGripEffect( vec3_t org )
 			fx_vfps.integer = 1;
 	if (fxT > cg.time)
 		fxT = cg.time;
-	if( doFX || cg.time - fxT >= 1000 / fx_vfps.integer )
-	{
+	if (doFX || cg.time - fxT >= 1000 / fx_vfps.integer) {
 		doFX = qtrue;
 		fxT = cg.time;
-	}
-	else 
-	{
+	} else {
 		doFX = qfalse;
 		return;
 	}
+	if (!(cg.frametime > 0
+		&& ((cg.frametime < 8 && fmod((float)cg.time, 8.0f) <= cg.frametime)
+		|| cg.frametime >= 8)))
+		return;
 
 	ex = CG_AllocLocalEntity();
 	ex->leType = LE_PUFF;
@@ -5567,116 +5574,91 @@ Adds a piece with modifications or duplications for powerups
 Also called by CG_Missile for quad rockets, but nobody can tell...
 ===============
 */
-void CG_AddRefEntityWithPowerups( refEntity_t *ent, entityState_t *state, int team ) {
-
-	if (CG_IsMindTricked(state->trickedentindex,
+void CG_AddRefEntityWithPowerups(refEntity_t *ent, entityState_t *state, int team) {
+	if (cg.playerCent && CG_IsMindTricked(state->trickedentindex,
 		state->trickedentindex2,
 		state->trickedentindex3,
 		state->trickedentindex4,
-		cg.snap->ps.clientNum))
-	{
+		cg.playerCent->currentState.number)) {
 		return; //this entity is mind-tricking the current client, so don't render it
 	}
-
-	trap_R_AddRefEntityToScene( ent );
+	trap_R_AddRefEntityToScene(ent);
 }
 
 #define MAX_SHIELD_TIME	2000.0
 #define MIN_SHIELD_TIME	2000.0
 
 
-void CG_PlayerShieldHit(int entitynum, vec3_t dir, int amount)
-{
+void CG_PlayerShieldHit(int entitynum, vec3_t dir, int amount) {
 	centity_t *cent;
 	int	time;
 
 	if (entitynum < 0 || entitynum >= MAX_GENTITIES)
-	{
 		return;
-	}
 
 	cent = &cg_entities[entitynum];
 
 	if (amount > 100)
-	{
-		time = cg.time + MAX_SHIELD_TIME;		// 2 sec.
-	}
+		time = cg.time + MAX_SHIELD_TIME;	// 2 sec.
 	else
-	{
-		time = cg.time + 500 + amount*15;
-	}
+		time = cg.time + 500 + amount * 15;
 
-	if (cent->damageTime > time) {
+	if (cent->damageTime > time)
 		cent->damageTime = time;
-	}
 
 	VectorScale(dir, -1, dir);
 	vectoangles(dir, cent->damageAngles);
+
 	if (time > cent->damageTime)
-	{
 		cent->damageTime = time;
-//		VectorScale(dir, -1, dir);
-//		vectoangles(dir, cent->damageAngles);
-	}
+
 	cent->damageStartTime = cg.time;
 }
 
 
-void CG_DrawPlayerShield(centity_t *cent, vec3_t origin)
-{
+void CG_DrawPlayerShield(centity_t *cent, vec3_t origin) {
 	refEntity_t ent;
-	int			alpha;
+	float		alpha;
 	float		scale;
 	
 	// Don't draw the shield when the player is dead.
-	if (cent->currentState.eFlags & EF_DEAD)
-	{
+	if (cent->currentState.eFlags & EF_DEAD) {
+		//we don't need old player shield on just spawned client
+		cent->damageTime = 0;
 		return;
 	}
 
-	memset( &ent, 0, sizeof( ent ) );
+	memset(&ent, 0, sizeof(ent));
 
-	VectorCopy( origin, ent.origin );
+	VectorCopy(origin, ent.origin);
 	ent.origin[2] += 10.0;
-	AnglesToAxis( cent->damageAngles, ent.axis );
+	AnglesToAxis(cent->damageAngles, ent.axis);
 
 	alpha = 255.0 * (((cent->damageTime - cg.time) - cg.timeFraction) / MIN_SHIELD_TIME) + random()*16;
 	if (alpha>255)
 		alpha=255;
 
 	// Make it bigger, but tighter if more solid
-	scale = 1.4 - ((float)alpha*(0.4/255.0));		// Range from 1.0 to 1.4
-	VectorScale( ent.axis[0], scale, ent.axis[0] );
-	VectorScale( ent.axis[1], scale, ent.axis[1] );
-	VectorScale( ent.axis[2], scale, ent.axis[2] );
+	scale = 1.4f - (alpha * (0.4f / 255.0f));		// Range from 1.0 to 1.4
+	VectorScale(ent.axis[0], scale, ent.axis[0]);
+	VectorScale(ent.axis[1], scale, ent.axis[1]);
+	VectorScale(ent.axis[2], scale, ent.axis[2]);
 
 	ent.hModel = cgs.media.halfShieldModel;
 	ent.customShader = cgs.media.halfShieldShader;
-	ent.shaderRGBA[0] = alpha;
-	ent.shaderRGBA[1] = alpha;
-	ent.shaderRGBA[2] = alpha;
+	ent.shaderRGBA[0] = (int)alpha;
+	ent.shaderRGBA[1] = (int)alpha;
+	ent.shaderRGBA[2] = (int)alpha;
 	ent.shaderRGBA[3] = 255;
-	trap_R_AddRefEntityToScene( &ent );
+	trap_R_AddRefEntityToScene(&ent);
 }
 
 
-void CG_PlayerHitFX(centity_t *cent)
-{
-	if (cg.playerCent) {
-		// only do the below fx if the cent in question is...uh...me, and it's first person.
-		if (cent != cg.playerCent
-			|| cg.renderingThirdPerson)
-		{
-			if (cent->damageTime > cg.time && cent->damageStartTime <= cg.time
-				&& cent->currentState.NPC_class != CLASS_VEHICLE )
-			{
-				CG_DrawPlayerShield(cent, cent->lerpOrigin);
-			}
-		}
-	} else if (cg.renderingThirdPerson) {
+void CG_PlayerHitFX(centity_t *cent) {
+	// only do the below fx if the cent in question is...uh...me, and it's first person.
+	if ((cg.playerCent && cent != cg.playerCent) || cg.renderingThirdPerson) {
 		if (cent->damageTime > cg.time && cent->damageStartTime <= cg.time
-			&& cent->currentState.NPC_class != CLASS_VEHICLE )
-		{
+			&& cent->currentState.NPC_class != CLASS_VEHICLE ) {
 			CG_DrawPlayerShield(cent, cent->lerpOrigin);
 		}
 	}
@@ -5689,15 +5671,14 @@ void CG_PlayerHitFX(centity_t *cent)
 CG_LightVerts
 =================
 */
-int CG_LightVerts( vec3_t normal, int numVerts, polyVert_t *verts )
-{
+int CG_LightVerts(vec3_t normal, int numVerts, polyVert_t *verts) {
 	int				i, j;
 	float			incoming;
 	vec3_t			ambientLight;
 	vec3_t			lightDir;
 	vec3_t			directedLight;
 
-	trap_R_LightForPoint( verts[0].xyz, ambientLight, directedLight, lightDir );
+	trap_R_LightForPoint(verts[0].xyz, ambientLight, directedLight, lightDir);
 
 	for (i = 0; i < numVerts; i++) {
 		incoming = DotProduct (normal, lightDir);
@@ -5708,19 +5689,19 @@ int CG_LightVerts( vec3_t normal, int numVerts, polyVert_t *verts )
 			verts[i].modulate[3] = 255;
 			continue;
 		} 
-		j = ( ambientLight[0] + incoming * directedLight[0] );
+		j = (ambientLight[0] + incoming * directedLight[0]);
 		if ( j > 255 ) {
 			j = 255;
 		}
 		verts[i].modulate[0] = j;
 
-		j = ( ambientLight[1] + incoming * directedLight[1] );
+		j = (ambientLight[1] + incoming * directedLight[1]);
 		if ( j > 255 ) {
 			j = 255;
 		}
 		verts[i].modulate[1] = j;
 
-		j = ( ambientLight[2] + incoming * directedLight[2] );
+		j = (ambientLight[2] + incoming * directedLight[2]);
 		if ( j > 255 ) {
 			j = 255;
 		}
@@ -5732,108 +5713,102 @@ int CG_LightVerts( vec3_t normal, int numVerts, polyVert_t *verts )
 }
 
 //[RGBSabers]
-int getint(char **buf)
-{
+int getint(char **buf) {
 	double temp;
 	temp = strtod(*buf,buf);
 	return (int)temp;
 }
-void ParseRGBSaber(char *str, vec3_t c)
-{
+void ParseRGBSaber(char *str, vec3_t c) {
 	char *p = str;
 	int i;
 
-	for(i=0;i<3;i++)
-	{
+	for(i=0;i<3;i++) {
 		c[i] = getint(&p);
 		p++;
 	}
 }
-static void CG_RGBForSaberColor( saber_colors_t color, vec3_t rgb, int cnum, int bnum ) {
-	switch( color ) {
+static void CG_RGBForSaberColor(saber_colors_t color, vec3_t rgb, int cnum, int bnum) {
+	switch(color) {
 	case SABER_RED:
-		VectorSet( rgb, 1.0f, 0.2f, 0.2f );
+		VectorSet(rgb, 1.0f, 0.2f, 0.2f);
 		break;
 	case SABER_ORANGE:
-		VectorSet( rgb, 1.0f, 0.5f, 0.1f );
+		VectorSet(rgb, 1.0f, 0.5f, 0.1f);
 		break;
 	case SABER_YELLOW:
-		VectorSet( rgb, 1.0f, 1.0f, 0.2f );
+		VectorSet(rgb, 1.0f, 1.0f, 0.2f);
 		break;
 	case SABER_GREEN:
-		VectorSet( rgb, 0.2f, 1.0f, 0.2f );
+		VectorSet(rgb, 0.2f, 1.0f, 0.2f);
 		break;
 	case SABER_BLUE:
-		VectorSet( rgb, 0.2f, 0.4f, 1.0f );
+		VectorSet(rgb, 0.2f, 0.4f, 1.0f);
 		break;
 	case SABER_PURPLE:
-		VectorSet( rgb, 0.9f, 0.2f, 1.0f );
+		VectorSet(rgb, 0.9f, 0.2f, 1.0f);
 		break;
 	case SABER_BLACK:
-		VectorSet( rgb, 1.0f, 1.0f, 1.0f );
+		VectorSet(rgb, 1.0f, 1.0f, 1.0f);
 		break;
 	default:
 	case SABER_RGB:
-		if(cnum < MAX_CLIENTS) {
+		if (cnum < MAX_CLIENTS) {
 			int i;
 			clientInfo_t *ci = &cgs.clientinfo[cnum];
 
-			if(bnum == 0)
+			if (bnum == 0)
 				VectorCopy(ci->rgb1, rgb);
 			else
 				VectorCopy(ci->rgb2, rgb);
-			for(i=0;i<3;i++)
-				rgb[i]/=255;
-		}
-		else
+
+			for(i = 0; i < 3; i++)
+				rgb[i] /= 255;
+		} else {
 			VectorSet( rgb, 0.2f, 0.4f, 1.0f );
+		}
 		break;
 	}
 }
 
-static void CG_DoSaberLight( saberInfo_t *saber, int cnum, int bnum ) {
+static void CG_DoSaberLight(saberInfo_t *saber, int cnum, int bnum) {
 	vec3_t		positions[MAX_BLADES*2], mid={0}, rgbs[MAX_BLADES*2], rgb={0};
 	float		lengths[MAX_BLADES*2]={0}, totallength = 0, numpositions = 0, dist, diameter = 0;
 	int			i, j;
 
 	//RGB combine all the colors of the sabers you're using into one averaged color!
-	if ( !saber )
-	{ 
+	if (!saber) { 
 		return;
 	}
 	
-	if ( (saber->saberFlags2&SFL2_NO_DLIGHT) )
-	{//no dlight!
+	if ((saber->saberFlags2&SFL2_NO_DLIGHT)) {//no dlight!
 		return;
 	}
 
-	for ( i = 0; i < saber->numBlades; i++ )
-	{
-		if ( saber->blade[i].length >= 0.5f )
-		{
+	for (i = 0; i < saber->numBlades; i++) {
+		if (saber->blade[i].length >= 0.5f) {
 			//FIXME: make RGB sabers
 			//[RGBSabers]
-//			CG_RGBForSaberColor( saber->blade[i].color, rgbs[i] );
-			CG_RGBForSaberColor( saber->blade[i].color, rgbs[i] , cnum, bnum);
+//			CG_RGBForSaberColor(saber->blade[i].color, rgbs[i]);
+			CG_RGBForSaberColor(saber->blade[i].color, rgbs[i] , cnum, bnum);
 			//[/RGBSabers]
 			lengths[i] = saber->blade[i].length;
-			if ( saber->blade[i].length*2.0f > diameter )
-			{
+
+			if (saber->blade[i].length*2.0f > diameter){
 				diameter = saber->blade[i].length*2.0f;
 			}
+
 			totallength += saber->blade[i].length;
-			VectorMA( saber->blade[i].muzzlePoint, saber->blade[i].length, saber->blade[i].muzzleDir, positions[i] );
-			if ( !numpositions )
-			{//first blade, store middle of that as midpoint
-				VectorMA( saber->blade[i].muzzlePoint, saber->blade[i].length*0.5, saber->blade[i].muzzleDir, mid );
-				VectorCopy( rgbs[i], rgb );
+			VectorMA(saber->blade[i].muzzlePoint, saber->blade[i].length, saber->blade[i].muzzleDir, positions[i]);
+
+			if (!numpositions) {//first blade, store middle of that as midpoint
+				VectorMA(saber->blade[i].muzzlePoint, saber->blade[i].length*0.5, saber->blade[i].muzzleDir, mid);
+				VectorCopy(rgbs[i], rgb);
 			}
 			numpositions++;
 		}
 	}
 
-	if ( totallength )
-	{//actually have something to do	
+	if (totallength) {//actually have something to do	
 		if ( numpositions == 1 )
 		{//only 1 blade, midpoint is already set (halfway between the start and end of that blade), rgb is already set, so it diameter
 		}
@@ -6956,7 +6931,7 @@ CheckTrail:
 
 	// if we happen to be timescaled or running in a high framerate situation, we don't want to flood
 	//	the system with very small trail slices...but perhaps doing it by distance would yield better results?
-	if ( cg.time > saberTrail->lastTime || cg_saberTrail.integer == 2 ) // 2ms
+	if ( cg.time > saberTrail->lastTime + 2 || cg_saberTrail.integer == 2 ) // 2ms
 	{
 		if (!dontDraw)
 		{
@@ -7117,7 +7092,7 @@ CheckTrail:
 					//if ( diff <= SABER_TRAIL_TIME * 2 )
 					if ( diff <= 10000 )
 					{ //don't draw it if the last time is way out of date
-						float oldAlpha = 1.0f - ( diff / trailDur );
+						float oldAlpha = 1.0f - ( diff / (float)trailDur );
 
 						if (cg_saberTrail.integer == 2 && cg_shadows.integer != 2 && cgs.glconfig.stencilBits >= 4)
 						{//does other stuff below
@@ -7416,12 +7391,11 @@ void CG_DrawPlayerSphere(centity_t *cent, vec3_t origin, float scale, int shader
 
 	trap_R_AddRefEntityToScene( &ent );
 
-	if (!cg.renderingThirdPerson && cent->currentState.number == cg.predictedPlayerState.clientNum)
-	{ //don't do the rest then
+	//don't do the rest then
+	if (!cg.renderingThirdPerson && cent->currentState.number == cg.playerCent->currentState.number) {
 		return;
 	}
-	if (!cg_renderToTextureFX.integer)
-	{
+	if (!cg_renderToTextureFX.integer) {
 		return;
 	}
 
@@ -9265,8 +9239,7 @@ GetSelfLegAnimPoint
 ================
 */
 //Get the point in the leg animation and return a percentage of the current point in the anim between 0 and the total anim length (0.0f - 1.0f)
-float GetSelfLegAnimPoint(void)
-{
+float GetSelfLegAnimPoint(void) {
 	//[Animation]
 	return BG_GetLegsAnimPoint(&cg.predictedPlayerState, cg_entities[cg.predictedPlayerState.clientNum].localAnimIndex);
 	
@@ -10073,15 +10046,13 @@ void CG_Player( centity_t *cent ) {
 	}
 
 	//If this client has tricked you.
-	if (CG_IsMindTricked(cent->currentState.trickedentindex,
+	if (cg.playerCent && CG_IsMindTricked(cent->currentState.trickedentindex,
 		cent->currentState.trickedentindex2,
 		cent->currentState.trickedentindex3,
 		cent->currentState.trickedentindex4,
-		cg.snap->ps.clientNum))
-	{
-		if (cent->trickAlpha > 1)
-		{
-			cent->trickAlpha -= (cg.time - cent->trickAlphaTime)*0.5;
+		cg.playerCent->currentState.number)) {
+		if (cent->trickAlpha > 1) {
+			cent->trickAlpha -= (cg.time - cent->trickAlphaTime) * 0.5;
 			cent->trickAlphaTime = cg.time;
 
 			if (cent->trickAlpha < 0)
@@ -10090,31 +10061,25 @@ void CG_Player( centity_t *cent ) {
 			}
 
 			doAlpha = 1;
-		}
-		else
-		{
+		} else {
 			doAlpha = 1;
 			cent->trickAlpha = 1;
 			cent->trickAlphaTime = cg.time;
 			iwantout = 1;
 		}
-	}
-	else
-	{
-		if (cent->trickAlpha < 255)
-		{
+	} else {
+		if (cent->trickAlpha < 255) {
 			cent->trickAlpha += (cg.time - cent->trickAlphaTime);
 			cent->trickAlphaTime = cg.time;
 
-			if (cent->trickAlpha > 255)
-			{
+			if (cent->trickAlpha > 255) {
+				cent->trickAlpha = 255;
+			} else if (cent->trickAlpha < 0) {
 				cent->trickAlpha = 255;
 			}
 
 			doAlpha = 1;
-		}
-		else
-		{
+		} else {
 			cent->trickAlpha = 255;
 			cent->trickAlphaTime = cg.time;
 		}
@@ -10157,7 +10122,7 @@ void CG_Player( centity_t *cent ) {
 	} else if ( mov_filterMask.integer & movMaskPlayers) {
 		return;
 	}
-	if (mov_wallhack.integer) {
+	if (mov_wallhack.integer && cg.demoPlayback) {
 		renderfx |= RF_NODEPTH;// | RF_FORCE_ENT_ALPHA;
 	}
 	// Update the player's client entity information regarding weapons.
@@ -10172,6 +10137,27 @@ void CG_Player( centity_t *cent ) {
 		cent->ghoul2weapon = CG_G2WeaponInstance(cent, WP_SABER);
 	}
 
+	if (ci->effectOverride) {
+		vec3_t forward;
+		
+		if (fx_vfps.integer <= 0)
+			fx_vfps.integer = 1;
+		if (fxT > cg.time)
+			fxT = cg.time;
+		if(doFX || cg.time - fxT >= 1000 / fx_vfps.integer) {
+			doFX = qtrue;
+			fxT = cg.time;
+		} else {
+			doFX = qfalse;
+			goto skipEffectOverride;
+		}
+
+		if (VectorNormalize2(cent->currentState.pos.trDelta, forward) == 0.0f)
+			forward[2] = 1.0f;
+		trap_FX_PlayEffectID(ci->effectOverride, cent->lerpOrigin, forward, -1, -1);
+	}
+
+skipEffectOverride:
 	if (cent->ghoul2 && 
 		(cent->currentState.eType != ET_NPC || (cent->currentState.NPC_class != CLASS_VEHICLE&&cent->currentState.NPC_class != CLASS_REMOTE&&cent->currentState.NPC_class != CLASS_SEEKER)) && //don't add weapon models to NPCs that have no bolt for them!
 		cent->ghoul2weapon != CG_G2WeaponInstance(cent, cent->currentState.weapon) &&
@@ -10735,17 +10721,14 @@ SkipTrueView:
 		trap_R_AddRefEntityToScene( &legs );
 	}
 
-	if (cent->frame_minus1_refreshed ||
-		cent->frame_minus2_refreshed)
-	{
+	if (cent->frame_minus1_refreshed || cent->frame_minus2_refreshed) {
 		vec3_t			tDir;
 		float			distVelBase;
 
 		VectorCopy(cent->currentState.pos.trDelta, tDir);
 		distVelBase = SPEED_TRAIL_DISTANCE * (VectorNormalize(tDir) * 0.004f);
 
-		if (cent->frame_minus1_refreshed)
-		{
+		if (cent->frame_minus1_refreshed) {
 			refEntity_t reframe_minus1 = legs;
 			reframe_minus1.renderfx |= RF_FORCE_ENT_ALPHA;
 			reframe_minus1.shaderRGBA[0] = legs.shaderRGBA[0];
@@ -10772,12 +10755,10 @@ SkipTrueView:
 			VectorCopy(cent->frame_minus1, reframe_minus1.origin);
 
 			//reframe_minus1.customShader = 2;
-
 			trap_R_AddRefEntityToScene(&reframe_minus1);
 		}
 
-		if (cent->frame_minus2_refreshed)
-		{
+		if (cent->frame_minus2_refreshed) {
 			refEntity_t reframe_minus2 = legs;
 
 			reframe_minus2.renderfx |= RF_FORCE_ENT_ALPHA;
@@ -10802,7 +10783,6 @@ SkipTrueView:
 			VectorCopy(cent->frame_minus2, reframe_minus2.origin);
 
 			//reframe_minus2.customShader = 2;
-
 			trap_R_AddRefEntityToScene(&reframe_minus2);
 		}
 	}
@@ -10810,9 +10790,11 @@ SkipTrueView:
 	//trigger animation-based sounds, done before next lerp frame.
 	CG_TriggerAnimSounds(cent);
 
-	// get the animation state (after rotation, to allow feet shuffle)
-	CG_PlayerAnimation( cent, &legs.oldframe, &legs.frame, &legs.backlerp,
-		 &torso.oldframe, &torso.frame, &torso.backlerp );
+	if (!CG_DemosPlayerAnimation(cent->currentState.clientNum)) {
+		// get the animation state (after rotation, to allow feet shuffle)
+		CG_PlayerAnimation( cent, &legs.oldframe, &legs.frame, &legs.backlerp,
+			 &torso.oldframe, &torso.frame, &torso.backlerp );
+	}
 
 	// add the talk baloon or disconnect icon
 	CG_PlayerSprites( cent );
@@ -11152,10 +11134,10 @@ SkipTrueView:
 	}
 
 	//If you've tricked this client.
-	if (CG_IsMindTricked(cg.snap->ps.fd.forceMindtrickTargetIndex,
-		cg.snap->ps.fd.forceMindtrickTargetIndex2,
-		cg.snap->ps.fd.forceMindtrickTargetIndex3,
-		cg.snap->ps.fd.forceMindtrickTargetIndex4,
+	if (cg.playerCent && CG_IsMindTricked(cg.playerCent->currentState.trickedentindex,
+		cg.playerCent->currentState.trickedentindex2,
+		cg.playerCent->currentState.trickedentindex3,
+		cg.playerCent->currentState.trickedentindex4,
 		cent->currentState.number))
 	{
 		if (cent->ghoul2)
@@ -12171,7 +12153,7 @@ stillDoSaber:
 		}
 		else
 		{
-			if (cg.renderingThirdPerson || cent->currentState.number != cg.predictedPlayerState.clientNum)
+			if (cg.renderingThirdPerson || cg.playerCent != cent)
 			{
 				/*
 				legs.renderfx = 0;//&= ~(RF_RGB_TINT|RF_ALPHA_FADE);
@@ -12304,7 +12286,7 @@ skipCloaked:
 	}
 
 	//stupid hack but it works! brought from cg_demos.c
-	if ( cent == &cg_entities[cg.snap->ps.clientNum] && cent == cg.playerCent) {
+	if (cg.playerCent && cent == &cg_entities[cg.snap->ps.clientNum] && cg.playerCent == cent) {
 		CG_AddViewWeapon( &cg.predictedPlayerState  );
 	} else if ( cg.playerCent && cg.playerCent->currentState.number < MAX_CLIENTS && cg.playerCent == cent)  {
 		CG_AddViewWeaponDirect( cg.playerCent );
@@ -12415,9 +12397,9 @@ skipCloaked:
 	//Showing only when the power has been active (absorbed something) recently now, instead of always.
 	//AND
 	//always show if it is you with the absorb on
-	if ((cent->currentState.number == cg.predictedPlayerState.clientNum && (cg.predictedPlayerState.fd.forcePowersActive & (1<<FP_ABSORB))) ||
-		(cent->teamPowerEffectTime > cg.time && cent->teamPowerEffectTime <= cg.time + 1000 && cent->teamPowerType == 3))
-	{ //aborb is represented by blue..
+	if (((cg.playerCent == cent || (mov_absorbVisibility.integer && cg.demoPlayback)) && (cent->currentState.forcePowersActive & (1<<FP_ABSORB)))
+		|| (cent->teamPowerEffectTime > cg.time && cent->teamPowerEffectTime <= cg.time + 1000 && cent->teamPowerType == 3))
+	{ //absorb is represented by blue..
 		legs.shaderRGBA[0] = 0;
 		legs.shaderRGBA[1] = 0;
 		legs.shaderRGBA[2] = 255;
@@ -12434,8 +12416,7 @@ skipCloaked:
 		trap_R_AddRefEntityToScene( &legs );
 	}
 
-	if (cent->currentState.isJediMaster && cg.snap->ps.clientNum != cent->currentState.number)
-	{
+	if (cent->currentState.isJediMaster && cg.playerCent != cent) {
 		legs.shaderRGBA[0] = 100;
 		legs.shaderRGBA[1] = 100;
 		legs.shaderRGBA[2] = 255;
@@ -12453,8 +12434,7 @@ skipCloaked:
 	if (cg.playerCent
 		&& cg.playerCent != cent
 		&& (cg.playerCent->currentState.forcePowersActive & (1 << FP_SEE))
-		&& cg_auraShell.integer)
-	{
+		&& cg_auraShell.integer) {
 		if (cgs.gametype == GT_SIEGE)
 		{	// A team game
 			if ( ci->team == TEAM_SPECTATOR || ci->team == TEAM_FREE )
@@ -12463,7 +12443,7 @@ skipCloaked:
 				legs.shaderRGBA[1] = 255;
 				legs.shaderRGBA[2] = 0;
 			}
-			else if ( ci->team != cgs.clientinfo[cg.snap->ps.clientNum].team )
+			else if ( ci->team != cgs.clientinfo[cg.playerCent->currentState.number].team )
 			{//red
 				legs.shaderRGBA[0] = 255;
 				legs.shaderRGBA[1] = 50;
@@ -12568,8 +12548,13 @@ skipCloaked:
 				trap_S_StartSound ( NULL, cent->currentState.number, CHAN_AUTO, cgs.media.crackleSound );
 		}
 
-		VectorSet(tempAngles, 0, cent->lerpAngles[YAW], 0);
-		CG_ForceElectrocution( cent, legs.origin, tempAngles, cgs.media.boltShader, qfalse );
+		if (cg.frametime > 0
+			&& ((cg.frametime < 17 && fmod((float)cg.time, 17.0f) <= cg.frametime)
+			|| cg.frametime >= 17)) {
+
+			VectorSet(tempAngles, 0, cent->lerpAngles[YAW], 0);
+			CG_ForceElectrocution( cent, legs.origin, tempAngles, cgs.media.boltShader, qfalse );
+		}
 	} 
 
 	if (cent->currentState.powerups & (1 << PW_SHIELDHIT))
@@ -12748,7 +12733,7 @@ void CG_ResetPlayerEntity( centity_t *cent )
 	}
 
 	//do this to prevent us from making a saber unholster sound the first time we enter the pvs
-	if (cent->currentState.number != cg.predictedPlayerState.clientNum &&
+	if (cg.playerCent != cent &&
 		cent->currentState.weapon == WP_SABER &&
 		cent->weapon != cent->currentState.weapon)
 	{

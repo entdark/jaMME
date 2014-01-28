@@ -8,7 +8,7 @@
 #define MME_SNDCHANNELS 128
 #define MME_LOOPCHANNELS 128
 
-#define MME_SAMPLERATE	44100 //ja is full of 44kz mp3
+#define MME_SAMPLERATE	44100 //ja is full of 44khz mp3
 
 extern	cvar_t	*mme_saveWav;
 

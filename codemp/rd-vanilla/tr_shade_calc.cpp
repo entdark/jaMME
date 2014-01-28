@@ -9,19 +9,26 @@
 #define	WAVEVALUE( table, base, amplitude, phase, freq )  ((base) + table[ Q_ftol( ( ( (phase) + tess.shaderTime * (freq) ) * FUNCTABLE_SIZE ) ) & FUNCTABLE_MASK ] * (amplitude))
 
 float WAVEVALUENEW(genFunc_t func, float base, float amplitude, float phase, float freq) {
-	double angle = (double)phase + /*tess.shaderTime*/(double)tr.refdef.time * 0.001 * (double)freq + (double)tr.refdef.timeFraction * 0.001 * (double)freq;
-	angle = fmod(angle, 1.0);
+	double angle;
 
 	switch (func) {
 	case GF_SIN:
+		angle = (double)phase + (tr.refdef.time ? (double)(tr.refdef.time * 0.001) : (double)tess.shaderTime) * (double)freq + (double)tr.refdef.timeFraction * (double)freq * 0.001;
+		angle = fmod(angle, 1.0);
 		return base + sin(DEG2RAD(angle * 360.0)) * amplitude;
 	case GF_TRIANGLE:
 		return WAVEVALUE(tr.triangleTable, base, amplitude, phase, freq);
 	case GF_SQUARE:
 		return WAVEVALUE(tr.squareTable, base, amplitude, phase, freq);
 	case GF_SAWTOOTH:
+		//maybe some other shaders require that too
+		//linear + clamp require tess.shaderTime
+		angle = (double)phase + ((!Q_stricmp(tess.shader->name, "halfShieldShell")) ? (double)(tr.refdef.time * 0.001) : (double)tess.shaderTime) * (double)freq + (double)tr.refdef.timeFraction * (double)freq * 0.001;
+		angle = fmod(angle, 1.0);
 		return base + angle * amplitude;
 	case GF_INVERSE_SAWTOOTH:
+		angle = (double)phase + ((!Q_stricmp(tess.shader->name, "halfShieldShell")) ? (double)(tr.refdef.time * 0.001) : (double)tess.shaderTime) * (double)freq + (double)tr.refdef.timeFraction * (double)freq * 0.001;
+		angle = fmod(angle, 1.0);
 		return base + (1.0 - angle) * amplitude;
 	case GF_NONE:
 	default:
@@ -763,7 +770,7 @@ void RB_CalcWaveColor( const waveForm_t *wf, unsigned char *dstColors )
 
 
   if ( wf->func == GF_NOISE ) {
-		glow = wf->base + R_NoiseGet4f( 0, 0, 0, ( /*tess.shaderTime*/tr.refdef.time * 0.001 + wf->phase + tr.refdef.timeFraction * 0.001 ) * wf->frequency ) * wf->amplitude;
+		glow = wf->base + R_NoiseGet4f( 0, 0, 0, ( (!tr.refdef.time ? tess.shaderTime : (tr.refdef.time * 0.001)) + wf->phase + tr.refdef.timeFraction * 0.001 ) * wf->frequency ) * wf->amplitude;
 	} else {
 		glow = EvalWaveForm( wf ) * tr.identityLight;
 	}
@@ -1035,7 +1042,7 @@ void RB_CalcScaleTexCoords( const float scale[2], float *st )
 void RB_CalcScrollTexCoords( const float scrollSpeed[2], float *st )
 {
 	int i;
-	double timeScale = tess.shaderTime + tr.refdef.timeFraction * 0.001;
+	double timeScale = (!tr.refdef.time ? tess.shaderTime : (tr.refdef.time * 0.001)) + tr.refdef.timeFraction * 0.001;
 	double adjustedScrollS, adjustedScrollT;
 
 	adjustedScrollS = scrollSpeed[0] * timeScale;
@@ -1075,7 +1082,7 @@ void RB_CalcTransformTexCoords( const texModInfo_t *tmi, float *st  )
 */
 void RB_CalcRotateTexCoords( float degsPerSecond, float *st )
 {
-	double timeScale = /*tess.shaderTime*/(double)tr.refdef.time * 0.001;
+	double timeScale = (!tr.refdef.time ? tess.shaderTime : (tr.refdef.time * 0.001));
 	double degs;
 	double index;
 	float sinValue, cosValue;
@@ -1083,7 +1090,7 @@ void RB_CalcRotateTexCoords( float degsPerSecond, float *st )
 
 	degs = -degsPerSecond * timeScale + -degsPerSecond * tr.refdef.timeFraction * 0.001;
 	//index = degs * ( FUNCTABLE_SIZE / 360.0f );
-	index = degs / 360.0f ;
+	index = degs / 360.0;
 
 //	sinValue = tr.sinTable[ index & FUNCTABLE_MASK ];
 //	cosValue = tr.sinTable[ ( index + FUNCTABLE_SIZE / 4 ) & FUNCTABLE_MASK ];

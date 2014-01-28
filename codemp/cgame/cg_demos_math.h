@@ -67,6 +67,11 @@ static ID_INLINE void QuatScaleAdd( const Quat_t q0, const Quat_t q1, float scal
 	qr[2] = q0[2] + scale * q1[2];
 	qr[3] = q0[3] + scale * q1[3];
 }
+static ID_INLINE float QuatDistanceSquared( const Quat_t q1, const Quat_t q2 ) {
+	Quat_t q;
+	QuatSub(q1, q2, q);
+	return q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3];
+}
 static ID_INLINE float QuatLengthSquared( const Quat_t q ) {
 	return q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3];
 }

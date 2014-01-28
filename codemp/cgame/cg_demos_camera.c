@@ -137,13 +137,10 @@ static qboolean cameraOriginAt( int time, float timeFraction, vec3_t origin ) {
 	demoCameraPoint_t	*match[4];
 	float				searchLen;
 	vec3_t				dx, dy;
-	static vec3_t		odx, ody;
 	vec3_t				control[4];
 	vec3_t				nextOrigin; 
 	float				len = 0, step = 0, addStep, distance;
 	int					i;
-	static qboolean		newPoint = qtrue;
-	static int			oldTimePrev = 0, oldTimeNext = 0;
 
 	cameraMatchAt( time, CAM_ORIGIN, match );
 
@@ -158,35 +155,21 @@ static qboolean cameraOriginAt( int time, float timeFraction, vec3_t origin ) {
 		/* Only match[1] is valid, will be copied to all points */
 		searchLen = 0;
 	} else {
-		if (time > oldTimePrev && time < oldTimeNext) {
-			newPoint = qfalse;
+		dx[1] = match[2]->time - match[1]->time;
+		dy[1] = cameraPointLength( match[1] );
+		if (match[0]) {
+			dx[0] = match[1]->time - match[0]->time;
+			dy[0] = cameraPointLength( match[0] );
 		} else {
-			newPoint = qtrue;
+			dx[0] = dx[1];
+			dy[0] = dy[1];
 		}
-		if (newPoint) {
-			dx[1] = match[2]->time - match[1]->time;
-			dy[1] = cameraPointLength( match[1] );
-			if (match[0]) {
-				dx[0] = match[1]->time - match[0]->time;
-				dy[0] = cameraPointLength( match[0] );
-			} else {
-				dx[0] = dx[1];
-				dy[0] = dy[1];
-			}
-			if (match[3]) {
-				dx[2] = match[3]->time - match[2]->time;
-				dy[2] = cameraPointLength( match[2] );
-			} else {
-				dx[2] = dx[1];
-				dy[2] = dy[1];
-			}
-			oldTimePrev = match[1]->time;
-			oldTimeNext = match[2]->time;
-			VectorCopy(dx, odx);
-			VectorCopy(dy, ody);
+		if (match[3]) {
+			dx[2] = match[3]->time - match[2]->time;
+			dy[2] = cameraPointLength( match[2] );
 		} else {
-			VectorCopy(odx, dx);
-			VectorCopy(ody, dy);
+			dx[2] = dx[1];
+			dy[2] = dy[1];
 		}
 		searchLen = dsplineCalc( (time - match[1]->time) + timeFraction, dx, dy, 0 );
 	}
@@ -221,23 +204,64 @@ static qboolean cameraOriginAt( int time, float timeFraction, vec3_t origin ) {
 	return qtrue;
 }
 
-static void controlQuats(const Quat_t q0, const Quat_t q1, const Quat_t q2, const Quat_t q3, Quat_t quats[4]) {
+static float cameraPointAnglesLength( demoCameraPoint_t *point ) {
 	int i;
-	for (i = 0; i < 4; i++) {
-		quats[0][i] = q0[i];
-		quats[1][i] = q1[i];
-		quats[2][i] = q2[i];
-		quats[3][i] = q3[i];
+	demoCameraPoint_t *match[4];
+	vec3_t tempAngles;
+	Quat_t q0, q1, q2, q3, qLast, qNext;
+	float len = 0, step = 0, addStep, distance;
+
+	if (point->anglesLen >= 0)
+		return point->anglesLen;
+
+	cameraPointMatch( point, CAM_ANGLES, match );
+
+	QuatFromAngles( match[1]->angles, q1 );
+	if ( match[0] ) {
+		QuatFromAnglesClosest( match[0]->angles, q1, q0 );
+	} else {
+		VectorSubDelta( match[1]->angles, match[2]->angles, tempAngles );
+		QuatFromAnglesClosest( tempAngles, q1, q0 );
 	}
+	QuatFromAnglesClosest( match[2]->angles, q1, q2 );
+	if (match[3]) {
+		QuatFromAnglesClosest( match[3]->angles, q2, q3 );
+	} else {
+		VectorAddDelta( match[1]->angles, match[2]->angles, tempAngles );
+		QuatFromAnglesClosest( tempAngles, q2, q3 );
+	}
+	QuatSquad( 0, q0, q1, q2, q3, qLast );
+
+	while (step < 1) {
+		addStep = 1 - step;
+		if (addStep > 0.01f)
+			addStep = 0.01f;
+		for (i = 0; i < 10; i++) {
+			QuatSquad( step+addStep, q0, q1, q2, q3, qNext );
+			distance = QuatDistanceSquared( qLast, qNext);
+			if ( distance <= 0.001f / mov_smoothQuat.value)
+				break;
+			addStep *= 0.7f;
+		}
+		step += addStep;
+		len += sqrt( distance );
+		QuatCopy( qNext, qLast );
+		if (!distance)
+			break;
+	}
+	point->anglesLen = len;
+	return point->anglesLen;
 }
 
 static qboolean cameraAnglesAt( int time, float timeFraction, vec3_t angles) {
 	demoCameraPoint_t	*match[4];
 	float				lerp;
 	vec3_t				tempAngles;
-	Quat_t				q0, q1, q2, q3, qr;
-	int times[4];
-	Quat_t quats[4];
+	vec3_t				dx, dy;
+	Quat_t				q0, q1, q2, q3, qr, qNext;
+	Quat_t				quats[4];
+	float				len = 0, step = 0, addStep, distance, searchLen;
+	int					i;
 
 	cameraMatchAt( time, CAM_ANGLES, match );
 
@@ -261,30 +285,64 @@ static qboolean cameraAnglesAt( int time, float timeFraction, vec3_t angles) {
 		break;
 	default:
 	case angleQuat:
-		times[1] = match[1]->time;
-		times[2] = match[2]->time;
 		QuatFromAngles( match[1]->angles, q1 );
 		if ( match[0] ) {
 			QuatFromAnglesClosest( match[0]->angles, q1, q0 );
-			times[0] = match[0]->time;
 		} else {
 			VectorSubDelta( match[1]->angles, match[2]->angles, tempAngles );
 			QuatFromAnglesClosest( tempAngles, q1, q0 );
-			times[0] = times[1] - (times[2] - times[1]);
 		}
 		QuatFromAnglesClosest( match[2]->angles, q1, q2 );
 		if (match[3]) {
 			QuatFromAnglesClosest( match[3]->angles, q2, q3 );
-			times[3] = match[3]->time;
 		} else {
 			VectorAddDelta( match[1]->angles, match[2]->angles, tempAngles );
 			QuatFromAnglesClosest( tempAngles, q2, q3 );
-			times[3] = times[2] - (times[2] - times[1]);
 		}
-//		controlQuats(q0, q1, q2, q3, quats);
-		// QuatTimeSpline is much smoother and looks cooler though it can interpolate extra angles and this is not cool
-//		QuatTimeSpline( lerp, times, quats, qr );
-		QuatSquad( lerp, q0, q1, q2, q3, qr );
+
+		/* origin-like smooth step interpolation */
+		if (mov_smoothQuat.value >= 1) {
+			dx[1] = match[2]->time - match[1]->time;
+			dy[1] = cameraPointAnglesLength( match[1] );
+			if (match[0]) {
+				dx[0] = match[1]->time - match[0]->time;
+				dy[0] = cameraPointAnglesLength( match[0] );
+			} else {
+				dx[0] = dx[1];
+				dy[0] = dy[1];
+			}
+			if (match[3]) {
+				dx[2] = match[3]->time - match[2]->time;
+				dy[2] = cameraPointAnglesLength( match[2] );
+			} else {
+				dx[2] = dx[1];
+				dy[2] = dy[1];
+			}
+			searchLen = dsplineCalc( (time - match[1]->time) + timeFraction, dx, dy, 0 );
+
+			QuatSquad( 0, q0, q1, q2, q3, qr );
+			while (step < 1) {
+				addStep = 1 - step;
+				if (addStep > 0.01f)
+					addStep = 0.01f;
+				for (i = 0; i < 10; i++) {
+					QuatSquad( step+addStep, q0, q1, q2, q3, qNext );
+					distance = QuatDistanceSquared( qr, qNext);
+					if ( distance <= 0.001f / mov_smoothQuat.value)
+						break;
+					addStep *= 0.7f;
+				}
+				distance = sqrt( distance );
+				if (len + distance > searchLen)
+					break;
+				len += distance;
+				step += addStep;
+				QuatCopy( qNext, qr );
+			}
+		/* linear step interpolation */
+		} else {
+			QuatSquad( lerp, q0, q1, q2, q3, qr );
+		}
 		QuatToAngles( qr, angles );
 	}
 	return qtrue;
@@ -340,6 +398,7 @@ static void cameraPointReset( demoCameraPoint_t *point ) {
 	
 	if (!point )
 		return;
+
 	point->len = -1;
 	for( p = point->prev, i = 2;i > 0 && p; p = p->prev ) {
 		if (!(p->flags & CAM_ORIGIN))
@@ -351,6 +410,20 @@ static void cameraPointReset( demoCameraPoint_t *point ) {
 		if (!(p->flags & CAM_ORIGIN))
 			continue;
 		p->len = -1;
+		i--;
+	}
+
+	point->anglesLen = -1;
+	for( p = point->prev, i = 2;i > 0 && p; p = p->prev ) {
+		if (!(p->flags & CAM_ANGLES))
+			continue;
+		p->anglesLen = -1;
+		i--;
+	}
+	for( p = point->next, i = 2;i > 0 && p; p = p->next ) {
+		if (!(p->flags & CAM_ANGLES))
+			continue;
+		p->anglesLen = -1;
 		i--;
 	}
 
