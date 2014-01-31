@@ -1,5 +1,6 @@
 #include "cg_demos.h" 
 
+#ifdef DEMO_ANIM
 /* vertical representation
 static char *boneList[72] = {
 	"model_root",
@@ -585,3 +586,8 @@ qboolean CG_DemosPlayerAnimation(int client) {
 		return qtrue;
 	}
 }
+#else
+qboolean CG_DemosPlayerAnimation(int client) {
+	return qfalse;
+}
+#endif

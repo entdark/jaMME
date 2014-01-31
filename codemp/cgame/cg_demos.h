@@ -147,6 +147,7 @@ typedef struct demoMain_s {
 	qboolean	autoLoad;
 	demoLog_t	log;
 	//at the end because initalizing *points[MAX_CLIENTS] affects vars and struct below
+#ifdef DEMO_ANIM
 	struct {
 		qboolean	locked;
 		int			target;
@@ -155,6 +156,7 @@ typedef struct demoMain_s {
 		qboolean	override[MAX_CLIENTS];
 		demoAnimPoint_t *points[MAX_CLIENTS];
 	} anim;
+#endif
 } demoMain_t;
 
 extern demoMain_t demo;
@@ -209,11 +211,15 @@ demoChasePoint_t *chasePointSynch(int time );
 qboolean chaseParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data);
 void chaseSave( fileHandle_t fileHandle );
 
+//#define DEMO_ANIM
+
+#ifdef DEMO_ANIM
 void demoMoveAnim(void);
 void animUpdate(int time, float timeFraction);
 void demoAnimCommand_f(void);
 void animDraw(int time, float timeFraction);
 void animBoneOrigins(vec3_t *origins, int client);
+#endif
 
 qboolean demoCentityBoxSize( const centity_t *cent, vec3_t container );
 int demoHitEntities( const vec3_t start, const vec3_t forward );

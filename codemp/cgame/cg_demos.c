@@ -82,9 +82,11 @@ static void CG_DemosUpdatePlayer( void ) {
 	case editChase:
 		demoMoveChase();
 		break;
+#ifdef DEMO_ANIM
 	case editAnim:
 		demoMoveAnim();
 		break;
+#endif
 /*	case editEffect:
 		demoEffectMove();
 		break;
@@ -676,7 +678,9 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	CG_DemosUpdatePlayer( );
 	chaseUpdate( demo.play.time, demo.play.fraction );
 	cameraUpdate( demo.play.time, demo.play.fraction );
+#ifdef DEMO_ANIM
 	animUpdate( demo.play.time, demo.play.fraction );
+#endif
 
 	cg.clientFrame++;
 	CG_InterpolatePlayerState( qfalse );
@@ -746,9 +750,11 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		case editChase:
 			chaseDraw( demo.play.time, demo.play.fraction );
 			break;
+#ifdef DEMO_ANIM
 		case editAnim:
 			animDraw( demo.play.time, demo.play.fraction );
 			break;
+#endif
 /*		case editEffect:
 			demoEffectDraw( demo.play.time, demo.play.fraction );
 			break;
@@ -756,6 +762,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		/* Add bounding boxes for easy aiming */
 		if ( demo.editType && ( demo.cmd.buttons & BUTTON_ATTACK) && ( demo.cmd.buttons & BUTTON_ALT_ATTACK)  ) {
 			int i;
+#ifdef DEMO_ANIM
 			if (demo.editType == editAnim && demo.anim.target >= 0 && demo.anim.target < MAX_CLIENTS && demo.anim.override[demo.anim.target]) {
 				centity_t *targetCent = demoTargetEntity(demo.anim.target);
 				if (targetCent) {
@@ -776,7 +783,9 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 						demoDrawBox( origins[i], container, color );
 					}
 				}
-			} else {
+			} else
+#endif
+			{
 				for (i = 0;i<MAX_GENTITIES;i++) {
 					centity_t *targetCent = demoTargetEntity( i );
 					if (targetCent) {
@@ -986,6 +995,7 @@ static void demoEditCommand_f(void) {
 		}
 		demo.editType = editLine;
 		CG_DemosAddLog("Editing timeline");
+#ifdef DEMO_ANIM
 	} else if (!Q_stricmp(cmd, "anim")) {
 		if ( demo.cmd.upmove > 0 ) {
 			demoViewCommand_f();
@@ -993,6 +1003,7 @@ static void demoEditCommand_f(void) {
 		}
 		demo.editType = editAnim;
 		CG_DemosAddLog("Editing animation");
+#endif
 /*	} else if (!Q_stricmp(cmd, "script")) {
 		demo.editType = editScript;
 		CG_DemosAddLog("Editing script");
@@ -1014,9 +1025,11 @@ static void demoEditCommand_f(void) {
 		case editLine:
 			demoLineCommand_f();
 			break;
+#ifdef DEMO_ANIM
 		case editAnim:
 			demoAnimCommand_f();
 			break;
+#endif
 /*		case editScript:
 			demoScriptCommand_f();
 			break;
@@ -1137,14 +1150,16 @@ void demoPlaybackInit(void) {
 	demo.chase.locked = qfalse;
 	demo.chase.target = -1;
 
+#ifdef DEMO_ANIM
 	demo.anim.locked = qfalse;
 	demo.anim.target = -1;
 	demo.anim.bone = 0;
 	for (i = 0; i < 72; i++) {
 		VectorSet(demo.anim.angles[i], 0.0f, 0.0f, 0.0f);
 		demo.anim.override[i] = qfalse;
-		demo.anim.points[i] = 0;
+		demo.anim.points[i] = 0; //wrong zeroing
 	}
+#endif
 
 	hudInitTables();
 	demoSynchMusic( -1, 0 );
@@ -1153,7 +1168,9 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("edit");
 	trap_AddCommand("view");
 	trap_AddCommand("chase");
+#ifdef DEMO_ANIM
 	trap_AddCommand("anim");
+#endif
 	trap_AddCommand("speed");
 	trap_AddCommand("seek");
 	trap_AddCommand("demoSeek");
@@ -1264,8 +1281,10 @@ qboolean CG_DemosConsoleCommand( void ) {
 			demo.find = findNone;
 	} else if (!Q_stricmp(cmd, "chase")) {
 		demoChaseCommand_f();
+#ifdef DEMO_ANIM
 	} else if (!Q_stricmp(cmd, "anim")) {
 		demoAnimCommand_f();
+#endif
 	} else if (!Q_stricmp(cmd, "hudInit")) {
 		hudInitTables();
 	} else if (!Q_stricmp(cmd, "hudToggle")) {

@@ -485,7 +485,11 @@ void demoDrawLine( const vec3_t p0, const vec3_t p1, const vec4_t color) {
 	polyVert_t verts[4];
 
 	demoDrawSetupVerts( verts, color );
+#if defined DEMO_ANIM && defined _DEBUG
 	demoDrawRawLine( p0, p1, 0.1f, verts );
+#else
+	demoDrawRawLine( p0, p1, 1.0f, verts );
+#endif
 }
 
 void demoDrawCross( const vec3_t origin, const vec4_t color ) {
@@ -519,11 +523,19 @@ void demoDrawBox( const vec3_t origin, const vec3_t container, const vec4_t colo
 		boxCorners[i][1] = origin[1] + (((i+1) & 2) ? +container[2] : -container[2]);
 		boxCorners[i][2] = origin[2] + container[i >>2];
 	}
+#if defined DEMO_ANIM && defined _DEBUG
 	for (i = 0; i < 4;i++) {
 		demoDrawRawLine( boxCorners[i], boxCorners[(i+1) & 3], 0.1f, verts );
 		demoDrawRawLine( boxCorners[4+i], boxCorners[4+((i+1) & 3)], 0.1f, verts );
 		demoDrawRawLine( boxCorners[i], boxCorners[4+i], 0.1f, verts );
 	}
+#else
+	for (i = 0; i < 4;i++) {
+		demoDrawRawLine( boxCorners[i], boxCorners[(i+1) & 3], 1.0f, verts );
+		demoDrawRawLine( boxCorners[4+i], boxCorners[4+((i+1) & 3)], 1.0f, verts );
+		demoDrawRawLine( boxCorners[i], boxCorners[4+i], 1.0f, verts );
+	}
+#endif
 }
 
 void demoDrawCrosshair( void ) {
