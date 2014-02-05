@@ -76,7 +76,6 @@ void R_MME_SaveShot( mmeShot_t *shot, int width, int height, float fps, byte *in
 		extension = "png";
 		break;
 	case mmeShotFormatAVI:
-//		goto doavi;	//CL_AVI
 		mmeAviShot( &shot->avi, shot->name, shot->type, width, height, fps, inBuf );
 		return;
 	}
@@ -113,35 +112,7 @@ void R_MME_SaveShot( mmeShot_t *shot, int width, int height, float fps, byte *in
 	case mmeShotFormatPNG:
 		outSize = SavePNG( mme_pngCompression->integer, width, height, shot->type, inBuf, (byte *)outBuf, outSize );
 		break;
-/*	case mmeShotFormatAVI:	//uncomment if you want to try to capture through cl_avi (/video): tag CL_AVI
-doavi:
-		byte *outBufAvi;
-		int i, pixels, outSizeAvi;
-
-		pixels = width*height;
-		outSizeAvi = width*height*3 + 2048; //Allocate bit more to be safish?
-		outBufAvi = (byte *)ri.Hunk_AllocateTempMemory( outSizeAvi + 8);
-		outBufAvi[0] = '0';outBufAvi[1] = '0';
-		outBufAvi[2] = 'd';outBufAvi[3] = 'b';
-		switch (shot->type) {
-		case mmeShotTypeGray:
-			for (i = 0;i<pixels;i++) {
-				outBufAvi[8 + i] = inBuf[i];
-			};
-			outSizeAvi = pixels;
-			break;
-		case mmeShotTypeRGB:
-			for (i = 0;i<pixels;i++) {
-				outBufAvi[8 + i*3 + 0 ] = inBuf[ i*3 + 0];
-				outBufAvi[8 + i*3 + 1 ] = inBuf[ i*3 + 2];
-				outBufAvi[8 + i*3 + 2 ] = inBuf[ i*3 + 1];
-			}
-			outSizeAvi = width * height * 3;
-		break;
-		}
-		ri.CL_WriteAVIVideoFrame(outBufAvi, outSizeAvi);
-		return;
-*/	default:
+	default:
 		outSize = 0;
 	}
 	if (outSize)

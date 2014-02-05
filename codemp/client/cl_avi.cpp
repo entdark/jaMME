@@ -542,7 +542,7 @@ void CL_WriteAVIAudioFrame( const byte *pcmBuffer, int size )
   bytesInBuffer += size;
 
   // Only write if we have a frame's worth of audio
-  if( bytesInBuffer >= (int)ceil( (float)afd.a.rate / (float)afd.frameRate ) *	//CL_AVI: maybe replacing here afd.frameRate with cl_mme_fps->value can help audio match video?
+  if( bytesInBuffer >= (int)ceil( (float)afd.a.rate / (float)afd.frameRate ) *
         afd.a.sampleSize )
   {
     int   chunkOffset = afd.fileSize - afd.moviOffset - 8;
@@ -590,7 +590,6 @@ void CL_TakeVideoFrame( void )
 
   re.TakeVideoFrame( afd.width, afd.height,
       afd.cBuffer, afd.eBuffer, afd.motionJpeg );
-//  re.Capture( cl_mme_name->string, cl_mme_fps->value, cl_mme_focus->value );	//CL_AVI
 }
 
 /*

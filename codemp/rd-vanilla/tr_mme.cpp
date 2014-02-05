@@ -671,9 +671,9 @@ void R_MME_Init(void) {
 	mme_pngCompression = ri.Cvar_Get("mme_pngCompression", "5", CVAR_ARCHIVE);
 	mme_skykey = ri.Cvar_Get( "mme_skykey", "0", CVAR_ARCHIVE );
 	mme_pip = ri.Cvar_Get( "mme_pip", "0", CVAR_CHEAT );	//-
-	mme_worldShader = ri.Cvar_Get( "mme_worldShader", "0", CVAR_CHEAT );	//-
-	mme_renderWidth = ri.Cvar_Get( "mme_renderWidth", "0", CVAR_LATCH | CVAR_ARCHIVE );	//-
-	mme_renderHeight = ri.Cvar_Get( "mme_renderHeight", "0", CVAR_LATCH | CVAR_ARCHIVE );	//-
+	mme_worldShader = ri.Cvar_Get( "mme_worldShader", "0", CVAR_CHEAT );
+	mme_renderWidth = ri.Cvar_Get( "mme_renderWidth", "0", CVAR_LATCH | CVAR_ARCHIVE );
+	mme_renderHeight = ri.Cvar_Get( "mme_renderHeight", "0", CVAR_LATCH | CVAR_ARCHIVE );
 
 	mme_blurFrames = ri.Cvar_Get ( "mme_blurFrames", "0", CVAR_ARCHIVE );
 	mme_blurOverlap = ri.Cvar_Get ("mme_blurOverlap", "0", CVAR_ARCHIVE );
@@ -686,10 +686,10 @@ void R_MME_Init(void) {
 
 	mme_cpuSSE2 = ri.Cvar_Get ( "mme_cpuSSE2", "0", CVAR_ARCHIVE );
 	
-	mme_depthRange = ri.Cvar_Get ( "mme_depthRange", "0", CVAR_ARCHIVE );
-	mme_depthFocus = ri.Cvar_Get ( "mme_depthFocus", "0", CVAR_ARCHIVE );
+	mme_depthRange = ri.Cvar_Get ( "mme_depthRange", "512", CVAR_ARCHIVE );
+	mme_depthFocus = ri.Cvar_Get ( "mme_depthFocus", "1024", CVAR_ARCHIVE );
 	mme_saveOverwrite = ri.Cvar_Get ( "mme_saveOverwrite", "0", CVAR_ARCHIVE );
-//	mme_saveStencil = ri.Cvar_Get ( "mme_saveStencil", "0", CVAR_ARCHIVE );	//need to rewrite tr_backend.cpp :s
+	mme_saveStencil = ri.Cvar_Get ( "mme_saveStencil", "0", CVAR_INTERNAL);//CVAR_ARCHIVE ); //need to rewrite tr_backend.cpp :s
 	mme_saveDepth = ri.Cvar_Get ( "mme_saveDepth", "0", CVAR_ARCHIVE );
 	mme_saveShot = ri.Cvar_Get ( "mme_saveShot", "1", CVAR_ARCHIVE );
 	mme_workMegs = ri.Cvar_Get ( "mme_workMegs", "128", CVAR_LATCH | CVAR_ARCHIVE );

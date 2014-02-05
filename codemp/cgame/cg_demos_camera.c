@@ -649,8 +649,10 @@ void cameraMove(void) {
 	float *origin;
 	float *angles;
 	float *fov;
-
 	demoCameraPoint_t *point;
+
+	if (demo.editType == editAnim)
+		return;
 
 	if (!demo.camera.locked) {
 		angles = demo.camera.angles;

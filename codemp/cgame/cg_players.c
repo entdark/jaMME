@@ -10488,8 +10488,7 @@ skipEffectOverride:
 
 	//[TrueView]
 	//Restrict True View Model changes to the player and do the True View camera view work.
-	if (cg.snap && cent == cg.playerCent)
-	{
+	if (cg.snap && cent == cg.playerCent) {
 		if ( !cg.renderingThirdPerson && (cg_trueGuns.integer || cent->currentState.weapon == WP_SABER 
 			|| cent->currentState.weapon == WP_MELEE) 
 //			&& (!cg.predictedPlayerState.zoomMode && !cg.playerPredicted)
@@ -12566,7 +12565,7 @@ skipCloaked:
 		legs.renderfx |= RF_RGB_TINT;
 		*/
 
-		legs.shaderRGBA[0] = legs.shaderRGBA[1] = legs.shaderRGBA[2] = Q_irand(1, 255);
+		legs.shaderRGBA[0] = legs.shaderRGBA[1] = legs.shaderRGBA[2] = (int)(random() * 254.0f) + 1;//Q_irand(1, 255);
 
 		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
 		legs.renderfx &= ~RF_MINLIGHT;

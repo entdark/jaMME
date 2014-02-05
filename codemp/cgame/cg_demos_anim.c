@@ -1,6 +1,8 @@
 #include "cg_demos.h" 
+#include "ghoul2/G2.h"
 
 #ifdef DEMO_ANIM
+
 /* vertical representation
 static char *boneList[72] = {
 	"model_root",
@@ -78,7 +80,7 @@ static char *boneList[72] = {
 };
 //vertical representation */
 
-static const char *boneList[72] = {
+const char *boneList[72] = {
 	"model_root","pelvis","Motion","lfemurYZ","lfemurX","ltibia","ltalus","ltarsal",
 	"rfemurYZ","rfemurX","rtibia","rtalus","rtarsal","lower_lumbar","upper_lumbar","thoracic",
 	"cervical","cranium","ceyebrow","jaw","lblip2","leye","rblip2","ltlip2",
@@ -333,8 +335,15 @@ static void animSetAngles(vec3_t angles[MAX_BONES], int client) {
 	//bone max amount is amount of all bones, should increment till found amount of bones (if we ever search them)
 	//modellist is cgs.gameModels, should be another?
 	//up, right and forward are POSITIVE_X, NEGATIVE_Y and NEGATIVE_Z, should be another?
-	for (i = 0; i < MAX_BONES; i++) {
-		trap_G2API_SetBoneAngles(cent->ghoul2, 0, boneList[i], angles[i], 0x0004, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time);
+
+	// never ever do that again, 0x0004 when you know it's BONE_ANGLES_REPLACE. =p
+	// I also did this line below, but i don't think it's needed try this.
+	//trap_G2API_SetBoneAngles(cent->ghoul2, 0, boneList[0], angles[0], 0, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time);
+	if (!(cent && cent->currentValid))
+		return;
+	
+	for (i = 1; i < MAX_BONES; i++) {
+		trap_G2API_SetBoneAngles(cent->ghoul2, 0, boneList[i], angles[i], BONE_ANGLES_REPLACE, POSITIVE_Z, POSITIVE_Y, POSITIVE_X, cgs.gameModels, 0, cg.time);
 	}
 }
 
@@ -353,57 +362,109 @@ void animUpdate(int time, float timeFraction) {
 	}
 }
 
-void animBoneOrigins(vec3_t origins[MAX_BONES], int client) {
+void animBoneVectors(vec3_t vec[MAX_BONES], int flags, int client) {
 	int			i;
 	centity_t	*cent = &cg_entities[client];
+
+	if (!(cent && cent->currentValid))
+		return;
+
 	for (i = 0; i < MAX_BONES; i++) {
 		mdxaBone_t	boltMatrix;
 		int torsoBolt = trap_G2API_AddBolt(cent->ghoul2, 0, boneList[i]);
 		trap_G2API_GetBoltMatrix(cent->ghoul2, 0, torsoBolt, &boltMatrix, cent->lerpAngles, cent->lerpOrigin, cg.time, cgs.gameModels, cent->modelScale);
-		BG_GiveMeVectorFromMatrix(&boltMatrix, ORIGIN, origins[i]);
+		BG_GiveMeVectorFromMatrix(&boltMatrix, flags, vec[i]);
 	}
 }
 
-static void animSkeletonDraw(const vec3_t origins[MAX_BONES]) {
+static void animSkeletonDraw(const vec3_t origins[MAX_BONES], const vec3_t ang[MAX_BONES]) {
 	int i;
 
-	demoDrawLine(origins[0], origins[1], colorRed); //"model_root" <-> "pelvis"
-	/* draw all "pelvis" children */
-	for (i = 2; i <= 13; i++) {
-		demoDrawLine(origins[1], origins[i], colorRed);
+	if (ang[MAX_BONES]) {
+		for (i = 0; i < MAX_BONES; i++) {
+			float scale = i == demo.anim.bone ? 7.0f : 2.3f; //selected bone is bigger
+			vec3_t origin2, forward, right, up, ang2;
+			AngleVectors(ang[i], forward, right, up);
+
+/*			VectorMA(origins[i], 2.3f, forward, origin2);
+			demoDrawLine(origins[i], origin2, colorYellow);
+			VectorMA(origins[i], 2.3f, right, origin2);
+			demoDrawLine(origins[i], origin2, colorMagenta);
+			VectorMA(origins[i], 2.3f, up, origin2);
+			demoDrawLine(origins[i], origin2, colorCyan);
+*/
+			VectorMA(origins[i], scale, axisDefault[2], origin2);
+			demoDrawLine(origins[i], origin2, colorBlue);
+
+			VectorSet(ang2, 0.0f, ang[i][1], 0.0f);
+			AngleVectors(ang2, 0, right, 0);
+			VectorMA(origins[i], scale, right, origin2);
+			demoDrawLine(origins[i], origin2, colorGreen);
+
+			ang2[2] = 180.0f - ang[i][0];
+			VectorSet(ang2, ang2[2], ang[i][1], 0.0f);
+			AngleVectors(ang2, forward, 0, 0);
+			VectorMA(origins[i], scale, forward, origin2);
+			demoDrawLine(origins[i], origin2, colorRed);
+		}
+	} else {
+		demoDrawLine(origins[0], origins[1], colorRed); //"model_root" <-> "pelvis"
+		/* draw all "pelvis" children */
+		for (i = 2; i <= 13; i++) {
+			demoDrawLine(origins[1], origins[i], colorRed);
+		}
+		demoDrawLine(origins[13], origins[14], colorRed); //"lower_lumbar" <-> "upper_lumbar"
+		demoDrawLine(origins[14], origins[15], colorRed); //"upper_lumbar" <-> "thoracic"
+		demoDrawLine(origins[15], origins[16], colorRed); //"thoracic" <-> "cervical"
+		demoDrawLine(origins[16], origins[17], colorRed); //"cervical" <-> "cranium"
+		/* draw all "face_always_" children */
+		for (i = 18; i <= 25; i++) {
+			demoDrawLine(origins[71], origins[i], colorRed);
+		}
+		/* draw all "thoracic" children */
+		for (i = 26; i <= 70; i++) {
+			demoDrawLine(origins[15], origins[i], colorRed);
+		}
+		demoDrawLine(origins[17], origins[71], colorRed); //"cranium" <-> "face_always_"
 	}
-	demoDrawLine(origins[13], origins[14], colorRed); //"lower_lumbar" <-> "upper_lumbar"
-	demoDrawLine(origins[14], origins[15], colorRed); //"upper_lumbar" <-> "thoracic"
-	demoDrawLine(origins[15], origins[16], colorRed); //"thoracic" <-> "cervical"
-	demoDrawLine(origins[16], origins[17], colorRed); //"cervical" <-> "cranium"
-	/* draw all "face_always_" children */
-	for (i = 18; i <= 25; i++) {
-		demoDrawLine(origins[71], origins[i], colorRed);
-	}
-	/* draw all "thoracic" children */
-	for (i = 26; i <= 70; i++) {
-		demoDrawLine(origins[15], origins[i], colorRed);
-	}
-	demoDrawLine(origins[17], origins[71], colorRed); //"cranium" <-> "face_always_"
 }
 
 void animDraw(int time, float timeFraction) {
 	int		i, bone;
-	vec3_t	angles[MAX_BONES], origins[MAX_BONES];
+	vec3_t	axis[3][MAX_BONES], origins[MAX_BONES], ang[MAX_BONES];
 	for (i = 0; i < MAX_CLIENTS; i++) {
+		int j;
 		if (!demo.anim.override[i] || !cg_entities[i].currentValid)
 			continue;
-		animBoneOrigins(origins, i);
-		animSkeletonDraw(origins);
+		animBoneVectors(origins, ORIGIN, i);
+		animBoneVectors(axis[0], NEGATIVE_Y, i);
+		animBoneVectors(axis[1], POSITIVE_Z, i);
+		animBoneVectors(axis[2], POSITIVE_X, i);
+		for (j = 0; j < MAX_BONES; j++) {
+			vec3_t axis2[3];
+			VectorCopy(axis[0][j], axis2[0]);
+			VectorCopy(axis[1][j], axis2[1]);
+			VectorCopy(axis[2][j], axis2[2]);
+			AxisToAngles(axis2, ang[j]);
+		}
+//		animSkeletonDraw(origins, ang);
+		animSkeletonDraw(origins, demo.anim.angles);
 	}
-	if (demo.anim.target >= 0 && demo.anim.bone >= 0) {
+	if (demo.anim.target >= 0 && demo.anim.override[demo.anim.target]) {
 		vec3_t container = {-1.0f, 1.0f, 1.0f};
-		animBoneOrigins(origins, demo.anim.target);
+		animBoneVectors(origins, ORIGIN, demo.anim.target);
 		demoDrawBox( origins[demo.anim.bone], container, colorWhite );
+	} else if (demo.anim.target >= 0 && !demo.anim.override[demo.anim.target]) {
+		centity_t *cent = demoTargetEntity( demo.anim.target );
+		if (cent) {
+			vec3_t container;
+			demoCentityBoxSize( cent, container );
+			demoDrawBox( cent->lerpOrigin, container, colorWhite );
+		}
 	}
 }
 
-static int demoHitBones(const vec3_t start, const vec3_t forward, const int target) {
+static int animHitBones(const vec3_t start, const vec3_t forward, const int target) {
     int i;
 	vec3_t container = {-1.0f, 1.0f, 1.0f};
 	vec3_t origins[MAX_BONES], traceStart, traceImpact;
@@ -411,7 +472,7 @@ static int demoHitBones(const vec3_t start, const vec3_t forward, const int targ
 	if (demo.anim.target <= 0)
 		return -1;
 	for (i=0;i<MAX_BONES;i++) {
-		animBoneOrigins(origins, demo.anim.target);
+		animBoneVectors(origins, ORIGIN, demo.anim.target);
 		VectorSubtract( start, origins[i], traceStart );
 		if (!BoxTraceImpact( traceStart, forward, container, traceImpact ))
 			continue;
@@ -421,25 +482,25 @@ static int demoHitBones(const vec3_t start, const vec3_t forward, const int targ
 }
 
 void demoMoveAnim(void) {
-	int i;
+	vec3_t *angles;
 
 	if (demo.anim.locked) {
 		demoAnimPoint_t *point = animPointSynch(demo.play.time, demo.anim.target);
 		if (point && point->time == demo.play.time && !demo.play.fraction) {
-			for (i = 0; i < MAX_BONES; i++)
-				VectorCopy(point->angles[i], demo.anim.angles[i]);
+			angles = point->angles;
 		} else {
 			return;
 		}
 	} else {
-//		angles = demo.anim.angles;
+		angles = demo.anim.angles;
 	}
 
+#if 0
 	if (demo.cmd.buttons & BUTTON_ATTACK) {
 		if (demo.anim.target >= 0 && demo.anim.target < MAX_CLIENTS && demo.anim.override[demo.anim.target]) {
-			VectorAdd(demo.anim.angles[demo.anim.bone], demo.cmdDeltaAngles, demo.anim.angles[demo.anim.bone]);
-			AnglesNormalize180(demo.anim.angles[demo.anim.bone]);
-			animSetAngles(demo.anim.angles, demo.anim.target);
+			VectorAdd(angles[demo.anim.bone], demo.cmdDeltaAngles, angles[demo.anim.bone]);
+//			AnglesNormalize180(angles[demo.anim.bone]);
+			animSetAngles(angles, demo.anim.target);
 		} else {
 			switch (demo.viewType) {
 			case viewCamera:
@@ -451,25 +512,67 @@ void demoMoveAnim(void) {
 			}
 		}
 	} else if (demo.cmd.buttons & BUTTON_ALT_ATTACK) {
-		demo.anim.angles[demo.anim.bone][ROLL] -= demo.cmdDeltaAngles[YAW];
-		AnglesNormalize180(demo.anim.angles[demo.anim.bone]);
-		animSetAngles(demo.anim.angles, demo.anim.target);
+		angles[demo.anim.bone][ROLL] -= demo.cmdDeltaAngles[YAW];
+//		AnglesNormalize180(angles[demo.anim.bone]);
+		animSetAngles(angles, demo.anim.target);
 	}
+#else
+	if (demo.anim.target >= 0 && demo.anim.target < MAX_CLIENTS && demo.anim.override[demo.anim.target]) {
+		if (demo.cmd.buttons & BUTTON_ATTACK && demo.cmd.buttons & BUTTON_ALT_ATTACK) {
+			angles[demo.anim.bone][PITCH] -= demo.cmdDeltaAngles[PITCH];
+		} else if (demo.cmd.buttons & BUTTON_ATTACK) {
+			angles[demo.anim.bone][YAW] -= demo.cmdDeltaAngles[YAW];
+		} else if (demo.cmd.buttons & BUTTON_ALT_ATTACK) {
+			angles[demo.anim.bone][ROLL] -= demo.cmdDeltaAngles[YAW];	
+		}
+		if (demo.cmd.buttons & BUTTON_ATTACK || demo.cmd.buttons & BUTTON_ALT_ATTACK) {
+			AnglesNormalize180(angles[demo.anim.bone]);
+			animSetAngles(angles, demo.anim.target);
+		}
+	}
+#endif
 }
 
 void demoAnimCommand_f(void) {
 	const char *cmd = CG_Argv(1);
-	if (!Q_stricmp(cmd, "lock"))
-	{
+	if (!Q_stricmp(cmd, "lock")) {
 		int i;
 		cmd = CG_Argv(2);
 		i = cmd[0] ? atoi(cmd) : demo.anim.target;
 		if (i >= 0 && i < MAX_CLIENTS) {
 			demo.anim.override[i] = !demo.anim.override[i];
-			if (demo.anim.override[i]) 
+			if (demo.anim.override[i]) {
+				vec3_t axis[3][MAX_BONES];
 				CG_DemosAddLog("Animation locked on %i client", i);
-			else 
+				animBoneVectors(axis[0], POSITIVE_X, i);//POSITIVE NEGATIVE forward, x
+				animBoneVectors(axis[1], POSITIVE_Y, i); // left, y
+				animBoneVectors(axis[2], POSITIVE_Z, i); // roll, z
+				for (i = 0; i < MAX_BONES; i++) {
+					vec3_t axis2[3], ang;
+					mdxaBone_t m1, m2;
+					VectorCopy(axis[0][i], axis2[1]);
+					VectorCopy(axis[1][i], axis2[0]);
+					VectorCopy(axis[2][i], axis2[2]);
+					//VectorScale(axis2[1],-1,axis2[1]);
+					AxisToAngles(axis2, ang);
+//					MatrixAxisToAngles(axis2, ang); //<- counts same as AxisToAngles
+
+//					AxisToMatrix(axis2, &m1);
+//					CreateMatrix(ang, &m2);
+//					if (MatrixCompare(m1, m2)) //always same for AxisToAngles or MatrixAxisToAngles method
+						VectorCopy(ang, demo.anim.angles[i]);
+					// ^so basically, make it so you can it here. Or a copy of it.
+					// and then try and make this so that the temp1 you get out of newAngles, which is your demo.anim.angles
+					// if the temp1 is the same as your axis, then you have found the correct method to do this.
+					AnglesNormalize180(demo.anim.angles[i]);
+				}
+			} else {
+				centity_t	*cent = &cg_entities[i];
 				CG_DemosAddLog("Animation unlocked on %i client", i);
+				for (i = 1; i < MAX_BONES; i++) {
+					trap_G2API_SetBoneAngles(cent->ghoul2, 0, boneList[i], vec3_origin, 0, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time);
+				}
+			}
 		} else {
 			demo.anim.locked = !demo.anim.locked;
 			if (demo.anim.locked) 
@@ -477,7 +580,7 @@ void demoAnimCommand_f(void) {
 			else 
 				CG_DemosAddLog("Animation unlocked");
 		}
-	} else if (!Q_stricmp(cmd, "add")){
+	} else if (!Q_stricmp(cmd, "add")) {
 		if (animPointAdd(demo.play.time, demo.anim.angles, demo.anim.target)) {
 			CG_DemosAddLog("Added anim point on %i client", demo.anim.target);
 		} else if (demo.anim.target < 0) {
@@ -542,7 +645,7 @@ void demoAnimCommand_f(void) {
 			if (demo.anim.target>=0 && demo.anim.override[demo.anim.target]) {
 				vec3_t forward;
 				AngleVectors( demo.viewAngles, forward, 0, 0 );
-				demo.anim.bone = demoHitBones( demo.viewOrigin, forward, demo.anim.target );
+				demo.anim.bone = animHitBones( demo.viewOrigin, forward, demo.anim.target );
 				if (demo.anim.bone >= 0) {
 					CG_DemosAddLog("Bone set to %s", boneList[demo.anim.bone] );
 				} else {
@@ -575,7 +678,7 @@ void demoAnimCommand_f(void) {
 		Com_Printf("anim shift time, move time indexes of chase points by certain amount.\n" );
 		Com_Printf("anim next/prev, go to time index of next or previous point of selected target.\n" );
 		Com_Printf("anim start/end, current time with be set as start/end of selection.\n" );
-		Com_Printf("anim angles bone (a)0 (a)0 (a)0, Directly control angles of selected bone, optional a before number to add to current value\n" );
+		Com_Printf("anim bone (a)0 (a)0 (a)0, Directly control angles of selected bone, optional a before number to add to current value\n" );
 	}
 }
 

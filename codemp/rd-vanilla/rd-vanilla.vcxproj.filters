@@ -124,10 +124,10 @@
     <ClCompile Include="tr_mme.cpp" />
     <ClCompile Include="tr_framebuffer.cpp" />
     <ClCompile Include="tr_mme_sse2.cpp" />
-    <ClCompile Include="tr_mmeStereo.cpp" />
     <ClCompile Include="tr_mme_avi.cpp" />
     <ClCompile Include="tr_mme_common.cpp" />
     <ClCompile Include="tr_bloom.cpp" />
+    <ClCompile Include="tr_mme_stereo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\jpeg-8c\jconfig.h" />

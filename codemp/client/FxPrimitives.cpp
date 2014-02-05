@@ -201,6 +201,7 @@ bool CParticle::Update(void)
 bool CParticle::UpdateOrigin(void)
 {
 	vec3_t	new_origin;
+	int		FP = fx_forcePhysics->integer;
 
 	VectorMA(mVel, theFxHelper.mRealTime, mAccel, mVel);
 	// Predict the new position
@@ -209,11 +210,11 @@ bool CParticle::UpdateOrigin(void)
 	new_origin[2] = mOrigin1[2] + (theFxHelper.mRealTime * mVel[2]);// + (theFxHelper.mHalfRealTimeSq * mVel[2]);
 
 	// Only perform physics if this object is tagged to do so
-	if ( (mFlags & FX_APPLY_PHYSICS) && !(mFlags & FX_PLAYER_VIEW) )
+	if ((mFlags & FX_APPLY_PHYSICS || FP & FX_FORCE_PHYSICS_APPLY) && !(mFlags & FX_PLAYER_VIEW))
 	{
 		bool solid;
 
-		if ( mFlags & FX_EXPENSIVE_PHYSICS )
+		if (mFlags & FX_EXPENSIVE_PHYSICS || FP & FX_FORCE_PHYSICS_EXPENSIVE)
 		{
 			solid = true; // by setting this to true, we force a real trace to happen
 		}
@@ -241,9 +242,9 @@ bool CParticle::UpdateOrigin(void)
 			trace_t	trace;
 			float	dot;
 
-			if ( mFlags & FX_USE_BBOX )
+			if (mFlags & FX_USE_BBOX || FP & FX_FORCE_PHYSICS_BBOX)
 			{
-				if (mFlags & FX_GHOUL2_TRACE)
+				if (mFlags & FX_GHOUL2_TRACE || FP & FX_FORCE_PHYSICS_GHOUL2)
 				{
 					theFxHelper.G2Trace( trace, mOrigin1, mMin, mMax, new_origin, -1, MASK_SOLID );
 				}
@@ -254,7 +255,7 @@ bool CParticle::UpdateOrigin(void)
 			}
 			else
 			{
-				if (mFlags & FX_GHOUL2_TRACE)
+				if (mFlags & FX_GHOUL2_TRACE || FP & FX_FORCE_PHYSICS_GHOUL2)
 				{
 					theFxHelper.G2Trace( trace, mOrigin1, NULL, NULL, new_origin, -1, MASK_PLAYERSOLID );
 				}
@@ -270,7 +271,7 @@ bool CParticle::UpdateOrigin(void)
 				VectorClear( mVel );
 				VectorClear( mAccel );
 
-				if ((mFlags & FX_GHOUL2_TRACE) && (mFlags & FX_IMPACT_RUNS_FX))
+				if ((mFlags & FX_GHOUL2_TRACE || FP & FX_FORCE_PHYSICS_GHOUL2) && (mFlags & FX_IMPACT_RUNS_FX))
 				{
 					static vec3_t bsNormal = {0, 1, 0};
 
@@ -309,13 +310,13 @@ bool CParticle::UpdateOrigin(void)
 				// If the velocity is too low, make it stop moving, rotating, and turn off physics to avoid
 				//	doing expensive operations when they aren't needed
 				//if ( trace.plane.normal[2] > 0.33f && mVel[2] < 10.0f )
-/*				if (VectorLengthSquared(mVel) < 100.0f)
+				if (VectorLengthSquared(mVel) < 1.0f)
 				{
 					VectorClear( mVel );
 					VectorClear( mAccel );
 
 					mFlags &= ~(FX_APPLY_PHYSICS | FX_IMPACT_RUNS_FX);
-				}*/
+				}
 
 				// Set the origin to the exact impact point
 				VectorMA( trace.endpos, 1.0f, trace.plane.normal, mOrigin1 );

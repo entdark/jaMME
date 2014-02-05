@@ -6,6 +6,8 @@
 
 #define LOGLINES 8
 
+#define DEMO_ANIM
+
 typedef enum {
 	editNone,
 	editCamera,
@@ -153,6 +155,7 @@ typedef struct demoMain_s {
 		int			target;
 		int			bone;
 		vec3_t		angles[MAX_BONES];
+		vec3_t		axis[3][MAX_BONES];
 		qboolean	override[MAX_CLIENTS];
 		demoAnimPoint_t *points[MAX_CLIENTS];
 	} anim;
@@ -211,14 +214,15 @@ demoChasePoint_t *chasePointSynch(int time );
 qboolean chaseParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data);
 void chaseSave( fileHandle_t fileHandle );
 
-//#define DEMO_ANIM
-
 #ifdef DEMO_ANIM
 void demoMoveAnim(void);
 void animUpdate(int time, float timeFraction);
 void demoAnimCommand_f(void);
+demoAnimPoint_t *animPointSynch(int time, int target);
 void animDraw(int time, float timeFraction);
-void animBoneOrigins(vec3_t *origins, int client);
+void animBoneVectors(vec3_t vec[MAX_BONES], int flags, int client);
+
+extern const char *boneList[72];
 #endif
 
 qboolean demoCentityBoxSize( const centity_t *cent, vec3_t container );

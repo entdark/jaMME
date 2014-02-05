@@ -157,6 +157,11 @@ static ID_INLINE void AnglesNormalize180( vec3_t angles) {
 qboolean CylinderTraceImpact( const vec3_t start, const vec3_t forward, const vec3_t container, vec3_t result );
 qboolean BoxTraceImpact(const vec3_t start, const vec3_t forward, const vec3_t container, vec3_t result );
 
+qboolean MatrixCompare(const mdxaBone_t m1, const mdxaBone_t m2);
+void AxisToMatrix(const vec3_t axis[3], mdxaBone_t *matrix);
+void CreateMatrix(const float *angle, mdxaBone_t *matrix);
+void MatrixAxisToAngles( const vec3_t axis[3], vec3_t angles );
+
 float dsplineCalc(float x, vec3_t dx, vec3_t dy, float*deriv );
 
 void demoDrawCross( const vec3_t origin, const vec4_t color );

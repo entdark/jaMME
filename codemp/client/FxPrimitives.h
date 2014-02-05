@@ -609,3 +609,8 @@ public:
 	inline void SetMotionTimeStamp( int t )				{ mTimeStamp = theFxHelper.GetTime() + t; }
 	inline int	GetMotionTimeStamp()					{ return mTimeStamp; }
 };
+
+#define FX_FORCE_PHYSICS_EXPENSIVE	0x01
+#define FX_FORCE_PHYSICS_GHOUL2		0x02
+#define FX_FORCE_PHYSICS_BBOX		0x04
+#define FX_FORCE_PHYSICS_APPLY		0x08

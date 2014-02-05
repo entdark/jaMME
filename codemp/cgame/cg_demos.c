@@ -760,7 +760,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 			break;
 */		}
 		/* Add bounding boxes for easy aiming */
-		if ( demo.editType && ( demo.cmd.buttons & BUTTON_ATTACK) && ( demo.cmd.buttons & BUTTON_ALT_ATTACK)  ) {
+		if ( 0 && demo.editType && ( demo.cmd.buttons & BUTTON_ATTACK) && ( demo.cmd.buttons & BUTTON_ALT_ATTACK)  ) {
 			int i;
 #ifdef DEMO_ANIM
 			if (demo.editType == editAnim && demo.anim.target >= 0 && demo.anim.target < MAX_CLIENTS && demo.anim.override[demo.anim.target]) {
@@ -772,7 +772,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 						vec3_t traceStart, traceImpact, forward;
 						const float *color;
 
-						animBoneOrigins(origins, demo.anim.target);
+						animBoneVectors(origins, ORIGIN, demo.anim.target);
 						VectorSubtract( demo.viewOrigin, origins[i], traceStart );
 						AngleVectors( demo.viewAngles, forward, 0, 0 );
 						if (BoxTraceImpact( traceStart, forward, container, traceImpact )) {
@@ -895,8 +895,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 			trap_Cvar_Set("mme_focus", va( "%f", demo.viewFocus ));
 			trap_Cvar_Set("cl_mme_capture", "1");
 		}
-//		trap_Cvar_Set("cl_aviFrameRate", va( "%f", mov_captureFPS.value ));	//CL_AVI
-//		trap_SendConsoleCommand( "video" );
 		if ( mov_captureCamera.integer )
 			demoAddViewPos( fileName, demo.viewOrigin, demo.viewAngles, demo.viewFov );
 	} else {
@@ -1154,10 +1152,13 @@ void demoPlaybackInit(void) {
 	demo.anim.locked = qfalse;
 	demo.anim.target = -1;
 	demo.anim.bone = 0;
-	for (i = 0; i < 72; i++) {
+	for (i = 0; i < MAX_BONES; i++) {
 		VectorSet(demo.anim.angles[i], 0.0f, 0.0f, 0.0f);
+		VectorSet(demo.anim.axis[0][i], 0.0f, 0.0f, 0.0f);
+		VectorSet(demo.anim.axis[1][i], 0.0f, 0.0f, 0.0f);
+		VectorSet(demo.anim.axis[2][i], 0.0f, 0.0f, 0.0f);
 		demo.anim.override[i] = qfalse;
-		demo.anim.points[i] = 0; //wrong zeroing
+		demo.anim.points[i] = 0; //wrong zeroing, or not?
 	}
 #endif
 

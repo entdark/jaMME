@@ -29,6 +29,87 @@ void GetPerpendicularViewVector( const vec3_t point, const vec3_t p1, const vec3
 	VectorNormalize( up );
 }
 
+qboolean MatrixCompare(const mdxaBone_t m1, const mdxaBone_t m2) {
+	// check inversed values too
+	if ((m1.matrix[0][0] == m2.matrix[0][0] || m1.matrix[0][0] == -m2.matrix[0][0]) &&
+		(m1.matrix[1][0] == m2.matrix[1][0] || m1.matrix[1][0] == -m2.matrix[1][0]) &&
+		(m1.matrix[2][0] == m2.matrix[2][0] || m1.matrix[1][0] == -m2.matrix[1][0]) &&
+
+		(m1.matrix[0][1] == m2.matrix[0][1] || m1.matrix[1][0] == -m2.matrix[1][0]) &&
+		(m1.matrix[1][1] == m2.matrix[1][1] || m1.matrix[1][0] == -m2.matrix[1][0]) &&
+		(m1.matrix[2][1] == m2.matrix[2][1] || m1.matrix[1][0] == -m2.matrix[1][0]) &&
+
+		(m1.matrix[0][2] == m2.matrix[0][2] || m1.matrix[1][0] == -m2.matrix[1][0]) &&
+		(m1.matrix[1][2] == m2.matrix[1][2] || m1.matrix[1][0] == -m2.matrix[1][0]) &&
+		(m1.matrix[2][2] == m2.matrix[2][2] || m1.matrix[1][0] == -m2.matrix[1][0]))
+		return qtrue;
+	else
+		return qfalse;
+}
+
+void AxisToMatrix(const vec3_t axis[3], mdxaBone_t *matrix) {
+	matrix->matrix[0][0] = axis[0][0];
+	matrix->matrix[1][0] = axis[0][1];
+	matrix->matrix[2][0] = axis[0][2];
+
+	matrix->matrix[0][1] = axis[1][0];
+	matrix->matrix[1][1] = axis[1][1];
+	matrix->matrix[2][1] = axis[1][2];
+
+	matrix->matrix[0][2] = axis[2][0];
+	matrix->matrix[1][2] = axis[2][1];
+	matrix->matrix[2][2] = axis[2][2];
+
+	matrix->matrix[0][3] = 0;
+	matrix->matrix[1][3] = 0;
+	matrix->matrix[2][3] = 0;
+}
+
+void CreateMatrix(const float *angle, mdxaBone_t *matrix) {
+	vec3_t		axis[3];
+
+	// convert angles to axis
+	AnglesToAxis( angle, axis );
+	matrix->matrix[0][0] = axis[0][0];
+	matrix->matrix[1][0] = axis[0][1];
+	matrix->matrix[2][0] = axis[0][2];
+
+	matrix->matrix[0][1] = axis[1][0];
+	matrix->matrix[1][1] = axis[1][1];
+	matrix->matrix[2][1] = axis[1][2];
+
+	matrix->matrix[0][2] = axis[2][0];
+	matrix->matrix[1][2] = axis[2][1];
+	matrix->matrix[2][2] = axis[2][2];
+
+	matrix->matrix[0][3] = 0;
+	matrix->matrix[1][3] = 0;
+	matrix->matrix[2][3] = 0;
+}
+
+void MatrixAxisToAngles( const vec3_t axis[3], vec3_t angles ) {
+	vec3_t	forward, right, up;
+	float	angle;
+	float	sp, cr, cp, cy;
+
+	VectorCopy(axis[0], forward);
+	VectorSubtract(vec3_origin, axis[1], right); //vector inverse? O:
+	VectorCopy(axis[2], up);
+
+	sp = -forward[2];
+	angle = asin(sp);
+	angles[PITCH] = angle / (M_PI*2 / 360);
+	cp = cos(angle);
+
+	cy = forward[0] / cp;
+	angle = acos(cy);
+	angles[YAW] = angle / (M_PI*2 / 360);
+
+	cr = up[2] / cp;
+	angle = acos(cr);
+	angles[ROLL] = angle / (M_PI*2 / 360);
+}
+
 void AxisToAngles( const vec3_t axis[3], vec3_t angles ) {
 	float	length1;
 	float	yaw, pitch, roll = 0;

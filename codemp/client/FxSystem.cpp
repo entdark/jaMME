@@ -13,7 +13,7 @@ cvar_t	*fx_freeze;
 cvar_t	*fx_countScale;
 cvar_t	*fx_nearCull;
 
-cvar_t	*fx_disableSounds;
+cvar_t	*fx_forcePhysics;
 
 #define DEFAULT_EXPLOSION_RADIUS	512
 

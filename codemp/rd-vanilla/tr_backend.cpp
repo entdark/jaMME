@@ -809,6 +809,9 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	depthRange = qfalse;
 
 	backEnd.pc.c_surfaces += numDrawSurfs;
+	if (!(backEnd.refdef.rdflags & RDF_NOWORLDMODEL)) {
+		backEnd.sceneZfar = backEnd.viewParms.zFar;
+	}
 
 	for (i = 0, drawSurf = drawSurfs ; i < numDrawSurfs ; i++, drawSurf++)
 	{
