@@ -14,15 +14,14 @@
 //
 // returns success/fail
 //
-sboolean MP3_IsValid( const char *psLocalFilename, void *pvData, int iDataLen, sboolean bStereoDesired /* = qfalse */)
-{
+sboolean MP3_IsValid( const char *psLocalFilename, void *pvData, int iDataLen, sboolean bStereoDesired /* = qfalse */) {
+#ifndef SND_MME
 	char *psError = C_MP3_IsValid(pvData, iDataLen, bStereoDesired);
 
 	if (psError)
 	{
 		Com_Printf(va(S_COLOR_RED"%s(%s)\n",psError, psLocalFilename));
 	}
-#ifndef SND_MME
 	return !psError;
 #else
 	return 1;

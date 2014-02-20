@@ -19,6 +19,7 @@ typedef struct {
 	float			deltaSamples, sampleRate;
 	mixLoop_t		loops[MME_LOOPCHANNELS];
 	mixChannel_t	channels[MME_SNDCHANNELS];
+	mixEffect_t		effect;
 	qboolean		gotFrame;
 } mmeWav_t;
 
@@ -81,7 +82,7 @@ Called from CL_Frame() in cl_main.c when shooting avidemo
 #define MAXUPDATE 4096
 void S_MMEUpdate( float scale ) {
 	int count, speed;
-	int mixTemp[MAXUPDATE*2];
+	int mixTemp[MAXUPDATE*2], tempBuf[MAXUPDATE*2];
 	short mixClip[MAXUPDATE*2];
 
 	if (!mmeSound.fileHandle)
@@ -105,6 +106,7 @@ void S_MMEUpdate( float scale ) {
 	if ( speed > 0 ) {
 		S_MixChannels( mmeSound.channels, MME_SNDCHANNELS, speed, count, mixTemp );
 		S_MixLoops( mmeSound.loops, MME_LOOPCHANNELS, speed, count, mixTemp );
+		S_MixEffects( &mmeSound.effect, speed, count, mixTemp );
 	}	
 	S_MixClipOutput( count, mixTemp, mixClip, 0, MAXUPDATE - 1 );
 	FS_Write( mixClip, count*4, mmeSound.fileHandle );

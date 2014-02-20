@@ -370,9 +370,10 @@ void animBoneVectors(vec3_t vec[MAX_BONES], int flags, int client) {
 		return;
 
 	for (i = 0; i < MAX_BONES; i++) {
-		mdxaBone_t	boltMatrix;
-		int torsoBolt = trap_G2API_AddBolt(cent->ghoul2, 0, boneList[i]);
-		trap_G2API_GetBoltMatrix(cent->ghoul2, 0, torsoBolt, &boltMatrix, cent->lerpAngles, cent->lerpOrigin, cg.time, cgs.gameModels, cent->modelScale);
+		mdxaBone_t boltMatrix;
+		mdxaBone_t worldMatrix;
+		int bolt = trap_G2API_AddBolt(cent->ghoul2, 0, boneList[i]);
+		trap_G2API_GetBoltMatrix(cent->ghoul2, 0, bolt, &boltMatrix, vec3_origin, vec3_origin, cg.time, cgs.gameModels, cent->modelScale);
 		BG_GiveMeVectorFromMatrix(&boltMatrix, flags, vec[i]);
 	}
 }
@@ -536,39 +537,93 @@ void demoMoveAnim(void) {
 void demoAnimCommand_f(void) {
 	const char *cmd = CG_Argv(1);
 	if (!Q_stricmp(cmd, "lock")) {
-		int i;
+		int clientId, i;
 		cmd = CG_Argv(2);
-		i = cmd[0] ? atoi(cmd) : demo.anim.target;
-		if (i >= 0 && i < MAX_CLIENTS) {
-			demo.anim.override[i] = !demo.anim.override[i];
-			if (demo.anim.override[i]) {
+		clientId = cmd[0] ? atoi(cmd) : demo.anim.target;
+		if (clientId >= 0 && clientId < MAX_CLIENTS) {
+			demo.anim.override[clientId] = !demo.anim.override[clientId];
+			if (demo.anim.override[clientId]) {
 				vec3_t axis[3][MAX_BONES];
-				CG_DemosAddLog("Animation locked on %i client", i);
-				animBoneVectors(axis[0], POSITIVE_X, i);//POSITIVE NEGATIVE forward, x
-				animBoneVectors(axis[1], POSITIVE_Y, i); // left, y
-				animBoneVectors(axis[2], POSITIVE_Z, i); // roll, z
-				for (i = 0; i < MAX_BONES; i++) {
-					vec3_t axis2[3], ang;
-					mdxaBone_t m1, m2;
-					VectorCopy(axis[0][i], axis2[1]);
+				mdxaBone_t	boltMatrix;
+				centity_t	*cent = &cg_entities[clientId];
+				for (i = 1; i < MAX_BONES; i++) {
+					vec3_t realAxis[3];
+					int bolt = trap_G2API_AddBolt(cent->ghoul2, 0, boneList[i]);
+					vec3_t axis2[3], ang;//, axis3[3], ang2;
+					mdxaBone_t m1;
+				
+					trap_G2API_GetBoltMatrix(cent->ghoul2, 0, bolt, &boltMatrix, vec3_origin, vec3_origin, cg.time, cgs.gameModels, cent->modelScale);
+					/*BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_X, realAxis[0]);
+					BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Y, realAxis[1]);
+					BG_GiveMeVectorFromMatrix(&boltMatrix, POSITIVE_Z, realAxis[2]);*/
+					// ^fuck that shit D:
+					VectorCopy(boltMatrix.matrix[0], realAxis[0]);
+					VectorCopy(boltMatrix.matrix[1], realAxis[1]);
+					VectorCopy(boltMatrix.matrix[2], realAxis[2]);
+
+					CG_DemosAddLog("Animation locked on %i client", clientId);
+					//animBoneVectors(axis[0], POSITIVE_X, clientId);//POSITIVE NEGATIVE forward, x
+					//animBoneVectors(axis[1], POSITIVE_Y, clientId); // left, y
+					//animBoneVectors(axis[2], POSITIVE_Z, clientId); // roll, z
+
+				
+
+
+				//for (i = 1; i < MAX_BONES; i++) {
+					//vec3_t axis2[3], ang;//, axis3[3], ang2;
+					//mdxaBone_t m1;
+					/*	VectorCopy(axis[0][i], axis2[1]);
 					VectorCopy(axis[1][i], axis2[0]);
-					VectorCopy(axis[2][i], axis2[2]);
+					VectorCopy(axis[2][i], axis2[2]);*/
+					VectorCopy(realAxis[0], axis2[1]);
+					VectorCopy(realAxis[1], axis2[0]);
+					VectorCopy(realAxis[2], axis2[2]);
+
+					//axis2[0][0] = realAxis[0][0];
+					//axis2[0][1] = realAxis[1][0];
+					//axis2[0][2] = realAxis[2][0];
+
+					//axis2[1][0] = realAxis[0][1];
+					//axis2[1][1] = realAxis[1][1];
+					//axis2[1][2] = realAxis[2][1];
+
+					//axis2[2][0] = realAxis[0][2];
+					//axis2[2][1] = realAxis[1][2];
+					//axis2[2][2] = realAxis[2][2];
+
+					//AxisToAngles(axis2, ang);
+
+					//VectorCopy(axis[0][i], axis3[0]);
+					//VectorCopy(axis[1][i], axis3[1]);
+					//VectorCopy(axis[2][i], axis3[2]);
+					//VectorScale(axis2[0],-1,axis2[0]);
 					//VectorScale(axis2[1],-1,axis2[1]);
-					AxisToAngles(axis2, ang);
+//					VectorScale(axis2[2],-1,axis2[2]);
+					AxisToAngles(axis2, ang); // <- we recount ang for our tests
+					//AxisToAngles(axis3, ang2);
 //					MatrixAxisToAngles(axis2, ang); //<- counts same as AxisToAngles
+					//VectorSet(ang, -180, 0, 0);
+					ang[0] -= 180;
 
 //					AxisToMatrix(axis2, &m1);
-//					CreateMatrix(ang, &m2);
+					//CreateMatrix(ang2, &m2);
 //					if (MatrixCompare(m1, m2)) //always same for AxisToAngles or MatrixAxisToAngles method
 						VectorCopy(ang, demo.anim.angles[i]);
 					// ^so basically, make it so you can it here. Or a copy of it.
 					// and then try and make this so that the temp1 you get out of newAngles, which is your demo.anim.angles
 					// if the temp1 is the same as your axis, then you have found the correct method to do this.
 					AnglesNormalize180(demo.anim.angles[i]);
+					VectorCopy(demo.anim.angles[i], ang);
+					ang[0] += 180.f;
+					//ang[0] *= -1;
+					CreateMatrix(ang, &m1); // <-walys same
+					// now i need something here to breakpoint on...
+					CG_DemosAddLog("."); // what does the demoaddlog do?
 				}
+				animSetAngles(demo.anim.angles, clientId);
 			} else {
-				centity_t	*cent = &cg_entities[i];
-				CG_DemosAddLog("Animation unlocked on %i client", i);
+				centity_t	*cent = &cg_entities[clientId];
+				CG_DemosAddLog("Animation unlocked on %i client", clientId);
 				for (i = 1; i < MAX_BONES; i++) {
 					trap_G2API_SetBoneAngles(cent->ghoul2, 0, boneList[i], vec3_origin, 0, POSITIVE_X, NEGATIVE_Y, NEGATIVE_Z, cgs.gameModels, 0, cg.time);
 				}

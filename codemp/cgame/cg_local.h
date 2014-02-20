@@ -1456,7 +1456,6 @@ typedef struct {
 
 	// For vehicles only now
 	sfxHandle_t	noAmmoSound;
-
 } cgMedia_t;
 
 

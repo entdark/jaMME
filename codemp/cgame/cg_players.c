@@ -12305,23 +12305,32 @@ skipCloaked:
 		legs.renderfx &= ~RF_MINLIGHT;
 
 		legs.renderfx |= RF_RGB_TINT;
-		legs.shaderRGBA[0] = 255;
-		legs.shaderRGBA[1] = legs.shaderRGBA[2] = 0;
-		legs.shaderRGBA[3] = 255;
 
-		if ( rand() & 1 )
-		{
-			legs.customShader = cgs.media.electricBodyShader;	
+		if (mov_rageColour.string[0] == '0') {
+			legs.shaderRGBA[0] = 255;
+			legs.shaderRGBA[1] = legs.shaderRGBA[2] = 0;
+			legs.shaderRGBA[3] = 255;
+		} else {
+			vec3_t rageColor;
+			Q_parseColor(mov_rageColour.string, defaultColors, rageColor);
+			legs.shaderRGBA[0] = rageColor[0] * 255;
+			legs.shaderRGBA[1] = rageColor[1] * 255;
+			legs.shaderRGBA[2] = rageColor[2] * 255;
+			legs.shaderRGBA[3] = 255;
 		}
-		else
-		{
+
+		if ( rand() & 1 ) {
+			legs.customShader = cgs.media.electricBodyShader;	
+		} else {
 			legs.customShader = cgs.media.electricBody2Shader;
 		}
 
 		trap_R_AddRefEntityToScene(&legs);
 	}
 
-	if (!cg.snap->ps.duelInProgress && cent->currentState.bolt1 && !(cent->currentState.eFlags & EF_DEAD) && cent->currentState.number != cg.snap->ps.clientNum && (!cg.snap->ps.duelInProgress || cg.snap->ps.duelIndex != cent->currentState.number))
+	if (!cg.snap->ps.duelInProgress && cent->currentState.bolt1
+		&& !(cent->currentState.eFlags & EF_DEAD) && cent->currentState.number != cg.snap->ps.clientNum
+		&& (!cg.snap->ps.duelInProgress || cg.snap->ps.duelIndex != cent->currentState.number))
 	{
 		legs.shaderRGBA[0] = 50;
 		legs.shaderRGBA[1] = 50;
@@ -12371,10 +12380,19 @@ skipCloaked:
 		
 		memcpy(&prot, &legs, sizeof(prot));
 
-		prot.shaderRGBA[0] = 0;
-		prot.shaderRGBA[1] = 128;
-		prot.shaderRGBA[2] = 0;
-		prot.shaderRGBA[3] = 254;
+		if (mov_protectColour.string[0] == '0') {
+			prot.shaderRGBA[0] = 0;
+			prot.shaderRGBA[1] = 128;
+			prot.shaderRGBA[2] = 0;
+			prot.shaderRGBA[3] = 254;
+		} else {
+			vec3_t protectColor;
+			Q_parseColor(mov_protectColour.string, defaultColors, protectColor);
+			prot.shaderRGBA[0] = protectColor[0] * 255;
+			prot.shaderRGBA[1] = protectColor[1] * 255;
+			prot.shaderRGBA[2] = protectColor[2] * 255;
+			prot.shaderRGBA[3] = 255;
+		}
 
 		prot.renderfx &= ~RF_RGB_TINT;
 		prot.renderfx &= ~RF_FORCE_ENT_ALPHA;
@@ -12399,10 +12417,19 @@ skipCloaked:
 	if (((cg.playerCent == cent || (mov_absorbVisibility.integer && cg.demoPlayback)) && (cent->currentState.forcePowersActive & (1<<FP_ABSORB)))
 		|| (cent->teamPowerEffectTime > cg.time && cent->teamPowerEffectTime <= cg.time + 1000 && cent->teamPowerType == 3))
 	{ //absorb is represented by blue..
-		legs.shaderRGBA[0] = 0;
-		legs.shaderRGBA[1] = 0;
-		legs.shaderRGBA[2] = 255;
-		legs.shaderRGBA[3] = 254;
+		if (mov_absorbColour.string[0] == '0') {
+			legs.shaderRGBA[0] = 0;
+			legs.shaderRGBA[1] = 0;
+			legs.shaderRGBA[2] = 255;
+			legs.shaderRGBA[3] = 254;
+		} else {
+			vec3_t absorbColor;
+			Q_parseColor(mov_absorbColour.string, defaultColors, absorbColor);
+			legs.shaderRGBA[0] = absorbColor[0] * 255;
+			legs.shaderRGBA[1] = absorbColor[1] * 255;
+			legs.shaderRGBA[2] = absorbColor[2] * 255;
+			legs.shaderRGBA[3] = 255;
+		}
 
 		legs.renderfx &= ~RF_RGB_TINT;
 		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;

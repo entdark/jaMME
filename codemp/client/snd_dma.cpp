@@ -177,6 +177,8 @@ int			s_listenNumber;
 vec3_t		s_listenOrigin;
 vec3_t		s_listenVelocity;
 vec3_t		s_listenAxis[3];
+
+qboolean	s_underWater;
 //end mme
 
 
@@ -529,7 +531,7 @@ void S_Init( void ) {
 	Cmd_AddCommand("s_dynamic", S_SetDynamicMusic_f);
 
 	cv = Cvar_Get("s_UseOpenAL" , "0",CVAR_ARCHIVE|CVAR_LATCH);
-	s_UseOpenAL = !!(cv->integer);
+	s_UseOpenAL = qfalse;
 
 #ifndef SND_MME
 #ifdef _WIN32
@@ -672,6 +674,7 @@ void S_Init( void ) {
 		S_SoundInfo_f();
 		s_soundStarted = 1;
 		s_soundMuted = qtrue;
+		s_underWater = qfalse;
 #endif
 #ifndef SND_MME
 #ifdef _WIN32
@@ -3000,6 +3003,8 @@ void S_Respatialize( int entityNum, const vec3_t head, vec3_t axis[3], int inwat
 	}*/
 	s_hadSpatialize = qtrue;
 	s_playScale *= com_timescale->value;
+
+	s_underWater = (qboolean)inwater;
 #endif
 }
 
@@ -3150,6 +3155,7 @@ void S_Update( void ) {
 	s_channelQueueCount = 0;
 	s_loopQueueCount = 0;
 	s_background.reload = qfalse;
+	s_underWater = qfalse;
 #endif
 }
 

@@ -185,6 +185,7 @@ void CG_SetPredictedThirdPerson(void) {
 int demoSetupView( void) {
 	vec3_t forward;
 	qboolean zoomFix;	//to see disruptor zoom when we are chasing a player
+	int inwater = qfalse;
 
 	cg.playerPredicted = qfalse;
 	cg.playerCent = 0;
@@ -211,7 +212,7 @@ int demoSetupView( void) {
 						|| (cg.playerCent->currentState.weapon == WP_MELEE && !cg_trueGuns.integer))
 						&& !(cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
 						|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4));
-				CG_DemosCalcViewValues();
+				inwater = CG_DemosCalcViewValues();
 				// first person blend blobs, done after AnglesToAxis
 				if ( !cg.renderingThirdPerson && cg.predictedPlayerState.pm_type != PM_SPECTATOR) {
 					CG_DamageBlendBlob();
@@ -249,7 +250,7 @@ int demoSetupView( void) {
 		gCGHasFallVector = qfalse;
 		break;
 	default:
-		return 0;
+		return inwater;
 	}
 
 	demo.viewAngles[YAW]	+= mov_deltaYaw.value;
@@ -288,7 +289,18 @@ int demoSetupView( void) {
 	if (!zoomFix) {
 		cg.refdef.fov_x = demo.viewFov;
 		cg.refdef.fov_y = atan2( cg.refdef.height, (cg.refdef.width / tan( demo.viewFov / 360 * M_PI )) ) * 360 / M_PI;
+		cg.refdef.viewContents = CG_PointContents( cg.refdef.vieworg, -1 );
+		if ( cg.refdef.viewContents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ){
+			double phase = (cg.time + cg.timeFraction) / 1000.0 * WAVE_FREQUENCY * M_PI * 2;
+			double v = WAVE_AMPLITUDE * sin( phase );
+			cg.refdef.fov_x += v;
+			cg.refdef.fov_y -= v;
+			inwater = qtrue;
+		} else {
+			inwater = qfalse;
+		}
 	}
+	return inwater;
 }
 
 extern snapshot_t *CG_ReadNextSnapshot( void );
@@ -760,10 +772,10 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 			break;
 */		}
 		/* Add bounding boxes for easy aiming */
-		if ( 0 && demo.editType && ( demo.cmd.buttons & BUTTON_ATTACK) && ( demo.cmd.buttons & BUTTON_ALT_ATTACK)  ) {
+		if (demo.editType && ( demo.cmd.buttons & BUTTON_ATTACK) && ( demo.cmd.buttons & BUTTON_ALT_ATTACK)) {
 			int i;
 #ifdef DEMO_ANIM
-			if (demo.editType == editAnim && demo.anim.target >= 0 && demo.anim.target < MAX_CLIENTS && demo.anim.override[demo.anim.target]) {
+			if (0 && demo.editType == editAnim && demo.anim.target >= 0 && demo.anim.target < MAX_CLIENTS && demo.anim.override[demo.anim.target]) {
 				centity_t *targetCent = demoTargetEntity(demo.anim.target);
 				if (targetCent) {
 					vec3_t origins[MAX_BONES];
@@ -867,7 +879,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 			CG_S_StopLoopingSound(i, -1);
 		intermission = qtrue;
 	}
-	if (cg.predictedPlayerState.pm_type != PM_INTERMISSION){
+	if (cg.predictedPlayerState.pm_type != PM_INTERMISSION) {
 		intermission = qfalse;
 	}
 
@@ -887,6 +899,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 			stereo = -stereo;
 			trap_Cvar_Set("r_stereoSeparation", va( "%f", stereo ));*/
 			//we can capture stereo 3d only through cl_main <- lie, we can capture here now, but with bugs :c
+			//the main bug is captured sound
+			//just don't call S_MMEUpdate when we do trap_MME_CaptureStereo - should work
 			trap_Cvar_Set("cl_mme_name", fileName);
 			trap_Cvar_Set("cl_mme_fps", va( "%f", captureFPS ));
 			trap_Cvar_Set("cl_mme_focus", va( "%f", demo.viewFocus ));

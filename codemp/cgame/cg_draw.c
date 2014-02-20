@@ -4850,6 +4850,209 @@ void CG_DrawGenericTimerBar(void)
 	CG_FillRect(x+1.0f, y+1.0f, CGTIMERBAR_W-2.0f, CGTIMERBAR_H-percent, cColor);
 }
 
+static qboolean CG_CrosshairColour(vec4_t ecolor, centity_t *crossEnt, int chEntValid) {
+	qboolean corona = qfalse;
+	entityState_t *crossES = &cg_entities[cg.crosshairClientNum].currentState;
+	//set color based on what kind of ent is under crosshair
+	if ( cg.crosshairClientNum >= ENTITYNUM_WORLD ) {
+		trap_R_SetColor( NULL );
+	}
+	//rwwFIXMEFIXME: Write this a different way, it's getting a bit too sloppy looking
+	else if (chEntValid &&
+		(crossES->number < MAX_CLIENTS || crossES->eType == ET_NPC || crossES->shouldtarget ||
+		crossES->health || //always show ents with health data under crosshair
+		(crossES->eType == ET_MOVER && crossES->bolt1 && cg.playerCent->currentState.weapon == WP_SABER) ||
+		(crossES->eType == ET_MOVER && crossES->teamowner))) {
+
+		clientInfo_t *ciCross = &cgs.clientinfo[crossES->number];
+		clientInfo_t *ciFollow = &cgs.clientinfo[cg.playerCent->currentState.number];
+
+		crossEnt = &cg_entities[cg.crosshairClientNum];
+
+		if ( crossES->powerups & (1 <<PW_CLOAKED) ) {
+		//don't show up for cloaked guys
+			ecolor[0] = 1.0;//R
+			ecolor[1] = 1.0;//G
+			ecolor[2] = 1.0;//B
+		} else if ( crossES->number < MAX_CLIENTS ) {
+			if (cgs.gametype >= GT_TEAM &&
+				ciCross->team == ciFollow->team ) {
+			//Allies are green
+				ecolor[0] = 0.0;//R
+				ecolor[1] = 1.0;//G
+				ecolor[2] = 0.0;//B
+			} else {
+				if (cgs.gametype == GT_POWERDUEL &&
+					ciCross->team == ciFollow->duelTeam) {
+				//on the same duel team in powerduel, so he's a friend
+					ecolor[0] = 0.0;//R
+					ecolor[1] = 1.0;//G
+					ecolor[2] = 0.0;//B
+				} else { //Enemies are red
+					ecolor[0] = 1.0;//R
+					ecolor[1] = 0.0;//G
+					ecolor[2] = 0.0;//B
+				}
+			}
+
+			if (cg.playerPredicted && cg.snap->ps.duelInProgress) {
+				if (crossES->number != cg.snap->ps.duelIndex) {
+				//grey out crosshair for everyone but your foe if you're in a duel
+					ecolor[0] = 0.4f;
+					ecolor[1] = 0.4f;
+					ecolor[2] = 0.4f;
+				}
+			} else if (crossES->bolt1) {
+			//this fellow is in a duel. We just checked if we were in a duel above, so
+			//this means we aren't and he is. Which of course means our crosshair greys out over him.
+				ecolor[0] = 0.4f;
+				ecolor[1] = 0.4f;
+				ecolor[2] = 0.4f;
+			}
+		} else if (crossES->shouldtarget || crossES->eType == ET_NPC) {
+			//VectorCopy( crossEnt->startRGBA, ecolor );
+			if ( !ecolor[0] && !ecolor[1] && !ecolor[2] ) {
+				// We really don't want black, so set it to yellow
+				ecolor[0] = 1.0f;//R
+				ecolor[1] = 0.8f;//G
+				ecolor[2] = 0.3f;//B
+			}
+
+			if (crossES->eType == ET_NPC) {
+				int plTeam;
+				if (cgs.gametype == GT_SIEGE) {
+					plTeam = ciFollow->team;
+				} else {
+					plTeam = NPCTEAM_PLAYER;
+				}
+
+				if ( crossES->powerups & (1 <<PW_CLOAKED) ) {
+					ecolor[0] = 1.0f;//R
+					ecolor[1] = 1.0f;//G
+					ecolor[2] = 1.0f;//B
+				} else if ( !crossES->teamowner ) {
+					//not on a team
+					if (!crossES->teamowner ||
+						crossES->NPC_class == CLASS_VEHICLE) {
+						//neutral
+						if (crossES->owner < MAX_CLIENTS) {
+						//base color on who is pilotting this thing
+							if (cgs.gametype >= GT_TEAM && ciCross->team == ciFollow->team) {
+							//friendly
+								ecolor[0] = 0.0f;//R
+								ecolor[1] = 1.0f;//G
+								ecolor[2] = 0.0f;//B
+							} else {
+							//hostile
+								ecolor[0] = 1.0f;//R
+								ecolor[1] = 0.0f;//G
+								ecolor[2] = 0.0f;//B
+							}
+						} else { //unmanned
+							ecolor[0] = 1.0f;//R
+							ecolor[1] = 1.0f;//G
+							ecolor[2] = 0.0f;//B
+						}
+					} else {
+						ecolor[0] = 1.0f;//R
+						ecolor[1] = 0.0f;//G
+						ecolor[2] = 0.0f;//B
+					}
+				} else if ( crossES->teamowner != plTeam ) {
+				// on enemy team
+					ecolor[0] = 1.0f;//R
+					ecolor[1] = 0.0f;//G
+					ecolor[2] = 0.0f;//B
+				} else {
+				//a friend
+					ecolor[0] = 0.0f;//R
+					ecolor[1] = 1.0f;//G
+					ecolor[2] = 0.0f;//B
+				}
+			} else if ( crossES->teamowner == TEAM_RED
+				|| crossES->teamowner == TEAM_BLUE ) {
+				if (cgs.gametype < GT_TEAM) {
+				//not teamplay, just neutral then
+					ecolor[0] = 1.0f;//R
+					ecolor[1] = 1.0f;//G
+					ecolor[2] = 0.0f;//B
+				} else if ( crossES->teamowner != ciFollow->team ) {
+				//on the enemy team
+					ecolor[0] = 1.0f;//R
+					ecolor[1] = 0.0f;//G
+					ecolor[2] = 0.0f;//B
+				} else {
+				//on my team
+					ecolor[0] = 0.0f;//R
+					ecolor[1] = 1.0f;//G
+					ecolor[2] = 0.0f;//B
+				}
+			} else if (crossES->owner == cg.playerCent->currentState.number ||
+				(cgs.gametype >= GT_TEAM && crossES->teamowner == ciFollow->team)) {
+				ecolor[0] = 0.0f;//R
+				ecolor[1] = 1.0f;//G
+				ecolor[2] = 0.0f;//B
+			} else if (crossES->teamowner == 16
+				|| (cgs.gametype >= GT_TEAM && crossES->teamowner
+				&& crossES->teamowner != ciFollow->team)) {
+				ecolor[0] = 1.0f;//R
+				ecolor[1] = 0.0f;//G
+				ecolor[2] = 0.0f;//B
+			}
+		} else if (crossES->eType == ET_MOVER && crossES->bolt1
+			&& cg.playerCent->currentState.weapon == WP_SABER) {
+		//can push/pull this mover. Only show it if we're using the saber.
+			ecolor[0] = 0.2f;
+			ecolor[1] = 0.5f;
+			ecolor[2] = 1.0f;
+
+			corona = qtrue;
+		} else if (crossES->eType == ET_MOVER && crossES->teamowner) {
+		//a team owns this - if it's my team green, if not red, if not teamplay then yellow
+			if (cgs.gametype < GT_TEAM) {
+				ecolor[0] = 1.0f;//R
+				ecolor[1] = 1.0f;//G
+				ecolor[2] = 0.0f;//B
+			} else if (ciFollow->team != crossES->teamowner) {
+			//not my team
+				ecolor[0] = 1.0f;//R
+				ecolor[1] = 0.0f;//G
+				ecolor[2] = 0.0f;//B
+			} else {
+			//my team
+				ecolor[0] = 0.0f;//R
+				ecolor[1] = 1.0f;//G
+				ecolor[2] = 0.0f;//B
+			}
+		} else if (crossES->health) {
+			if (!crossES->teamowner || cgs.gametype < GT_TEAM) {
+			//not owned by a team or teamplay
+				ecolor[0] = 1.0f;
+				ecolor[1] = 1.0f;
+				ecolor[2] = 0.0f;
+			} else if (crossES->teamowner == ciFollow->team) {
+			//owned by my team
+				ecolor[0] = 0.0f;
+				ecolor[1] = 1.0f;
+				ecolor[2] = 0.0f;
+			} else {
+			//hostile
+				ecolor[0] = 1.0f;
+				ecolor[1] = 0.0f;
+				ecolor[2] = 0.0f;
+			}
+		}
+
+		ecolor[3] = 1.0f;
+
+		trap_R_SetColor( ecolor );
+	}
+	if (!corona)
+		return qfalse;
+	else
+		return qtrue;
+}
+
 /*
 =================
 CG_DrawCrosshair
@@ -4929,248 +5132,12 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 		return;
 	}
 
-	if (cg_crosshairHealth.integer) {
+	if (cg.playerPredicted && cg_crosshairHealth.integer) {
 		vec4_t		hcolor;
-
 		CG_ColorForHealth( hcolor );
 		trap_R_SetColor( hcolor );
 	} else {
-		//set color based on what kind of ent is under crosshair
-		if ( cg.crosshairClientNum >= ENTITYNUM_WORLD )
-		{
-			trap_R_SetColor( NULL );
-		}
-		//rwwFIXMEFIXME: Write this a different way, it's getting a bit too sloppy looking
-		else if (chEntValid &&
-			(cg_entities[cg.crosshairClientNum].currentState.number < MAX_CLIENTS ||
-			cg_entities[cg.crosshairClientNum].currentState.eType == ET_NPC ||
-			cg_entities[cg.crosshairClientNum].currentState.shouldtarget ||
-			cg_entities[cg.crosshairClientNum].currentState.health || //always show ents with health data under crosshair
-			(cg_entities[cg.crosshairClientNum].currentState.eType == ET_MOVER && cg_entities[cg.crosshairClientNum].currentState.bolt1 && cg.predictedPlayerState.weapon == WP_SABER) ||
-			(cg_entities[cg.crosshairClientNum].currentState.eType == ET_MOVER && cg_entities[cg.crosshairClientNum].currentState.teamowner)))
-		{
-			crossEnt = &cg_entities[cg.crosshairClientNum];
-
-			if ( crossEnt->currentState.powerups & (1 <<PW_CLOAKED) )
-			{ //don't show up for cloaked guys
-				ecolor[0] = 1.0;//R
-				ecolor[1] = 1.0;//G
-				ecolor[2] = 1.0;//B
-			}
-			else if ( crossEnt->currentState.number < MAX_CLIENTS )
-			{
-				if (cgs.gametype >= GT_TEAM &&
-					cgs.clientinfo[crossEnt->currentState.number].team == cgs.clientinfo[cg.playerCent->currentState.number].team )
-				{
-					//Allies are green
-					ecolor[0] = 0.0;//R
-					ecolor[1] = 1.0;//G
-					ecolor[2] = 0.0;//B
-				}
-				else
-				{
-					if (cgs.gametype == GT_POWERDUEL &&
-						cgs.clientinfo[crossEnt->currentState.number].duelTeam == cgs.clientinfo[cg.playerCent->currentState.number].duelTeam)
-					{ //on the same duel team in powerduel, so he's a friend
-						ecolor[0] = 0.0;//R
-						ecolor[1] = 1.0;//G
-						ecolor[2] = 0.0;//B
-					}
-					else
-					{ //Enemies are red
-						ecolor[0] = 1.0;//R
-						ecolor[1] = 0.0;//G
-						ecolor[2] = 0.0;//B
-					}
-				}
-
-				if (cg.snap->ps.duelInProgress)
-				{
-					if (crossEnt->currentState.number != cg.snap->ps.duelIndex)
-					{ //grey out crosshair for everyone but your foe if you're in a duel
-						ecolor[0] = 0.4f;
-						ecolor[1] = 0.4f;
-						ecolor[2] = 0.4f;
-					}
-				}
-				else if (crossEnt->currentState.bolt1)
-				{ //this fellow is in a duel. We just checked if we were in a duel above, so
-				  //this means we aren't and he is. Which of course means our crosshair greys out over him.
-					ecolor[0] = 0.4f;
-					ecolor[1] = 0.4f;
-					ecolor[2] = 0.4f;
-				}
-			}
-			else if (crossEnt->currentState.shouldtarget || crossEnt->currentState.eType == ET_NPC)
-			{
-				//VectorCopy( crossEnt->startRGBA, ecolor );
-				if ( !ecolor[0] && !ecolor[1] && !ecolor[2] )
-				{
-					// We really don't want black, so set it to yellow
-					ecolor[0] = 1.0f;//R
-					ecolor[1] = 0.8f;//G
-					ecolor[2] = 0.3f;//B
-				}
-
-				if (crossEnt->currentState.eType == ET_NPC)
-				{
-					int plTeam;
-					if (cgs.gametype == GT_SIEGE)
-					{
-						plTeam = cg.predictedPlayerState.persistant[PERS_TEAM];
-					}
-					else
-					{
-						plTeam = NPCTEAM_PLAYER;
-					}
-
-					if ( crossEnt->currentState.powerups & (1 <<PW_CLOAKED) )
-					{
-						ecolor[0] = 1.0f;//R
-						ecolor[1] = 1.0f;//G
-						ecolor[2] = 1.0f;//B
-					}
-					else if ( !crossEnt->currentState.teamowner )
-					{ //not on a team
-						if (!crossEnt->currentState.teamowner ||
-							crossEnt->currentState.NPC_class == CLASS_VEHICLE)
-						{ //neutral
-							if (crossEnt->currentState.owner < MAX_CLIENTS)
-							{ //base color on who is pilotting this thing
-								clientInfo_t *ci = &cgs.clientinfo[crossEnt->currentState.owner];
-
-								if (cgs.gametype >= GT_TEAM && ci->team == cg.predictedPlayerState.persistant[PERS_TEAM])
-								{ //friendly
-									ecolor[0] = 0.0f;//R
-									ecolor[1] = 1.0f;//G
-									ecolor[2] = 0.0f;//B
-								}
-								else
-								{ //hostile
-									ecolor[0] = 1.0f;//R
-									ecolor[1] = 0.0f;//G
-									ecolor[2] = 0.0f;//B
-								}
-							}
-							else
-							{ //unmanned
-								ecolor[0] = 1.0f;//R
-								ecolor[1] = 1.0f;//G
-								ecolor[2] = 0.0f;//B
-							}
-						}
-						else
-						{
-							ecolor[0] = 1.0f;//R
-							ecolor[1] = 0.0f;//G
-							ecolor[2] = 0.0f;//B
-						}
-					}
-					else if ( crossEnt->currentState.teamowner != plTeam )
-					{// on enemy team
-						ecolor[0] = 1.0f;//R
-						ecolor[1] = 0.0f;//G
-						ecolor[2] = 0.0f;//B
-					}
-					else
-					{ //a friend
-						ecolor[0] = 0.0f;//R
-						ecolor[1] = 1.0f;//G
-						ecolor[2] = 0.0f;//B
-					}
-				}
-				else if ( crossEnt->currentState.teamowner == TEAM_RED
-					|| crossEnt->currentState.teamowner == TEAM_BLUE )
-				{
-					if (cgs.gametype < GT_TEAM)
-					{ //not teamplay, just neutral then
-						ecolor[0] = 1.0f;//R
-						ecolor[1] = 1.0f;//G
-						ecolor[2] = 0.0f;//B
-					}
-					else if ( crossEnt->currentState.teamowner != cgs.clientinfo[cg.playerCent->currentState.number].team )
-					{ //on the enemy team
-						ecolor[0] = 1.0f;//R
-						ecolor[1] = 0.0f;//G
-						ecolor[2] = 0.0f;//B
-					}
-					else
-					{ //on my team
-						ecolor[0] = 0.0f;//R
-						ecolor[1] = 1.0f;//G
-						ecolor[2] = 0.0f;//B
-					}
-				}
-				else if (crossEnt->currentState.owner == cg.playerCent->currentState.number ||
-					(cgs.gametype >= GT_TEAM && crossEnt->currentState.teamowner == cgs.clientinfo[cg.playerCent->currentState.number].team))
-				{
-					ecolor[0] = 0.0f;//R
-					ecolor[1] = 1.0f;//G
-					ecolor[2] = 0.0f;//B
-				}
-				else if (crossEnt->currentState.teamowner == 16 ||
-					(cgs.gametype >= GT_TEAM && crossEnt->currentState.teamowner && crossEnt->currentState.teamowner != cgs.clientinfo[cg.playerCent->currentState.number].team))
-				{
-					ecolor[0] = 1.0f;//R
-					ecolor[1] = 0.0f;//G
-					ecolor[2] = 0.0f;//B
-				}
-			}
-			else if (crossEnt->currentState.eType == ET_MOVER && crossEnt->currentState.bolt1 && cg.playerCent->currentState.weapon == WP_SABER)
-			{ //can push/pull this mover. Only show it if we're using the saber.
-				ecolor[0] = 0.2f;
-				ecolor[1] = 0.5f;
-				ecolor[2] = 1.0f;
-
-				corona = qtrue;
-			}
-			else if (crossEnt->currentState.eType == ET_MOVER && crossEnt->currentState.teamowner)
-			{ //a team owns this - if it's my team green, if not red, if not teamplay then yellow
-				if (cgs.gametype < GT_TEAM)
-				{
-					ecolor[0] = 1.0f;//R
-					ecolor[1] = 1.0f;//G
-					ecolor[2] = 0.0f;//B
-				}
-                else if (cg.predictedPlayerState.persistant[PERS_TEAM] != crossEnt->currentState.teamowner)
-				{ //not my team
-					ecolor[0] = 1.0f;//R
-					ecolor[1] = 0.0f;//G
-					ecolor[2] = 0.0f;//B
-				}
-				else
-				{ //my team
-					ecolor[0] = 0.0f;//R
-					ecolor[1] = 1.0f;//G
-					ecolor[2] = 0.0f;//B
-				}
-			}
-			else if (crossEnt->currentState.health)
-			{
-				if (!crossEnt->currentState.teamowner || cgs.gametype < GT_TEAM)
-				{ //not owned by a team or teamplay
-					ecolor[0] = 1.0f;
-					ecolor[1] = 1.0f;
-					ecolor[2] = 0.0f;
-				}
-				else if (crossEnt->currentState.teamowner == cg.predictedPlayerState.persistant[PERS_TEAM])
-				{ //owned by my team
-					ecolor[0] = 0.0f;
-					ecolor[1] = 1.0f;
-					ecolor[2] = 0.0f;
-				}
-				else
-				{ //hostile
-					ecolor[0] = 1.0f;
-					ecolor[1] = 0.0f;
-					ecolor[2] = 0.0f;
-				}
-			}
-
-			ecolor[3] = 1.0f;
-
-			trap_R_SetColor( ecolor );
-		}
+		corona = CG_CrosshairColour(ecolor, crossEnt, chEntValid);
 	}
 
 	//I'm in a vehicle
@@ -5226,13 +5193,11 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 		CG_DrawHealthBar(crossEnt, chX, chY, w, h);
 		chY += HEALTH_HEIGHT*2;
 	} else if (crossEnt && crossEnt->currentState.number < MAX_CLIENTS) {
-		if (cgs.gametype == GT_SIEGE)
-		{
+		if (cgs.gametype == GT_SIEGE) {
 			CG_DrawSiegeInfo(crossEnt, chX, chY, w, h);
 			chY += HEALTH_HEIGHT*4;
-		}
-		if (cg.crosshairVehNum && cg.time == cg.crosshairVehTime)
-		{ //it was in the crosshair this frame
+		} if (cg.crosshairVehNum && cg.time == cg.crosshairVehTime) {
+			//it was in the crosshair this frame
 			centity_t *hisVeh = &cg_entities[cg.crosshairVehNum];
 
 			if (hisVeh->currentState.eType == ET_NPC &&
@@ -7722,8 +7687,34 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void)
 	trap_R_SetColor( NULL );
 }
 
-static void CG_Draw2DScreenTints( void )
-{
+static void CG_DrawInWaterTints (void) {
+	vec4_t hcolor;
+	if ((cg.refdef.viewContents&CONTENTS_LAVA)) {
+	//tint screen red
+		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
+		hcolor[3] = 0.5 + (0.15f*sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
+		hcolor[0] = 0.7f;
+		hcolor[1] = 0;
+		hcolor[2] = 0;
+	} else if ((cg.refdef.viewContents&CONTENTS_SLIME)) {
+	//tint screen green
+		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
+		hcolor[3] = 0.4 + (0.1f*sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
+		hcolor[0] = 0;
+		hcolor[1] = 0.7f;
+		hcolor[2] = 0;
+	} else if ((cg.refdef.viewContents&CONTENTS_WATER)) {
+	//tint screen light blue -- FIXME: don't do this if CONTENTS_FOG? (in case someone *does* make a water shader with fog in it?)
+		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
+		hcolor[3] = 0.3f + (0.05f*(float)sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
+		hcolor[0] = 0;
+		hcolor[1] = 0.2f;
+		hcolor[2] = 0.8f;
+	}
+	CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+}
+
+static void CG_Draw2DScreenTints( void ) {
 	float			rageTime, rageRecTime, absorbTime, protectTime, ysalTime;
 	vec4_t			hcolor;
 	if (cgs.clientinfo[cg.snap->ps.clientNum].team != TEAM_SPECTATOR)
@@ -7748,10 +7739,14 @@ static void CG_Draw2DScreenTints( void )
 				rageTime = 0.15f;
 			}
 			
+			if (mov_rageColour.string[0] == '0') {
+				hcolor[0] = 0.7f;
+				hcolor[1] = 0;
+				hcolor[2] = 0;
+			} else {
+				Q_parseColor(mov_rageColour.string, defaultColors, hcolor);
+			}
 			hcolor[3] = rageTime;
-			hcolor[0] = 0.7f;
-			hcolor[1] = 0;
-			hcolor[2] = 0;
 			
 			if (!cg.renderingThirdPerson)
 			{
@@ -7791,21 +7786,40 @@ static void CG_Draw2DScreenTints( void )
 					checkRageRecTime = 0.15f;
 				}
 				
-				hcolor[3] = checkRageRecTime;
-				hcolor[0] = rageTime*4;
-				if (hcolor[0] < 0.2f)
-				{
-					hcolor[0] = 0.2f;
+				if (mov_rageColour.string[0] == '0') {
+					hcolor[0] = rageTime*4;
+					if (hcolor[0] < 0.2f) {
+						hcolor[0] = 0.2f;
+					}
+					hcolor[1] = 0.2f;
+					hcolor[2] = 0.2f;
+				} else {
+					Q_parseColor(mov_rageColour.string, defaultColors, hcolor);
+					hcolor[0] *= rageTime*6;
+					hcolor[1] *= rageTime*6;
+					hcolor[2] *= rageTime*6;
+					if (hcolor[0] < 0.1f) {
+						hcolor[0] = 0.1f;
+					}
+					if (hcolor[1] < 0.1f) {
+						hcolor[1] = 0.1f;
+					}
+					if (hcolor[2] < 0.1f) {
+						hcolor[2] = 0.1f;
+					}
 				}
-				hcolor[1] = 0.2f;
-				hcolor[2] = 0.2f;
+				hcolor[3] = checkRageRecTime;
 			}
 			else
 			{
+				if (mov_rageColour.string[0] == '0') {
+					hcolor[0] = 0.7f;
+					hcolor[1] = 0;
+					hcolor[2] = 0;
+				} else {
+					Q_parseColor(mov_rageColour.string, defaultColors, hcolor);
+				}
 				hcolor[3] = rageTime;
-				hcolor[0] = 0.7f;
-				hcolor[1] = 0;
-				hcolor[2] = 0;
 			}
 			
 			if (!cg.renderingThirdPerson && rageTime)
@@ -7816,10 +7830,16 @@ static void CG_Draw2DScreenTints( void )
 			{
 				if (cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
 				{
+					if (mov_rageColour.string[0] == '0') {
+						hcolor[0] = 0.2f;
+						hcolor[1] = 0.2f;
+						hcolor[2] = 0.2f;
+					} else {
+						hcolor[0] = 0.1f;
+						hcolor[1] = 0.1f;
+						hcolor[2] = 0.1f;
+					}
 					hcolor[3] = 0.15f;
-					hcolor[0] = 0.2f;
-					hcolor[1] = 0.2f;
-					hcolor[2] = 0.2f;
 					CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 				}
 				cgRageTime = 0;
@@ -7914,10 +7934,14 @@ static void CG_Draw2DScreenTints( void )
 				absorbTime = 0.15f;
 			}
 			
+			if (mov_absorbColour.string[0] == '0') {
+				hcolor[0] = 0;
+				hcolor[1] = 0;
+				hcolor[2] = 0.7f;
+			} else {
+				Q_parseColor(mov_absorbColour.string, defaultColors, hcolor);
+			}
 			hcolor[3] = absorbTime/2;
-			hcolor[0] = 0;
-			hcolor[1] = 0;
-			hcolor[2] = 0.7f;
 			
 			if (!cg.renderingThirdPerson)
 			{
@@ -7948,10 +7972,14 @@ static void CG_Draw2DScreenTints( void )
 				absorbTime = 0.15f;
 			}
 			
+			if (mov_absorbColour.string[0] == '0') {
+				hcolor[0] = 0;
+				hcolor[1] = 0;
+				hcolor[2] = 0.7f;
+			} else {
+				Q_parseColor(mov_absorbColour.string, defaultColors, hcolor);
+			}
 			hcolor[3] = absorbTime/2;
-			hcolor[0] = 0;
-			hcolor[1] = 0;
-			hcolor[2] = 0.7f;
 			
 			if (!cg.renderingThirdPerson && absorbTime)
 			{
@@ -7983,10 +8011,14 @@ static void CG_Draw2DScreenTints( void )
 				protectTime = 0.15f;
 			}
 			
+			if (mov_protectColour.string[0] == '0') {
+				hcolor[0] = 0;
+				hcolor[1] = 0.7f;
+				hcolor[2] = 0;
+			} else {
+				Q_parseColor(mov_protectColour.string, defaultColors, hcolor);
+			}
 			hcolor[3] = protectTime/2;
-			hcolor[0] = 0;
-			hcolor[1] = 0.7f;
-			hcolor[2] = 0;
 			
 			if (!cg.renderingThirdPerson)
 			{
@@ -8017,10 +8049,14 @@ static void CG_Draw2DScreenTints( void )
 				protectTime = 0.15f;
 			}
 			
+			if (mov_protectColour.string[0] == '0') {
+				hcolor[0] = 0;
+				hcolor[1] = 0.7f;
+				hcolor[2] = 0;
+			} else {
+				Q_parseColor(mov_protectColour.string, defaultColors, hcolor);
+			}
 			hcolor[3] = protectTime/2;
-			hcolor[0] = 0;
-			hcolor[1] = 0.7f;
-			hcolor[2] = 0;
 			
 			if (!cg.renderingThirdPerson && protectTime)
 			{
@@ -8101,42 +8137,15 @@ static void CG_Draw2DScreenTints( void )
 			}
 		}
 	}
-
-	if ( (cg.refdef.viewContents&CONTENTS_LAVA) )
-	{//tint screen red
-		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
-		hcolor[3] = 0.5 + (0.15f*sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
-		hcolor[0] = 0.7f;
-		hcolor[1] = 0;
-		hcolor[2] = 0;
-		
-		CG_DrawRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor  );
-	}
-	else if ( (cg.refdef.viewContents&CONTENTS_SLIME) )
-	{//tint screen green
-		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
-		hcolor[3] = 0.4 + (0.1f*sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
-		hcolor[0] = 0;
-		hcolor[1] = 0.7f;
-		hcolor[2] = 0;
-		
-		CG_DrawRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor  );
-	}
-	else if ( (cg.refdef.viewContents&CONTENTS_WATER) )
-	{//tint screen light blue -- FIXME: don't do this if CONTENTS_FOG? (in case someone *does* make a water shader with fog in it?)
-		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
-		hcolor[3] = 0.3f + (0.05f*(float)sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
-		hcolor[0] = 0;
-		hcolor[1] = 0.2f;
-		hcolor[2] = 0.8f;
-		
-		CG_DrawRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor  );
-	}
+	CG_DrawInWaterTints();
 }
 
 void CG_CameraDraw2D( void ) {
-	if (cg_drawFPS.integer)
-		CG_DrawFPS( 0 );
+	if (cg_drawFPS.integer) {
+		if (cg_draw2D.integer == 3)
+			CG_DrawInWaterTints();
+		CG_DrawFPS(0);
+	}
 	if (cg_draw2D.integer == 2) {
 		trap_S_UpdateEntityPosition(ENTITYNUM_NONE, cg.refdef.vieworg);
 		CG_ChatBox_DrawStrings();
@@ -8176,16 +8185,26 @@ void CG_Draw2D (void) {
 		cgYsalFadeVal = 0;
 	}
 
-	if ( cg_draw2D.integer == 0 ) {
+	if (cg_draw2D.integer == 0) {
 		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 		return;
 	}
 
-	if ( mov_fragsOnly.integer != 0 ) {
+	if (cg_draw2D.integer == 3) {
+		CG_DrawInWaterTints();
+		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+		if (mov_fragsOnly.integer == 0)
+			return;
+	}
+
+	if (mov_fragsOnly.integer != 0) {
 		if(!cg.renderingThirdPerson && mov_fragsOnly.integer == 2)CG_DrawZoomMask();
 		if (cg.playerPredicted)
 			CG_DrawReward();
 		CG_DrawCenterString();
+		if (cg_draw2D.integer == 3) {
+			CG_DrawInWaterTints();
+		}
 		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 		return;
 	}

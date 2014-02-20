@@ -7,6 +7,7 @@
 static mixBackground_t	dmaBackground;
 static mixLoop_t	dmaLoops[DMA_LOOPCHANNELS];
 static mixChannel_t	dmaChannels[DMA_SNDCHANNELS];
+static mixEffect_t	dmaEffect;
 static qboolean		dmaInit;
 static int   		dmaWrite;
 
@@ -38,6 +39,7 @@ void S_DMAClearBuffer( void ) {
 	/* Clear the active channels and loops */
 	Com_Memset( dmaLoops, 0, sizeof( dmaLoops ));
 	Com_Memset( dmaChannels, 0, sizeof( dmaChannels ));
+	Com_Memset( &dmaEffect, 0, sizeof( &dmaEffect ));
 
 	s_rawend = 0;
 
@@ -62,7 +64,6 @@ void S_DMA_Update( float scale ) {
 	int				ma, count;
 	static int		lastPos;
 	int				thisPos;
-
 	int				lastWrite, lastRead;
 	int				bufSize, bufDone;
 	int				speed;
@@ -104,7 +105,6 @@ void S_DMA_Update( float scale ) {
 	count = (count + dma.submission_chunk-1) & ~(dma.submission_chunk-1);
 
 	// never mix more than the complete buffer
-
 	speed = (scale * (MIX_SPEED << MIX_SHIFT)) / dma.speed;
 
 	/* Make sure that the speed will always go forward for very small scales */
@@ -114,15 +114,16 @@ void S_DMA_Update( float scale ) {
 	/* Mix sound or fill with silence depending on speed */
 	if ( speed > 0 ) {
 		/* mix the background track or init the buffer with silence */
-		S_MixBackground( &dmaBackground, speed, count, buf );
-		S_MixChannels( dmaChannels, DMA_SNDCHANNELS, speed, count, buf );
-		S_MixLoops( dmaLoops, DMA_LOOPCHANNELS, speed, count, buf );
+		S_MixBackground(&dmaBackground, speed, count, buf);
+		S_MixChannels(dmaChannels, DMA_SNDCHANNELS, speed, count, buf);
+		S_MixLoops(dmaLoops, DMA_LOOPCHANNELS, speed, count, buf);
+		S_MixEffects(&dmaEffect, speed, count, buf);
 	} else {
-		Com_Memset( buf, 0, sizeof( buf[0] ) * count * 2);
+		Com_Memset(buf, 0, sizeof( buf[0] ) * count * 2);
 	}
 	/* Lock dma buffer and copy/clip the final data */
 	SNDDMA_BeginPainting ();
-	S_MixClipOutput( count, buf, (short *)dma.buffer, dmaWrite, bufSize-1 );
+	S_MixClipOutput(count, buf, (short *)dma.buffer, dmaWrite, bufSize-1);
 	SNDDMA_Submit ();
 	dmaWrite += count;
 	if (dmaWrite >= bufSize)

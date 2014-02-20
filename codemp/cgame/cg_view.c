@@ -3176,6 +3176,8 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 		trap_S_UpdateAmbientSet( cstr, cg.refdef.vieworg );
 	}
 
+	trap_S_UpdateEntityPosition(ENTITYNUM_NONE, cg.refdef.vieworg);
+
 	// update audio positions
 	trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater );
 

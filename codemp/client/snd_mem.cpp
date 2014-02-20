@@ -633,32 +633,7 @@ static sboolean S_LoadSound_FileLoadAndNameAdjuster(char *psFilename, byte **pDa
 		{
 			psVoice = NULL;	// use this ptr as a flag as to whether or not we substituted with a foreign version
 		}
-#ifndef SND_MME
-		return 0;
-#endif
 	}
-#ifndef SND_MME
-	else {
-		psVoice = strstr(psFilename,"chr_d");
-		if (psVoice) {
-			strncpy(psVoice,"chars",5);
-			return 1;
-		} else {
-			psVoice = strstr(psFilename,"chr_f");
-			if (psVoice) {
-				strncpy(psVoice,"chars",5);
-				return 1;
-			} else {
-				psVoice = strstr(psFilename,"chr_f");
-				if (psVoice) {
-					strncpy(psVoice,"chars",5);
-					return 1;
-				}
-			}
-		}
-		return 0; //has to reach that only if it's not "chars" related sound, 1 - replaced sound
-	}
-#endif
 
 	*piSize = FS_ReadFile( psFilename, (void **)pData );	// try WAV
 	if ( !*pData ) {
@@ -984,11 +959,13 @@ static sboolean S_LoadSound_Actual( sfx_t *sfx )
 //=========
 
 		info = GetWavinfo( sLoadName, data, size );
+#ifndef SND_MME
 		if ( info.channels != 1 ) {
 			Com_Printf ("%s is a stereo wav file\n", sLoadName);
 			FS_FreeFile (data);
 			return qfalse;
 		}
+#endif
 
 /*		if ( info.width == 1 ) {
 			Com_Printf(S_COLOR_YELLOW "WARNING: %s is a 8 bit wav file\n", sLoadName);

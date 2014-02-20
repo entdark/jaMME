@@ -4,6 +4,9 @@
 #define		MIX_SPEED		22050
 #define		MIX_SHIFT		8
 
+#define		FIRSCALE		4
+#define		ONETHIRD		342*FIRSCALE
+
 typedef struct mixSound_s {
 	int			lastUsed;
 	int			speed;
@@ -40,6 +43,12 @@ typedef struct {
 } mixBackground_t;
 
 typedef struct {
+	int				statel, stater;
+	double			zl[ONETHIRD], zr[ONETHIRD];
+	int				index;
+} mixEffect_t;
+
+typedef struct {
 	vec3_t		origin;
 	vec3_t		velocity;
 	sfxHandle_t	handle;
@@ -73,9 +82,10 @@ typedef struct {
 	qboolean	override;
 } backgroundSound_t;
 
+extern	cvar_t			*s_effects;
 
-#define	MAX_SNDQUEUE			512
-#define	MAX_LOOPQUEUE			512
+#define	MAX_SNDQUEUE	512
+#define	MAX_LOOPQUEUE	512
 extern	channelQueue_t	s_channelQueue[MAX_SNDQUEUE];
 extern	int				s_channelQueueCount;
 
@@ -97,3 +107,7 @@ void S_MixBackground( mixBackground_t *background, int speed, int count, int *ou
 void S_MixChannels( mixChannel_t *ch, int channels, int speed, int count, int *output );
 void S_MixLoops( mixLoop_t *loop, int loopCount, int speed, int count, int *output );
 void S_MixClipOutput (int count, const int *input, short *output, int outStart, int outMask);
+const mixSound_t *S_MixGetSound( sfxHandle_t sfxHandle );
+
+void S_MixEffects(mixEffect_t *effect, int speed, const int count, int *output);
+void S_EffectInit(void);

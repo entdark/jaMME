@@ -296,3 +296,5 @@ extern int		s_listenNumber;
 extern vec3_t	s_listenOrigin;
 extern vec3_t	s_listenVelocity;
 extern vec3_t	s_listenAxis[3];
+
+extern qboolean	s_underWater;

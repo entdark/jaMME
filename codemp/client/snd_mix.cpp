@@ -548,6 +548,7 @@ static  mixSound_t		*mixAllocSounds = 0;
 static  mixSound_t		mixEmptySound;
 
 cvar_t	*s_mixSame;
+cvar_t	*s_effects;
 
 #define		SOUND_FULLVOLUME	256//80
 #define		SOUND_ATTENUATE		0.0008f
@@ -635,7 +636,7 @@ takeNext:
 	return allocSound;
 }
 
-static const mixSound_t *S_MixGetSound( sfxHandle_t sfxHandle ) {
+const mixSound_t *S_MixGetSound( sfxHandle_t sfxHandle ) {
 	sfxEntry_t *entry;
 	mixSound_t *sound;
 	openSound_t *openSound;
@@ -777,15 +778,13 @@ static void S_MixLipSync(const mixSound_t *sound, const mixChannel_t *ch) {
 	for (i = 0; i < count; i++) {
 		int sample;
 		sample = data[index >> MIX_SHIFT];
-		if (sample < 0)
-			sample = -sample;
-		if (sample > sampleToCompare)
-			sampleToCompare = sample;
+		if (abs(sample) > sampleToCompare)
+			sampleToCompare = abs(sample);
 		index += indexAdd;
 	}
 
 //	lipForce = (float)((float)sampleToCompare/(float)maxSample) * s_lip_threshold_4->value * 1.042f;
-	lipForce = (float)((float)sampleToCompare / 32768.0f) * s_lip_threshold_4->value; // is this better?
+	lipForce = (float)((float)sampleToCompare / 32768.0f) * s_lip_threshold_4->value; // should be better
 	if (lipForce < s_lip_threshold_1->value)
 		wavVol = -1;
 	else if (lipForce < s_lip_threshold_2->value)
@@ -1177,7 +1176,7 @@ void S_MixInit( void ) {
 		free( mixAllocSounds );
 		mixAllocSounds = 0;
 	}
-	mixEmptySound.speed = (22050 << MIX_SHIFT) / MIX_SPEED;;
+	mixEmptySound.speed = (MIX_SPEED << MIX_SHIFT) / MIX_SPEED;;
 	mixEmptySound.samples = 1 << MIX_SHIFT;
 
 	cv = Cvar_Get( "com_soundMegs", DEF_COMSOUNDMEGS, CVAR_LATCH | CVAR_ARCHIVE );
@@ -1192,6 +1191,10 @@ void S_MixInit( void ) {
 	}
 	/* How many similar sounding close to eachother sound effects */
 	s_mixSame = Cvar_Get( "s_mixSame", "2", CVAR_ARCHIVE );
+
+	s_effects = Cvar_Get( "s_effects", "0", CVAR_ARCHIVE );
+	S_EffectInit();
+
 	/* Init the first block */
 	mixAllocSounds->prev = 0;
 	mixAllocSounds->next = 0;
