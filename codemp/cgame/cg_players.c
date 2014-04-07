@@ -4806,7 +4806,6 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 		ent.modelScale[1] = -1.0;
 		ent.modelScale[2] = 1.0;
 		ScaleModelAxis( &ent );
-	//	trap_R_AddRefEntityToScene( &ent );
 		trap_R_AddRefEntityToScene( &ent );
 	} else {
 		ent.modelScale[0] = 0.5;

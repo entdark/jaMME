@@ -2911,7 +2911,7 @@ extern void CG_SetPredictedThirdPerson(void);
 extern void CG_UpdateFallVector (void);
 extern void trap_S_UpdatePitch( float pitch );
 
-void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayback ) {
+void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback ) {
 	int		inwater;
 	const char *cstr;
 	float mSensitivity = cg.zoomSensitivity;

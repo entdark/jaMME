@@ -1669,17 +1669,17 @@ const void	*RB_DrawSurfs( const void *data ) {
 //		int i;
 		float x, y;
 		if ( R_MME_JitterOrigin( &x, &y ) && r_stereoSeparation->value == 0) {
-			orientationr_t* or = &backEnd.viewParms.ori;
+			orientationr_t* ori = &backEnd.viewParms.ori;
 			orientationr_t* world = &backEnd.viewParms.world;
 
 //			VectorScale( or->axis[0], 0.5, or->axis[0] );
 //			VectorScale( or->axis[1], 0.3, or->axis[1] );
 //			VectorScale( or->axis[2], 0.8, or->axis[2] );
-			VectorMA( or->origin, x, or->axis[1], or->origin );
-			VectorMA( or->origin, y, or->axis[2], or->origin );
+			VectorMA( ori->origin, x, ori->axis[1], ori->origin );
+			VectorMA( ori->origin, y, ori->axis[2], ori->origin );
 //			or->origin[2] += 4000;
 //			or->origin[2] += 0.1 * x;
-			R_RotateForWorld( or, world );
+			R_RotateForWorld( ori, world );
 //			for ( i = 0; i < 16; i++ ) {
 //				int r = (rand() & 0xffff ) - 0x4000;
 //				world->modelMatrix[i] *= (0.9 + r * 0.0001);
@@ -2024,7 +2024,7 @@ again:
 		case RC_SWAP_BUFFERS:
 			R_BloomScreen();
 			data = RB_SwapBuffers( data );
-			if ( (int)data == -1)
+			if ( (intptr_t)data == -1)
 				goto again;
 			break;
 		case RC_VIDEOFRAME:

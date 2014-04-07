@@ -393,18 +393,18 @@ sharedEntity_t *ConvertedEntity(sharedEntity_t *ent)
 		i++;
 	}
 	i = 0;
-	gLocalModifier.parms = (parms_t *)VM_ArgPtr((int)ent->parms);
+	gLocalModifier.parms = (parms_t *)VM_ArgPtr((intptr_t)ent->parms);
 	while (i < NUM_BSETS)
 	{
-		gLocalModifier.behaviorSet[i] = (char *)VM_ArgPtr((int)ent->behaviorSet[i]);
+		gLocalModifier.behaviorSet[i] = (char *)VM_ArgPtr((intptr_t)ent->behaviorSet[i]);
 		i++;
 	}
 	i = 0;
-	gLocalModifier.script_targetname = (char *)VM_ArgPtr((int)ent->script_targetname);
+	gLocalModifier.script_targetname = (char *)VM_ArgPtr((intptr_t)ent->script_targetname);
 	gLocalModifier.delayScriptTime = ent->delayScriptTime;
-	gLocalModifier.fullName = (char *)VM_ArgPtr((int)ent->fullName);
-	gLocalModifier.targetname = (char *)VM_ArgPtr((int)ent->targetname);
-	gLocalModifier.classname = (char *)VM_ArgPtr((int)ent->classname);
+	gLocalModifier.fullName = (char *)VM_ArgPtr((intptr_t)ent->fullName);
+	gLocalModifier.targetname = (char *)VM_ArgPtr((intptr_t)ent->targetname);
+	gLocalModifier.classname = (char *)VM_ArgPtr((intptr_t)ent->classname);
 
 	gLocalModifier.ghoul2 = ent->ghoul2;
 
@@ -427,7 +427,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		Com_Memcpy( VMA(1), VMA(2), args[3] );
 		return 0;
 	case TRAP_STRNCPY:
-		return (int)strncpy( (char *)VMA(1), (const char *)VMA(2), args[3] );
+		return (intptr_t)strncpy( (char *)VMA(1), (const char *)VMA(2), args[3] );
 	case TRAP_SIN:
 		return FloatAsInt( sin( VMF(1) ) );
 	case TRAP_COS:

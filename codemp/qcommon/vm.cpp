@@ -712,9 +712,12 @@ void VM_Shifted_Alloc(void **ptr, int size)
 	}
 #endif
 
+#if 0
 	//Alright, subtract the database from the memory pointer to get a memory address relative to the VM.
 	//When the VM modifies it it should be modifying the same chunk of memory we have allocated in the engine.
 	*ptr = (void *)((int)mem - (int)currentVM->dataBase);
+#endif
+	*ptr = mem;
 }
 
 void VM_Shifted_Free(void **ptr)
@@ -728,7 +731,10 @@ void VM_Shifted_Free(void **ptr)
 	}
 
 	//Shift the VM memory pointer back to get the same pointer we initially allocated in real memory space.
+#if 0
 	mem = (void *)((int)currentVM->dataBase + (int)*ptr);
+#endif
+	mem = (void *)*ptr;
 
 	if (!mem)
 	{
