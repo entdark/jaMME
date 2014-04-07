@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TR_MME_H
+#define TR_MME_H
 
 #include "tr_local.h"
 
@@ -72,8 +73,6 @@ void blurCreate( mmeBlurControl_t* control, const char* type, int frames );
 
 extern cvar_t	*mme_aviFormat;
 
-ID_INLINE byte * R_MME_BlurOverlapBuf( mmeBlurBlock_t *block ) {
-	mmeBlurControl_t* control = block->control;
-	int index = control->overlapIndex % control->overlapFrames;
-	return (byte *)( block->overlap + block->count * index );
-}
+ID_INLINE byte * R_MME_BlurOverlapBuf( mmeBlurBlock_t *block );
+
+#endif //TR_MME_H

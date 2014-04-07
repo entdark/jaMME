@@ -8,6 +8,8 @@
 	#include "qgl.h"
 #else
 	#include "../sdl/sdl_qgl.h"
+	#include <mmintrin.h>
+	#include <emmintrin.h>
 #endif
 
 #include "ghoul2/ghoul2_shared.h" //rwwRMG - added

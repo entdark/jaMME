@@ -69,6 +69,12 @@ cvar_t	*mme_saveShot;
 cvar_t	*mme_saveStencil;
 cvar_t	*mme_saveDepth;
 
+ID_INLINE byte * R_MME_BlurOverlapBuf( mmeBlurBlock_t *block ) {
+	mmeBlurControl_t* control = block->control;
+	int index = control->overlapIndex % control->overlapFrames;
+	return (byte *)( block->overlap + block->count * index );
+}
+
 static void R_MME_MakeBlurBlock( mmeBlurBlock_t *block, int size, mmeBlurControl_t* control ) {
 	memset( block, 0, sizeof( *block ) );
 	size = (size + 15) & ~15;
@@ -337,7 +343,7 @@ int R_MME_MultiPassNext( ) {
 
 	index = control->totalIndex;
 	outAlloc = (byte *)ri.Hunk_AllocateTempMemory( mainData.pixelCount * 3 + 16);
-	outAlign = (__m64 *)((((int)(outAlloc)) + 15) & ~15);
+	outAlign = (__m64 *)((((intptr_t)(outAlloc)) + 15) & ~15);
 
 	GLimp_EndFrame();
 	R_MME_GetShot( outAlign );
@@ -443,7 +449,7 @@ void R_MME_TakeShot( void ) {
 			byte *outAlloc;
 			__m64 *outAlign;
 			outAlloc = (byte *)ri.Hunk_AllocateTempMemory( pixelCount * 3 + 16);
-			outAlign = (__m64 *)((((int)(outAlloc)) + 15) & ~15);
+			outAlign = (__m64 *)((((intptr_t)(outAlloc)) + 15) & ~15);
 
 			if ( mme_saveShot->integer == 1 ) {
 				R_MME_MultiShot( (byte*)outAlign );
@@ -714,6 +720,6 @@ void R_MME_Init(void) {
 			allocFailed = qtrue;
 			return;
 		}
-		workAlign = (char *)(((int)workAlloc + 15) & ~15);
+		workAlign = (char *)(((intptr_t)workAlloc + 15) & ~15);
 	}
 }

@@ -90,6 +90,41 @@ void ( APIENTRY * qglPointParameterfvEXT)( GLenum param, GLfloat *value );
 void ( * qglLockArraysEXT)( int, int);
 void ( * qglUnlockArraysEXT) ( void );
 
+//added framebuffer extensions
+void (APIENTRY * qglGenFramebuffers )(GLsizei, GLuint *);
+void (APIENTRY * qglBindFramebuffer )(GLenum, GLuint);
+void (APIENTRY * qglGenRenderbuffers )(GLsizei, GLuint *);
+void (APIENTRY * qglBindRenderbuffer )(GLenum, GLuint);
+void (APIENTRY * qglRenderbufferStorage )(GLenum, GLenum, GLsizei, GLsizei);
+void (APIENTRY * qglFramebufferRenderbuffer )(GLenum, GLenum, GLenum, GLuint);
+void (APIENTRY * qglFramebufferTexture2D )(GLenum, GLenum, GLenum, GLuint, GLint);
+GLenum (APIENTRY * qglCheckFramebufferStatus )(GLenum);
+void (APIENTRY * qglDeleteFramebuffers )(GLsizei, const GLuint *);
+void (APIENTRY * qglDeleteRenderbuffers )(GLsizei, const GLuint *);
+
+void (APIENTRY * qglRenderbufferStorageMultisampleEXT ) ( GLenum target, GLsizei samples, GLenum internalformat, GLsizei width , GLsizei height );
+void (APIENTRY * qglBlitFramebufferEXT )( GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter );
+
+//added fragment/vertex program extensions
+void (APIENTRYP qglAttachShader) (GLuint, GLuint);
+void (APIENTRYP qglBindAttribLocation) (GLuint, GLuint, const GLchar *);
+void (APIENTRYP qglCompileShader) (GLuint);
+GLuint (APIENTRYP qglCreateProgram) (void);
+GLuint (APIENTRYP qglCreateShader) (GLenum);
+void (APIENTRYP qglDeleteProgram) (GLuint);
+void (APIENTRYP qglDeleteShader) (GLuint);
+void (APIENTRYP qglShaderSource) (GLuint, GLsizei, const GLchar* *, const GLint *);
+void (APIENTRYP qglLinkProgram) (GLuint);
+void (APIENTRYP qglUseProgram) (GLuint);	
+GLint (APIENTRYP qglGetUniformLocation) (GLuint, const GLchar *);
+void (APIENTRYP qglUniform1f) (GLint, GLfloat);
+void (APIENTRYP qglUniform2f) (GLint, GLfloat, GLfloat);
+void (APIENTRYP qglUniform1i) (GLint, GLint);
+void (APIENTRYP qglGetProgramiv) (GLuint, GLenum, GLint *);
+void (APIENTRYP qglGetProgramInfoLog) (GLuint, GLsizei, GLsizei *, GLchar *);
+void (APIENTRYP qglGetShaderiv) (GLuint, GLenum, GLint *);
+void (APIENTRYP qglGetShaderInfoLog) (GLuint, GLsizei, GLsizei *, GLchar *);
+
 void		GLimp_Minimize( void ) {
 }
 
@@ -1260,6 +1295,87 @@ static void GLimp_InitExtensions( void )
 	{
 		g_bDynamicGlowSupported = false;
 		ri.Cvar_Set( "r_DynamicGlow","0" );
+	}
+
+	//mme
+	if ( strstr( glConfig.extensions_string, "GL_EXT_texture_filter_anisotropic" ) )
+	{
+
+		qglGetIntegerv( GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &glMMEConfig.maxAnisotropy );
+		if ( glMMEConfig.maxAnisotropy <= 0 ) {
+			ri.Printf( PRINT_ALL, "...GL_EXT_texture_filter_anisotropic not properly supported!\n" );
+		} else {
+			ri.Printf( PRINT_ALL, "...using GL_EXT_texture_filter_anisotropic (max: %d)\n", glMMEConfig.maxAnisotropy );
+		}
+	}
+	else
+	{
+		glMMEConfig.maxAnisotropy = 0;
+		ri.Printf( PRINT_ALL, "...GL_EXT_texture_filter_anisotropic not found\n" );
+	}
+
+	glMMEConfig.framebufferObject = qfalse;
+	glMMEConfig.shaderSupport = qfalse;
+	if ( strstr( glConfig.extensions_string, "GL_EXT_framebuffer_object" ) &&
+			(1 || strstr( glConfig.extensions_string, "GL_ARB_texture_non_power_of_two" )) ) {
+		ri.Printf( PRINT_ALL, "...using GL_EXT_framebuffer_object\n" );
+		glMMEConfig.framebufferObject = qtrue;
+		qglGenFramebuffers = ( void (APIENTRY *  )(GLsizei, GLuint *) ) SDL_GL_GetProcAddress( "glGenFramebuffersEXT");
+		qglBindFramebuffer = ( void (APIENTRY *  )(GLenum, GLuint) ) SDL_GL_GetProcAddress( "glBindFramebufferEXT");
+		qglGenRenderbuffers = ( void (APIENTRY *  )(GLsizei, GLuint *) ) SDL_GL_GetProcAddress( "glGenRenderbuffersEXT");
+		qglBindRenderbuffer = ( void (APIENTRY *  )(GLenum, GLuint) ) SDL_GL_GetProcAddress( "glBindRenderbufferEXT");
+		qglRenderbufferStorage = ( void (APIENTRY *  )(GLenum, GLenum, GLsizei, GLsizei) ) SDL_GL_GetProcAddress( "glRenderbufferStorageEXT");
+		qglFramebufferRenderbuffer = ( void (APIENTRY *  )(GLenum, GLenum, GLenum, GLuint) ) SDL_GL_GetProcAddress( "glFramebufferRenderbufferEXT");
+		qglFramebufferTexture2D = ( void (APIENTRY *  )(GLenum, GLenum, GLenum, GLuint, GLint) ) SDL_GL_GetProcAddress( "glFramebufferTexture2DEXT");
+		qglCheckFramebufferStatus = ( GLenum (APIENTRY *)(GLenum) ) SDL_GL_GetProcAddress( "glCheckFramebufferStatusEXT");
+		qglDeleteFramebuffers = ( void (APIENTRY * )(GLsizei, const GLuint *) ) SDL_GL_GetProcAddress( "glDeleteFramebuffersEXT");
+		qglDeleteRenderbuffers = ( void (APIENTRY * )(GLsizei, const GLuint *) ) SDL_GL_GetProcAddress( "glDeleteRenderbuffersEXT");
+	
+		if ( !strstr( glConfig.extensions_string, "GL_ARB_depth_texture" ) )  {
+			ri.Printf( PRINT_WARNING, "WARNING: GL_ARB_depth_texture is missing\n");
+		}
+		if (	!strstr( glConfig.extensions_string, "GL_EXT_packed_depth_stencil" )  || 
+				!strstr( glConfig.extensions_string, "GL_NV_packed_depth_stencil" ) ) {
+			ri.Printf( PRINT_WARNING, "WARNING: packed_depth_stencil is missing\n");
+		}
+	}
+	glMMEConfig.framebufferMultiSample = qfalse;
+	if ( strstr( glConfig.extensions_string, "GL_EXT_framebuffer_multisample") && strstr( glConfig.extensions_string, "GL_EXT_framebuffer_blit")) {
+		qglRenderbufferStorageMultisampleEXT = (void (APIENTRYP) ( GLenum, GLsizei, GLenum, GLsizei, GLsizei ) )SDL_GL_GetProcAddress( "glRenderbufferStorageMultisampleEXT" );
+		qglBlitFramebufferEXT = (void (APIENTRYP) ( GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLbitfield, GLenum ) )  SDL_GL_GetProcAddress( "glBlitFramebufferEXT" );
+		glMMEConfig.framebufferMultiSample = qfalse;
+	}
+		 		
+
+	//added fragment/vertex program extensions
+	if ( strstr( glConfig.extensions_string, "GL_ARB_fragment_shader" ) && 
+		 strstr( glConfig.extensions_string, "GL_ARB_vertex_program" ) &&
+		 strstr( glConfig.extensions_string, "GL_ARB_vertex_shader" ) &&
+		 strstr( glConfig.extensions_string, "GL_ARB_fragment_program" ) &&
+		 strstr( glConfig.extensions_string, "GL_ARB_shading_language_100" )) 
+	{
+		ri.Printf( PRINT_ALL, "...using GL_ARB_fragment_program\n" );
+		ri.Printf( PRINT_ALL, "...using GL_ARB_vertex_program\n" );
+		ri.Printf( PRINT_ALL, "...using GL_ARB_shading_language_100\n" );
+		glMMEConfig.shaderSupport = qtrue;
+		qglAttachShader = ( void (APIENTRY * ) (GLuint, GLuint) ) SDL_GL_GetProcAddress( "glAttachShader");
+		qglBindAttribLocation = ( void (APIENTRY * ) (GLuint, GLuint, const GLchar *) ) SDL_GL_GetProcAddress( "glBindAttribLocation");
+		qglCompileShader = ( void (APIENTRY * ) (GLuint) ) SDL_GL_GetProcAddress( "glCompileShader");
+		qglCreateProgram = ( GLuint (APIENTRY * ) (void) ) SDL_GL_GetProcAddress( "glCreateProgram");
+		qglCreateShader = ( GLuint (APIENTRY * ) (GLenum) ) SDL_GL_GetProcAddress( "glCreateShader");
+		qglDeleteProgram = ( void (APIENTRY * ) (GLuint) ) SDL_GL_GetProcAddress( "glDeleteProgram");
+		qglDeleteShader = ( void (APIENTRY * ) (GLuint) ) SDL_GL_GetProcAddress( "glDeleteShader");
+		qglShaderSource = ( void (APIENTRY * ) (GLuint, GLsizei, const GLchar* *, const GLint *) ) SDL_GL_GetProcAddress( "glShaderSource");
+		qglLinkProgram = ( void (APIENTRY * ) (GLuint) ) SDL_GL_GetProcAddress( "glLinkProgram");
+		qglUseProgram = ( void (APIENTRY * ) (GLuint) ) SDL_GL_GetProcAddress( "glUseProgram");
+		qglGetUniformLocation = ( GLint (APIENTRY * ) (GLuint, const GLchar *) ) SDL_GL_GetProcAddress( "glGetUniformLocation");
+		qglUniform1f = ( void (APIENTRY * ) (GLint, GLfloat) ) SDL_GL_GetProcAddress( "glUniform1f");
+		qglUniform2f = ( void (APIENTRY * ) (GLint, GLfloat, GLfloat) ) SDL_GL_GetProcAddress( "glUniform2f");
+		qglUniform1i = ( void (APIENTRY * ) (GLint, GLint) ) SDL_GL_GetProcAddress( "glUniform1i");
+		qglGetProgramiv = ( void (APIENTRY * ) (GLuint, GLenum, GLint *) ) SDL_GL_GetProcAddress( "glGetProgramiv");
+		qglGetProgramInfoLog = ( void (APIENTRY * ) (GLuint, GLsizei, GLsizei *, GLchar *) ) SDL_GL_GetProcAddress( "glGetProgramInfoLog");
+		qglGetShaderiv = ( void (APIENTRY * ) (GLuint, GLenum, GLint *) ) SDL_GL_GetProcAddress( "glGetShaderiv");
+		qglGetShaderInfoLog = ( void (APIENTRY * ) (GLuint, GLsizei, GLsizei *, GLchar *) ) SDL_GL_GetProcAddress( "glGetShaderInfoLog");
 	}
 }
 
