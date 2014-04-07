@@ -8,7 +8,7 @@ void demoSaveLine( fileHandle_t fileHandle, const char *fmt, ... ) {
 	int len;
 
 	va_start ( argptr, fmt );
-	len = _vsnprintf ( buf, sizeof(buf), fmt, argptr );
+	len = Q_vsnprintf ( buf, sizeof(buf), fmt, argptr );
 	va_end ( argptr );
 	trap_FS_Write( buf, len, fileHandle );
 }

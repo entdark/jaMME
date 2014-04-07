@@ -1000,7 +1000,7 @@ void CG_DemosAddLog(const char *fmt, ...) {
 	dest = demo.log.lines[demo.log.lastline];
 
 	va_start ( argptr, fmt );
-	_vsnprintf( dest, sizeof(demo.log.lines[0]), fmt, argptr );
+	Q_vsnprintf( dest, sizeof(demo.log.lines[0]), fmt, argptr );
 	va_end (argptr);
 //	Com_Printf("%s\n", dest);
 }

@@ -1492,6 +1492,7 @@ void		GLimp_EnableLogging( qboolean enable )
 
 void 		GLimp_LogComment( char *comment )
 {
+	//Com_Printf( comment );
 }
 
 void GLimp_SetGamma( unsigned char red[256], unsigned char green[256], unsigned char blue[256] )
