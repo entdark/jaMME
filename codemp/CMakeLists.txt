@@ -370,12 +370,19 @@ if(BuildMPEngine)
 	set(MPEngineLibraries ${MPEngineLibraries} ${OPENGL_LIBRARIES})
 	
 	#library stuff
-	if(APPLE)
-		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libmad.a)
-		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libFLAC.a)
-		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libogg.a)
-		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libvorbis.a)
-	endif(APPLE)
+	if(UNIX)
+		if(APPLE)
+			set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libmad.a)
+			set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libFLAC.a)
+			set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libogg.a)
+			set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libvorbis.a)
+		else(APPLE)
+			set(MPEngineLibraries ${MPEngineLibraries} mad)
+			set(MPEngineLibraries ${MPEngineLibraries} FLAC)
+			set(MPEngineLibraries ${MPEngineLibraries} ogg)
+			set(MPEngineLibraries ${MPEngineLibraries} vorbis)
+		endif(APPLE)
+	endif(UNIX)
 	
 	# OpenAL (is optionally included for Windows)
 	if(UseInternalOpenAL)
@@ -423,6 +430,7 @@ if(BuildMPEngine)
 		"${MPDir}/client/cl_cin.cpp"
 		"${MPDir}/client/cl_console.cpp"
 		"${MPDir}/client/cl_demos.cpp"
+		"${MPDir}/client/cl_demos_auto.cpp"
 		"${MPDir}/client/cl_input.cpp"
 		"${MPDir}/client/cl_keys.cpp"
 		"${MPDir}/client/cl_main.cpp"
@@ -560,8 +568,6 @@ if(BuildMPDed)
 	set(MPDedicatedRendererFiles
 		"${MPDir}/renderer/mdx_format.h"
 		"${MPDir}/renderer/tr_public.h"
-		"${MPDir}/rd-dedicated/tr_local.h"
-		"${MPDir}/rd-dedicated/G2_API.cpp"
 		"${MPDir}/rd-dedicated/G2_bolts.cpp"
 		"${MPDir}/rd-dedicated/G2_bones.cpp"
 		"${MPDir}/rd-dedicated/G2_misc.cpp"

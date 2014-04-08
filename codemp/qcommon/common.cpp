@@ -64,7 +64,7 @@ cvar_t  *com_homepath;
 #if defined(_WIN32) && defined(_DEBUG)
 cvar_t	*com_noErrorInterrupt;
 #endif
-static cvar_t	*com_affinity;
+cvar_t	*com_affinity;
 
 cvar_t	*com_RMG;
 

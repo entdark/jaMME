@@ -13,7 +13,7 @@ extern	cvar_t	*mme_saveWav;
 typedef struct {
 	char			baseName[MAX_OSPATH];
 	fileHandle_t	fileHandle;
-	long			fileSize;
+	int32_t			fileSize;
 	float			deltaSamples, sampleRate;
 	mixLoop_t		loops[MME_LOOPCHANNELS];
 	mixChannel_t	channels[MME_SNDCHANNELS];
@@ -39,22 +39,22 @@ S_MME_PrepareWavHeader
 Fill in wav header so that we can write sound after the header
 ===================
 */
-static void S_MMEFillWavHeader(void* buffer, long fileSize, int sampleRate) {
-	((unsigned long*)buffer)[0] = 0x46464952;	// "RIFF"
-	((unsigned long*)buffer)[1] = fileSize-8;		// WAVE chunk length
-	((unsigned long*)buffer)[2] = 0x45564157;	// "WAVE"
+static void S_MMEFillWavHeader(void* buffer, int32_t fileSize, int sampleRate) {
+	((uint32_t*)buffer)[0] = 0x46464952;	// "RIFF"
+	((uint32_t*)buffer)[1] = fileSize-8;		// WAVE chunk length
+	((uint32_t*)buffer)[2] = 0x45564157;	// "WAVE"
 
-	((unsigned long*)buffer)[3] = 0x20746D66;	// "fmt "
-	((unsigned long*)buffer)[4] = 16;			// fmt chunk size
+	((uint32_t*)buffer)[3] = 0x20746D66;	// "fmt "
+	((uint32_t*)buffer)[4] = 16;			// fmt chunk size
 	((unsigned short*)buffer)[(5*2)] = 1;		// audio format. 1 - PCM uncompressed
 	((unsigned short*)buffer)[(5*2)+1] = 2;		// number of channels
-	((unsigned long*)buffer)[6] = sampleRate;	// sample rate
-	((unsigned long*)buffer)[7] = sampleRate * 2 * 2;	// byte rate
+	((uint32_t*)buffer)[6] = sampleRate;	// sample rate
+	((uint32_t*)buffer)[7] = sampleRate * 2 * 2;	// byte rate
 	((unsigned short*)buffer)[(8*2)] = 2 * 2;	// block align
 	((unsigned short*)buffer)[(8*2)+1] = 16;	// sample bits
 
-	((unsigned long*)buffer)[9] = 0x61746164;	// "data"
-	((unsigned long*)buffer)[10] = fileSize-44;	// data chunk length
+	((uint32_t*)buffer)[9] = 0x61746164;	// "data"
+	((uint32_t*)buffer)[10] = fileSize-44;	// data chunk length
 }
 
 void S_MMEWavClose(void) {
