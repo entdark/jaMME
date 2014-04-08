@@ -237,7 +237,7 @@ void QDECL Com_OPrintf( const char *fmt, ...)
 Com_Error
 
 Both client and server can use this, and it will
-do the apropriate things.
+do the appropriate things.
 =============
 */
 void QDECL Com_Error( int code, const char *fmt, ... ) {
@@ -246,24 +246,16 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 	static int	errorCount;
 	int			currentTime;
 
-#if defined(_WIN32) && defined(_DEBUG)
-	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD ) {
-		if (com_noErrorInterrupt && !com_noErrorInterrupt->integer) {
-			__asm {
-				int 0x03
-			}
-		}
+	if ( com_errorEntered ) {
+		Sys_Error( "recursive error after: %s", com_errorMessage );
 	}
-#endif
+	com_errorEntered = qtrue;
 
 	// when we are running automated scripts, make sure we
 	// know if anything failed
 	if ( com_buildScript && com_buildScript->integer ) {
 		code = ERR_FATAL;
 	}
-
-	// make sure we can get at our local stuff
-	FS_PureServerSetLoadedPaks( "", "" );
 
 	// if we are getting a solid stream of ERR_DROP, do an ERR_FATAL
 	currentTime = Sys_Milliseconds();
@@ -276,44 +268,17 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 	}
 	lastErrorTime = currentTime;
 
-	if ( com_errorEntered ) {
-		Sys_Error( "recursive error after: %s", com_errorMessage );
-	}
-	com_errorEntered = qtrue;
-
 	va_start (argptr,fmt);
 	Q_vsnprintf (com_errorMessage,sizeof(com_errorMessage), fmt,argptr);
 	va_end (argptr);
 
-	if ( code != ERR_DISCONNECT ) {
+	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD ) {
 		Cvar_Get("com_errorMessage", "", CVAR_ROM);	//give com_errorMessage a default so it won't come back to life after a resetDefaults
 		Cvar_Set("com_errorMessage", com_errorMessage);
 	}
 
-	if ( code == ERR_SERVERDISCONNECT ) {
-		CL_Disconnect( qtrue );
-		CL_FlushMemory( );
-		com_errorEntered = qfalse;
-
-		throw ("DISCONNECTED\n");
-	} else if ( code == ERR_DROP || code == ERR_DISCONNECT ) {
-		Com_Printf ("********************\nERROR: %s\n********************\n", com_errorMessage);
-		SV_Shutdown (va("Server crashed: %s\n",  com_errorMessage));
-		CL_Disconnect( qtrue );
-		CL_FlushMemory( );
-		com_errorEntered = qfalse;
-
-		throw ("DROPPED\n");
-	} else if ( code == ERR_NEED_CD ) {
-		SV_Shutdown( "Server didn't have CD\n" );
-		if ( com_cl_running && com_cl_running->integer ) {
-			CL_Disconnect( qtrue );
-			CL_FlushMemory( );
-			com_errorEntered = qfalse;
-		} else {
-			Com_Printf("Server didn't have CD\n" );
-		}
-		throw ("NEED CD\n");
+	if ( code == ERR_DISCONNECT || code == ERR_SERVERDISCONNECT || code == ERR_DROP || code == ERR_NEED_CD ) {
+		throw code;
 	} else {
 		CL_Shutdown ();
 		SV_Shutdown (va("Server fatal crashed: %s\n", com_errorMessage));
@@ -1106,6 +1071,90 @@ void Com_ExecuteCfg(void)
 }
 
 /*
+=================
+Com_ErrorString
+Error string for the given error code (from Com_Error).
+=================
+*/
+static const char *Com_ErrorString ( int code )
+{
+	switch ( code )
+	{
+		case ERR_DISCONNECT:
+		// fallthrough
+		case ERR_SERVERDISCONNECT:
+			return "DISCONNECTED";
+
+		case ERR_DROP:
+			return "DROPPED";
+
+		case ERR_NEED_CD:
+			return "NEED CD";
+
+		default:
+			return "UNKNOWN";
+	}
+}
+
+/*
+=================
+Com_CatchError
+Handles freeing up of resources when Com_Error is called.
+=================
+*/
+static void Com_CatchError ( int code )
+{
+	if ( code == ERR_DISCONNECT || code == ERR_SERVERDISCONNECT ) {
+		SV_Shutdown( "Server disconnected" );
+		CL_Disconnect( qtrue );
+		CL_FlushMemory(  );
+		// make sure we can get at our local stuff
+		FS_PureServerSetLoadedPaks( "", "" );
+		com_errorEntered = qfalse;
+	} else if ( code == ERR_DROP ) {
+		Com_Printf ("********************\n"
+					"ERROR: %s\n"
+					"********************\n", com_errorMessage);
+		SV_Shutdown (va("Server crashed: %s\n",  com_errorMessage));
+		CL_Disconnect( qtrue );
+		CL_FlushMemory( );
+		// make sure we can get at our local stuff
+		FS_PureServerSetLoadedPaks( "", "" );
+		com_errorEntered = qfalse;
+	} else if ( code == ERR_NEED_CD ) {
+		SV_Shutdown( "Server didn't have CD" );
+		if ( com_cl_running && com_cl_running->integer ) {
+			CL_Disconnect( qtrue );
+			CL_FlushMemory( );
+		} else {
+			Com_Printf("Server didn't have CD\n" );
+		}
+		// make sure we can get at our local stuff
+		FS_PureServerSetLoadedPaks( "", "" );
+		com_errorEntered = qfalse;
+	}
+}
+
+#ifdef _WIN32
+static const char *GetErrorString( DWORD error ) {
+	static char buf[MAX_STRING_CHARS];
+	buf[0] = '\0';
+
+	if ( error ) {
+		LPVOID lpMsgBuf;
+		DWORD bufLen = FormatMessage( FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, error, MAKELANGID( LANG_NEUTRAL, SUBLANG_DEFAULT ), (LPTSTR)&lpMsgBuf, 0, NULL );
+		if ( bufLen ) {
+			LPCSTR lpMsgStr = (LPCSTR)lpMsgBuf;
+			Q_strncpyz( buf, lpMsgStr, min( (size_t)(lpMsgStr + bufLen), sizeof(buf) ) );
+			LocalFree( lpMsgBuf );
+		}
+	}
+	return buf;
+}
+#endif
+
+/*
 ==================
 Com_UpdateProcessCoresAffinity
 
@@ -1349,8 +1398,10 @@ void Com_Init( char *commandLine ) {
 
 	}
 
-	catch (const char* reason) {
-		Sys_Error ("Error during initialization: %s", reason);
+	catch ( int code )
+	{
+		Com_CatchError (code);
+		Sys_Error ("Error during initialization: %s", Com_ErrorString (code));
 	}
 }
 
@@ -1643,9 +1694,10 @@ try
 	com_frameNumber++;
 
 }//try
-	catch (const char* reason) {
-		Com_Printf (reason);
-		return;			// an ERR_DROP was thrown
+	catch (int code) {
+		Com_CatchError (code);
+		Com_Printf ("%s\n", Com_ErrorString (code));
+		return;
 	}
 
 #ifdef G2_PERFORMANCE_ANALYSIS
