@@ -153,13 +153,13 @@ void FX_Mortar_Missile( centity_t *cent, const struct weaponInfo_s *weapon )
 	ent.customShader = trap_R_RegisterShaderNoMip( "gfx/effects/shock_ripple" );
 	ent.renderfx = (RF_RGB_TINT|RF_FORCE_ENT_ALPHA);
 //	SE_R_AddRefEntityToScene( &ent, cent->currentState.number );
-	trap_R_AddRefEntityToScene( &ent, cent->currentState.number );
+	trap_R_AddRefEntityToScene( &ent );
 
 	ent.shaderRGBA[0] = 255;	ent.shaderRGBA[1] = 255;	ent.shaderRGBA[2] = 255;	ent.shaderRGBA[3] = 255;
 	ent.customShader	= trap_R_RegisterShaderNoMip( "gfx/effects/caustic1" );
 	ent.renderfx		= (RF_RGB_TINT|RF_MINLIGHT);
 //	SE_R_AddRefEntityToScene( &ent, cent->currentState.number );
-	trap_R_AddRefEntityToScene( &ent, cent->currentState.number );
+	trap_R_AddRefEntityToScene( &ent );
 
 	scale = (1.15 + Q_fabs((float)sin(cg.time / 80.0 + cg.timeFraction / 80.0))*0.65f);
 	VectorScale( ent.axis[0], scale, ent.axis[0] );
@@ -169,7 +169,7 @@ void FX_Mortar_Missile( centity_t *cent, const struct weaponInfo_s *weapon )
 	ent.customShader = trap_R_RegisterShaderNoMip( "gfx/effects/eplosion_wave" );
 	ent.renderfx = (RF_RGB_TINT|RF_ALPHA_DEPTH);
 //	SE_R_AddRefEntityToScene( &ent, cent->currentState.number );
-	trap_R_AddRefEntityToScene( &ent, cent->currentState.number );
+	trap_R_AddRefEntityToScene( &ent );
 
 	trap_R_AddLightToScene( cent->lerpOrigin, 400, 0.13f, 0.43f, 0.87f );
 }

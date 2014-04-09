@@ -61,7 +61,7 @@ public:
 public:
 	SFxHelper(void);
 
-	inline	int	GetTime(void) { return mTime; }
+	inline	int GetTime(void) { return mTime; }
 	inline	float GetFrameTime(void) { return mFrameTime; }
 
 	void	ReInit(refdef_t* pRefdef);

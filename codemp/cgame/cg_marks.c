@@ -221,7 +221,7 @@ CG_AddMarks
 void CG_AddMarks( void ) {
 	int			j;
 	markPoly_t	*mp, *next;
-	int			t;
+	float		t;
 	float		fade;
 
 	if ( !cg_marks.integer ) {
@@ -591,7 +591,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 		VectorSet (color, 1.0, 1.0, 0.5);
 		time = (cg.time - p->time) + cg.timeFraction;
 		time2 = p->endtime - p->time;
-		ratio = time / time2;
+		ratio = ((cg.time - p->time) + cg.timeFraction) / time2;
 
 		width = p->width + ( ratio * ( p->endwidth - p->width) );
 		height = p->height + ( ratio * ( p->endheight - p->height) );
@@ -686,7 +686,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 
 		time = (cg.time - p->time) + cg.timeFraction;
 		time2 = p->endtime - p->time;
-		ratio = time / time2;
+		ratio = ((cg.time - p->time) + cg.timeFraction) / time2;
 		
 		if (cg.time > p->startfade)
 		{
@@ -872,7 +872,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 		
 		time = (cg.time - p->time) + cg.timeFraction;
 		time2 = p->endtime - p->time;
-		ratio = time / time2;
+		ratio = ((cg.time - p->time) + cg.timeFraction) / time2;
 
 		width = p->width + ( ratio * ( p->endwidth - p->width) );
 		height = p->height + ( ratio * ( p->endheight - p->height) );
@@ -978,7 +978,7 @@ void CG_AddParticleToScene (cparticle_t *p, vec3_t org, float alpha)
 
 		time = (cg.time - p->time) + cg.timeFraction;
 		time2 = p->endtime - p->time;
-		ratio = time / time2;
+		ratio = ((cg.time - p->time) + cg.timeFraction) / time2;
 		if (ratio >= 1.0f) {
 			ratio = 0.9999f;
 		}

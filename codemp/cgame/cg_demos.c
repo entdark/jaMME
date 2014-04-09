@@ -8,7 +8,6 @@ demoMain_t demo;
 
 extern void CG_DamageBlendBlob( void );
 extern void CG_PlayBufferedSounds( void );
-extern int CG_CalcViewValues( void );
 extern int CG_DemosCalcViewValues( void );
 extern void CG_SetupFrustum( void );
 extern void CG_CalcScreenEffects(void);
@@ -152,7 +151,7 @@ static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
 	}
 }
 
-void CG_SetPredictedThirdPerson(void) {
+static void CG_SetPredictedThirdPerson(void) {
 	cg.renderingThirdPerson = ((cg_thirdPerson.integer
 		|| (cg.snap->ps.stats[STAT_HEALTH] <= 0)
 		|| (cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer)
@@ -182,7 +181,7 @@ void CG_SetPredictedThirdPerson(void) {
 	}
 }
 
-int demoSetupView( void) {
+static int demoSetupView( void) {
 	vec3_t forward;
 	qboolean zoomFix;	//to see disruptor zoom when we are chasing a player
 	int inwater = qfalse;
@@ -291,8 +290,7 @@ int demoSetupView( void) {
 		cg.refdef.fov_y = atan2( cg.refdef.height, (cg.refdef.width / tan( demo.viewFov / 360 * M_PI )) ) * 360 / M_PI;
 		cg.refdef.viewContents = CG_PointContents( cg.refdef.vieworg, -1 );
 		if ( cg.refdef.viewContents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ){
-			double phase = (cg.time + cg.timeFraction) / 1000.0 * WAVE_FREQUENCY * M_PI * 2;
-			double v = WAVE_AMPLITUDE * sin( phase );
+			double v = WAVE_AMPLITUDE * sin(((double)cg.time + (double)cg.timeFraction) / 1000.0 * WAVE_FREQUENCY * M_PI * 2);
 			cg.refdef.fov_x += v;
 			cg.refdef.fov_y -= v;
 			inwater = qtrue;
@@ -735,12 +733,14 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	CG_CalcScreenEffects();
 
-	CG_AddPacketEntities(qfalse);	// adter calcViewValues, so predicted player state is correct
-	CG_AddMarks();
-	CG_AddParticles ();
-	CG_AddLocalEntities();
+	if ( !cg.hyperspace ) {
+		CG_AddPacketEntities(qfalse);	// adter calcViewValues, so predicted player state is correct
+		CG_AddMarks();
+		CG_AddParticles ();
+		CG_AddLocalEntities();
 
-	trap_FX_AddScheduledEffects(qfalse);
+		trap_FX_AddScheduledEffects(qfalse);
+	}
 	
 	if ( cg.playerCent == &cg_entities[cg.predictedPlayerState.clientNum] ) {
 		// warning sounds when powerup is wearing off
@@ -775,16 +775,16 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		if (demo.editType && ( demo.cmd.buttons & BUTTON_ATTACK) && ( demo.cmd.buttons & BUTTON_ALT_ATTACK)) {
 			int i;
 #ifdef DEMO_ANIM
-			if (0 && demo.editType == editAnim && demo.anim.target >= 0 && demo.anim.target < MAX_CLIENTS && demo.anim.override[demo.anim.target]) {
+			if (demo.editType == editAnim && demo.anim.target >= 0 && demo.anim.target < MAX_CLIENTS && demo.anim.override[demo.anim.target]) {
 				centity_t *targetCent = demoTargetEntity(demo.anim.target);
 				if (targetCent) {
 					vec3_t origins[MAX_BONES];
+					animBoneVectors(origins, ORIGIN, demo.anim.target);
 					for (i = 0;i<MAX_BONES;i++) {
 						vec3_t container = {-1.0f, 1.0f, 1.0f};
 						vec3_t traceStart, traceImpact, forward;
 						const float *color;
 
-						animBoneVectors(origins, ORIGIN, demo.anim.target);
 						VectorSubtract( demo.viewOrigin, origins[i], traceStart );
 						AngleVectors( demo.viewAngles, forward, 0, 0 );
 						if (BoxTraceImpact( traceStart, forward, container, traceImpact )) {
@@ -1171,6 +1171,8 @@ void demoPlaybackInit(void) {
 		VectorSet(demo.anim.axis[0][i], 0.0f, 0.0f, 0.0f);
 		VectorSet(demo.anim.axis[1][i], 0.0f, 0.0f, 0.0f);
 		VectorSet(demo.anim.axis[2][i], 0.0f, 0.0f, 0.0f);
+	}
+	for (i = 0; i < MAX_CLIENTS; i++) {
 		demo.anim.override[i] = qfalse;
 		demo.anim.points[i] = 0; //wrong zeroing, or not?
 	}

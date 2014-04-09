@@ -950,7 +950,7 @@ static void CG_OffsetFirstPersonView( void ) {
 //	angles = cent->lerpOrigin;
 	
 	// if dead, fix the angle and don't add any kick
-	if ( cg.snap->ps.stats[STAT_HEALTH] <= 0 && cg.playerPredicted) {
+	if (cg.snap->ps.stats[STAT_HEALTH] <= 0 && cg.playerPredicted) {
 		angles[ROLL] = 40;
 		angles[PITCH] = -15;
 		angles[YAW] = cg.snap->ps.stats[STAT_DEAD_YAW];
@@ -1081,7 +1081,8 @@ static void CG_OffsetFirstPersonView( void ) {
 		bob = 6;
 	}
 
-	origin[2] += bob;
+	if (cg.playerPredicted)
+		origin[2] += bob;
 
 
 	// add fall height
@@ -1281,7 +1282,6 @@ float zoomFov; //this has to be global client-side
 
 static int CG_CalcFov( void ) {
 	float	x;
-	double	phase;
 	float	v;
 	float	fov_x, fov_y;
 	float	f;
@@ -1308,13 +1308,9 @@ static int CG_CalcFov( void ) {
 	//[/TrueView]
 
 	if (cgFov < 1)
-	{
 		cgFov = 1;
-	}
-	if (cgFov > 150)
-	{
-		cgFov = 150;
-	}
+	else if (cgFov > 180)
+		cgFov = 180;
 
 	if (cg.predictedPlayerState.pm_type == PM_INTERMISSION) {
 		// if in intermission, use a fixed value
@@ -1328,8 +1324,8 @@ static int CG_CalcFov( void ) {
 			fov_x = cgFov;
 			if ( fov_x < 1 ) {
 				fov_x = 1;
-			} else if ( fov_x > 160 ) {
-				fov_x = 160;
+			} else if ( fov_x > 180 ) {
+				fov_x = 180;
 			}
 		}
 
@@ -1430,8 +1426,7 @@ notZoom:
 	// warp if underwater
 	cg.refdef.viewContents = CG_PointContents( cg.refdef.vieworg, -1 );
 	if ( cg.refdef.viewContents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ){
-		phase = (cg.time + cg.timeFraction) / 1000.0 * WAVE_FREQUENCY * M_PI * 2;
-		v = WAVE_AMPLITUDE * sin( phase );
+		v = WAVE_AMPLITUDE * sin(((double)cg.time + (double)cg.timeFraction) / 1000.0 * WAVE_FREQUENCY * M_PI * 2);
 		fov_x += v;
 		fov_y -= v;
 		inwater = qtrue;
@@ -2332,15 +2327,13 @@ void CG_UpdateSoundTrackers()
 	int num;
 	centity_t *cent;
 
-	for ( num = 0 ; num < ENTITYNUM_NONE ; num++ )
-	{
+	for ( num = 0 ; num < ENTITYNUM_NONE ; num++ ) {
 		cent = &cg_entities[num];
 
 		if (cent && (cent->currentState.eFlags & EF_SOUNDTRACKER) && cent->currentState.number == num)
 			//make sure the thing is valid at least.
 		{ //keep sound for this entity updated in accordance with its attached entity at all times
-			if (cg.snap && cg.playerCent &&
-				cent->currentState.trickedentindex == cg.playerCent->currentState.number)
+			if (cg.playerCent && cent->currentState.trickedentindex == cg.playerCent->currentState.number)
 			{ //this is actually the player, so center the sound origin right on top of us
 				VectorCopy(cg.refdef.vieworg, cent->lerpOrigin);
 				trap_S_UpdateEntityPosition( cent->currentState.number, cent->lerpOrigin );

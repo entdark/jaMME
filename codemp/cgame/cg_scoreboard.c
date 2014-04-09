@@ -152,7 +152,7 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 			if (scl->classShader)
 			{
 				//need to test in siege demo
-				CG_DrawPic (iconx, y, largeFormat?24:12*cgs.widthRatioCoef, largeFormat?24:12, scl->classShader);
+				CG_DrawPic (iconx, y, (largeFormat?24:12)*cgs.widthRatioCoef, largeFormat?24:12, scl->classShader);
 			}
 		}
 	}

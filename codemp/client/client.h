@@ -416,7 +416,6 @@ extern	cvar_t	*mme_demoAutoQuit;
 
 //=================================================
 // cl_demos
-void CL_PlayDemo_f( void );
 void CL_MMEDemo_f( void );
 void CL_DemoList_f( void );
 void CL_DemoListNext_f( void );

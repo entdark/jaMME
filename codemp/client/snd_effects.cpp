@@ -1,5 +1,5 @@
 // Copyright 2000-2007 by Grant R. Griffin for "FIR filter algorithms for use in C".
-// The original source code of is open under The Wide Open License (WOL).
+// The original source code of "FIR filter algorithms for use in C" is open under The Wide Open License (WOL).
 
 #include "snd_local.h"
 #include "snd_mix.h"
@@ -245,13 +245,13 @@ void S_EffectUnderWater(mixEffect_t *effect, int speed, const int count, int *ou
 
 	/* the underwater echo sounds "data/underwater_loop" */
 	volume = s_volume->value * (1 << MIX_SHIFT) * 0.5f;
-	sound = S_MixGetSound( underWater );
+	sound = S_MixGetSound(underWater);
 
 	index = effect->index;
 	indexAdd = (sound->speed * speed) >> MIX_SHIFT;
 	indexTotal = sound->samples;
 	data = sound->data;
-	for (i = 0; i < count;i++) {
+	for (i = 0; i < count; i++) {
 		int sample;
 		if (index >= indexTotal) {
 			index -= indexTotal;

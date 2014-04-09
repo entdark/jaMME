@@ -54,9 +54,10 @@ void R_MME_GetDepth( byte *output ) {
 void R_MME_SaveShot( mmeShot_t *shot, int width, int height, float fps, byte *inBuf ) {
 	mmeShotFormat_t format;
 	char *extension;
-	char *outBuf;
-	int outSize;
+	char *outBuf, inSound[MME_SAMPLERATE] = {0};
+	int outSize, sizeSound;
 	char fileName[MAX_OSPATH];
+	qboolean audio;
 
 	format = shot->format;
 	switch (format) {
@@ -76,7 +77,10 @@ void R_MME_SaveShot( mmeShot_t *shot, int width, int height, float fps, byte *in
 		extension = "png";
 		break;
 	case mmeShotFormatAVI:
-		mmeAviShot( &shot->avi, shot->name, shot->type, width, height, fps, inBuf );
+		audio = ri.S_MMEAviExport((byte *)inSound, &sizeSound);
+		if (audio)
+			mmeAviSound( &shot->avi, shot->name, shot->type, width, height, fps, (byte *)inSound, sizeSound );
+		mmeAviShot( &shot->avi, shot->name, shot->type, width, height, fps, inBuf, audio );
 		return;
 	}
 

@@ -64,6 +64,7 @@ cvar_t  *com_homepath;
 #if defined(_WIN32) && defined(_DEBUG)
 cvar_t	*com_noErrorInterrupt;
 #endif
+static cvar_t	*com_affinity;
 
 cvar_t	*com_RMG;
 
@@ -1105,6 +1106,40 @@ void Com_ExecuteCfg(void)
 }
 
 /*
+==================
+Com_UpdateProcessCoresAffinity
+
+==================
+*/
+//smod feature
+static void Com_SetProcessCoresAffinity() {
+#ifdef _WIN32
+	DWORD	processMask;
+	DWORD	systemMask;
+	int		dev = Cvar_VariableValue("developer");
+	int		i;
+
+	// get current affinity for
+	if (!GetProcessAffinityMask(GetCurrentProcess(), &processMask, &systemMask)) {
+		// verbose something in developer mode...
+		if (dev) {
+			Com_Printf("Getting affinity mask failed, error: %i\n", GetLastError());
+        }
+		return;
+	}
+
+	if ( sscanf( com_affinity->string, "%X", &processMask ) != 1 )
+		processMask = 1; // set to first core only
+
+	// call win API to set desired affinity mask
+	if (!SetProcessAffinityMask(GetCurrentProcess(), processMask) && dev) {
+		// verbose something in developer mode...
+		Com_Printf("Setting affinity mask failed, error: %i\n", GetLastError());
+	}
+#endif
+}
+
+/*
 =================
 Com_Init
 =================
@@ -1240,6 +1275,8 @@ void Com_Init( char *commandLine ) {
 		com_noErrorInterrupt = Cvar_Get( "com_noErrorInterrupt", "0", 0 );
 	#endif
 
+		com_affinity = Cvar_Get ("com_numcores", "1", CVAR_ARCHIVE);
+
 		if ( com_dedicated->integer ) {
 			if ( !com_viewlog->integer ) {
 				Cvar_Set( "viewlog", "1" );
@@ -1257,6 +1294,8 @@ void Com_Init( char *commandLine ) {
 
 		s = va("%s %s %s", JK_VERSION, PLATFORM_STRING, __DATE__ );
 		com_version = Cvar_Get ("version", s, CVAR_ROM | CVAR_SERVERINFO );
+
+		Com_SetProcessCoresAffinity();
 
 		SE_Init();
 

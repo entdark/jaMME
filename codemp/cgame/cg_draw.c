@@ -3903,10 +3903,8 @@ static void CG_DrawPowerupIcons(int y)
 	//Raz: was missing this
 	trap_R_SetColor( NULL );
 
-	if (!cg.snap)
-	{
+	if (cg.playerPredicted && !cg.snap)
 		return;
-	}
 
 	if ( !cg.playerCent )
 		return;
@@ -3916,9 +3914,7 @@ static void CG_DrawPowerupIcons(int y)
 	//Raz: fixed potential buffer overrun of cg.snap->ps.powerups
 	for (j = 0; j < PW_NUM_POWERUPS; j++)
 	{
-		//mme, taken from pugmod, I hope it will work :s UPD: it did not work :C
-//		if (cg.snap->ps.powerups[j] > cg.time)
-		if ((cg.playerCent->currentState.number!=-1?cg_entities[cg.playerCent->currentState.number].currentState.powerups & (1 << j):cg.snap->ps.powerups[j] > cg.time))
+		if ((!cg.playerPredicted?cg.playerCent->currentState.powerups & (1 << j):cg.snap->ps.powerups[j] > cg.time))
 		{
 			int secondsleft = (cg.snap->ps.powerups[j] - cg.time)/1000;
 
@@ -4163,9 +4159,9 @@ static void CG_DrawDisconnect( void ) {
 	const char		*s;
 	int			w;  // bk010215 - FIXME char message[1024];
 
-	return;	//we don't need that msg in demos
-	if (cg.mMapChange)
-	{			
+	if (cg.demoPlayback == 2)
+		return;	//we don't need that msg in demos
+	if (cg.mMapChange) {			
 		s = CG_GetStringEdString("MP_INGAME", "SERVER_CHANGING_MAPS");	// s = "Server Changing Maps";			
 		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
 		CG_DrawBigString( 320 - w/2, 100, s, 1.0F);
@@ -5338,8 +5334,8 @@ void CG_SaberClashFlare( void )
 	VectorSet( color, 0.8f, 0.8f, 0.8f );
 	trap_R_SetColor( color );
 
-	CG_DrawPic( x - ( v * 300 ), y - ( v * 300 ),
-				v * 600, v * 600,
+	CG_DrawPic( x - ( v * 300 )*cgs.widthRatioCoef, y - ( v * 300 ),
+				v * 600*cgs.widthRatioCoef, v * 600,
 				trap_R_RegisterShader( "gfx/effects/saberFlare" ));
 }
 
@@ -5628,7 +5624,7 @@ static void CG_DrawHolocronIcons(void)
 		{
 			CG_DrawPic( startx, starty, endx*cgs.widthRatioCoef, endy, cgs.media.forcePowerIcons[forcePowerSorted[i]]);
 			starty += (icon_size+2)*cgs.widthRatioCoef; //+2 for spacing
-			if ((starty+icon_size) >= SCREEN_HEIGHT-80)
+			if ((starty+icon_size*cgs.widthRatioCoef) >= SCREEN_HEIGHT-80)
 			{
 				starty = 10;//SCREEN_HEIGHT - icon_size*3;
 				startx += (icon_size+2);
@@ -5685,7 +5681,7 @@ static void CG_DrawActivePowers(void)
 			CG_IsDurationPower(forcePowerSorted[i])) {
 			CG_DrawPic( startx, starty, endx*cgs.widthRatioCoef, endy, cgs.media.forcePowerIcons[forcePowerSorted[i]]);
 			startx += (icon_size+2)*cgs.widthRatioCoef; //+2 for spacing
-			if ((startx+icon_size) >= SCREEN_WIDTH-80) {
+			if ((startx+icon_size*cgs.widthRatioCoef) >= SCREEN_WIDTH-80) {
 				startx = icon_size*2+16;
 				starty += (icon_size+2);
 			}
@@ -7511,22 +7507,19 @@ chatbox functionality -rww
 
 //utility func, insert a string into a string at the specified
 //place (assuming this will not overflow the buffer)
-void CG_ChatBox_StrInsert(char *buffer, int place, char *str)
-{
+static void CG_ChatBox_StrInsert(char *buffer, int place, char *str) {
 	int insLen = strlen(str);
 	int i = strlen(buffer);
 	int k = 0;
 
 	buffer[i+insLen+1] = 0; //terminate the string at its new length
-	while (i >= place)
-	{
+	while (i >= place) {
 		buffer[i+insLen] = buffer[i];
 		i--;
 	}
 
 	i++;
-	while (k < insLen)
-	{
+	while (k < insLen) {
 		buffer[i] = str[k];
 		i++;
 		k++;
@@ -7534,20 +7527,19 @@ void CG_ChatBox_StrInsert(char *buffer, int place, char *str)
 }
 
 //add chatbox string
-void CG_ChatBox_AddString(char *chatStr)
-{
+void CG_ChatBox_AddString(char *chatStr) {
 	chatBoxItem_t *chat = &cg.chatItems[cg.chatItemActive];
 	float chatLen;
 
-	if (cg_chatBox.integer<=0)
-	{ //don't bother then.
+	if (cg_chatBox.integer<=0) {
+	//don't bother then.
 		return;
 	}
 
 	memset(chat, 0, sizeof(chatBoxItem_t));
 
-	if (strlen(chatStr) > sizeof(chat->string))
-	{ //too long, terminate at proper len.
+	if (strlen(chatStr) > sizeof(chat->string)) {
+	//too long, terminate at proper len.
 		chatStr[sizeof(chat->string)-1] = 0;
 	}
 
@@ -7557,32 +7549,27 @@ void CG_ChatBox_AddString(char *chatStr)
 	chat->lines = 1;
 
 	chatLen = CG_Text_Width(chat->string, 1.0f, FONT_SMALL);
-	if (chatLen > CHATBOX_CUTOFF_LEN)
-	{ //we have to break it into segments...
+	if (chatLen > CHATBOX_CUTOFF_LEN) {
+	//we have to break it into segments...
         int i = 0;
 		int lastLinePt = 0;
 		char s[2];
 
 		chatLen = 0;
-		while (chat->string[i])
-		{
+		while (chat->string[i]) {
 			s[0] = chat->string[i];
 			s[1] = 0;
 			chatLen += CG_Text_Width(s, 0.65f, FONT_SMALL);
 
-			if (chatLen >= CHATBOX_CUTOFF_LEN)
-			{
+			if (chatLen >= CHATBOX_CUTOFF_LEN) {
 				int j = i;
-				while (j > 0 && j > lastLinePt)
-				{
-					if (chat->string[j] == ' ')
-					{
+				while (j > 0 && j > lastLinePt) {
+					if (chat->string[j] == ' ') {
 						break;
 					}
 					j--;
 				}
-				if (chat->string[j] == ' ')
-				{
+				if (chat->string[j] == ' ') {
 					i = j;
 				}
 
@@ -7597,31 +7584,25 @@ void CG_ChatBox_AddString(char *chatStr)
 	}
 
 	cg.chatItemActive++;
-	if (cg.chatItemActive >= MAX_CHATBOX_ITEMS)
-	{
+	if (cg.chatItemActive >= MAX_CHATBOX_ITEMS) {
 		cg.chatItemActive = 0;
 	}
 }
 
 //insert item into array (rearranging the array if necessary)
-void CG_ChatBox_ArrayInsert(chatBoxItem_t **array, int insPoint, int maxNum, chatBoxItem_t *item)
-{
-    if (array[insPoint])
-	{ //recursively call, to move everything up to the top
-		if (insPoint+1 >= maxNum)
-		{
+void CG_ChatBox_ArrayInsert(chatBoxItem_t **array, int insPoint, int maxNum, chatBoxItem_t *item) {
+    if (array[insPoint]) { //recursively call, to move everything up to the top
+		if (insPoint+1 >= maxNum) {
 			CG_Error("CG_ChatBox_ArrayInsert: Exceeded array size");
 		}
 		CG_ChatBox_ArrayInsert(array, insPoint+1, maxNum, array[insPoint]);
 	}
-
 	//now that we have moved anything that would be in this slot up, insert what we want into the slot
 	array[insPoint] = item;
 }
 
 //go through all the chat strings and draw them if they are not yet expired
-static CGAME_INLINE void CG_ChatBox_DrawStrings(void)
-{
+static CGAME_INLINE void CG_ChatBox_DrawStrings(void) {
 	chatBoxItem_t *drawThese[MAX_CHATBOX_ITEMS];
 	int numToDraw = 0;
 	int linesToDraw = 0;
@@ -7630,8 +7611,7 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void)
 	float y = cg.scoreBoardShowing ? 475 : cg_chatBoxHeight.integer;
 	float fontScale = 0.65f;
 
-	if (!cg_chatBox.integer)
-	{
+	if (!cg_chatBox.integer) {
 		return;
 	}
 //	if (cg.chatItems->time > cg_chatBox.integer + cg.time) {
@@ -7640,10 +7620,8 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void)
 //	}
 	memset(drawThese, 0, sizeof(drawThese));
 
-	while (i < MAX_CHATBOX_ITEMS)
-	{
-		if (cg.chatItems[i].time >= cg.time)
-		{
+	while (i < MAX_CHATBOX_ITEMS) {
+		if (cg.chatItems[i].time >= cg.time) {
 			int check = numToDraw;
 			int insertionPoint = numToDraw;
 
@@ -7652,11 +7630,9 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void)
 				return;
 			}
 
-			while (check >= 0)
-			{
-				if (drawThese[check] &&
-					cg.chatItems[i].time < drawThese[check]->time)
-				{ //insert here
+			while (check >= 0) {
+				if (drawThese[check] && cg.chatItems[i].time < drawThese[check]->time) {
+				//insert here
 					insertionPoint = check;
 				}
 				check--;
@@ -7668,8 +7644,7 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void)
 		i++;
 	}
 
-	if (!numToDraw)
-	{ //nothing, then, just get out of here now.
+	if (!numToDraw) { //nothing, then, just get out of here now.
 		return;
 	}
 
@@ -7678,8 +7653,7 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void)
 
 	//we have the items we want to draw, just quickly loop through them now
 	i = 0;
-	while (i < numToDraw)
-	{
+	while (i < numToDraw) {
 		CG_Text_Paint(x, y, fontScale, colorWhite, drawThese[i]->string, 0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_SMALL );
 		y += ((CHATBOX_FONT_HEIGHT*fontScale)*drawThese[i]->lines);
 		i++;
@@ -7688,30 +7662,39 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void)
 }
 
 static void CG_DrawInWaterTints (void) {
-	vec4_t hcolor;
 	if ((cg.refdef.viewContents&CONTENTS_LAVA)) {
 	//tint screen red
+		vec4_t hcolor;
 		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
 		hcolor[3] = 0.5 + (0.15f*sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
 		hcolor[0] = 0.7f;
 		hcolor[1] = 0;
 		hcolor[2] = 0;
+		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 	} else if ((cg.refdef.viewContents&CONTENTS_SLIME)) {
 	//tint screen green
+		vec4_t hcolor;
 		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
 		hcolor[3] = 0.4 + (0.1f*sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
 		hcolor[0] = 0;
 		hcolor[1] = 0.7f;
 		hcolor[2] = 0;
+		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 	} else if ((cg.refdef.viewContents&CONTENTS_WATER)) {
 	//tint screen light blue -- FIXME: don't do this if CONTENTS_FOG? (in case someone *does* make a water shader with fog in it?)
+		vec4_t hcolor;
 		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
 		hcolor[3] = 0.3f + (0.05f*(float)sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
 		hcolor[0] = 0;
 		hcolor[1] = 0.2f;
 		hcolor[2] = 0.8f;
+		//better underwater colour
+//		hcolor[3] = 0.2f + (0.05f*(float)sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
+//		hcolor[0] = 0.1;
+//		hcolor[1] = 0.4f;
+//		hcolor[2] = 0.7f;
+		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 	}
-	CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 }
 
 static void CG_Draw2DScreenTints( void ) {
@@ -7766,7 +7749,7 @@ static void CG_Draw2DScreenTints( void ) {
 			
 			rageTime = cgRageFadeVal;
 			
-			cgRageFadeVal -= ((cg.time - cgRageFadeTime) + cg.timeFraction)*0.000005;
+			cgRageFadeVal -= ((cg.time - cgRageFadeTime) + cg.timeFraction)*0.000005f;
 			
 			if (rageTime < 0)
 			{
@@ -7888,7 +7871,7 @@ static void CG_Draw2DScreenTints( void ) {
 			
 			rageRecTime = cgRageRecFadeVal;
 			
-			cgRageRecFadeVal -= ((cg.time - cgRageRecFadeTime) + cg.timeFraction)*0.000005;
+			cgRageRecFadeVal -= ((cg.time - cgRageRecFadeTime) + cg.timeFraction)*0.000005f;
 			
 			if (rageRecTime < 0)
 			{
@@ -8038,7 +8021,7 @@ static void CG_Draw2DScreenTints( void ) {
 			
 			protectTime = cgProtectFadeVal;
 			
-			cgProtectFadeVal -= ((cg.time - cgProtectFadeTime) + cg.timeFraction)*0.000005;
+			cgProtectFadeVal -= ((cg.time - cgProtectFadeTime) + cg.timeFraction)*0.000005f;
 			
 			if (protectTime < 0)
 			{
@@ -8222,6 +8205,7 @@ void CG_Draw2D (void) {
 			CG_DrawActivePowers();
 		CG_DrawZoomMask();
 		CG_DrawCrosshairNames();
+		CG_SaberClashFlare();
 		if (cg_drawStatus.integer)
 			CG_DrawFlagStatus();
 		CG_DrawPickupItem();
@@ -8235,9 +8219,9 @@ void CG_Draw2D (void) {
 
 	CG_Draw2DScreenTints();
 
-		if (cg.snap->ps.rocketLockIndex != ENTITYNUM_NONE && (cg.time - cg.snap->ps.rocketLockTime) > 0) {
-			CG_DrawRocketLocking( cg.snap->ps.rocketLockIndex, cg.snap->ps.rocketLockTime );
-		}
+	if (cg.snap->ps.rocketLockIndex != ENTITYNUM_NONE && (cg.time - cg.snap->ps.rocketLockTime) > 0) {
+		CG_DrawRocketLocking( cg.snap->ps.rocketLockIndex, cg.snap->ps.rocketLockTime );
+	}
 
 	if (cg.snap->ps.holocronBits)
 		CG_DrawHolocronIcons();
@@ -8575,7 +8559,7 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	}
 
 	// draw status bar and other floating elements
-	if (!cg.demoPlayback) {
+	if (cg.demoPlayback != 2) {
 		vec4_t hcolor = {0, 0, 0, 0};
 		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 		CG_Draw2D();

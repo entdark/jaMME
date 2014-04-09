@@ -543,7 +543,7 @@ void S_PaintChannels( int endtime ) {
 
 static	mixSound_t		*mixSounds[SFX_SOUNDS];
 
-#define DEF_COMSOUNDMEGS "64"
+#define DEF_COMSOUNDMEGS "32"
 static  mixSound_t		*mixAllocSounds = 0;
 static  mixSound_t		mixEmptySound;
 
@@ -1181,9 +1181,9 @@ void S_MixInit( void ) {
 
 	cv = Cvar_Get( "com_soundMegs", DEF_COMSOUNDMEGS, CVAR_LATCH | CVAR_ARCHIVE );
 	allocSize = cv->integer * 1024 * 1024;
-	/* Sneakily force the soundmegs at atleast 64 mb */
-	if (allocSize < 64 * 1024 * 1024)
-		allocSize = 64 * 1024 * 1024;
+	/* Sneakily force the soundmegs at atleast 32 mb */
+	if (allocSize < 32 * 1024 * 1024)
+		allocSize = 32 * 1024 * 1024;
 	//Use calloc, seems faster when debugging
 	mixAllocSounds = (mixSound_t *)calloc( allocSize, 1 );
 	if (!mixAllocSounds) {
@@ -1192,7 +1192,7 @@ void S_MixInit( void ) {
 	/* How many similar sounding close to eachother sound effects */
 	s_mixSame = Cvar_Get( "s_mixSame", "2", CVAR_ARCHIVE );
 
-	s_effects = Cvar_Get( "s_effects", "0", CVAR_ARCHIVE );
+	s_effects = Cvar_Get( "s_effects", "1", CVAR_ARCHIVE );
 	S_EffectInit();
 
 	/* Init the first block */

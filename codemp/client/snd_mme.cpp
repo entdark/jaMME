@@ -8,8 +8,6 @@
 #define MME_SNDCHANNELS 128
 #define MME_LOOPCHANNELS 128
 
-#define MME_SAMPLERATE	44100 //ja is full of 44khz mp3
-
 extern	cvar_t	*mme_saveWav;
 
 typedef struct {
@@ -72,6 +70,23 @@ void S_MMEWavClose(void) {
 	Com_Memset( &mmeSound, 0, sizeof(mmeSound) );
 }
 
+#define MAXUPDATE 4096
+
+//short *wavExportBuf;
+static byte wavExportBuf[MME_SAMPLERATE] = {0};
+static int bytesInBuf = 0;
+qboolean S_MMEAviExport(byte *out, int *size) {
+	if (mme_saveWav->integer != 2)
+		return qfalse;
+	*size = 0;
+	if (bytesInBuf <= 0)
+		return qtrue;
+	Com_Memcpy( out, wavExportBuf, bytesInBuf );
+	*size = bytesInBuf;
+	bytesInBuf = 0;
+	return qtrue;
+}
+
 /*
 ===================
 S_MME_Update
@@ -79,16 +94,16 @@ S_MME_Update
 Called from CL_Frame() in cl_main.c when shooting avidemo
 ===================
 */
-#define MAXUPDATE 4096
 void S_MMEUpdate( float scale ) {
 	int count, speed;
 	int mixTemp[MAXUPDATE*2], tempBuf[MAXUPDATE*2];
 	short mixClip[MAXUPDATE*2];
 
-	if (!mmeSound.fileHandle)
+	if (!mmeSound.fileHandle && mme_saveWav->integer != 2)
 		return;
 	if (!mmeSound.gotFrame) {
-		S_MMEWavClose();
+		if (mme_saveWav->integer != 2)
+			S_MMEWavClose();
 		return;
 	}
 	count = (int)mmeSound.deltaSamples;
@@ -109,18 +124,22 @@ void S_MMEUpdate( float scale ) {
 		S_MixEffects( &mmeSound.effect, speed, count, mixTemp );
 	}	
 	S_MixClipOutput( count, mixTemp, mixClip, 0, MAXUPDATE - 1 );
-	FS_Write( mixClip, count*4, mmeSound.fileHandle );
+	if (mme_saveWav->integer != 2) {
+		FS_Write( mixClip, count*4, mmeSound.fileHandle );
+	} else if (mme_saveWav->integer == 2) {
+		Com_Memcpy(&wavExportBuf[bytesInBuf], mixClip, count*4 );
+		bytesInBuf += count*4;
+	}
 	mmeSound.fileSize += count * 4;
 	mmeSound.gotFrame = qfalse;
 }
 
 void S_MMERecord( const char *baseName, float deltaTime ) {
 #ifdef SND_MME
-	char fileName[MAX_OSPATH];
-
 	if (!mme_saveWav->integer)
 		return;
-	if (Q_stricmp(baseName, mmeSound.baseName)) {
+	if (Q_stricmp(baseName, mmeSound.baseName) && mme_saveWav->integer != 2) {
+		char fileName[MAX_OSPATH];
 		if (mmeSound.fileHandle)
 			S_MMEWavClose();
 		Com_sprintf( fileName, sizeof(fileName), "%s.wav", baseName );
@@ -143,6 +162,12 @@ void S_MMERecord( const char *baseName, float deltaTime ) {
        		}
 			mmeSound.fileSize = WAV_HEADERSIZE;
 		}
+	} else if (Q_stricmp(baseName, mmeSound.baseName) && mme_saveWav->integer == 2) {
+		Q_strncpyz( mmeSound.baseName, baseName, sizeof( mmeSound.baseName ));
+		mmeSound.deltaSamples = 0;
+		mmeSound.sampleRate = MME_SAMPLERATE;
+		mmeSound.fileSize = 0;
+		bytesInBuf = 0;
 	}
 	mmeSound.deltaSamples += deltaTime * mmeSound.sampleRate;
 	mmeSound.gotFrame = qtrue;

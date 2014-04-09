@@ -782,6 +782,7 @@ CG_AddViewWeapon
 Add the weapon, and flash for the player's view
 ==============
 */
+#define SIL_IS_A_COOL_CAT
 void CG_AddViewWeaponDirect( centity_t *cent ) {
 	refEntity_t	hand;
 	clientInfo_t	*ci;
@@ -790,19 +791,16 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 	weaponInfo_t	*weapon;
 	float	cgFov = cg_fov.value;
 
-	if (cgFov < 1)
-	{
-		cgFov = 1;
-	}
-	if (cgFov > 97)
-	{
-		cgFov = 97;
-	}
-
 	// no gun if in third person view or a camera is active
 	//if ( cg.renderingThirdPerson || cg.cameraMode) {
 	if ( cg.renderingThirdPerson ) {
 		return;
+	}
+
+	if (cgFov < 1) {
+		cgFov = 1;
+	} else if (cgFov > 180) {
+		cgFov = 180;
 	}
 
 	//[TrueView]
@@ -916,11 +914,9 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 }
 
 void CG_AddViewWeapon( playerState_t *ps ) {
-
 	if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
 		return;
 	}
-
 	if ( ps->pm_type == PM_INTERMISSION ) {
 		return;
 	}
@@ -1297,11 +1293,11 @@ void CG_DrawWeaponSelect( void ) {
 		trap_R_SetColor( colorTable[CT_WHITE]);
 		if (!CG_WeaponCheck(cg.weaponSelect))
 		{
-			CG_DrawPic( x-(bigIconSize/2), (y-((bigIconSize-smallIconSize)/2))+10+yOffset, bigIconSize*cgs.widthRatioCoef, bigIconSize, cgs.media.weaponIcons_NA[cg.weaponSelect] );
+			CG_DrawPic( x-(bigIconSize*cgs.widthRatioCoef/2), (y-((bigIconSize-smallIconSize)/2))+10+yOffset, bigIconSize*cgs.widthRatioCoef, bigIconSize, cgs.media.weaponIcons_NA[cg.weaponSelect] );
 		}
 		else
 		{
-			CG_DrawPic( x-(bigIconSize/2), (y-((bigIconSize-smallIconSize)/2))+10+yOffset, bigIconSize*cgs.widthRatioCoef, bigIconSize, cgs.media.weaponIcons[cg.weaponSelect] );
+			CG_DrawPic( x-(bigIconSize*cgs.widthRatioCoef/2), (y-((bigIconSize-smallIconSize)/2))+10+yOffset, bigIconSize*cgs.widthRatioCoef, bigIconSize, cgs.media.weaponIcons[cg.weaponSelect] );
 		}
 	}
 
@@ -2277,7 +2273,8 @@ qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 			AngleVectors( cg.refdef.viewangles, forward, right, NULL );
 		}
 
-		if (cg.playerPredicted && weapontype == WP_EMPLACED_GUN && cg.snap->ps.emplacedIndex) {
+		if ((cg.playerPredicted && weapontype == WP_EMPLACED_GUN && cg.snap->ps.emplacedIndex)
+			|| (!cg.playerPredicted && weapontype == WP_EMPLACED_GUN)) {
 			centity_t *gunEnt = &cg_entities[cg.snap->ps.emplacedIndex];
 
 			if (gunEnt) {
@@ -2303,7 +2300,8 @@ qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 		VectorMA(muzzle, weaponMuzzle[0], forward, muzzle);
 		VectorMA(muzzle, weaponMuzzle[1], right, muzzle);
 
-		if (cg.playerPredicted && weapontype == WP_EMPLACED_GUN && cg.snap->ps.emplacedIndex) {
+		if ((cg.playerPredicted && weapontype == WP_EMPLACED_GUN && cg.snap->ps.emplacedIndex) ||
+			(!cg.playerPredicted && weapontype == WP_EMPLACED_GUN)) {
 			//Do nothing
 		} else if (cg.renderingThirdPerson) {
 			muzzle[2] += cg.playerCent->pe.viewHeight + weaponMuzzle[2];
@@ -2329,9 +2327,7 @@ qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle ) {
 	}
 
 	VectorMA( muzzle, 14, forward, muzzle );
-
 	return qtrue;
-
 }
 
 

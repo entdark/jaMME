@@ -1052,10 +1052,9 @@ static void CG_RegisterSounds( void ) {
 	cgs.media.purpleSaberCoreShader		= trap_R_RegisterShader( "gfx/effects/sabers/purple_line" );
 
 
+	//[RGBSabers]
 	//if no ja++ shader
 		//then try ja+ shader
-
-	//[RGBSabers]
 	cgs.media.rgbSaberGlowShader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBglow1" );
 	if (!cgs.media.rgbSaberGlowShader)
 		cgs.media.rgbSaberGlowShader	= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/RGBGlow" );

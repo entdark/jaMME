@@ -65,7 +65,7 @@ void AxisToMatrix(const vec3_t axis[3], mdxaBone_t *matrix) {
 	matrix->matrix[2][3] = 0;
 }
 
-void CreateMatrix(const float *angle, mdxaBone_t *matrix) {
+void MatrixCreate(const float *angle, mdxaBone_t *matrix) {
 	vec3_t		axis[3];
 
 	// convert angles to axis
@@ -85,6 +85,62 @@ void CreateMatrix(const float *angle, mdxaBone_t *matrix) {
 	matrix->matrix[0][3] = 0;
 	matrix->matrix[1][3] = 0;
 	matrix->matrix[2][3] = 0;
+}
+
+void MatrixInverse3x3(mdxaBone_t *m) {
+	int i, j, k;
+	float E[3][3], temp;
+	
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
+			E[i][j] = 0.0f;
+			if (i == j)
+				E[i][j] = 1.0f;
+		}
+	}
+	for (k = 0; k < 3; k++) {
+		temp = m->matrix[k][k];
+		for (j = 0; j < 3; j++) {
+			m->matrix[k][j] /= temp;
+			E[k][j] /= temp;
+		}
+		for (i = k + 1; i < 3; i++) {
+			temp = m->matrix[i][k];
+			for (j = 0; j < 3; j++) {
+				m->matrix[i][j] -= m->matrix[k][j] * temp;
+				E[i][j] -= E[k][j] * temp;
+			}
+		}
+	}
+	for (k = 3 - 1; k > 0; k--) {
+		for (i = k - 1; i >= 0; i--) {
+			temp = m->matrix[i][k];
+			for (j = 0; j < 3; j++) {
+				m->matrix[i][j] -= m->matrix[k][j] * temp;
+				E[i][j] -= E[k][j] * temp;
+			}
+		}
+	}
+	for (i = 0; i < 3; i++)
+		for (j = 0; j < 3; j++)
+			m->matrix[i][j] = E[i][j];
+}
+void MatrixMultiply3x4(mdxaBone_t *out, const mdxaBone_t *in2, const mdxaBone_t *in) {
+	// first row of out                                                                                      
+	out->matrix[0][0] = (in2->matrix[0][0] * in->matrix[0][0]) + (in2->matrix[0][1] * in->matrix[1][0]) + (in2->matrix[0][2] * in->matrix[2][0]);
+	out->matrix[0][1] = (in2->matrix[0][0] * in->matrix[0][1]) + (in2->matrix[0][1] * in->matrix[1][1]) + (in2->matrix[0][2] * in->matrix[2][1]);
+	out->matrix[0][2] = (in2->matrix[0][0] * in->matrix[0][2]) + (in2->matrix[0][1] * in->matrix[1][2]) + (in2->matrix[0][2] * in->matrix[2][2]);
+	out->matrix[0][3] = (in2->matrix[0][0] * in->matrix[0][3]) + (in2->matrix[0][1] * in->matrix[1][3]) + (in2->matrix[0][2] * in->matrix[2][3]) + in2->matrix[0][3];
+	// second row of outf out                                                                                     
+	out->matrix[1][0] = (in2->matrix[1][0] * in->matrix[0][0]) + (in2->matrix[1][1] * in->matrix[1][0]) + (in2->matrix[1][2] * in->matrix[2][0]);
+	out->matrix[1][1] = (in2->matrix[1][0] * in->matrix[0][1]) + (in2->matrix[1][1] * in->matrix[1][1]) + (in2->matrix[1][2] * in->matrix[2][1]);
+	out->matrix[1][2] = (in2->matrix[1][0] * in->matrix[0][2]) + (in2->matrix[1][1] * in->matrix[1][2]) + (in2->matrix[1][2] * in->matrix[2][2]);
+	out->matrix[1][3] = (in2->matrix[1][0] * in->matrix[0][3]) + (in2->matrix[1][1] * in->matrix[1][3]) + (in2->matrix[1][2] * in->matrix[2][3]) + in2->matrix[1][3];
+	// third row of out  out                                                                                      
+	out->matrix[2][0] = (in2->matrix[2][0] * in->matrix[0][0]) + (in2->matrix[2][1] * in->matrix[1][0]) + (in2->matrix[2][2] * in->matrix[2][0]);
+	out->matrix[2][1] = (in2->matrix[2][0] * in->matrix[0][1]) + (in2->matrix[2][1] * in->matrix[1][1]) + (in2->matrix[2][2] * in->matrix[2][1]);
+	out->matrix[2][2] = (in2->matrix[2][0] * in->matrix[0][2]) + (in2->matrix[2][1] * in->matrix[1][2]) + (in2->matrix[2][2] * in->matrix[2][2]);
+	out->matrix[2][3] = (in2->matrix[2][0] * in->matrix[0][3]) + (in2->matrix[2][1] * in->matrix[1][3]) + (in2->matrix[2][2] * in->matrix[2][3]) + in2->matrix[2][3]; 
 }
 
 void MatrixAxisToAngles( const vec3_t axis[3], vec3_t angles ) {

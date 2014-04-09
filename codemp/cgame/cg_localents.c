@@ -244,7 +244,7 @@ void CG_AddFragment( localEntity_t *le ) {
 
 	if ( le->pos.trType == TR_STATIONARY ) {
 		// sink into the ground if near the removal time
-		int		t;
+		float	t;
 		float	t_e;
 		
 		t = (le->endTime - cg.time) + cg.timeFraction;

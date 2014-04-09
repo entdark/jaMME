@@ -1279,7 +1279,6 @@ extern	cvar_t	*r_debugSort;
 //extern	cvar_t	*mme_aviFormat;
 //extern	cvar_t	*mme_screenshotName;
 
-extern cvar_t	*mme_aviOutput;
 extern cvar_t	*mme_screenShotFormat;
 extern cvar_t	*mme_screenShotGamma;
 extern cvar_t	*mme_screenShotAlpha;

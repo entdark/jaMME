@@ -429,7 +429,7 @@ static void cameraPointReset( demoCameraPoint_t *point ) {
 
 }
 
-void cameraDrawPath( demoCameraPoint_t *point, const vec4_t color) {
+static void cameraDrawPath( demoCameraPoint_t *point, const vec4_t color) {
 	int i;
 	polyVert_t verts[4];
 	qboolean skipFirst = qtrue;
@@ -858,7 +858,7 @@ void cameraDraw( int time, float timeFraction ) {
 	}
 }
 
-void cameraSmooth( void ) {
+static void cameraSmooth( void ) {
 	demoCameraPoint_t *startPoint, *endPoint;
 	demoCameraPoint_t *point;
 

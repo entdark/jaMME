@@ -94,7 +94,7 @@ int	FX_Init( refdef_t* refdef )
 	fx_countScale = Cvar_Get("fx_countScale", "1", CVAR_ARCHIVE);
 	fx_nearCull = Cvar_Get("fx_nearCull", "16", CVAR_ARCHIVE);
 
-	fx_forcePhysics = Cvar_Get("fx_forcePhysics", "0", CVAR_ARCHIVE);
+	fx_forcePhysics = Cvar_Get("fx_forcePhysics", "13", CVAR_ARCHIVE);
 
 	theFxHelper.ReInit(refdef);
 

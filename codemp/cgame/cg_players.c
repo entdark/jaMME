@@ -1554,8 +1554,25 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 
 	ci = &cgs.clientinfo[clientNum];
 
+	while (k < MAX_SABERS)
+	{
+		oldG2Weapons[k] = ci->ghoul2Weapons[k];
+		k++;
+	}
+
 	strings[5] = CG_ConfigString( clientNum + CS_PLAYERS );
 	if ( !strings[5][0] ) {
+		if (ci->ghoul2Model && trap_G2_HaveWeGhoul2Models(ci->ghoul2Model)) {
+			//clean this stuff up first
+			trap_G2API_CleanGhoul2Models(&ci->ghoul2Model);
+		}
+		k = 0;
+		while (k < MAX_SABERS) {
+			if (ci->ghoul2Weapons[k] && trap_G2_HaveWeGhoul2Models(ci->ghoul2Weapons[k])) {
+				trap_G2API_CleanGhoul2Models(&ci->ghoul2Weapons[k]);
+			}
+			k++;
+		}
 		memset( ci, 0, sizeof( *ci ) );
 		return;		// player just left
 	}
@@ -1569,32 +1586,6 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	strings[4] = cgs.allOverride;
 
 	oldGhoul2 = ci->ghoul2Model;
-
-	while (k < MAX_SABERS)
-	{
-		oldG2Weapons[k] = ci->ghoul2Weapons[k];
-		k++;
-	}
-
-	configstring = CG_ConfigString( clientNum + CS_PLAYERS );
-	if ( !configstring[0] ) {
-		if (ci->ghoul2Model && trap_G2_HaveWeGhoul2Models(ci->ghoul2Model))
-		{ //clean this stuff up first
-			trap_G2API_CleanGhoul2Models(&ci->ghoul2Model);
-		}
-		k = 0;
-		while (k < MAX_SABERS)
-		{
-			if (ci->ghoul2Weapons[k] && trap_G2_HaveWeGhoul2Models(ci->ghoul2Weapons[k]))
-			{
-				trap_G2API_CleanGhoul2Models(&ci->ghoul2Weapons[k]);
-			}
-			k++;
-		}
-
-		memset( ci, 0, sizeof( *ci ) );
-		return;		// player just left
-	}
 
 	// build into a temp buffer so the defer checks can use
 	// the old value
@@ -1719,7 +1710,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	}
 
 	//[RGBSabers]
-	yo = Info_ValueForKey(configstring, "c3");
+	yo = ConfigValue( strings, "c3");
 	if (!skipColor) {
 		int red		= atoi(yo) & 255;
 		int green	= (atoi(yo) >> 8) & 255;
@@ -1733,7 +1724,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 		ParseRGBSaber( va( "%i,%i,%i", red, green, blue ), newInfo.rgb1 );
 	}
 
-	yo = Info_ValueForKey(configstring, "c4");
+	yo = ConfigValue( strings, "c4");
 	if (!skipColor2) {
 		int red		= atoi(yo) & 255;
 		int green	= (atoi(yo) >> 8) & 255;
@@ -1750,7 +1741,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	//[/RGBSabers]
 
 	//Raz: Gender hints
-	if ( (v = Info_ValueForKey( configstring, "ds" )) )
+	if ( (v = ConfigValue( strings, "ds" )) )
 	{
 		if ( *v == 'm' )
 			newInfo.gender = GENDER_MALE;
@@ -1759,11 +1750,11 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	}	
 
 	// team task
-	v = Info_ValueForKey( configstring, "tt" );
+	v = ConfigValue( strings, "tt" );
 	newInfo.teamTask = atoi(v);
 
 	// team leader
-	v = Info_ValueForKey( configstring, "tl" );
+	v = ConfigValue( strings, "tl" );
 	newInfo.teamLeader = atoi(v);
 
 //	v = Info_ValueForKey( configstring, "g_redteam" );
@@ -1849,7 +1840,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	if (cgs.gametype == GT_SIEGE)
 	{ //entries only sent in siege mode
 		//siege desired team
-		v = Info_ValueForKey( configstring, "sdt" );
+		v = ConfigValue( strings, "sdt" );
 		if (v && v[0])
 		{
             newInfo.siegeDesiredTeam = atoi(v);
@@ -1860,7 +1851,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 		}
 
 		//siege classname
-		v = Info_ValueForKey( configstring, "siegeclass" );
+		v = ConfigValue( strings, "siegeclass" );
 		newInfo.siegeIndex = -1;
 
 		if (v)
@@ -1975,7 +1966,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	}
 
 	//duel team
-	v = Info_ValueForKey( configstring, "dt" );
+	v = ConfigValue( strings, "dt" );
 
 	if (v)
 	{
@@ -1987,7 +1978,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	}
 
 	// force powers
-	v = Info_ValueForKey( configstring, "forcepowers" );
+	v = ConfigValue( strings, "forcepowers" );
 	Q_strncpyz( newInfo.forcePowers, v, sizeof( newInfo.forcePowers ) );
 
 	if (cgs.gametype >= GT_TEAM	&& !cgs.jediVmerc && cgs.gametype != GT_SIEGE )
@@ -4822,13 +4813,13 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 		else if (ci->shaderOverride == 2 && cg_renderToTextureFX.integer)
 			ent.customShader = ci->shaderOverride;
 
-		trap_R_AddRefEntityToScene( &ent, cent->currentState.number );
+		trap_R_AddRefEntityToScene( &ent );
 		ent.modelScale[0] = 1.0;
 		ent.modelScale[1] = -1.0;
 		ent.modelScale[2] = 1.0;
 		ScaleModelAxis( &ent );
 	//	trap_R_AddRefEntityToScene( &ent );
-		trap_R_AddRefEntityToScene( &ent, cent->currentState.number );
+		trap_R_AddRefEntityToScene( &ent );
 	} else {
 		ent.modelScale[0] = 0.5;
 		ent.modelScale[1] = 0.5;
@@ -5856,8 +5847,7 @@ static void CG_DoSaberLight(saberInfo_t *saber, int cnum, int bnum) {
 
 //void CG_DoSaber( vec3_t origin, vec3_t dir, float length, float lengthMax, float radius, saber_colors_t color, int rfx, qboolean doLight )
 //[RGBSabers]
-void CG_DoSaber( vec3_t origin, vec3_t dir, float length, float lengthMax, float radius, saber_colors_t color, int rfx, qboolean doLight, int cnum, int bnum )
-{
+void CG_DoSaber( vec3_t origin, vec3_t dir, float length, float lengthMax, float radius, saber_colors_t color, int rfx, qboolean doLight, int cnum, int bnum ) {
 	vec3_t		mid;
 	qhandle_t	blade = 0, glow = 0;
 	refEntity_t saber;
@@ -5954,7 +5944,7 @@ void CG_DoSaber( vec3_t origin, vec3_t dir, float length, float lengthMax, float
 //		trap_R_AddLightToScene( mid, (length*1.4f) + (random()*3.0f), rgb[0], rgb[1], rgb[2] );
 		//[RGBSabers]
 		float light = length*1.4f + random()*3.0f;
-		CG_RGBForSaberColor( color, rgb , cnum, bnum);
+		CG_RGBForSaberColor(color, rgb , cnum, bnum);
 		trap_R_AddLightToScene( mid, light, rgb[0], rgb[1], rgb[2] );
 		//[/RGBSabers]
 	}
@@ -5967,17 +5957,14 @@ void CG_DoSaber( vec3_t origin, vec3_t dir, float length, float lengthMax, float
 
 	// Jeff, I did this because I foolishly wished to have a bright halo as the saber is unleashed.  
 	// It's not quite what I'd hoped tho.  If you have any ideas, go for it!  --Pat
-	if (length < lengthMax)
-	{
+	if (length < lengthMax) {
 		radiusmult = 1.0 + (2.0 / length);		// Note this creates a curve, and length cannot be < 0.5.
-	}
-	else
-	{
+	} else {
 		radiusmult = 1.0;
 	}
 
-	if (cg_saberTrail.integer == 2 && cg_shadows.integer != 2 && cgs.glconfig.stencilBits >= 4)
-	{ //draw the blade as a post-render so it doesn't get in the cap...
+	if (cg_saberTrail.integer == 2 && cg_shadows.integer != 2 && cgs.glconfig.stencilBits >= 4) {
+	//draw the blade as a post-render so it doesn't get in the cap...
 		rfx |= RF_FORCEPOST;
 	}
 
@@ -5998,10 +5985,9 @@ void CG_DoSaber( vec3_t origin, vec3_t dir, float length, float lengthMax, float
 	saber.customShader = glow;
 //	saber.shaderRGBA[0] = saber.shaderRGBA[1] = saber.shaderRGBA[2] = saber.shaderRGBA[3] = 0xff;
 	//[RGBSabers]
-	if ( color < SABER_RGB )
+	if ( color < SABER_RGB ) {
 		saber.shaderRGBA[0] = saber.shaderRGBA[1] = saber.shaderRGBA[2] = saber.shaderRGBA[3] = 0xff;
-	else
-	{
+	} else {
 		for ( i=0; i<3; i++ )
 			saber.shaderRGBA[i] = rgb[i];
 		saber.shaderRGBA[3] = 0xff;
@@ -7108,7 +7094,7 @@ CheckTrail:
 							} 
 							else 
 							{ 
-								//[/RGBSabers] && //RAZTEST: trail shaders
+								//[RGBSabers] && //RAZTEST: trail shaders
 								fx.mShader = trailShader; //cgs.media.saberBlurShader;
 							}
 							fx.mKillTime = trailDur;
@@ -7300,62 +7286,45 @@ JustDoIt:
 	}*/
 }
 
-int CG_IsMindTricked(int trickIndex1, int trickIndex2, int trickIndex3, int trickIndex4, int client)
-{
+int CG_IsMindTricked(int trickIndex1, int trickIndex2, int trickIndex3, int trickIndex4, int client) {
 	int checkIn;
 	int sub = 0;
 
-	if (cg_entities[client].currentState.forcePowersActive & (1 << FP_SEE))
-	{
+	if (cg_entities[client].currentState.forcePowersActive & (1 << FP_SEE)) {
 		return 0;
 	}
-
-	if (client > 47)
-	{
+	if (client > 47) {
 		checkIn = trickIndex4;
 		sub = 48;
-	}
-	else if (client > 31)
-	{
+	} else if (client > 31) {
 		checkIn = trickIndex3;
 		sub = 32;
-	}
-	else if (client > 15)
-	{
+	} else if (client > 15) {
 		checkIn = trickIndex2;
 		sub = 16;
-	}
-	else
-	{
+	} else {
 		checkIn = trickIndex1;
 	}
-
-	if (checkIn & (1 << (client-sub)))
-	{
+	if (checkIn & (1 << (client-sub))) {
 		return 1;
-	}
-	
+	}	
 	return 0;
 }
 
 #define SPEED_TRAIL_DISTANCE 6
 
-void CG_DrawPlayerSphere(centity_t *cent, vec3_t origin, float scale, int shader)
-{
+void CG_DrawPlayerSphere(centity_t *cent, vec3_t origin, float scale, int shader) {
 	refEntity_t ent;
 	vec3_t ang;
 	float vLen;
 	vec3_t viewDir;
 	
 	// Don't draw the shield when the player is dead.
-	if (cent->currentState.eFlags & EF_DEAD)
-	{
+	if (cent->currentState.eFlags & EF_DEAD) {
 		return;
 	}
 
-	if (cg.playerCent
-		&& cent == cg.playerCent
-		&& !cg.renderingThirdPerson) {
+	if (cg.playerCent && cent == cg.playerCent && !cg.renderingThirdPerson) {
 		return;
 	}
 
@@ -7407,36 +7376,29 @@ void CG_DrawPlayerSphere(centity_t *cent, vec3_t origin, float scale, int shader
 	VectorScale(ent.axis[2], scale*0.5f, ent.axis[2]);
 
 	ent.renderfx = (RF_DISTORTION|RF_FORCE_ENT_ALPHA);
-	if (shader == cgs.media.invulnerabilityShader)
-	{ //ok, ok, this is a little hacky. sorry!
+	if (shader == cgs.media.invulnerabilityShader) {
+	//ok, ok, this is a little hacky. sorry!
 		ent.shaderRGBA[0] = 0;
 		ent.shaderRGBA[1] = 255;
 		ent.shaderRGBA[2] = 0;
 		ent.shaderRGBA[3] = 100;
-	}
-	else if (shader == cgs.media.ysalimariShader)
-	{
+	} else if (shader == cgs.media.ysalimariShader) {
 		ent.shaderRGBA[0] = 255;
 		ent.shaderRGBA[1] = 255;
 		ent.shaderRGBA[2] = 0;
 		ent.shaderRGBA[3] = 100;
-	}
-	else if (shader == cgs.media.endarkenmentShader)
-	{
+	} else if (shader == cgs.media.endarkenmentShader) {
 		ent.shaderRGBA[0] = 100;
 		ent.shaderRGBA[1] = 0;
 		ent.shaderRGBA[2] = 0;
 		ent.shaderRGBA[3] = 20;
-	}
-	else if (shader == cgs.media.enlightenmentShader)
-	{
+	} else if (shader == cgs.media.enlightenmentShader) {
 		ent.shaderRGBA[0] = 255;
 		ent.shaderRGBA[1] = 255;
 		ent.shaderRGBA[2] = 255;
 		ent.shaderRGBA[3] = 20;
-	}
-	else
-	{ //ysal red/blue, boon
+	} else {
+	//ysal red/blue, boon
 		ent.shaderRGBA[0] = 255.0f;
 		ent.shaderRGBA[1] = 255.0f;
 		ent.shaderRGBA[2] = 255.0f;
@@ -10055,8 +10017,7 @@ void CG_Player( centity_t *cent ) {
 			cent->trickAlpha -= (cg.time - cent->trickAlphaTime) * 0.5;
 			cent->trickAlphaTime = cg.time;
 
-			if (cent->trickAlpha < 0)
-			{
+			if (cent->trickAlpha < 0) {
 				cent->trickAlpha = 0;
 			}
 
@@ -10088,7 +10049,7 @@ void CG_Player( centity_t *cent ) {
 	// get the player model information
 	renderfx = 0;
 	if ( cent == cg.playerCent ) {
-		if ( mov_filterMask.integer & movMaskClient) {
+		if (mov_filterMask.integer & movMaskClient) {
 			return;
 		}
 		if (!cg.renderingThirdPerson) {
@@ -10119,7 +10080,7 @@ void CG_Player( centity_t *cent ) {
 				return;
 			}
 		}
-	} else if ( mov_filterMask.integer & movMaskPlayers) {
+	} else if (mov_filterMask.integer & movMaskPlayers) {
 		return;
 	}
 	if (mov_wallhack.integer && cg.demoPlayback) {
@@ -10132,8 +10093,7 @@ void CG_Player( centity_t *cent ) {
 	// Save the old weapon, to verify that it is or is not the same as the new weapon.
 	// rww - Make sure weapons don't get set BEFORE cent->ghoul2 is initialized or else we'll have no
 	// weapon bolted on
-	if (cent->currentState.saberInFlight)
-	{
+	if (cent->currentState.saberInFlight) {
 		cent->ghoul2weapon = CG_G2WeaponInstance(cent, WP_SABER);
 	}
 
@@ -10327,15 +10287,17 @@ skipEffectOverride:
 		}
 	}
 
-	if (cg.playerPredicted && cgs.gametype == GT_JEDIMASTER && cg_drawFriend.integer &&
-		cent != cg.playerCent) // Don't show a sprite above a player's own head in 3rd person.
+	if (cgs.gametype == GT_JEDIMASTER && cg_drawFriend.integer &&
+		cg.playerCent && cent != cg.playerCent) // Don't show a sprite above a player's own head in 3rd person.
 	{	// If the view is either a spectator or on the same team as this character, show a symbol above their head.
-		if ((cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.snap->ps.persistant[PERS_TEAM] == team) &&
-			!(cent->currentState.eFlags & EF_DEAD))
+		if (((cg.playerPredicted
+			&& (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR || cg.snap->ps.persistant[PERS_TEAM] == team))
+			|| (!cg.playerPredicted && cgs.clientinfo[cg.playerCent->currentState.number].team == team))
+			&& !(cent->currentState.eFlags & EF_DEAD))
 		{
 			if (CG_ThereIsAMaster())
 			{
-				if (!cg.snap->ps.isJediMaster)
+				if (cg.playerPredicted?!cg.snap->ps.isJediMaster:cg.playerCent->currentState.isJediMaster)
 				{
 					if (!cent->currentState.isJediMaster)
 					{
@@ -10372,18 +10334,13 @@ skipEffectOverride:
 
 		VectorCopy(seeker.origin, seekorg);
 
-		if (cent->currentState.genericenemyindex > MAX_GENTITIES)
-		{
+		if (cent->currentState.genericenemyindex > MAX_GENTITIES) {
 			float prefig = ((cent->currentState.genericenemyindex-cg.time)-cg.timeFraction)/80;
 
 			if (prefig > 55)
-			{
 				prefig = 55;
-			}
 			else if (prefig < 1)
-			{
 				prefig = 1;
-			}
 
 			elevated[2] -= 55-prefig;
 
@@ -10888,6 +10845,10 @@ SkipTrueView:
 		efOrg[2] = lHandMatrix.matrix[2][3];
 
 		AnglesToAxis( fAng, axis );
+
+		//there is a looping sound in sp
+		if (mov_spLightning.integer)
+			trap_S_AddLoopingSound(cent->currentState.number, cent->lerpOrigin, vec3_origin, trap_S_RegisterSound("sound/weapons/force/lightning2.wav"));
 	
 		if ( cent->currentState.activeForcePass > FORCE_LEVEL_2 )
 		{//arc
@@ -11051,10 +11012,8 @@ SkipTrueView:
 		cent->bodyFadeTime = 0;
 	}
 
-	if (!(mov_soundDisable.integer & SDISABLE_WEAPONS)
-		&& cent->currentState.weapon == WP_STUN_BATON
-		/*&& cent->currentState.number == cg.snap->ps.clientNum*/)
-	{
+	if (!(mov_soundDisable.integer & SDISABLE_WEAPONS) && cent->currentState.weapon == WP_STUN_BATON
+		/*&& cent->currentState.number == cg.snap->ps.clientNum*/) {
 		trap_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, 
 			trap_S_RegisterSound( "sound/weapons/baton/idle.wav" ) );
 	}
@@ -11379,8 +11338,7 @@ stillDoSaber:
 			vec3_t soundSpot;
 			qboolean didFirstSound = qfalse;
 
-			if (cg.playerCent &&
-				cg.playerCent == cent)
+			if (cg.playerCent && cg.playerCent == cent)
 			{
 				//trap_S_AddLoopingSound( cent->currentState.number, cg.refdef.vieworg, vec3_origin, 
 				//	trap_S_RegisterSound( "sound/weapons/saber/saberhum1.wav" ) );
@@ -11505,35 +11463,25 @@ stillDoSaber:
 				saberEnt->currentState.bolt2 = 123;
 
 				if (saberEnt->ghoul2 &&
-					saberEnt->serverSaberHitIndex == saberEnt->currentState.modelindex)
-				{
+					saberEnt->serverSaberHitIndex == saberEnt->currentState.modelindex) {
 					// now set up the gun bolt on it
 					addBolts = qtrue;
-				}
-				else
-				{
+				} else {
 					const char *saberModel = ci->saber[0].model;
 
 					saberEnt->serverSaberHitIndex = saberEnt->currentState.modelindex;
 
-					if (saberEnt->ghoul2)
-					{ //clean if we already have one (because server changed model string index)
+					if (saberEnt->ghoul2) {
+					//clean if we already have one (because server changed model string index)
 						trap_G2API_CleanGhoul2Models(&(saberEnt->ghoul2));
 						saberEnt->ghoul2 = 0;
 					}
-
 					if (saberModel && saberModel[0])
-					{
 						trap_G2API_InitGhoul2Model(&saberEnt->ghoul2, saberModel, 0, 0, 0, 0, 0);
-					}
 					else if (ci->saber[0].model[0])
-					{
 						trap_G2API_InitGhoul2Model(&saberEnt->ghoul2, ci->saber[0].model, 0, 0, 0, 0, 0);
-					}
 					else
-					{
 						trap_G2API_InitGhoul2Model(&saberEnt->ghoul2, "models/weapons2/saber/saber_w.glm", 0, 0, 0, 0, 0);
-					}
 					//trap_G2API_DuplicateGhoul2Instance(cent->ghoul2, &saberEnt->ghoul2);
 
 					if (saberEnt->ghoul2)
@@ -11972,8 +11920,7 @@ stillDoSaber:
 		//goto endOfCall;
 	}
 
-	if (cg.playerCent
-		&& cg.playerCent != cent
+	if (cg.playerCent && cg.playerCent != cent
 		&& (cg.playerCent->currentState.forcePowersActive & (1 << FP_SEE))
 		&& cg_auraShell.integer)
 	{
@@ -12457,8 +12404,7 @@ skipCloaked:
 		legs.renderfx &= ~RF_NODEPTH;
 	}
 
-	if (cg.playerCent
-		&& cg.playerCent != cent
+	if (cg.playerCent && cg.playerCent != cent
 		&& (cg.playerCent->currentState.forcePowersActive & (1 << FP_SEE))
 		&& cg_auraShell.integer) {
 		if (cgs.gametype == GT_SIEGE)

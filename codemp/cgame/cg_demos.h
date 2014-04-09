@@ -73,6 +73,17 @@ typedef struct {
 typedef struct demoMain_s {
 	int				serverTime;
 	float			serverDeltaTime;
+#ifdef DEMO_ANIM
+	struct {
+		qboolean	locked;
+		int			target;
+		int			bone;
+		vec3_t		angles[MAX_BONES];
+		vec3_t		axis[3][MAX_BONES];
+		qboolean	override[MAX_CLIENTS];
+		demoAnimPoint_t *points[MAX_CLIENTS];
+	} anim;
+#endif
 	struct {
 		int			start, end;
 		qboolean	locked;
@@ -148,18 +159,6 @@ typedef struct demoMain_s {
 	qboolean	initDone;
 	qboolean	autoLoad;
 	demoLog_t	log;
-	//at the end because initalizing *points[MAX_CLIENTS] affects vars and struct below
-#ifdef DEMO_ANIM
-	struct {
-		qboolean	locked;
-		int			target;
-		int			bone;
-		vec3_t		angles[MAX_BONES];
-		vec3_t		axis[3][MAX_BONES];
-		qboolean	override[MAX_CLIENTS];
-		demoAnimPoint_t *points[MAX_CLIENTS];
-	} anim;
-#endif
 } demoMain_t;
 
 extern demoMain_t demo;

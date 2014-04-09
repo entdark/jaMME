@@ -25,7 +25,6 @@
 #include "sys/sys_local.h"
 #endif
 
-cvar_t	*cl_numcores;
 cvar_t	*cl_renderer;
 
 cvar_t	*cl_nodelta;
@@ -2094,49 +2093,6 @@ qboolean CL_CheckPaused(void)
 
 /*
 ==================
-CL_UpdateProcessCoresAffinity
-
-==================
-*/
-//smod feature
-#ifdef _WIN32
-void CL_UpdateProcessCoresAffinity() {
-    DWORD   processMask;
-    DWORD   systemMask;
-    int     dev = Cvar_VariableValue ( "developer" );
-    int     i;
- 
-    // get current affinity for
-    if ( !GetProcessAffinityMask(GetCurrentProcess(), &processMask, &systemMask) )
-    {
-        // verbose something in developer mode...
-        if (dev)
-        {
-            Com_Printf("Getting affinity mask failed, error: %i\n", GetLastError() );
-        }
-            return;
-        }
- 
-    // set desired affinity mask based on cl_numcores
-    if ( (cl_numcores->integer > 0) && (cl_numcores->integer <= 32) )
-    {
-        processMask = 0;
-        for(i = 0; i < cl_numcores->integer; ++i)
-        {
-            processMask |= (1 << i);
-        }
-    }
- 
-    // call win API to set desired affinity mask
-    if ( !SetProcessAffinityMask(GetCurrentProcess(), processMask) && dev )
-    {
-        // verbose something in developer mode...
-        Com_Printf("Setting affinity mask failed, error: %i\n", GetLastError() );
-    }
-}
-#endif
-/*
-==================
 CL_CheckUserinfo
 
 ==================
@@ -2262,15 +2218,13 @@ void CL_Frame ( int msec ) {
 
 			S_MMERecord( shotName, 1.0f / (cl_avidemo->value * com_timescale->value ));
 		}
-		// fixed time for next frame'
 	}
 
 	if (cl_mme_capture->integer) {
 //		CL_CaptureStereo(cl_mme_name->string, cl_mme_fps->value, cl_mme_focus->value);
-		float stereoSep;
+		float stereoSep = Cvar_VariableValue( "r_stereoSeparation" );
 		float frameTime, fps;
 		
-		stereoSep = Cvar_VariableValue( "r_stereoSeparation" );
 		if (stereoSep != 0) {
 			if (stereoSep > 0)
 				stereoSep = -stereoSep; // we start always with negative for correct sync
@@ -2663,6 +2617,9 @@ void CL_InitRef( void ) {
 	ri.GetG2VertSpaceServer = GetG2VertSpaceServer;
 	G2VertSpaceServer = &CMiniHeap_singleton;
 
+	//mme
+	ri.S_MMEAviExport = S_MMEAviExport;
+
 	ret = GetRefAPI( REF_API_VERSION, &ri );
 
 #if defined __USEA3D && defined __A3D_GEOM
@@ -2808,8 +2765,6 @@ void CL_Init( void ) {
 	//
 	// register our variables
 	//
-	cl_numcores = Cvar_Get ("cl_numcores", "1", 0);
-
 	cl_noprint = Cvar_Get( "cl_noprint", "0", 0 );
 	cl_motd = Cvar_Get ("cl_motd", "1", 0);
 
@@ -2924,7 +2879,7 @@ void CL_Init( void ) {
 //	mme_anykeystopsdemo = Cvar_Get ("mme_anykeystopsdemo", "0", CVAR_ARCHIVE );
 //	mme_gameOverride = Cvar_Get ("mme_gameOverride", "", 0 );
 	mme_demoConvert = Cvar_Get ("mme_demoConvert", "1", CVAR_ARCHIVE );
-	mme_demoListQuit = Cvar_Get ("mme_demoListQuit", "", CVAR_ARCHIVE );
+	mme_demoListQuit = Cvar_Get ("mme_demoListQuit", "1", CVAR_ARCHIVE );
 	mme_demoSmoothen = Cvar_Get ("mme_demoSmoothen", "1", CVAR_ARCHIVE );
 	mme_demoFileName = Cvar_Get ("mme_demoFileName", "", CVAR_TEMP | CVAR_NORESTART );
 	mme_demoStartProject = Cvar_Get ("mme_demoStartProject", "", CVAR_TEMP );
@@ -2967,10 +2922,6 @@ void CL_Init( void ) {
 	CL_InitRef();
 
 	SCR_Init ();
-
-#ifdef _WIN32
-	CL_UpdateProcessCoresAffinity();
-#endif
 
 	Cbuf_Execute ();
 

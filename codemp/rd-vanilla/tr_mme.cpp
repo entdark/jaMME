@@ -644,19 +644,12 @@ void R_MME_BlurInfo( int* total, int *index ) {
 }
 
 void R_MME_Shutdown(void) {
-	if (mme_aviAppend->integer) {
-		aviCloseAppend( &shotData.main.avi );
-		aviCloseAppend( &shotData.depth.avi );
-		aviCloseAppend( &shotData.stencil.avi );
-	} else {
-		aviClose( &shotData.main.avi );
-		aviClose( &shotData.depth.avi );
-		aviClose( &shotData.stencil.avi );
-	}
+	aviClose( &shotData.main.avi );
+	aviClose( &shotData.depth.avi );
+	aviClose( &shotData.stencil.avi );
 }
 
 void R_MME_Init(void) {
-
 	// MME cvars
 	mme_aviFormat = ri.Cvar_Get ("mme_aviFormat", "0", CVAR_ARCHIVE);
 	mme_aviAppend = ri.Cvar_Get ("mme_aviAppend", "0", CVAR_INTERNAL);//CVAR_ARCHIVE); //working wrong, let it be always 0 until good times
@@ -677,7 +670,7 @@ void R_MME_Init(void) {
 
 	mme_blurFrames = ri.Cvar_Get ( "mme_blurFrames", "0", CVAR_ARCHIVE );
 	mme_blurOverlap = ri.Cvar_Get ("mme_blurOverlap", "0", CVAR_ARCHIVE );
-	mme_blurType = ri.Cvar_Get ( "mme_blurType", "0", CVAR_ARCHIVE );
+	mme_blurType = ri.Cvar_Get ( "mme_blurType", "gaussian", CVAR_ARCHIVE );
 	mme_blurGamma = ri.Cvar_Get ( "mme_blurGamma", "0", CVAR_ARCHIVE );
 	mme_blurJitter = ri.Cvar_Get ( "mme_blurJitter", "1", CVAR_ARCHIVE );
 

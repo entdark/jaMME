@@ -672,7 +672,8 @@ void trap_FX_PlayEffectID( int id, vec3_t org, vec3_t fwd, int vol, int rad )
 		id == cgs.effects.repeaterAltProjectileEffect	||
 		id == cgs.effects.demp2ProjectileEffect			||
 		id == cgs.effects.concussionShotEffect			||
-		id == cgs.effects.flechetteShotEffect) {
+		id == cgs.effects.flechetteShotEffect			||
+		id == cgs.effects.mBobaJet) {
 			if (fx_vfps.integer <= 0)
 				fx_vfps.integer = 1;
 			if (fxT > cg.time)

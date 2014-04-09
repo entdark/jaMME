@@ -1904,6 +1904,7 @@ void CG_LoadDeferredPlayers( void );
 
 void CG_StartBehindCamera(vec3_t start, vec3_t end, const vec3_t camOrg, const vec3_t camAxis[3], vec3_t entDirection);
 
+
 //
 // cg_events.c
 //

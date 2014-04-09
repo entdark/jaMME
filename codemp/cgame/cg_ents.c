@@ -1802,8 +1802,9 @@ skipDisintegration:
 			VectorCopy(cent->currentState.pos.trDelta, beamDirection);
 			CG_StartBehindCamera(beamOrg, NULL, cg.refdef.vieworg, cg.refdef.viewaxis, beamDirection);
 
-			if (cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE)) {
-				i = cg.snap->ps.fd.forcePowerLevel[FP_SEE];
+			if ((cg.playerPredicted && cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE))
+				|| (!cg.playerPredicted && cg.playerCent && (cg.playerCent->currentState.forcePowersActive & (1 << FP_SEE)))) {
+				i = cg.playerPredicted?cg.snap->ps.fd.forcePowerLevel[FP_SEE]:FORCE_LEVEL_3; //we assume non-predicted clients have always level 3
 				while (i > 0) {
 					trap_FX_PlayEffectID( beamID, beamOrg, beamDirection, -1, -1 );
 					trap_FX_PlayEffectID( beamID, beamOrg, beamDirection, -1, -1 );
@@ -1998,10 +1999,10 @@ Ghoul2 Insert End
 	//	ScaleModelAxis( &ent );
 
 		// render it, flip it around, render it again
-		trap_R_AddRefEntityToScene( &ent, cent->currentState.number );
+		trap_R_AddRefEntityToScene( &ent );
 		VectorSet( ent.modelScale, 1.0f, -1.0f, 1.0f );
 		ScaleModelAxis( &ent );
-		trap_R_AddRefEntityToScene( &ent, cent->currentState.number );
+		trap_R_AddRefEntityToScene( &ent );
 		return;
 	}
 

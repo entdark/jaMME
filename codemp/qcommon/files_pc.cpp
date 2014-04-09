@@ -561,7 +561,7 @@ fileHandle_t FS_FDirectOpenFileWrite( const char *filename, const char *mode ) {
 	ospath = FS_BuildOSPath( fs_homepath->string, fs_gamedir, filename );
 
 	if ( fs_debug->integer ) {
-		Com_Printf( "FS_FOpenFileWrite: %s\n", ospath );
+		Com_Printf( "FS_FDirectOpenFileWrite: %s\n", ospath );
 	}
 
 	if( FS_CreatePath( ospath ) ) {
@@ -603,7 +603,7 @@ fileHandle_t FS_FOpenFileReadWrite( const char *filename ) {
 	ospath = FS_BuildOSPath( fs_homepath->string, fs_gamedir, filename );
 
 	if ( fs_debug->integer ) {
-		Com_Printf( "FS_FOpenFileWrite: %s\n", ospath );
+		Com_Printf( "FS_FOpenFileReadWrite: %s\n", ospath );
 	}
 
 	if( FS_CreatePath( ospath ) ) {

@@ -209,7 +209,7 @@ void CG_RailSpiral( clientInfo_t *ci, vec3_t start, vec3_t end ) {
 			le->leFlags = LEF_PUFF_DONT_SCALE;
 			le->leType = LE_MOVE_SCALE_FADE;
 			le->startTime = cg.time;
-			le->endTime = cg.time + (i>>1) + (float)fx_disruptTime.integer / 1.337f;
+			le->endTime = cg.time + (i>>1) + fx_disruptTime.value / 1.337f;
 			le->lifeRate = 1.0 / (le->endTime - le->startTime);
 
 			re->shaderTime = cg.time / 2000.0f;

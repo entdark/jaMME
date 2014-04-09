@@ -334,7 +334,9 @@ Ghoul2 Insert Start
 	CG_R_WORLDEFFECTCOMMAND,
 	//Adding trap to get weather working
 	CG_WE_ADDWEATHERZONE,
-
+/*
+Ghoul2 Insert End
+*/
 	CG_MME_CAPTURE = 400,
 	CG_MME_CAPTURE_STEREO,
 	CG_MME_BLURINFO,
@@ -348,9 +350,7 @@ Ghoul2 Insert Start
 	CG_KEY_SETOVERSTRIKEMODE,
 	CG_S_UPDATE_PITCH,
 	CG_S_STOPSOUND,
-/*
-Ghoul2 Insert End
-*/
+
 } cgameImport_t;
 
 

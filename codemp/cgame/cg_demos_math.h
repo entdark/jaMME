@@ -159,7 +159,9 @@ qboolean BoxTraceImpact(const vec3_t start, const vec3_t forward, const vec3_t c
 
 qboolean MatrixCompare(const mdxaBone_t m1, const mdxaBone_t m2);
 void AxisToMatrix(const vec3_t axis[3], mdxaBone_t *matrix);
-void CreateMatrix(const float *angle, mdxaBone_t *matrix);
+void MatrixCreate(const float *angle, mdxaBone_t *matrix);
+void MatrixInverse3x3(mdxaBone_t *m);
+void MatrixMultiply3x4(mdxaBone_t *out, const mdxaBone_t *in2, const mdxaBone_t *in);
 void MatrixAxisToAngles( const vec3_t axis[3], vec3_t angles );
 
 float dsplineCalc(float x, vec3_t dx, vec3_t dy, float*deriv );

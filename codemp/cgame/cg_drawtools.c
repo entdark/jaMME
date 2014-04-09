@@ -398,8 +398,8 @@ CG_FadeColor
 ================
 */
 float *CG_FadeColor( int startMsec, int totalMsec ) {
-	static vec4_t	color;
-	float			t;
+	static vec4_t color;
+	float t;
 
 	if ( startMsec == 0 ) {
 		return NULL;
