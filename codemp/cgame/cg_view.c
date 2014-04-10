@@ -826,9 +826,9 @@ void CG_GetVehicleCamPos( vec3_t camPos )
 CG_OffsetThirdPersonView
 
 ===============
-*//*
-#define	FOCUS_DISTANCE	512
-static void CG_OffsetThirdPersonView( void ) {
+*/
+#define	FOCUS_DISTANCE	0//512
+static void CG_OffsetThirdPersonViewQ3( void ) {
 	vec3_t		forward, right, up;
 	vec3_t		view;
 	vec3_t		focusAngles;
@@ -839,28 +839,33 @@ static void CG_OffsetThirdPersonView( void ) {
 	float		focusDist;
 	float		forwardScale, sideScale;
 
-	cg.refdef.vieworg[2] += cg.predictedPlayerState.viewheight;
-
+	cg.refdef.vieworg[2] += cg.playerCent->pe.viewHeight + cg_thirdPersonVertOffset.value;
 	VectorCopy( cg.refdef.viewangles, focusAngles );
 
 	// if dead, look at killer
-	if ( cg.predictedPlayerState.stats[STAT_HEALTH] <= 0 ) {
-		focusAngles[YAW] = cg.predictedPlayerState.stats[STAT_DEAD_YAW];
-		cg.refdef.viewangles[YAW] = cg.predictedPlayerState.stats[STAT_DEAD_YAW];
+	if ( cg.snap->ps.stats[STAT_HEALTH] <= 0 && cg.playerPredicted ) {
+		focusAngles[YAW] = cg.snap->ps.stats[STAT_DEAD_YAW];
+		cg.refdef.viewangles[YAW] = cg.snap->ps.stats[STAT_DEAD_YAW];
+	} else if ( cg.playerCent->currentState.eFlags & EF_DEAD ) {
+		focusAngles[YAW] = 0;
+		focusAngles[ROLL] = 0;
+		cg.refdef.viewangles[YAW] = 0;
+		cg.refdef.viewangles[ROLL] = 0;
 	}
 
-	if ( focusAngles[PITCH] > 45 ) {
-		focusAngles[PITCH] = 45;		// don't go too far overhead
+	if ( focusAngles[PITCH] > 80 ) { //JA - 80, Q3 - 45
+		focusAngles[PITCH] = 80; // don't go too far overhead
+	} else if ( focusAngles[PITCH] < -80 ) {
+		focusAngles[PITCH] = -80;
 	}
 	AngleVectors( focusAngles, forward, NULL, NULL );
 
-	VectorMA( cg.refdef.vieworg, FOCUS_DISTANCE, forward, focusPoint );
+//	VectorMA( cg.refdef.vieworg, FOCUS_DISTANCE, forward, focusPoint );
 
 	VectorCopy( cg.refdef.vieworg, view );
-
 	view[2] += 8;
 
-	cg.refdef.viewangles[PITCH] *= 0.5;
+//	cg.refdef.viewangles[PITCH] *= 0.5;
 
 	AngleVectors( cg.refdef.viewangles, forward, right, up );
 
@@ -872,36 +877,38 @@ static void CG_OffsetThirdPersonView( void ) {
 	// trace a ray from the origin to the viewpoint to make sure the view isn't
 	// in a solid block.  Use an 8 by 8 block to prevent the view from near clipping anything
 
-	if (!cg_cameraMode.integer) {
-		CG_Trace( &trace, cg.refdef.vieworg, mins, maxs, view, cg.predictedPlayerState.clientNum, MASK_CAMERACLIP);
+	if (1/*!cg_cameraMode.integer*/) {
+		CG_Trace(&trace, cg.refdef.vieworg, mins, maxs, view, cg.playerCent->currentState.number, MASK_CAMERACLIP);
 
-		if ( trace.fraction != 1.0 ) {
-			VectorCopy( trace.endpos, view );
+		if (trace.fraction != 1.0) {
+			VectorCopy(trace.endpos, view);
 			view[2] += (1.0 - trace.fraction) * 32;
 			// try another trace to this position, because a tunnel may have the ceiling
 			// close enogh that this is poking out
 
-			CG_Trace( &trace, cg.refdef.vieworg, mins, maxs, view, cg.predictedPlayerState.clientNum, MASK_CAMERACLIP);
-			VectorCopy( trace.endpos, view );
+			CG_Trace(&trace, cg.refdef.vieworg, mins, maxs, view, cg.playerCent->currentState.number, MASK_CAMERACLIP);
+			VectorCopy(trace.endpos, view);
 		}
 	}
+//	focusAngles[PITCH] = 0;
+//	AngleVectors(focusAngles, forward, NULL, NULL);
+	VectorMA(cg.refdef.vieworg, cg_thirdPersonRange.value - Distance(view, cg.refdef.vieworg), forward, focusPoint);
 
-
-	VectorCopy( view, cg.refdef.vieworg );
+	VectorCopy(view, cg.refdef.vieworg);
 
 	// select pitch to look at focus point from vieword
-	VectorSubtract( focusPoint, cg.refdef.vieworg, focusPoint );
+	VectorSubtract(focusPoint, cg.refdef.vieworg, focusPoint);
 	focusDist = sqrt( focusPoint[0] * focusPoint[0] + focusPoint[1] * focusPoint[1] );
 	if ( focusDist < 1 ) {
 		focusDist = 1;	// should never happen
 	}
-	cg.refdef.viewangles[PITCH] = -180 / M_PI * atan2( focusPoint[2], focusDist );
+	cg.refdef.viewangles[PITCH] = -180 / M_PI * atan2(focusPoint[2], focusDist);
 	cg.refdef.viewangles[YAW] -= cg_thirdPersonAngle.value;
 }
 
 
 // this causes a compiler bug on mac MrC compiler
-static void CG_StepOffset( void ) {
+/*static void CG_StepOffset( void ) {
 	int		timeDelta;
 	
 	// smooth out stair climbing
@@ -1862,12 +1869,18 @@ int CG_CalcViewValues( void ) {
 			{ //the action cam
 				if (!CG_ThirdPersonActionCam())
 				{ //couldn't do it for whatever reason, resort back to third person then
-					CG_OffsetThirdPersonView();
+					if (cg_thirdPerson.integer == 2)
+						CG_OffsetThirdPersonViewQ3();
+					else
+						CG_OffsetThirdPersonView();
 				}
 			}
 			else
 			{
-				CG_OffsetThirdPersonView();
+				if (cg_thirdPerson.integer == 2)
+					CG_OffsetThirdPersonViewQ3();
+				else
+					CG_OffsetThirdPersonView();
 			}
 		} else {
 			// offset for local bobbing and kicks
@@ -1990,12 +2003,18 @@ int CG_DemosCalcViewValues( void ) {
 			{ //the action cam
 				if (!CG_ThirdPersonActionCam())
 				{ //couldn't do it for whatever reason, resort back to third person then
-					CG_OffsetThirdPersonView();
+					if (cg_thirdPerson.integer == 2)
+						CG_OffsetThirdPersonViewQ3();
+					else
+						CG_OffsetThirdPersonView();
 				}
 			}
 			else
 			{
-				CG_OffsetThirdPersonView();
+				if (cg_thirdPerson.integer == 2)
+					CG_OffsetThirdPersonViewQ3();
+				else
+					CG_OffsetThirdPersonView();
 			}
 		} else {
 			// offset for local bobbing and kicks

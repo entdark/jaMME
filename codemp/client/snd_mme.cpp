@@ -96,7 +96,7 @@ Called from CL_Frame() in cl_main.c when shooting avidemo
 */
 void S_MMEUpdate( float scale ) {
 	int count, speed;
-	int mixTemp[MAXUPDATE*2], tempBuf[MAXUPDATE*2];
+	int mixTemp[MAXUPDATE*2];
 	short mixClip[MAXUPDATE*2];
 
 	if (!mmeSound.fileHandle && mme_saveWav->integer != 2)
@@ -193,8 +193,6 @@ void S_MMEMusic( const char *musicName, float time, float length ) {
 
 void S_MMEStopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle) {
 	int i;
-	if (!mmeSound.fileHandle)
-		return;
 	for (i = 0; i < MME_SNDCHANNELS; i++) {
 		if (mmeSound.channels[i].entChan == entchannel
 			&& mmeSound.channels[i].entNum == entityNum
@@ -237,7 +235,6 @@ static mmeWave_t mmeWave;
 
 void S_MMEClose(void) {
 	byte header[WAV_HEADERSIZE];
-	unsigned int something, something2;
 
 	if (!mmeWave.fileHandle)
 		return;

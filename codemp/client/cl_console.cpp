@@ -676,7 +676,7 @@ void Con_DrawSolidConsole( float frac ) {
 		if (version[x] ==' ')
 			continue;
 		/* Hackish use of color table */
-		re.SetColor( /*conColorRed + (y&15) * 4*/conColourTable[y&15] );
+		re.SetColor( conColourTable[y&15] );
 		y++;
 		SCR_DrawSmallChar( cls.glconfig.vidWidth - ( i - x ) * SMALLCHAR_WIDTH, 
 			(lines-(SMALLCHAR_HEIGHT+SMALLCHAR_HEIGHT/2)), version[x] );
