@@ -542,7 +542,7 @@ void R_SetupFrustum (void) {
 	float	xs, xc;
 	float	ang;
 	float	xmin, xmax, ymin, ymax, stereoSep;
-	float	oppleg, adjleg, length;
+//	float	oppleg, adjleg, length;
 	float	zNear, zProj;
 	vec3_t ofsorigin;
 

@@ -596,7 +596,7 @@ static void animSkeletonDraw(const vec3_t origins[MAX_BONES], const vec3_t ang[M
 }
 
 void animDraw(int time, float timeFraction) {
-	int		i, bone;
+	int		i;
 	vec3_t	axis[3][MAX_BONES], origins[MAX_BONES], ang[MAX_BONES];
 	for (i = 0; 0 && i < MAX_CLIENTS; i++) {
 		int j;

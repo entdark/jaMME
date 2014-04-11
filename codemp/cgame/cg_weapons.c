@@ -864,9 +864,9 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 		hand.frame = hand.oldframe = cg_debugGun.integer;
 		hand.backlerp = 0;
 	} else {
-		float currentFrame, animSpeed;
+		float currentFrame;
 #ifndef SIL_IS_A_COOL_CAT
-		int startFrame, endFrame, flags;
+		int startFrame, endFrame, flags, animSpeed;
 #endif
 		// get clientinfo for animation map
 		if (cent->currentState.eType == ET_NPC)

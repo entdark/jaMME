@@ -6793,7 +6793,7 @@ CG_DrawFollow
 =================
 */
 static qboolean CG_DrawFollow( void ) {
-	char	*s, *name;
+	char	*s;
 	
 	if (!(cg.snap->ps.pm_flags & PMF_FOLLOW)) {
 		return qfalse;

@@ -1749,6 +1749,8 @@ tryAgainThisSound:
 			}
 		}
 	}
+	Com_Printf("S_SoundOpen:File %s failed to open\n", constFileName);
+	return 0;
 }
 
 int S_SoundRead( openSound_t *open, qboolean stereo, int samples, short *data ){

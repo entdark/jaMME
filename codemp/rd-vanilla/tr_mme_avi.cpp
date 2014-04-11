@@ -18,10 +18,9 @@ static void aviWrite32( void *pos, unsigned int val) {
 
 int aviFillHeader( mmeAviFile_t *aviFile ) {
 	char avi_header[AVI_HEADER_SIZE];
-	char index[16];
 	int main_list, nmain, njunk;
 	int header_pos=0, HEADER_SIZE = aviFile->audio?0:AVI_HEADER_SIZE;
-	int framePos, i;
+	int i;
 	qboolean storeMJPEG = (qboolean)aviFile->format;
 
 	if (!aviFile->f)
@@ -81,7 +80,7 @@ int aviFillHeader( mmeAviFile_t *aviFile ) {
 	AVIOUTd(0);                         /* Start */
 	AVIOUTd(aviFile->frames);           /* Length */
 	AVIOUTd(aviFile->audio?(aviFile->maxSize):0); /* SuggestedBufferSize */
-	AVIOUTd(aviFile->audio?-1:~0);      /* Quality */
+	AVIOUTd(~0);                        /* Quality */
 	AVIOUTd(0);                         /* SampleSize */
 	if (aviFile->audio) {
 		AVIOUTw(0);                     /* Frame */
@@ -147,7 +146,7 @@ int aviFillHeader( mmeAviFile_t *aviFile ) {
 		AVIOUTd(aviFile->awritten / ((16/8)*2)); /* DataLength */
 
 		AVIOUTd(0);				 /* SuggestedBufferSize */
-		AVIOUTd(-1);			 /* Quality */
+		AVIOUTd(~0);			 /* Quality */
 		AVIOUTd(((16/8)*2));	 /* SampleSize */
 		AVIOUTw(0);				 /* Frame */
 		AVIOUTw(0);				 /* Frame */
@@ -261,7 +260,7 @@ void aviClose( mmeAviFile_t *aviFile ) {
 	AVIOUTd(0);                         /* Start */
 	AVIOUTd(aviFile->frames);           /* Length */
 	AVIOUTd(aviFile->audio?(aviFile->maxSize):0); /* SuggestedBufferSize */
-	AVIOUTd(aviFile->audio?-1:~0);      /* Quality */
+	AVIOUTd(~0);                        /* Quality */
 	AVIOUTd(0);                         /* SampleSize */
 	if (aviFile->audio) {
 		AVIOUTw(0);                     /* Frame */
@@ -327,7 +326,7 @@ void aviClose( mmeAviFile_t *aviFile ) {
 		AVIOUTd(aviFile->awritten / ((16/8)*2)); /* DataLength */
 
 		AVIOUTd(0);				 /* SuggestedBufferSize */
-		AVIOUTd(-1);			 /* Quality */
+		AVIOUTd(~0);			 /* Quality */
 		AVIOUTd(((16/8)*2));	 /* SampleSize */
 		AVIOUTw(0);				 /* Frame */
 		AVIOUTw(0);				 /* Frame */

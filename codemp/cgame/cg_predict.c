@@ -1484,8 +1484,6 @@ void CG_StartBehindCamera(vec3_t start, vec3_t end, const vec3_t camOrg, const v
 		CG_Trace(&trace, start, NULL, NULL, beamEnd, -1, CONTENTS_SOLID);
 
 		if (trace.fraction < 1.0f) {
-			vec3_t opossiteDir;                    
-
 			VectorCopy(trace.endpos, beamEnd);
 			VectorInverse(entDirection);
 			VectorCopy(beamEnd, start);

@@ -1536,7 +1536,6 @@ void ParseRGBSaber(char *str, vec3_t c);
 void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	clientInfo_t *ci;
 	clientInfo_t newInfo;
-	const char	*configstring;
 	const char	*v;
 	char		*slash;
 	//[RGBSabers]
@@ -5467,13 +5466,12 @@ static void CG_ForcePushBodyBlur( centity_t *cent )
 	}
 }
 
-static void CG_ForceGripEffect( vec3_t org )
-{
+static void CG_ForceGripEffect( vec3_t org ) {
 	localEntity_t	*ex;
 	static int gripCounter = 0;
 	static int lastGripTime = 0;
-	int timeDif = 0;
-	int gripAmount = 0;
+//	int timeDif = 0;
+//	int gripAmount = 0;
 	float wv = sin(cg.time * 0.004 + cg.timeFraction * 0.004) * 0.08f + 0.1f;
 /*
 	timeDif = (cg.time - lastGripTime);

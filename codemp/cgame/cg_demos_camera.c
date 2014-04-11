@@ -259,7 +259,6 @@ static qboolean cameraAnglesAt( int time, float timeFraction, vec3_t angles) {
 	vec3_t				tempAngles;
 	vec3_t				dx, dy;
 	Quat_t				q0, q1, q2, q3, qr, qNext;
-	Quat_t				quats[4];
 	float				len = 0, step = 0, addStep, distance, searchLen;
 	int					i;
 

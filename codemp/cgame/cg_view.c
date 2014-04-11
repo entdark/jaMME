@@ -882,12 +882,12 @@ static void CG_OffsetThirdPersonViewQ3( void ) {
 
 		if (trace.fraction != 1.0) {
 			VectorCopy(trace.endpos, view);
-			view[2] += (1.0 - trace.fraction) * 32;
+/*			view[2] += (1.0 - trace.fraction) * 32;
 			// try another trace to this position, because a tunnel may have the ceiling
 			// close enogh that this is poking out
 
 			CG_Trace(&trace, cg.refdef.vieworg, mins, maxs, view, cg.playerCent->currentState.number, MASK_CAMERACLIP);
-			VectorCopy(trace.endpos, view);
+			VectorCopy(trace.endpos, view);*/
 		}
 	}
 //	focusAngles[PITCH] = 0;
@@ -1699,9 +1699,7 @@ static qboolean CG_InRoll(int anim) {
 static void CG_BobFootsteps(void) {
 	float bobmove, f;
 	int bobCycle, bobFinal;
-	centity_t *cent = cg.playerCent;
 	entityState_t *es = &cg.playerCent->currentState;
-	playerEntity_t *pe = &cg.playerCent->pe;
 	float velocity = sqrt(es->pos.trDelta[0] * es->pos.trDelta[0] + es->pos.trDelta[1] * es->pos.trDelta[1]);
 
 	if (es->saberMove == LS_SPINATTACK)
