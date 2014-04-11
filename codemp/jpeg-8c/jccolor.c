@@ -149,7 +149,8 @@ rgb_ycc_convert (j_compress_ptr cinfo,
       r = GETJSAMPLE(inptr[RGB_RED]);
       g = GETJSAMPLE(inptr[RGB_GREEN]);
       b = GETJSAMPLE(inptr[RGB_BLUE]);
-      inptr += RGB_PIXELSIZE;
+//      inptr += RGB_PIXELSIZE;
+	  inptr += cinfo->input_components;
       /* If the inputs are 0..MAXJSAMPLE, the outputs of these equations
        * must be too; we do not need an explicit range-limiting operation.
        * Hence the value being shifted is never negative, and we don't
@@ -368,11 +369,11 @@ jinit_color_converter (j_compress_ptr cinfo)
     break;
 
   case JCS_RGB:
-#if RGB_PIXELSIZE != 3
-    if (cinfo->input_components != RGB_PIXELSIZE)
-      ERREXIT(cinfo, JERR_BAD_IN_COLORSPACE);
+//#if RGB_PIXELSIZE != 3
+//    if (cinfo->input_components != RGB_PIXELSIZE)
+//      ERREXIT(cinfo, JERR_BAD_IN_COLORSPACE);
     break;
-#endif /* else share code with YCbCr */
+//#endif /* else share code with YCbCr */
 
   case JCS_YCbCr:
     if (cinfo->input_components != 3)

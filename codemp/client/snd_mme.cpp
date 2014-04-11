@@ -72,7 +72,6 @@ void S_MMEWavClose(void) {
 
 #define MAXUPDATE 4096
 
-//short *wavExportBuf;
 static byte wavExportBuf[MME_SAMPLERATE] = {0};
 static int bytesInBuf = 0;
 qboolean S_MMEAviExport(byte *out, int *size) {
