@@ -75,9 +75,9 @@ void S_MMEWavClose(void) {
 static byte wavExportBuf[MME_SAMPLERATE] = {0};
 static int bytesInBuf = 0;
 qboolean S_MMEAviExport(byte *out, int *size) {
-	int shot = Cvar_VariableValue("mme_saveShot"),
-		depth = Cvar_VariableValue("mme_saveDepth"); //add mme_saveStencil if fix it
-	if (mme_saveWav->integer != 2 || (!shot && !depth && mme_saveWav->integer == 2))
+	const char *format = Cvar_VariableString("mme_screenShotFormat");
+	const int shot = Cvar_VariableIntegerValue("mme_saveShot");
+	if (!mme_saveWav->integer || ((Q_stricmp(format, "avi") || !shot) && mme_saveWav->integer == 2))
 		return qfalse;
 	*size = 0;
 	if (bytesInBuf >= MME_SAMPLERATE)
@@ -139,9 +139,9 @@ void S_MMEUpdate( float scale ) {
 
 void S_MMERecord( const char *baseName, float deltaTime ) {
 #ifdef SND_MME
-	int shot = Cvar_VariableValue("mme_saveShot"),
-		depth = Cvar_VariableValue("mme_saveDepth"); //add mme_saveStencil if fix it
-	if (!mme_saveWav->integer || (!shot && !depth && mme_saveWav->integer == 2))
+	const char *format = Cvar_VariableString("mme_screenShotFormat");
+	const int shot = Cvar_VariableIntegerValue("mme_saveShot");
+	if (!mme_saveWav->integer || ((Q_stricmp(format, "avi") || !shot) && mme_saveWav->integer == 2))
 		return;
 	if (Q_stricmp(baseName, mmeSound.baseName) && mme_saveWav->integer != 2) {
 		char fileName[MAX_OSPATH];
