@@ -435,7 +435,6 @@ int CharToTime (char time[23]) {
 int demoStartTime = 0;
 
 void demoCamPoint_f(void) {
-	int i;
 	char number[3];
 	char origin0[23], origin1[23], origin2[23];
 	char angle0[23], angle1[23], angle2[23];

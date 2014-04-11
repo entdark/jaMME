@@ -1339,8 +1339,7 @@ static void CG_General( centity_t *cent ) {
 
 		empOwn = &cg_entities[cent->currentState.emplacedOwner];
 
-		if (cg.playerCent == empOwn &&
-			!cg.renderingThirdPerson)
+		if (cg.playerCent == empOwn && !cg.renderingThirdPerson)
 			VectorCopy(cg.refdef.viewangles, empAngles);
 		else
 			VectorCopy(empOwn->lerpAngles, empAngles);
@@ -3669,8 +3668,7 @@ void CG_AddPacketEntities( qboolean isPortal ) {
 	}
 }
 
-void CG_ROFF_NotetrackCallback( centity_t *cent, const char *notetrack)
-{
+void CG_ROFF_NotetrackCallback( centity_t *cent, const char *notetrack) {
 	int i = 0, r = 0, objectID = 0, anglesGathered = 0, posoffsetGathered = 0;
 	char type[256];
 	char argument[512];

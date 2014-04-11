@@ -171,7 +171,7 @@ void R_MME_TakeShotStereo( void ) {
 			R_GammaCorrect( shotBuf, pixelCount * 3 );
 
 		fps = shotData.fps / ( blurControl->totalFrames );
-		R_MME_SaveShot( &shotData.main, glConfig.vidWidth, glConfig.vidHeight, /*shotData.fps*/fps, shotBuf );
+		R_MME_SaveShot( &shotData.main, glConfig.vidWidth, glConfig.vidHeight, /*shotData.fps*/fps, shotBuf, qfalse, 0, 0 );
 		ri.Hunk_FreeTempMemory( shotBuf );
 		return;
 	}
@@ -180,7 +180,7 @@ void R_MME_TakeShotStereo( void ) {
 	if ( blurControl->totalFrames > 0 ) {
 		mmeBlurBlock_t *blurShot = &blurData.shot;
 		mmeBlurBlock_t *blurDepth = &blurData.depth;
-		mmeBlurBlock_t *blurStencil = &blurData.stencil;
+//		mmeBlurBlock_t *blurStencil = &blurData.stencil;
 
 		/* Test if we blur with overlapping frames */
 		if ( blurControl->overlapFrames ) {
@@ -284,15 +284,15 @@ void R_MME_TakeShotStereo( void ) {
 						alphaShot[i*4+3] = stencilData[i];
 					}
 */				}
-				R_MME_SaveShot( &shotData.main, glConfig.vidWidth, glConfig.vidHeight, fps, alphaShot );
+				R_MME_SaveShot( &shotData.main, glConfig.vidWidth, glConfig.vidHeight, fps, alphaShot, qfalse, 0, 0 );
 				ri.Hunk_FreeTempMemory( alphaShot );
 			} else {
 				if ( mme_saveShot->integer == 1 )
-					R_MME_SaveShot( &shotData.main, glConfig.vidWidth, glConfig.vidHeight, fps, (byte *)( blurShot->accum ));
+					R_MME_SaveShot( &shotData.main, glConfig.vidWidth, glConfig.vidHeight, fps, (byte *)( blurShot->accum ), qfalse, 0, 0 );
 				if ( mme_saveDepth->integer == 1 )
-					R_MME_SaveShot( &shotData.depth, glConfig.vidWidth, glConfig.vidHeight, fps, (byte *)( blurDepth->accum ));
+					R_MME_SaveShot( &shotData.depth, glConfig.vidWidth, glConfig.vidHeight, fps, (byte *)( blurDepth->accum ), qfalse, 0, 0 );
 //				if ( mme_saveStencil->integer == 1 )
-//					R_MME_SaveShotStereo( &shotData.stencil, glConfig.vidWidth, glConfig.vidHeight, fps, (byte *)( blurStencil->accum) );
+//					R_MME_SaveShotStereo( &shotData.stencil, glConfig.vidWidth, glConfig.vidHeight, fps, (byte *)( blurStencil->accum), qfalse, 0, 0 );
 			}
 			doShot = qtrue;
 		} else {
@@ -321,7 +321,7 @@ void R_MME_TakeShotStereo( void ) {
 				shotBuf[i * 4 + 3] = alphaBuf[i];
 			}
 		}
-		R_MME_SaveShot( &shotData.main, glConfig.vidWidth, glConfig.vidHeight, shotData.fps, shotBuf );
+		R_MME_SaveShot( &shotData.main, glConfig.vidWidth, glConfig.vidHeight, shotData.fps, shotBuf, qfalse, 0, 0 );
 		ri.Hunk_FreeTempMemory( shotBuf );
 	}
 
@@ -329,13 +329,13 @@ void R_MME_TakeShotStereo( void ) {
 /*		if ( mme_saveStencil->integer > 1 || ( !blurControl->totalFrames && mme_saveStencil->integer) ) {
 			byte *stencilShot = (byte *)ri.Hunk_AllocateTempMemory( pixelCount * 1);
 			R_MME_GetStencil( stencilShot );
-			R_MME_SaveShotStereo( &shotData.stencil, glConfig.vidWidth, glConfig.vidHeight, shotData.fps, stencilShot );
+			R_MME_SaveShotStereo( &shotData.stencil, glConfig.vidWidth, glConfig.vidHeight, shotData.fps, stencilShot, qfalse, 0, 0 );
 			ri.Hunk_FreeTempMemory( stencilShot );
 		}
 */		if ( mme_saveDepth->integer > 1 || ( !blurControl->totalFrames && mme_saveDepth->integer) ) {
 			byte *depthShot = (byte *)ri.Hunk_AllocateTempMemory( pixelCount * 1);
 			R_MME_GetDepth( depthShot );
-			R_MME_SaveShot( &shotData.depth, glConfig.vidWidth, glConfig.vidHeight, shotData.fps, depthShot );
+			R_MME_SaveShot( &shotData.depth, glConfig.vidWidth, glConfig.vidHeight, shotData.fps, depthShot, qfalse, 0, 0 );
 			ri.Hunk_FreeTempMemory( depthShot );
 		}
 	}

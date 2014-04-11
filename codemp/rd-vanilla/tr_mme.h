@@ -54,7 +54,7 @@ typedef struct {
 void R_MME_GetShot( void* output );
 void R_MME_GetStencil( void *output );
 void R_MME_GetDepth( byte *output );
-void R_MME_SaveShot( mmeShot_t *shot, int width, int height, float fps, byte *inBuf );
+void R_MME_SaveShot( mmeShot_t *shot, int width, int height, float fps, byte *inBuf, qboolean audio, int aSize, byte *aBuf );
 
 void mmeAviShot( mmeAviFile_t *aviFile, const char *name, mmeShotType_t type, int width, int height, float fps, byte *inBuf, qboolean audio );
 void mmeAviSound( mmeAviFile_t *aviFile, const char *name, mmeShotType_t type, int width, int height, float fps, const byte *soundBuf, int size );

@@ -4,134 +4,91 @@
 
 //rww - The turret is heavily dependant on bone angles. We can't happily set that on the server, so it is done client-only.
 
-void CreepToPosition(vec3_t ideal, vec3_t current)
-{
+void CreepToPosition(vec3_t ideal, vec3_t current) {
 	int max_degree_switch = 90;
 	float degrees_negative = 0.0f;
 	float degrees_positive = 0.0f;
 	qboolean doNegative = qfalse;
-
 	float angle_ideal;
 	float angle_current;
 
 	angle_ideal = ideal[YAW];
 	angle_current = current[YAW];
 
-	if (angle_ideal <= angle_current)
-	{
+	if (angle_ideal <= angle_current) {
 		degrees_negative = (angle_current - angle_ideal);
-
 		degrees_positive = (360 - angle_current) + angle_ideal;
-	}
-	else
-	{
+	} else {
 		degrees_negative = angle_current + (360 - angle_ideal);
-
 		degrees_positive = (angle_ideal - angle_current);
 	}
 
-	if (degrees_negative < degrees_positive)
-	{
+	if (degrees_negative < degrees_positive) {
 		doNegative = qtrue;
 	}
-
-	if (doNegative)
-	{
+	if (doNegative) {
 		current[YAW] -= max_degree_switch;
-
-		if (current[YAW] < ideal[YAW] && (current[YAW]+(max_degree_switch*2)) >= ideal[YAW])
-		{
+		if (current[YAW] < ideal[YAW] && (current[YAW]+(max_degree_switch*2)) >= ideal[YAW]) {
 			current[YAW] = ideal[YAW];
 		}
-
-		if (current[YAW] < 0)
-		{
-			current[YAW] += 361;
+		if (current[YAW] < 0) {
+			current[YAW] += 361.f;
 		}
-	}
-	else
-	{
+	} else {
 		current[YAW] += max_degree_switch;
-
-		if (current[YAW] > ideal[YAW] && (current[YAW]-(max_degree_switch*2)) <= ideal[YAW])
-		{
+		if (current[YAW] > ideal[YAW] && (current[YAW]-(max_degree_switch*2)) <= ideal[YAW]) {
 			current[YAW] = ideal[YAW];
 		}
-
-		if (current[YAW] > 360)
-		{
-			current[YAW] -= 361;
+		if (current[YAW] > 360) {
+			current[YAW] -= 361.f;
 		}
 	}
 
-	if (ideal[PITCH] < 0)
-	{
+	if (ideal[PITCH] < 0) {
 		ideal[PITCH] += 360;
 	}
-
 	angle_ideal = ideal[PITCH];
 	angle_current = current[PITCH];
 
 	doNegative = qfalse;
 
-	if (angle_ideal <= angle_current)
-	{
+	if (angle_ideal <= angle_current) {
 		degrees_negative = (angle_current - angle_ideal);
-
 		degrees_positive = (360 - angle_current) + angle_ideal;
-	}
-	else
-	{
+	} else {
 		degrees_negative = angle_current + (360 - angle_ideal);
-
 		degrees_positive = (angle_ideal - angle_current);
 	}
 
-	if (degrees_negative < degrees_positive)
-	{
+	if (degrees_negative < degrees_positive) {
 		doNegative = qtrue;
-	}
-
-	if (doNegative)
-	{
+	} 
+	if (doNegative) {
 		current[PITCH] -= max_degree_switch;
-
-		if (current[PITCH] < ideal[PITCH] && (current[PITCH]+(max_degree_switch*2)) >= ideal[PITCH])
-		{
+		if (current[PITCH] < ideal[PITCH] && (current[PITCH]+(max_degree_switch*2)) >= ideal[PITCH]) {
 			current[PITCH] = ideal[PITCH];
 		}
-
-		if (current[PITCH] < 0)
-		{
-			current[PITCH] += 361;
+		if (current[PITCH] < 0) {
+			current[PITCH] += 361.f;
 		}
-	}
-	else
-	{
+	} else {
 		current[PITCH] += max_degree_switch;
-
-		if (current[PITCH] > ideal[PITCH] && (current[PITCH]-(max_degree_switch*2)) <= ideal[PITCH])
-		{
+		if (current[PITCH] > ideal[PITCH] && (current[PITCH]-(max_degree_switch*2)) <= ideal[PITCH]) {
 			current[PITCH] = ideal[PITCH];
 		}
-
-		if (current[PITCH] > 360)
-		{
-			current[PITCH] -= 361;
+		if (current[PITCH] > 360) {
+			current[PITCH] -= 361.f;
 		}
 	}
 }
 
-void TurretClientRun(centity_t *ent)
-{
-	if (!ent->ghoul2)
-	{
+void TurretClientRun(centity_t *ent) {
+	if (!ent->ghoul2) {
 		weaponInfo_t	*weaponInfo;
 
 		trap_G2API_InitGhoul2Model(&ent->ghoul2, CG_ConfigString( CS_MODELS+ent->currentState.modelindex ), 0, 0, 0, 0, 0);
 
-		if (!ent->ghoul2)
-		{ //bad
+		if (!ent->ghoul2) { //bad
 			return;
 		}
 
@@ -149,22 +106,18 @@ void TurretClientRun(centity_t *ent)
 
 		weaponInfo = &cg_weapons[WP_TURRET];
 
-		if ( !weaponInfo->registered )
-		{
+		if ( !weaponInfo->registered ) {
 			CG_RegisterWeapon(WP_TURRET);
 		}
 	}
 
-	if (ent->currentState.fireflag == 2)
-	{ //I'm about to blow
-		if (ent->turAngles)
-		{
+	if (ent->currentState.fireflag == 2) {
+	//I'm about to blow
+		if (ent->turAngles) {
 			trap_G2API_SetBoneAngles( ent->ghoul2, 0, "bone_hinge", ent->turAngles, BONE_ANGLES_REPLACE, NEGATIVE_Y, NEGATIVE_Z, NEGATIVE_X, NULL, 100, cg.time ); 
 		}
 		return;
-	}
-	else if (ent->currentState.fireflag && ent->bolt4 != ent->currentState.fireflag)
-	{
+	} else if (ent->currentState.fireflag && ent->bolt4 != ent->currentState.fireflag) {
 		vec3_t muzzleOrg, muzzleDir;
 		mdxaBone_t boltMatrix;
 
@@ -175,18 +128,14 @@ void TurretClientRun(centity_t *ent)
 		trap_FX_PlayEffectID(cgs.effects.mTurretMuzzleFlash, muzzleOrg, muzzleDir, -1, -1);
 
 		ent->bolt4 = ent->currentState.fireflag;
-	}
-	else if (!ent->currentState.fireflag)
-	{
+	} else if (!ent->currentState.fireflag) {
 		ent->bolt4 = 0;
 	}
 
-	if (ent->currentState.bolt2 != ENTITYNUM_NONE)
-	{ //turn toward the enemy
+	if (ent->currentState.bolt2 != ENTITYNUM_NONE) {
+	//turn toward the enemy
 		centity_t *enemy = &cg_entities[ent->currentState.bolt2];
-
-		if (enemy)
-		{
+		if (enemy) {
 			vec3_t enAng;
 			vec3_t enPos;
 
@@ -200,39 +149,33 @@ void TurretClientRun(centity_t *ent)
 
 			CreepToPosition(enAng, ent->turAngles);
 		}
-	}
-	else
-	{
+	} else {
 		vec3_t idleAng;
 		float turnAmount;
 
-		if (ent->turAngles[YAW] > 360)
-		{
-			ent->turAngles[YAW] -= 361;
+		if (ent->turAngles[YAW] > 360) {
+			ent->turAngles[YAW] -= 360.0f;
 		}
 
-		if (!ent->dustTrailTime)
-		{
+		if (!ent->dustTrailTime) {
 			ent->dustTrailTime = cg.time;
 		}
 
 		turnAmount = ((cg.time - ent->dustTrailTime) + cg.timeFraction) * 0.03f;
-
-		if (turnAmount > 360)
-		{
+		if (turnAmount > 360) {
 			turnAmount = 360;
 		}
 
 		idleAng[PITCH] = 90;
 		idleAng[ROLL] = 0;
-		idleAng[YAW] = ent->turAngles[YAW] + turnAmount;
+		if (cg.frametime)
+			idleAng[YAW] = ent->turAngles[YAW] + turnAmount;
 		ent->dustTrailTime = cg.time;
-
-		CreepToPosition(idleAng, ent->turAngles);
+		if (cg.frametime)
+			CreepToPosition(idleAng, ent->turAngles);
 	}
 
-	if (cg.time < ent->frame_minus1_refreshed)
-	{
+	if (cg.time < ent->frame_minus1_refreshed) {
 		ent->frame_minus1_refreshed = cg.time;
 		return;
 	}

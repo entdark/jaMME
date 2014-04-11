@@ -3462,11 +3462,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		DEBUGNAME("EV_GLOBAL_SOUND");
 		if (cgs.gameSounds[es->eventParm]) {
 			trap_S_StartLocalSound(cgs.gameSounds[es->eventParm], CHAN_MENU1);
-//			trap_S_StartSound (NULL, cg.snap->ps.clientNum, CHAN_MENU1, cgs.gameSounds[ es->eventParm ] );
 		} else {
 			s = CG_ConfigString(CS_SOUNDS + es->eventParm);
 			trap_S_StartLocalSound(CG_CustomSound(es->number, s), CHAN_MENU1);
-//			trap_S_StartSound (NULL, cg.snap->ps.clientNum, CHAN_MENU1, CG_CustomSound( es->number, s ) );
 		}
 		break;
 
