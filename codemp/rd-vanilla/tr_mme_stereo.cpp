@@ -374,13 +374,14 @@ const void *R_MME_CaptureShotCmdStereo( const void *data ) {
 			shotData.main.format = mmeShotFormatTGA;
 		}
 		
-//		if (shotData.main.format != mmeShotFormatAVI) {
+		//grayscale works fine only with compressed avi :(
+		if (shotData.main.format != mmeShotFormatAVI || !mme_aviFormat->integer) {
 			shotData.depth.format = mmeShotFormatPNG;
 			shotData.stencil.format = mmeShotFormatPNG;
-//		} else {
-//			shotData.depth.format = mmeShotFormatAVI;
-//			shotData.stencil.format = mmeShotFormatAVI;
-//		}
+		} else {
+			shotData.depth.format = mmeShotFormatAVI;
+			shotData.stencil.format = mmeShotFormatAVI;
+		}
 
 		shotData.main.type = mmeShotTypeRGB;
 		if ( mme_screenShotAlpha->integer ) {
@@ -436,7 +437,8 @@ void R_MME_InitStereo(void) {
 		workSize *= 1024 * 1024;
 		workAlloc = (char *)calloc( workSize + 16, 1 );
 		if (!workAlloc) {
-			ri.Printf(PRINT_ALL, "Failed to allocate %d bytes for mme work buffer\n", workSize );
+			ri.Printf(PRINT_ALL, "Failed to allocate %d bytes for mme stereo work buffer\n", workSize );
+			allocFailed = qtrue;
 			return;
 		}
 		workAlign = (char *)(((int)workAlloc + 15) & ~15);

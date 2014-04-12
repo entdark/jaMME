@@ -366,7 +366,6 @@ void R_MME_TakeShot( void ) {
 	int sizeSound = 0;
 	qboolean audio = qfalse, audioTaken = qfalse;
 	qboolean doGamma;
-	qboolean doShot;
 	mmeBlurControl_t* blurControl = &blurData.control;
 
 	if ( !shotData.take || allocFailed )
@@ -518,9 +517,6 @@ void R_MME_TakeShot( void ) {
 //				if ( mme_saveStencil->integer == 1 )
 //					R_MME_SaveShot( &shotData.stencil, glConfig.vidWidth, glConfig.vidHeight, fps, (byte *)( blurStencil->accum), audio, sizeSound, inSound );
 			}
-			doShot = qtrue;
-		} else {
-			doShot = qfalse;
 		}
 	} 
 	if ( mme_saveShot->integer > 1 || (!blurControl->totalFrames && mme_saveShot->integer )) {
@@ -562,7 +558,8 @@ void R_MME_TakeShot( void ) {
 */		if ( mme_saveDepth->integer > 1 || ( !blurControl->totalFrames && mme_saveDepth->integer) ) {
 			byte *depthShot = (byte *)ri.Hunk_AllocateTempMemory( pixelCount * 1);
 			R_MME_GetDepth( depthShot );
-			if (!audioTaken)
+			if (!audioTaken && ((!(mme_saveDepth->integer > 1) && !(mme_saveShot->integer > 1))
+				|| (!(mme_saveDepth->integer == 1) && !(mme_saveShot->integer == 1))))
 				audio = ri.S_MMEAviExport(inSound, &sizeSound);
 			R_MME_SaveShot( &shotData.depth, glConfig.vidWidth, glConfig.vidHeight, shotData.fps, depthShot, audio, sizeSound, inSound );
 			ri.Hunk_FreeTempMemory( depthShot );
@@ -603,13 +600,14 @@ const void *R_MME_CaptureShotCmd( const void *data ) {
 			shotData.main.format = mmeShotFormatTGA;
 		}
 		
-//		if (shotData.main.format != mmeShotFormatAVI) {
+		//grayscale works fine only with compressed avi :(
+		if (shotData.main.format != mmeShotFormatAVI || !mme_aviFormat->integer) {
 			shotData.depth.format = mmeShotFormatPNG;
 			shotData.stencil.format = mmeShotFormatPNG;
-//		} else {
-//			shotData.depth.format = mmeShotFormatAVI;
-//			shotData.stencil.format = mmeShotFormatAVI;
-//		}
+		} else {
+			shotData.depth.format = mmeShotFormatAVI;
+			shotData.stencil.format = mmeShotFormatAVI;
+		}
 
 		shotData.main.type = mmeShotTypeRGB;
 		if ( mme_screenShotAlpha->integer ) {
@@ -713,6 +711,7 @@ void R_MME_Init(void) {
 		workAlloc = (char *)calloc( workSize + 16, 1 );
 		if (!workAlloc) {
 			ri.Printf(PRINT_ALL, "Failed to allocate %d bytes for mme work buffer\n", workSize );
+			allocFailed = qtrue;
 			return;
 		}
 		workAlign = (char *)(((int)workAlloc + 15) & ~15);

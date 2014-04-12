@@ -77,7 +77,7 @@ static int bytesInBuf = 0;
 qboolean S_MMEAviExport(byte *out, int *size) {
 	const char *format = Cvar_VariableString("mme_screenShotFormat");
 	const int shot = Cvar_VariableIntegerValue("mme_saveShot");
-	if (!mme_saveWav->integer || ((Q_stricmp(format, "avi") || !shot) && mme_saveWav->integer == 2))
+	if (mme_saveWav->integer != 2 || ((Q_stricmp(format, "avi") || !shot) && mme_saveWav->integer == 2))
 		return qfalse;
 	*size = 0;
 	if (bytesInBuf >= MME_SAMPLERATE)
