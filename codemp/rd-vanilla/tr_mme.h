@@ -79,6 +79,8 @@ extern cvar_t	*mme_aviFormat;
 extern cvar_t	*mme_blurJitter;
 extern cvar_t	*mme_dofFrames;
 extern cvar_t	*mme_dofRadius;
+
+extern cvar_t	*mme_noAviSizeLimit;
 ID_INLINE byte * R_MME_BlurOverlapBuf( mmeBlurBlock_t *block );
 
 #endif //TR_MME_H

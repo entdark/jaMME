@@ -404,14 +404,13 @@ static qboolean aviOpen( mmeAviFile_t *aviFile, const char *name, mmeShotType_t 
 	/* First see if the file already exist */
 	for (i = 0;i < AVI_MAX_FILES;i++) {
 		Com_sprintfOld( fileName, sizeof(fileName), "%s.%03d.avi", name, i );
-		if (!ri.FS_FileExists( fileName ))
+		if (!ri.FS_FileExists( fileName ) || mme_noAviSizeLimit->integer)
 			break;
 	}
 	if (i == AVI_MAX_FILES) {
 		Com_Printf( "Max avi segments reached\n");
 		return qfalse;
 	}
-	ri.FS_WriteFile( fileName, aviHeader, AVI_HEADER_SIZE );
 	aviFile->f = ri.FS_FDirectOpenFileWrite( fileName, "w+b");
 	if (!aviFile->f) {
 		Com_Printf( "Failed to open %s for avi output\n", fileName );
@@ -455,7 +454,7 @@ static qboolean aviValid( const mmeAviFile_t *aviFile, const char *name, mmeShot
 		return qfalse;
 	if (Q_stricmp(aviFile->name, name))
 		return qfalse;
-	if (aviFile->written >= AVI_MAX_SIZE)
+	if (aviFile->written >= AVI_MAX_SIZE && !mme_noAviSizeLimit->integer)
 		return qfalse;
 	if (mme_aviFormat->integer != aviFile->format)
 		return qfalse;
