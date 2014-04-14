@@ -148,7 +148,7 @@ static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
 }
 
 void CG_SetPredictedThirdPerson(void) {
-	cg.renderingThirdPerson = ((cg_thirdPerson.integer
+	cg.renderingThirdPerson = (((cg_thirdPerson.integer % 2)
 		|| (cg.snap->ps.stats[STAT_HEALTH] <= 0)
 		|| (cg.playerCent->currentState.weapon == WP_SABER && !cg.trueView)
 		|| (cg.playerCent->currentState.weapon == WP_MELEE && !cg.trueView)
@@ -224,7 +224,7 @@ static int demoSetupView( void) {
 				} else {
 					cg.zoomMode = cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
 						|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4;
-					cg.renderingThirdPerson = ((cg_thirdPerson.integer || cent->currentState.eFlags & EF_DEAD
+					cg.renderingThirdPerson = (((cg_thirdPerson.integer % 2) || cent->currentState.eFlags & EF_DEAD
 						|| (weapon == WP_SABER && !cg.trueView)
 						|| (weapon == WP_MELEE && !cg.trueView)
 						|| cg.fallingToDeath)

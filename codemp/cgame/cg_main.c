@@ -3098,7 +3098,7 @@ Ghoul2 Insert End
 	CG_InitConsoleCommands();
 
 	//Raz: initialise third person setting
-	cg.renderingThirdPerson = cg_thirdPerson.integer;
+	cg.renderingThirdPerson = (cg_thirdPerson.integer % 2);
 
 	cg.weaponSelect = WP_BRYAR_PISTOL;
 
