@@ -558,8 +558,8 @@ void R_MME_TakeShot( void ) {
 */		if ( mme_saveDepth->integer > 1 || ( !blurControl->totalFrames && mme_saveDepth->integer) ) {
 			byte *depthShot = (byte *)ri.Hunk_AllocateTempMemory( pixelCount * 1);
 			R_MME_GetDepth( depthShot );
-			if (!audioTaken && ((!(mme_saveDepth->integer > 1) && !(mme_saveShot->integer > 1))
-				|| (!(mme_saveDepth->integer == 1) && !(mme_saveShot->integer == 1))))
+			if (!audioTaken && ((mme_saveDepth->integer > 1 && mme_saveShot->integer > 1)
+				|| (mme_saveDepth->integer == 1 && mme_saveShot->integer == 1)))
 				audio = ri.S_MMEAviExport(inSound, &sizeSound);
 			R_MME_SaveShot( &shotData.depth, glConfig.vidWidth, glConfig.vidHeight, shotData.fps, depthShot, audio, sizeSound, inSound );
 			ri.Hunk_FreeTempMemory( depthShot );

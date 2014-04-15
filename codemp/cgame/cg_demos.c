@@ -343,6 +343,16 @@ void demoProcessSnapShots( qboolean hadSkip ) {
 		if (!snap)
 			return;
 		cg.snap = snap;
+		if ((cg_entities[snap->ps.clientNum].ghoul2 == NULL)
+			&& trap_G2_HaveWeGhoul2Models(cgs.clientinfo[snap->ps.clientNum].ghoul2Model)) {
+			trap_G2API_DuplicateGhoul2Instance(cgs.clientinfo[snap->ps.clientNum].ghoul2Model, &cg_entities[snap->ps.clientNum].ghoul2);
+			CG_CopyG2WeaponInstance(&cg_entities[snap->ps.clientNum], FIRST_WEAPON, cg_entities[snap->ps.clientNum].ghoul2);
+		
+			if (trap_G2API_AddBolt(cg_entities[snap->ps.clientNum].ghoul2, 0, "face") == -1) {
+			//check now to see if we have this bone for setting anims and such
+				cg_entities[snap->ps.clientNum].noFace = qtrue;
+			}
+		}
 		BG_PlayerStateToEntityState( &snap->ps, &cg_entities[ snap->ps.clientNum ].currentState, qfalse );
 		CG_BuildSolidList();
 		CG_ExecuteNewServerCommands( snap->serverCommandSequence );
@@ -352,6 +362,30 @@ void demoProcessSnapShots( qboolean hadSkip ) {
 			memcpy(&cent->currentState, state, sizeof(entityState_t));
 			cent->interpolate = qfalse;
 			cent->currentValid = qtrue;
+			if ((cent->currentState.eType == ET_NPC)
+				&& !(cent->currentState.NPC_class == CLASS_VEHICLE
+				&& cent->m_pVehicle && cent->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER
+				&& cg.predictedPlayerState.m_iVehicleNum
+				&& cent->currentState.number == cg.predictedPlayerState.m_iVehicleNum)) { //holy hackery, batman!
+				if (cent->currentState.eFlags & EF_G2ANIMATING) { //reset the animation state
+					cent->pe.torso.animationNumber = -1;
+					cent->pe.legs.animationNumber = -1;
+				}
+				if (!cent->npcClient) {
+					CG_CreateNPCClient(&cent->npcClient); //allocate memory for it
+					if (!cent->npcClient) {
+						assert(0);
+						goto skipNPC;
+					}
+					memset(cent->npcClient, 0, sizeof(clientInfo_t));
+					cent->npcClient->ghoul2Model = NULL;
+				}
+				//just force these guys to be set again, it won't hurt anything if they're
+				//already set.
+				cent->npcLocalSurfOff = 0;
+				cent->npcLocalSurfOn = 0;			
+			}
+skipNPC:
 			if (cent->currentState.eType > ET_EVENTS)
 				cent->previousEvent = 1;
 			else 

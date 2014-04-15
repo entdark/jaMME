@@ -171,8 +171,8 @@ qboolean demoCentityBoxSize( const centity_t *cent, vec3_t container ) {
 	case ET_NPC:
 		//TODO: need to find out box sizes of other classes
 		switch (cent->currentState.NPC_class) {
-		case CLASS_VEHICLE:
-			VectorSet( container, 0, 100, 50 );
+		case CLASS_REBORN: //humans
+			VectorSet( container, -24, 60, 20 );
 			break;
 		case CLASS_R2D2:
 		case CLASS_R5D2:
@@ -180,6 +180,9 @@ qboolean demoCentityBoxSize( const centity_t *cent, vec3_t container ) {
 			break;
 		case CLASS_SEEKER:
 			VectorSet( container, -5, 5, 5 );
+			break;
+		case CLASS_VEHICLE:
+			VectorSet( container, 0, 100, 50 );
 			break;
 		default:
 			VectorClear( container);

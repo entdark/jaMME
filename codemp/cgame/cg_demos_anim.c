@@ -848,7 +848,7 @@ void demoAnimCommand_f(void) {
 }
 
 qboolean CG_DemosPlayerAnimation(int client) {
-	if (cg.demoPlayback != 2 || (demo.anim.locked && !demo.anim.points[client]) || !demo.anim.override[client]) {
+	if (cg.demoPlayback != 2 || client >= MAX_CLIENTS || (demo.anim.locked && !demo.anim.points[client]) || !demo.anim.override[client]) {
 		return qfalse;
 	} else {
 		return qtrue;

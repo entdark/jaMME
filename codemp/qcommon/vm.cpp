@@ -805,11 +805,11 @@ intptr_t QDECL VM_Call( vm_t *vm, int callnum, ... ) {
 	// if we have a dll loaded, call it directly
 	if ( vm->entryPoint ) {
 		//rcg010207 -  see dissertation at top of VM_DllSyscall() in this file.
-		long args[16];
+		int args[16];
 		va_list ap;
 		va_start(ap, callnum);
 		for (i = 0; i < ARRAY_LEN(args); i++) {
-			args[i] = va_arg(ap, long);
+			args[i] = va_arg(ap, int);
 		}
 		va_end(ap);
 
