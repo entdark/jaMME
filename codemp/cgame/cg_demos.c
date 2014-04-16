@@ -20,7 +20,9 @@ extern void CG_Draw2D( void );
 extern void CG_DrawAutoMap(void);
 extern void CG_DrawSkyBoxPortal(const char *cstr);
 extern qboolean PM_InKnockDown( playerState_t *ps );
+extern CGAME_INLINE qboolean CG_Piloting(int vehNum);
 extern void CG_InterpolatePlayerState( qboolean grabAngles );
+extern void CG_InterpolateVehiclePlayerState( qboolean grabAngles );
 
 extern void trap_MME_BlurInfo( int* total, int * index );
 extern void trap_MME_Capture( const char *baseName, float fps, float focus );
@@ -728,6 +730,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	cg.clientFrame++;
 	CG_InterpolatePlayerState( qfalse );
+	if (CG_Piloting(cg.predictedPlayerState.m_iVehicleNum))
+		CG_InterpolateVehiclePlayerState( qfalse );
 	// generate and add the entity from the playerstate	
 //	CG_PredictPlayerState();
 	CG_CheckPlayerG2Weapons(&cg.predictedPlayerState, &cg_entities[cg.predictedPlayerState.clientNum]);
@@ -1171,7 +1175,7 @@ void demoPlaybackInit(void) {
 
 	demo.move.acceleration = 8;
 	demo.move.friction = 8;
-	demo.move.speed = 230;
+	demo.move.speed = 400;
 
 	demo.line.locked = qfalse;
 	demo.line.offset = 0;

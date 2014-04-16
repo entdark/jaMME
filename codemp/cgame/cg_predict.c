@@ -15,7 +15,7 @@ static	int			cg_numTriggerEntities;
 static	centity_t	*cg_triggerEntities[MAX_ENTITIES_IN_SNAPSHOT];
 
 //is this client piloting this veh?
-static CGAME_INLINE qboolean CG_Piloting(int vehNum) {
+CGAME_INLINE qboolean CG_Piloting(int vehNum) {
 	centity_t *veh;
 
 	if (!vehNum) {
@@ -480,7 +480,7 @@ void CG_InterpolatePlayerState( qboolean grabAngles ) {
 
 }
 
-static void CG_InterpolateVehiclePlayerState( qboolean grabAngles ) {
+void CG_InterpolateVehiclePlayerState( qboolean grabAngles ) {
 	float			f;
 	int				i;
 	playerState_t	*out;
