@@ -1205,7 +1205,7 @@ void CG_DrawWeaponSelect( void ) {
 
 	smallIconSize = 40;
 	bigIconSize = 80;
-	pad = 0;//12;
+	pad = 12;
 
 	x = 320;
 	y = 410;
@@ -1218,7 +1218,7 @@ void CG_DrawWeaponSelect( void ) {
 	// Left side ICONS
 	trap_R_SetColor(colorTable[CT_WHITE]);
 	// Work backwards from current icon
-	holdX = x - ((bigIconSize/2) + pad + smallIconSize);
+	holdX = x - ((bigIconSize/2) + pad + smallIconSize)*cgs.widthRatioCoef;
 	height = smallIconSize * 1;//cg.iconHUDPercent;
 	drewConc = qfalse;
 
@@ -1273,7 +1273,7 @@ void CG_DrawWeaponSelect( void ) {
 				CG_DrawPic( holdX, y+10+yOffset, smallIconSize*cgs.widthRatioCoef, smallIconSize, /*weaponInfo->weaponIcon*/cgs.media.weaponIcons[i] );
 			}
 
-			holdX -= (smallIconSize+pad);
+			holdX -= (smallIconSize+pad)*cgs.widthRatioCoef;
 		}
 		if ( i == WP_CONCUSSION )
 		{
@@ -1316,7 +1316,7 @@ void CG_DrawWeaponSelect( void ) {
 
 	// Right side ICONS
 	// Work forwards from current icon
-	holdX = x + (bigIconSize/2) + pad;
+	holdX = x + ((bigIconSize/2) + pad)*cgs.widthRatioCoef;
 	height = smallIconSize * cg.iconHUDPercent;
 	for (iconCnt=1;iconCnt<(sideRightIconCnt+1);i++)
 	{
@@ -1368,7 +1368,7 @@ void CG_DrawWeaponSelect( void ) {
 			}
 
 
-			holdX += (smallIconSize+pad);
+			holdX += (smallIconSize*cgs.widthRatioCoef+pad);
 		}
 		if ( i == WP_CONCUSSION )
 		{
