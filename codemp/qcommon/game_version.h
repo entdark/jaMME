@@ -6,7 +6,7 @@
 
 // Current version of the multi player game
 #define VERSION_MAJOR_RELEASE		1
-#define VERSION_MINOR_RELEASE		3
+#define VERSION_MINOR_RELEASE		4
 #define VERSION_EXTERNAL_BUILD		0
 #define VERSION_INTERNAL_BUILD		0
 

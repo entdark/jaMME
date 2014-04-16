@@ -452,7 +452,7 @@ void CG_UpdateFallVector (void) {
 		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 
 		if (!gCGHasFallVector) {
-			VectorCopy(cg.snap->ps.origin, gCGFallVector);
+			VectorCopy(cg.playerCent->lerpOrigin/*cg.snap->ps.origin*/, gCGFallVector);
 			gCGHasFallVector = qtrue;
 		}
 	} else {
@@ -866,12 +866,12 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	CG_UpdateSoundTrackers();
 
 	//do we need this?
-	if (gCGHasFallVector) {
+	if (gCGHasFallVector && cg.playerCent) {
 		vec3_t lookAng;
 		//broken fix
-		cg.renderingThirdPerson = qtrue;
+//		cg.renderingThirdPerson = qtrue;
 
-		VectorSubtract(cg.snap->ps.origin, cg.refdef.vieworg, lookAng);
+		VectorSubtract(cg.playerCent->lerpOrigin, /*cg.snap->ps.origin, */cg.refdef.vieworg, lookAng);
 		VectorNormalize(lookAng);
 		vectoangles(lookAng, lookAng);
 

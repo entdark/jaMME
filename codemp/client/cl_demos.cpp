@@ -471,7 +471,6 @@ void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothe
 							goto conversionerror;
 						}
 						MSG_ReadDeltaEntity( &oldMsg, &demoNullEntityState, &convert->entityBaselines[num], num );
-//						MSG_ReadDeltaEntity( &oldMsg, &demoNullEntityState, &workFrame->entityBaselines[num], num );
 						memcpy(&workFrame->entityBaselines[num], &convert->entityBaselines[num], sizeof(entityState_t));
 					} else {
 						Com_Printf( "Unknown block while converting demo gamestate.\n" );
@@ -583,7 +582,6 @@ void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothe
 						newnum = MSG_ReadBits( &oldMsg, GENTITYNUM_BITS );
 					} else if (oldnum > newnum) {
 						MSG_ReadDeltaEntity( &oldMsg, &convert->entityBaselines[newnum], newstate , newnum );
-//						MSG_ReadDeltaEntity( &oldMsg, &workFrame->entityBaselines[newnum], newstate , newnum );
 						memcpy(&workFrame->entityBaselines[newnum], &convert->entityBaselines[newnum], sizeof(entityState_t));
 						if ( newstate->number != MAX_GENTITIES-1)
 							workFrame->entityData[ newstate->number ] = 1;

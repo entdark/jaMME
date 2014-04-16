@@ -830,7 +830,7 @@ CG_OffsetThirdPersonView
 #define	FOCUS_DISTANCE	0//512
 static void CG_OffsetThirdPersonViewQ3( void ) {
 	vec3_t		forward, right, up;
-	vec3_t		view;
+	vec3_t		view, mainOrg;
 	vec3_t		focusAngles;
 	trace_t		trace;
 	static vec3_t	mins = { -4, -4, -4 };
@@ -839,7 +839,11 @@ static void CG_OffsetThirdPersonViewQ3( void ) {
 	float		focusDist;
 	float		forwardScale, sideScale;
 
-	cg.refdef.vieworg[2] += cg.playerCent->pe.viewHeight + cg_thirdPersonVertOffset.value;
+	if (gCGHasFallVector)
+		VectorCopy(gCGFallVector, mainOrg);
+	else
+		VectorCopy(cg.refdef.vieworg, mainOrg);
+	mainOrg[2] += cg.playerCent->pe.viewHeight + cg_thirdPersonVertOffset.value;
 	VectorCopy( cg.refdef.viewangles, focusAngles );
 
 	// if dead, look at killer
@@ -862,7 +866,7 @@ static void CG_OffsetThirdPersonViewQ3( void ) {
 
 //	VectorMA( cg.refdef.vieworg, FOCUS_DISTANCE, forward, focusPoint );
 
-	VectorCopy( cg.refdef.vieworg, view );
+	VectorCopy( mainOrg, view );
 	view[2] += 8;
 
 //	cg.refdef.viewangles[PITCH] *= 0.5;
@@ -878,7 +882,7 @@ static void CG_OffsetThirdPersonViewQ3( void ) {
 	// in a solid block.  Use an 8 by 8 block to prevent the view from near clipping anything
 
 	if (1/*!cg_cameraMode.integer*/) {
-		CG_Trace(&trace, cg.refdef.vieworg, mins, maxs, view, cg.playerCent->currentState.number, MASK_CAMERACLIP);
+		CG_Trace(&trace, mainOrg, mins, maxs, view, cg.playerCent->currentState.number, MASK_CAMERACLIP);
 
 		if (trace.fraction != 1.0) {
 			VectorCopy(trace.endpos, view);
@@ -892,18 +896,19 @@ static void CG_OffsetThirdPersonViewQ3( void ) {
 	}
 //	focusAngles[PITCH] = 0;
 //	AngleVectors(focusAngles, forward, NULL, NULL);
-	VectorMA(cg.refdef.vieworg, cg_thirdPersonRange.value - Distance(view, cg.refdef.vieworg), forward, focusPoint);
+	VectorMA(mainOrg, cg_thirdPersonRange.value - Distance(view, mainOrg), forward, focusPoint);
 
-	VectorCopy(view, cg.refdef.vieworg);
+	VectorCopy(view, mainOrg);
 
 	// select pitch to look at focus point from vieword
-	VectorSubtract(focusPoint, cg.refdef.vieworg, focusPoint);
+	VectorSubtract(focusPoint, mainOrg, focusPoint);
 	focusDist = sqrt( focusPoint[0] * focusPoint[0] + focusPoint[1] * focusPoint[1] );
 	if ( focusDist < 1 ) {
 		focusDist = 1;	// should never happen
 	}
 	cg.refdef.viewangles[PITCH] = -180 / M_PI * atan2(focusPoint[2], focusDist);
 	cg.refdef.viewangles[YAW] -= cg_thirdPersonAngle.value;
+	VectorCopy(view, cg.refdef.vieworg);
 }
 
 
