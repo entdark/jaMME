@@ -42,6 +42,7 @@ extern qboolean loadCamera(const char *name);
 extern void startCamera(int time);
 extern qboolean getCameraInfo(int time, vec3_t *origin, vec3_t *angles);
 
+extern qboolean demoGetDefaultState(int index, entityState_t *state);
 extern void demoGetSnapshotNumber( int *snapNumber, int *serverTime );
 extern qboolean demoGetSnapshot( int snapNumber, snapshot_t *snap );
 extern qboolean demoGetServerCommand( int cmdNumber );
@@ -937,7 +938,10 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		else
 			return CL_GetSnapshot( args[1], (snapshot_t *)VMA(2) );
 	case CG_GETDEFAULTSTATE:
-		return CL_GetDefaultState(args[1], (entityState_t *)VMA(2));
+		if (clc.newDemoPlayer)
+			return demoGetDefaultState(args[1], (entityState_t *)VMA(2));
+		else
+			return CL_GetDefaultState(args[1], (entityState_t *)VMA(2));
 	case CG_GETSERVERCOMMAND:
 		if (clc.newDemoPlayer)
 			return demoGetServerCommand( args[1] );

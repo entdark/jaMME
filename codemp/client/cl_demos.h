@@ -31,6 +31,7 @@ typedef struct {
 	byte		clientData[MAX_CLIENTS];
 	entityState_t entities[MAX_GENTITIES];
 	byte		entityData[MAX_GENTITIES];
+	entityState_t entityBaselines[MAX_GENTITIES];
 	int			commandUsed;
 	char		commandData[2048*MAX_CLIENTS];
 	byte		areaUsed;

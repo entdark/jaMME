@@ -20,6 +20,7 @@ static demo_t			demo;
 static byte				demoBuffer[128*1024];
 static entityState_t	demoNullEntityState;
 static playerState_t	demoNullPlayerState;
+static qboolean			demoFirstPack;
 
 static const char *demoHeader = JK_VERSION " Demo";
 
@@ -142,6 +143,24 @@ static void demoFrameUnpack( msg_t *msg, demoFrame_t *oldFrame, demoFrame_t *new
 	/* Read the command string data */
 	newFrame->commandUsed = MSG_ReadLong( msg );
 	MSG_ReadData( msg, newFrame->commandData, newFrame->commandUsed );
+	/* Extract the entity baselines */
+	while ( demoFirstPack ) {
+		byte cmd = MSG_ReadByte( msg );
+		if (cmd == svc_EOF)
+			break;
+		if (cmd == svc_baseline) {
+			int num = MSG_ReadBits( msg, GENTITYNUM_BITS );
+			if ( num < 0 || num >= MAX_GENTITIES ) {
+				Com_Error( ERR_DROP, "Baseline number out of range: %i.\n", num );
+			} else {
+				entityState_t *newEntity = &newFrame->entityBaselines[num];
+				MSG_ReadDeltaEntity( msg, &demoNullEntityState, newEntity, num );
+			}
+		} else {
+			Com_Error( ERR_DROP, "Unknown block %d while unpacking demo frame.\n", cmd );
+		}
+	}
+	demoFirstPack = qfalse;
 }
 
 static void demoFramePack( msg_t *msg, const demoFrame_t *newFrame, const demoFrame_t *oldFrame ) {
@@ -203,6 +222,19 @@ static void demoFramePack( msg_t *msg, const demoFrame_t *newFrame, const demoFr
 	/* Add the command string data */
 	MSG_WriteLong( msg, newFrame->commandUsed );
 	MSG_WriteData( msg, newFrame->commandData, newFrame->commandUsed );
+	/* Add the entity baselines */
+	if (demoFirstPack) {
+		for (i=0; i<MAX_GENTITIES; i++) {
+			const entityState_t *newEntity = &newFrame->entityBaselines[i];
+			if ( !newEntity->number ) {
+				continue;
+			}
+			MSG_WriteByte ( msg, svc_baseline );
+			MSG_WriteDeltaEntity( msg, &demoNullEntityState, (entityState_t *)newEntity, qtrue );
+		}
+		MSG_WriteByte( msg, svc_EOF ); //using it for correct break in unpack
+		demoFirstPack = qfalse;
+	}
 }
 
 static void demoFrameInterpolate( demoFrame_t frames[], int frameCount, int index ) {
@@ -302,6 +334,7 @@ void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothe
 		Com_Printf("Failed to open %s for conversion.", oldName);
 		return;
 	}
+	demoFirstPack = qtrue;
 	/* Alloc some memory */
 	convert = (demoConvert_t *)Z_Malloc( sizeof( demoConvert_t), TAG_GENERAL ); //what tag do we need?
 	memset( convert, 0, sizeof(demoConvert_t));
@@ -438,6 +471,8 @@ void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothe
 							goto conversionerror;
 						}
 						MSG_ReadDeltaEntity( &oldMsg, &demoNullEntityState, &convert->entityBaselines[num], num );
+//						MSG_ReadDeltaEntity( &oldMsg, &demoNullEntityState, &workFrame->entityBaselines[num], num );
+						memcpy(&workFrame->entityBaselines[num], &convert->entityBaselines[num], sizeof(entityState_t));
 					} else {
 						Com_Printf( "Unknown block while converting demo gamestate.\n" );
 						goto conversionerror;
@@ -548,6 +583,8 @@ void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothe
 						newnum = MSG_ReadBits( &oldMsg, GENTITYNUM_BITS );
 					} else if (oldnum > newnum) {
 						MSG_ReadDeltaEntity( &oldMsg, &convert->entityBaselines[newnum], newstate , newnum );
+//						MSG_ReadDeltaEntity( &oldMsg, &workFrame->entityBaselines[newnum], newstate , newnum );
+						memcpy(&workFrame->entityBaselines[newnum], &convert->entityBaselines[newnum], sizeof(entityState_t));
 						if ( newstate->number != MAX_GENTITIES-1)
 							workFrame->entityData[ newstate->number ] = 1;
 						newnum = MSG_ReadBits( &oldMsg, GENTITYNUM_BITS );
@@ -882,6 +919,7 @@ static demoPlay_t *demoPlayOpen( const char* fileName ) {
 		play->totalFrames++;
 	}
 	play->fileHandle = fileHandle;
+	demoFirstPack = qtrue;
 	demoPlaySetIndex( play, 0 );
 	play->clientNum = -1;
 	for( i=0;i<MAX_CLIENTS;i++)
@@ -899,6 +937,16 @@ errorreturn:
 static void demoPlayStop( demoPlay_t *play ) {
 	FS_FCloseFile( play->fileHandle );
 	Z_Free( play );
+}
+
+qboolean demoGetDefaultState(int index, entityState_t *state) {
+	demoPlay_t *play = demo.play.handle;
+	if (index < 0 || index >= MAX_GENTITIES)
+		return qfalse;
+	if (!(play->frame->entityBaselines[index].eFlags & EF_PERMANENT))
+		return qfalse;
+	*state = play->frame->entityBaselines[index];
+	return qtrue;
 }
 
 extern void CL_ConfigstringModified( void );
