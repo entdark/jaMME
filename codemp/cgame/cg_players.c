@@ -10324,16 +10324,15 @@ skipEffectOverride:
 		seeker.renderfx = 0; //renderfx;
 							 //don't show in first person?
 
-		angle = (((cg.time / 12) & 255) + cg.timeFraction / 12) * (M_PI * 2) / 255;
-		dir[0] = cos(angle) * 20;
-		dir[1] = sin(angle) * 20;
-		dir[2] = cos(angle) * 5;
+		dir[0] = cos(((double)cg.time / 12.0 + (double)cg.timeFraction / 12.0) * ((double)M_PI * 2.0) / 255.0) * 20.0f;
+		dir[1] = sin(((double)cg.time / 12.0 + (double)cg.timeFraction / 12.0) * ((double)M_PI * 2.0) / 255.0) * 20.0f;
+		dir[2] = cos(((double)cg.time / 12.0 + (double)cg.timeFraction / 12.0) * ((double)M_PI * 2.0) / 255.0) * 5.0f;
 		VectorAdd(elevated, dir, seeker.origin);
 
 		VectorCopy(seeker.origin, seekorg);
 
 		if (cent->currentState.genericenemyindex > MAX_GENTITIES) {
-			float prefig = ((cent->currentState.genericenemyindex-cg.time)-cg.timeFraction)/80;
+			float prefig = ((cent->currentState.genericenemyindex - cg.time) - cg.timeFraction) / 80.0f;
 
 			if (prefig > 55)
 				prefig = 55;
@@ -10342,10 +10341,9 @@ skipEffectOverride:
 
 			elevated[2] -= 55-prefig;
 
-			angle = (((cg.time / 12) & 255) + cg.timeFraction / 12) * (M_PI * 2) / 255;
-			dir[0] = cos(angle) * 20;
-			dir[1] = sin(angle) * 20;
-			dir[2] = cos(angle) * 5;
+			dir[0] = cos(((double)cg.time / 12.0 + (double)cg.timeFraction / 12.0) * ((double)M_PI * 2.0) / 255.0) * 20.0f;
+			dir[1] = sin(((double)cg.time / 12.0 + (double)cg.timeFraction / 12.0) * ((double)M_PI * 2.0) / 255.0) * 20.0f;
+			dir[2] = cos(((double)cg.time / 12.0 + (double)cg.timeFraction / 12.0) * ((double)M_PI * 2.0) / 255.0) * 5.0f;
 			VectorAdd(elevated, dir, seeker.origin);
 		}
 		else if (cent->currentState.genericenemyindex != ENTITYNUM_NONE && cent->currentState.genericenemyindex != -1)
@@ -10363,10 +10361,9 @@ skipEffectOverride:
 
 		if (!successchange)
 		{
-			angles[0] = sin(angle) * 30;
-			angles[1] = (angle * 180 / M_PI) + 90;
-			if (angles[1] > 360)
-				angles[1] -= 360;
+			angles[0] = sin(((double)cg.time / 12.0 + (double)cg.timeFraction / 12.0) * ((double)M_PI * 2.0) / 255.0) * 30.0f;
+			angles[1] = ((((double)cg.time / 12.0 + (double)cg.timeFraction / 12.0) * (2.0) / 255.0) * 180.0) + 90.0f;
+			AngleNormalize360(angles[1]);
 			angles[2] = 0;
 		}
 
@@ -11142,10 +11139,8 @@ SkipTrueView:
 		int renderedHolos = 0;
 		refEntity_t		holoRef;
 
-		while (i < NUM_FORCE_POWERS && renderedHolos < 3)
-		{
-			if (cent->currentState.time2 & (1 << i))
-			{
+		while (i < NUM_FORCE_POWERS && renderedHolos < 3) {
+			if (cent->currentState.time2 & (1 << i)) {
 				memset( &holoRef, 0, sizeof(holoRef) );
 
 				VectorCopy(cent->lerpOrigin, elevated);
@@ -11155,45 +11150,31 @@ SkipTrueView:
 				holoRef.shadowPlane = shadowPlane;
 				holoRef.renderfx = 0;//RF_THIRD_PERSON;
 
-				if (renderedHolos == 0)
-				{
-					angle = (((cg.time / 8) & 255) + cg.timeFraction / 8) * (M_PI * 2) / 255;
-					dir[0] = cos(angle) * 20;
-					dir[1] = sin(angle) * 20;
-					dir[2] = cos(angle) * 20;
+				if (renderedHolos == 0) {
+					dir[0] = cos(((double)cg.time / 8.0 + (double)cg.timeFraction / 8.0) * ((double)M_PI * 2.0) / 255.0) * 20.0f;
+					dir[1] = sin(((double)cg.time / 8.0 + (double)cg.timeFraction / 8.0) * ((double)M_PI * 2.0) / 255.0) * 20.0f;
+					dir[2] = cos(((double)cg.time / 8.0 + (double)cg.timeFraction / 8.0) * ((double)M_PI * 2.0) / 255.0) * 20.0f;
 					VectorAdd(elevated, dir, holoRef.origin);
 
-					angles[0] = sin(angle) * 30;
-					angles[1] = (angle * 180 / M_PI) + 90;
-					if (angles[1] > 360)
-						angles[1] -= 360;
+					angles[0] = sin(((double)cg.time / 8.0 + (double)cg.timeFraction / 8.0) * ((double)M_PI * 2.0) / 255.0) * 30.0f;
+					angles[1] = ((((double)cg.time / 8.0 + (double)cg.timeFraction / 8.0) * (2.0) / 255.0) * 180.0) + 900.0f;
+					AngleNormalize360(angles[1]);
 					angles[2] = 0;
 					AnglesToAxis( angles, holoRef.axis );
-				}
-				else if (renderedHolos == 1)
-				{
-					angle = (((cg.time / 8) & 255) + cg.timeFraction / 8) * (M_PI * 2) / 255 + M_PI;
-					if (angle > M_PI * 2)
-						angle -= (float)M_PI * 2;
-					dir[0] = sin(angle) * 20;
-					dir[1] = cos(angle) * 20;
-					dir[2] = cos(angle) * 20;
+				} else if (renderedHolos == 1) {
+					dir[0] = sin((((double)cg.time / 8.0 + (double)cg.timeFraction / 8.0) * ((double)M_PI * 2.0) / 255.0) + M_PI) * 20.0f;
+					dir[1] = cos((((double)cg.time / 8.0 + (double)cg.timeFraction / 8.0) * ((double)M_PI * 2.0) / 255.0) + M_PI) * 20.0f;
+					dir[2] = cos((((double)cg.time / 8.0 + (double)cg.timeFraction / 8.0) * ((double)M_PI * 2.0) / 255.0) + M_PI) * 20.0f;
 					VectorAdd(elevated, dir, holoRef.origin);
 
-					angles[0] = cos(angle - 0.5 * M_PI) * 30;
-					angles[1] = 360 - (angle * 180 / M_PI);
-					if (angles[1] > 360)
-						angles[1] -= 360;
+					angles[0] = cos((double)((((double)cg.time / 8.0 + (double)cg.timeFraction / 8.0) * ((double)M_PI * 2.0) / 255.0) + M_PI) - (0.5 * M_PI)) * 30.0f;
+					angles[1] = 360.0f - (((((double)cg.time / 8.0 + (double)cg.timeFraction / 8.0) * ((double)M_PI * 2.0) / 255.0) + M_PI) * 180.0 / M_PI);
+					AngleNormalize360(angles[1]);
 					angles[2] = 0;
 					AnglesToAxis( angles, holoRef.axis );
-				}
-				else
-				{
-					angle = (((cg.time / 6) & 255) + cg.timeFraction / 6) * (M_PI * 2) / 255 + 0.5 * M_PI;
-					if (angle > M_PI * 2)
-						angle -= (float)M_PI * 2;
-					dir[0] = sin(angle) * 20;
-					dir[1] = cos(angle) * 20;
+				} else {
+					dir[0] = sin((((double)cg.time / 6.0 + (double)cg.timeFraction / 6.0) * ((double)M_PI * 2.0) / 255.0) + 0.5 * M_PI) * 20;
+					dir[1] = cos((((double)cg.time / 6.0 + (double)cg.timeFraction / 6.0) * ((double)M_PI * 2.0) / 255.0) + 0.5 * M_PI) * 20;
 					dir[2] = 0;
 					VectorAdd(elevated, dir, holoRef.origin);
 			
@@ -11232,15 +11213,12 @@ SkipTrueView:
 
 					fxSArgs.flags = 0x08000000|0x00000001;
 
-					if (forcePowerDarkLight[i] == FORCE_DARKSIDE)
-					{ //dark
+					if (forcePowerDarkLight[i] == FORCE_DARKSIDE) { //dark
 						fxSArgs.sAlpha *= 3;
 						fxSArgs.eAlpha *= 3;
 						fxSArgs.shader = cgs.media.redSaberGlowShader;
 						trap_FX_AddSprite(&fxSArgs);
-					}
-					else if (forcePowerDarkLight[i] == FORCE_LIGHTSIDE)
-					{ //light
+					} else if (forcePowerDarkLight[i] == FORCE_LIGHTSIDE) { //light
 						fxSArgs.sAlpha *= 1.5;
 						fxSArgs.eAlpha *= 1.5;
 						fxSArgs.shader = cgs.media.redSaberGlowShader;
@@ -11249,20 +11227,15 @@ SkipTrueView:
 						trap_FX_AddSprite(&fxSArgs);
 						fxSArgs.shader = cgs.media.blueSaberGlowShader;
 						trap_FX_AddSprite(&fxSArgs);
-					}
-					else
-					{ //neutral
+					} else { //neutral
 						if (i == FP_SABER_OFFENSE ||
 							i == FP_SABER_DEFENSE ||
-							i == FP_SABERTHROW)
-						{ //saber power
+							i == FP_SABERTHROW) { //saber power
 							fxSArgs.sAlpha *= 1.5;
 							fxSArgs.eAlpha *= 1.5;
 							fxSArgs.shader = cgs.media.greenSaberGlowShader;
 							trap_FX_AddSprite(&fxSArgs);
-						}
-						else
-						{
+						} else {
 							fxSArgs.sAlpha *= 0.5;
 							fxSArgs.eAlpha *= 0.5;
 							fxSArgs.shader = cgs.media.greenSaberGlowShader;
