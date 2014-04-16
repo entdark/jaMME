@@ -2994,6 +2994,8 @@ typedef struct stringID_table_s
 	int		id;
 } stringID_table_t;
 
+stringID_table_t ClassTable[];
+
 int GetIDForString ( stringID_table_t *table, const char *string );
 const char *GetStringForID( stringID_table_t *table, int id );
 

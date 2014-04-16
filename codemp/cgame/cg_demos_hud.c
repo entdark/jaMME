@@ -182,6 +182,14 @@ static void hudMakeTarget( int targetNum, char *dst, int dstSize) {
 		case ET_GENERAL:
 			type = "general";
 			break;
+		case ET_NPC:
+			if (cent->currentState.NPC_class >= 0 && cent->currentState.NPC_class < CLASS_NUM_CLASSES)
+				type = va("%s %s", "npc", ClassTable[cent->currentState.NPC_class].name);
+			else if (cent->currentState.NPC_class == 255) //tavion
+				type = "npc CLASS_HIDDENTAVION"; //cool, yeah?
+			else
+				type = "npc";
+			break;
 		default:
 			type = "other";
 			break;
