@@ -8078,11 +8078,11 @@ static void CG_Draw2DScreenTints( void ) {
 
 void CG_CameraDraw2D( void ) {
 	if (cg_drawFPS.integer) {
-		if (cg_draw2D.integer == 3)
-			CG_DrawInWaterTints();
 		CG_DrawFPS(0);
 	}
-	if (cg_draw2D.integer == 2) {
+	if (cg_draw2D.integer > 1) {
+		if (cg_draw2D.integer == 3)
+			CG_DrawInWaterTints();
 		trap_S_UpdateEntityPosition(ENTITYNUM_NONE, cg.refdef.vieworg);
 		CG_ChatBox_DrawStrings();
 	}
