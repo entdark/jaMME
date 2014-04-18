@@ -80,6 +80,11 @@ PFNGLGETPROGRAMLOCALPARAMETERFVARBPROC qglGetProgramLocalParameterfvARB = NULL;
 PFNGLGETPROGRAMIVARBPROC qglGetProgramivARB = NULL;
 PFNGLGETPROGRAMSTRINGARBPROC qglGetProgramStringARB = NULL;
 PFNGLISPROGRAMARBPROC qglIsProgramARB = NULL;
+PFNGLGENBUFFERSARBPROC qglGenBuffersARB = NULL;
+PFNGLBINDBUFFERARBPROC qglBindBufferARB = NULL;
+PFNGLBUFFERDATAARBPROC qglBufferDataARB = NULL;
+PFNGLMAPBUFFERARBPROC qglMapBufferARB = NULL;
+PFNGLUNMAPBUFFERARBPROC qglUnmapBufferARB = NULL;
 
 void ( APIENTRY * qglTexImage3DEXT) (GLenum, GLint, GLenum, GLsizei, GLsizei, GLsizei, GLint, GLenum, GLenum, const GLvoid *);
 void ( APIENTRY * qglTexSubImage3DEXT) (GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei, GLenum, GLenum, const GLvoid *);
@@ -1245,6 +1250,11 @@ static void GLimp_InitExtensions( void )
 		qglGetProgramivARB					= (PFNGLGETPROGRAMIVARBPROC)     SDL_GL_GetProcAddress("glGetProgramivARB");
 		qglGetProgramStringARB				= (PFNGLGETPROGRAMSTRINGARBPROC) SDL_GL_GetProcAddress("glGetProgramStringARB");
 		qglIsProgramARB						= (PFNGLISPROGRAMARBPROC)        SDL_GL_GetProcAddress("glIsProgramARB");
+		qglGenBuffersARB					= (PFNGLGENBUFFERSARBPROC)       SDL_GL_GetProcAddress("glGenBuffersARB");
+		qglBindBufferARB					= (PFNGLBINDBUFFERARBPROC)       SDL_GL_GetProcAddress("glBindBufferARB");
+		qglBufferDataARB					= (PFNGLBUFFERDATAARBPROC)       SDL_GL_GetProcAddress("glBufferDataARB");
+		qglMapBufferARB						= (PFNGLMAPBUFFERARBPROC)		 SDL_GL_GetProcAddress("glMapBufferARB");
+		qglUnmapBufferARB					= (PFNGLUNMAPBUFFERARBPROC)		 SDL_GL_GetProcAddress("glUnmapBufferARB");
 
 		// Validate the functions we need.
 		if ( !qglProgramStringARB || !qglBindProgramARB || !qglDeleteProgramsARB || !qglGenProgramsARB ||

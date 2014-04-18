@@ -1,5 +1,7 @@
 #pragma once
 
+#define GL_GLEXT_PROTOTYPES
+
 #include <SDL_opengl.h>
 
 #define qglAccum glAccum
@@ -378,6 +380,12 @@ extern PFNGLGETPROGRAMLOCALPARAMETERFVARBPROC qglGetProgramLocalParameterfvARB;
 extern PFNGLGETPROGRAMIVARBPROC qglGetProgramivARB;
 extern PFNGLGETPROGRAMSTRINGARBPROC qglGetProgramStringARB;
 extern PFNGLISPROGRAMARBPROC qglIsProgramARB;
+
+extern PFNGLGENBUFFERSARBPROC qglGenBuffersARB;
+extern PFNGLBINDBUFFERARBPROC qglBindBufferARB;
+extern PFNGLBUFFERDATAARBPROC qglBufferDataARB;
+extern PFNGLMAPBUFFERARBPROC qglMapBufferARB;
+extern PFNGLUNMAPBUFFERARBPROC qglUnmapBufferARB;
 
 extern void ( * qglLockArraysEXT)( int, int);
 extern void ( * qglUnlockArraysEXT) ( void );
