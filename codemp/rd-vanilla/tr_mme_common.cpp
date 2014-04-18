@@ -2,19 +2,19 @@
 
 extern GLuint pboIds[2];
 void R_MME_GetShot( void* output ) {
-	if (!mme_cpuPBO->integer) {
+	if (!mme_cpuPBO->integer || r_stereoSeparation->value != 0) {
 		qglReadPixels( 0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGB, GL_UNSIGNED_BYTE, output ); 
 	} else {
 		static int index = 0;
 		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[index]);
 		index = index ^ 1;
-		qglReadPixels( 0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_BGR_EXT, GL_UNSIGNED_BYTE, 0 );
+		qglReadPixels( 0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGB, GL_UNSIGNED_BYTE, 0 );
 
 		// map the PBO to process its data by CPU
 		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[index]);
 		GLubyte* ptr = (GLubyte*)qglMapBufferARB(GL_PIXEL_PACK_BUFFER_ARB, GL_READ_ONLY_ARB);
 		if (ptr) {
-			output = ptr;
+			memcpy( output, ptr, glConfig.vidHeight * glConfig.vidWidth * 3 + 16 );
 			qglUnmapBufferARB(GL_PIXEL_PACK_BUFFER_ARB);
 		}
 		// back to conventional pixel operation

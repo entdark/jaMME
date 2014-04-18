@@ -29,7 +29,7 @@ Either extract the archive to "GameData" folder or extract anywhere, then create
 # Credits #
 * q3mme crew and their q3mme mod
 * Raz0r and his JA++ code for JA+ and JA++ compatibiliy, also he helped a lot
-* teh and his pugmod that was a good starting point, also some jaMME features are taken from pugmod
+* teh and his pugmod that was a good starting point, also some jaMME features are taken from pugmod; and his jamme port for linux
 * Sil and his features from SMod
 * CaNaBiS and his help in explaining of how q3mme works
 * Razorace and his trueview feature (taken from JA++)
