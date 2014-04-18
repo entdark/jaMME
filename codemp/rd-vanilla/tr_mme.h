@@ -71,7 +71,6 @@ void R_MME_BlurAccumShift( mmeBlurBlock_t *block  );
 void blurCreate( mmeBlurControl_t* control, const char* type, int frames );
 
 extern cvar_t	*mme_aviFormat;
-extern cvar_t	*mme_aviAppend;
 
 ID_INLINE byte * R_MME_BlurOverlapBuf( mmeBlurBlock_t *block ) {
 	mmeBlurControl_t* control = block->control;

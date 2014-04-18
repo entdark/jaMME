@@ -326,6 +326,12 @@ PFNGLGETPROGRAMLOCALPARAMETERFVARBPROC qglGetProgramLocalParameterfvARB = NULL;
 PFNGLGETPROGRAMIVARBPROC qglGetProgramivARB = NULL;
 PFNGLGETPROGRAMSTRINGARBPROC qglGetProgramStringARB = NULL;
 PFNGLISPROGRAMARBPROC qglIsProgramARB = NULL;
+
+PFNGLGENBUFFERSARBPROC qglGenBuffersARB = NULL;
+PFNGLBINDBUFFERARBPROC qglBindBufferARB = NULL;
+PFNGLBUFFERDATAARBPROC qglBufferDataARB = NULL;
+PFNGLMAPBUFFERARBPROC qglMapBufferARB = NULL;
+PFNGLUNMAPBUFFERARBPROC qglUnmapBufferARB = NULL;
 #endif
 
 void RE_SetLightStyle(int style, int color);
@@ -1382,6 +1388,7 @@ Ghoul2 Insert End
 }
 
 
+GLuint pboIds[2];
 /*
 ===============
 R_Init
@@ -1485,6 +1492,20 @@ void R_Init( void ) {
 		Com_Printf ( "glGetError() = 0x%x\n", err);
 
 //	Com_Printf ("----- finished R_Init -----\n" );
+	{
+		// create 2 pixel buffer objects, you need to delete them when program exits.
+		// glBufferDataARB with NULL pointer reserves only memory space.
+		int width = glConfig.vidWidth, height = glConfig.vidHeight;
+		#define MAX_PACK_LEN 16
+		int dataSize = (width * 4 + MAX_PACK_LEN - 1) * height + MAX_PACK_LEN - 1;
+		qglGenBuffersARB(2, pboIds);
+		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[0]);
+		qglBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, dataSize, 0, GL_STREAM_READ_ARB);
+		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[1]);
+		qglBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, dataSize, 0, GL_STREAM_READ_ARB);
+
+		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, 0);
+	}
 }
 
 /*

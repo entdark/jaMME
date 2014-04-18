@@ -1596,6 +1596,12 @@ static void GLW_InitExtensions( void )
 		qglGetProgramivARB					= (PFNGLGETPROGRAMIVARBPROC)     qwglGetProcAddress("glGetProgramivARB");
 		qglGetProgramStringARB				= (PFNGLGETPROGRAMSTRINGARBPROC) qwglGetProcAddress("glGetProgramStringARB");
 		qglIsProgramARB						= (PFNGLISPROGRAMARBPROC)        qwglGetProcAddress("glIsProgramARB");
+		//teh's PBO
+		qglGenBuffersARB					= (PFNGLGENBUFFERSARBPROC)       qwglGetProcAddress("glGenBuffersARB");
+		qglBindBufferARB					= (PFNGLBINDBUFFERARBPROC)       qwglGetProcAddress("glBindBufferARB");
+		qglBufferDataARB					= (PFNGLBUFFERDATAARBPROC)       qwglGetProcAddress("glBufferDataARB");
+		qglMapBufferARB						= (PFNGLMAPBUFFERARBPROC)		 qwglGetProcAddress("glMapBufferARB");
+		qglUnmapBufferARB					= (PFNGLUNMAPBUFFERARBPROC)		 qwglGetProcAddress("glUnmapBufferARB");
 
 		// Validate the functions we need.
 		if ( !qglProgramStringARB || !qglBindProgramARB || !qglDeleteProgramsARB || !qglGenProgramsARB ||

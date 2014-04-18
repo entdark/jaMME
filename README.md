@@ -33,4 +33,5 @@ Either extract the archive to "GameData" folder or extract anywhere, then create
 * Sil and his features from SMod
 * CaNaBiS and his help in explaining of how q3mme works
 * Razorace and his trueview feature (taken from JA++)
+* Grant R. Griffin and his "FIR filter algorithms for use in C"
 * OpenJK contributors and their OpenJK project

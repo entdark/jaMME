@@ -35,7 +35,6 @@ static struct {
 
 // MME cvars
 cvar_t	*mme_aviFormat;
-cvar_t	*mme_aviAppend;
 
 cvar_t	*mme_screenShotFormat;
 cvar_t	*mme_screenShotGamma;
@@ -58,6 +57,7 @@ cvar_t	*mme_dofFrames;
 cvar_t	*mme_dofRadius;
 
 cvar_t	*mme_cpuSSE2;
+cvar_t	*mme_cpuPBO;
 
 cvar_t	*mme_renderWidth;
 cvar_t	*mme_renderHeight;
@@ -662,7 +662,6 @@ void R_MME_Shutdown(void) {
 void R_MME_Init(void) {
 	// MME cvars
 	mme_aviFormat = ri.Cvar_Get ("mme_aviFormat", "0", CVAR_ARCHIVE);
-	mme_aviAppend = ri.Cvar_Get ("mme_aviAppend", "0", CVAR_INTERNAL);//CVAR_ARCHIVE); //working wrong, let it be always 0 until good times
 
 	mme_jpegQuality = ri.Cvar_Get ("mme_jpegQuality", "90", CVAR_ARCHIVE);
 	mme_jpegDownsampleChroma = ri.Cvar_Get ("mme_jpegDownsampleChroma", "0", CVAR_ARCHIVE);
@@ -688,6 +687,7 @@ void R_MME_Init(void) {
 	mme_dofRadius = ri.Cvar_Get ( "mme_dofRadius", "2", CVAR_ARCHIVE );
 
 	mme_cpuSSE2 = ri.Cvar_Get ( "mme_cpuSSE2", "0", CVAR_ARCHIVE );
+	mme_cpuPBO = ri.Cvar_Get ( "mme_cpuPBO", "0", CVAR_ARCHIVE );
 	
 	mme_depthRange = ri.Cvar_Get ( "mme_depthRange", "512", CVAR_ARCHIVE );
 	mme_depthFocus = ri.Cvar_Get ( "mme_depthFocus", "1024", CVAR_ARCHIVE );

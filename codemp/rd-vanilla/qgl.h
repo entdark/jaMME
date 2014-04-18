@@ -407,6 +407,15 @@ typedef void (APIENTRY * PFNGLGETPROGRAMLOCALPARAMETERFVARBPROC) (GLenum target,
 typedef void (APIENTRY * PFNGLGETPROGRAMIVARBPROC) (GLenum target, GLenum pname, GLint *params);
 typedef void (APIENTRY * PFNGLGETPROGRAMSTRINGARBPROC) (GLenum target, GLenum pname, GLvoid *string);
 typedef GLboolean (APIENTRY * PFNGLISPROGRAMARBPROC) (GLuint program);
+//teh's PBO
+typedef void (APIENTRY * PFNGLGENBUFFERSARBPROC) (GLsizei n, GLuint* ids);
+typedef void (APIENTRY * PFNGLBINDBUFFERARBPROC) (GLenum target, GLuint id);
+typedef void (APIENTRY * PFNGLBUFFERDATAARBPROC) (GLenum target, GLsizei size, const void* data, GLenum usage);
+typedef void *(APIENTRY * PFNGLMAPBUFFERARBPROC) (GLenum target, GLenum access);
+typedef GLboolean (APIENTRY * PFNGLUNMAPBUFFERARBPROC) (GLenum target);
+#define GL_READ_ONLY_ARB                  0x88B8
+#define GL_STREAM_READ_ARB                0x88E1
+#define GL_PIXEL_PACK_BUFFER_ARB          0x88EB
 /***********************************************************************************************************/
 
 // Declare Vertex and Fragment Program function pointers.
@@ -429,6 +438,12 @@ extern PFNGLGETPROGRAMLOCALPARAMETERFVARBPROC qglGetProgramLocalParameterfvARB;
 extern PFNGLGETPROGRAMIVARBPROC qglGetProgramivARB;
 extern PFNGLGETPROGRAMSTRINGARBPROC qglGetProgramStringARB;
 extern PFNGLISPROGRAMARBPROC qglIsProgramARB;
+//teh's PBO
+extern PFNGLGENBUFFERSARBPROC qglGenBuffersARB;
+extern PFNGLBINDBUFFERARBPROC qglBindBufferARB;
+extern PFNGLBUFFERDATAARBPROC qglBufferDataARB;
+extern PFNGLMAPBUFFERARBPROC qglMapBufferARB;
+extern PFNGLUNMAPBUFFERARBPROC qglUnmapBufferARB;
 
 
 /*
