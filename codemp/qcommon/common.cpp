@@ -12,6 +12,10 @@
 
 #include "../server/NPCNav/navigator.h"
 
+#ifdef USE_AIO
+#include <pthread.h>
+#endif
+
 int demo_protocols[] =
 { 26, NULL };
 
@@ -122,7 +126,31 @@ to the apropriate place.
 A raw string should NEVER be passed as fmt, because of "%f" type crashers.
 =============
 */
+#ifdef USE_AIO
+class autolock
+{
+	pthread_mutex_t *lock_;
+
+public:
+	autolock(pthread_mutex_t *lock )
+		: lock_(lock)
+	{
+		pthread_mutex_lock( lock );
+	}
+	~autolock()
+	{
+		pthread_mutex_unlock( lock_ );
+	}
+};
+
+static pthread_mutex_t printfLock;
+static pthread_mutex_t pushLock;
+#endif
 void QDECL Com_Printf( const char *fmt, ... ) {
+#ifdef USE_AIO
+	autolock autolock( &printfLock );
+#endif
+
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
 	static qboolean opening_qconsole = qfalse;
@@ -691,9 +719,14 @@ journaled file
 
 // bk001129 - here we go again: upped from 64
 #define	MAX_PUSHED_EVENTS	            1024
+#ifdef USE_AIO
+#define THREADACCESS volatile
+#else
+#define THREADACCESS
+#endif
 // bk001129 - init, also static
-static int		com_pushedEventsHead = 0;
-static int             com_pushedEventsTail = 0;
+static THREADACCESS int		com_pushedEventsHead = 0;
+static THREADACCESS int             com_pushedEventsTail = 0;
 // bk001129 - static
 static sysEvent_t	com_pushedEvents[MAX_PUSHED_EVENTS];
 
@@ -794,6 +827,10 @@ Com_PushEvent
 =================
 */
 void Com_PushEvent( sysEvent_t *event ) {
+#ifdef USE_AIO
+	autolock autolock( &pushLock );
+#endif
+
 	sysEvent_t		*ev;
 	static int printedWarning = 0; // bk001129 - init, bk001204 - explicit int
 
@@ -825,9 +862,14 @@ Com_GetEvent
 =================
 */
 sysEvent_t	Com_GetEvent( void ) {
-	if ( com_pushedEventsHead > com_pushedEventsTail ) {
-		com_pushedEventsTail++;
-		return com_pushedEvents[ (com_pushedEventsTail-1) & (MAX_PUSHED_EVENTS-1) ];
+	{
+#ifdef USE_AIO
+		autolock autolock( &pushLock );
+#endif
+		if ( com_pushedEventsHead > com_pushedEventsTail ) {
+			com_pushedEventsTail++;
+			return com_pushedEvents[ (com_pushedEventsTail-1) & (MAX_PUSHED_EVENTS-1) ];
+		}
 	}
 	return Com_GetRealEvent();
 }
@@ -953,6 +995,14 @@ int Com_EventLoop( void ) {
 				CL_PacketEvent( evFrom, &buf );
 			}
 			break;
+#ifdef USE_AIO
+		case SE_AIO_FCLOSE:
+			{
+				extern void	FS_FCloseAio( int handle );
+				FS_FCloseAio( ev.evValue );
+				break;
+			}
+#endif
 		}
 
 		// free any block data
@@ -1199,6 +1249,17 @@ void Com_Init( char *commandLine ) {
 
 	try
 	{
+#ifdef USE_AIO
+		{
+			pthread_mutexattr_t attr;
+
+			pthread_mutexattr_init( &attr );
+			pthread_mutexattr_settype( &attr, PTHREAD_MUTEX_RECURSIVE );
+			pthread_mutex_init( &printfLock, &attr );
+			pthread_mutex_init( &pushLock, &attr );
+		}
+#endif
+
 		// bk001129 - do this before anything else decides to push events
 		Com_InitPushEvent();
 

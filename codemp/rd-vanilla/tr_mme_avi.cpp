@@ -411,7 +411,11 @@ static qboolean aviOpen( mmeAviFile_t *aviFile, const char *name, mmeShotType_t 
 		Com_Printf( "Max avi segments reached\n");
 		return qfalse;
 	}
+#ifdef USE_AIO
+	aviFile->f = ri.FS_FOpenFileWriteAsync( fileName );
+#else
 	aviFile->f = ri.FS_FDirectOpenFileWrite( fileName, "w+b");
+#endif
 	if (!aviFile->f) {
 		Com_Printf( "Failed to open %s for avi output\n", fileName );
 		return qfalse;

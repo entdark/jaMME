@@ -1078,7 +1078,7 @@ Ghoul2 Insert End
 }
 
 
-GLuint pboIds[2];
+GLuint pboIds[4];
 /*
 ===============
 R_Init
@@ -1186,11 +1186,11 @@ void R_Init( void ) {
 		// create 2 pixel buffer objects, you need to delete them when program exits.
 		// glBufferDataARB with NULL pointer reserves only memory space.
 		int dataSize = glConfig.vidWidth * glConfig.vidHeight * 3;
-		qglGenBuffersARB(2, pboIds);
-		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[0]);
-		qglBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, dataSize, 0, GL_STREAM_READ_ARB);
-		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[1]);
-		qglBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, dataSize, 0, GL_STREAM_READ_ARB);
+		qglGenBuffersARB(4, pboIds);
+		for ( int idx = 0; idx < 4; idx++ ) {
+			qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[idx]);
+			qglBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, dataSize, 0, GL_STREAM_READ_ARB);
+		}
 
 		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, 0);
 	}

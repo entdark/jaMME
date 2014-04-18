@@ -280,6 +280,9 @@ typedef struct {
 	int				(*FS_ReadFile)						( const char *qpath, void **buffer );
 	void			(*FS_FCloseFile)					( fileHandle_t f );
 	int				(*FS_FOpenFileRead)					( const char *qpath, fileHandle_t *file, qboolean uniqueFILE );
+#ifdef USE_AIO
+	fileHandle_t	(*FS_FOpenFileWriteAsync)			( const char *qpath );
+#endif
 	fileHandle_t	(*FS_FOpenFileWrite)				( const char *qpath );
 	fileHandle_t	(*FS_FDirectOpenFileWrite)			( const char *filename, const char *mode );
 	int				(*FS_FOpenFileByMode)				( const char *qpath, fileHandle_t *f, fsMode_t mode );

@@ -64,10 +64,29 @@ typedef struct qfile_us {
 	qboolean	unique;
 } qfile_ut;
 
+#ifdef USE_AIO
+typedef struct fileBufferNode_s {
+	void *buffer;
+	struct aiocb cb;
+	struct fileBufferNode_s *next;
+} fileBufferNode_t;
+
+typedef struct pendingBuffer_s {
+	byte *buffer;
+	size_t bufferLen;
+	size_t bufferOffset;
+} pendingBuffer_t;
+#endif
 
 typedef struct {
 	qfile_ut	handleFiles;
 	qboolean	handleSync;
+#ifdef USE_AIO
+	qboolean	handleAsync;
+	fileBufferNode_t	*pending;
+	qboolean	closing; // set if FS_FClose was called on this, needed since file close happens asynchronously
+	pendingBuffer_t pendingBuffer; // buffer writes before calling AIO to reduce thread churn
+#endif
 	int			baseOffset;
 	int			fileSize;
 	int			zipFilePos;
