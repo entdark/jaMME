@@ -315,7 +315,7 @@ qboolean SSUsingFog=qfalse;
 // Vertical surface sprites
 
 static void RB_VerticalSurfaceSprite(vec3_t loc, float width, float height, byte light, 
-										byte alpha, float wind, float windidle, vec2_t fog, int hangdown, vec2_t skew)
+										byte alpha, float wind, float windidle, vec2_t fog, int hangdown, vec2_t skew, bool flattened)
 {
 	vec3_t loc2, right;
 	float angle;
@@ -372,7 +372,13 @@ static void RB_VerticalSurfaceSprite(vec3_t loc, float width, float height, byte
 		loc2[2] += sin(angle*2.5)*windsway;
 	}
 
-	VectorScale(ssrightvectors[rightvectorcount], width*0.5, right);
+	if (flattened) {
+		right[0] = sin(DEG2RAD(loc[0])) * width; 
+		right[1] = cos(DEG2RAD(loc[0])) * height;
+		right[2] = 0.0f;
+	} else {
+		VectorScale(ssrightvectors[rightvectorcount], width * 0.5f, right);
+	}
 
 	color[0]=light;
 	color[1]=light;
@@ -413,7 +419,7 @@ static void RB_VerticalSurfaceSprite(vec3_t loc, float width, float height, byte
 
 static void RB_VerticalSurfaceSpriteWindPoint(vec3_t loc, float width, float height, byte light, 
 												byte alpha, float wind, float windidle, vec2_t fog, 
-												int hangdown, vec2_t skew, vec2_t winddiff, float windforce)
+												int hangdown, vec2_t skew, vec2_t winddiff, float windforce, bool flattened)
 {
 	vec3_t loc2, right;
 	float angle;
@@ -458,7 +464,13 @@ static void RB_VerticalSurfaceSpriteWindPoint(vec3_t loc, float width, float hei
 	loc2[1] += height*winddiff[1]*windforce;
 	loc2[2] -= height*windforce*(0.75 + 0.15*(sin((tr.refdef.time + tr.refdef.timeFraction + 500*windforce)*0.01)));
 
-	VectorScale(ssrightvectors[rightvectorcount], width*0.5, right);
+	if (flattened) {
+		right[0] = sin(DEG2RAD(loc[0])) * width; 
+		right[1] = cos(DEG2RAD(loc[0])) * height;
+		right[2] = 0.0f;
+	} else {
+		VectorScale(ssrightvectors[rightvectorcount], width * 0.5f, right);
+	}
 
 	color[0]=light;
 	color[1]=light;
@@ -765,13 +777,13 @@ static void RB_DrawVerticalSurfaceSprites( shaderStage_t *stage, shaderCommands_
 						{
 							RB_VerticalSurfaceSpriteWindPoint(curpoint, width, height, (byte)light, (byte)(alpha*255.0), 
 										stage->ss->wind, stage->ss->windIdle, fogv, stage->ss->facing, skew,
-										winddiffv, windforce);
+										winddiffv, windforce, SURFSPRITE_FLATTENED == stage->ss->surfaceSpriteType);
 						}
 						else
 						{
 							RB_VerticalSurfaceSpriteWindPoint(curpoint, width, height, (byte)light, (byte)(alpha*255.0), 
 										stage->ss->wind, stage->ss->windIdle, NULL, stage->ss->facing, skew, 
-										winddiffv, windforce);
+										winddiffv, windforce, SURFSPRITE_FLATTENED == stage->ss->surfaceSpriteType);
 						}
 					}
 					else
@@ -779,12 +791,12 @@ static void RB_DrawVerticalSurfaceSprites( shaderStage_t *stage, shaderCommands_
 						if (SSUsingFog)
 						{
 							RB_VerticalSurfaceSprite(curpoint, width, height, (byte)light, (byte)(alpha*255.0), 
-										stage->ss->wind, stage->ss->windIdle, fogv, stage->ss->facing, skew);
+										stage->ss->wind, stage->ss->windIdle, fogv, stage->ss->facing, skew, SURFSPRITE_FLATTENED == stage->ss->surfaceSpriteType);
 						}
 						else
 						{
 							RB_VerticalSurfaceSprite(curpoint, width, height, (byte)light, (byte)(alpha*255.0), 
-										stage->ss->wind, stage->ss->windIdle, NULL, stage->ss->facing, skew);
+										stage->ss->wind, stage->ss->windIdle, NULL, stage->ss->facing, skew, SURFSPRITE_FLATTENED == stage->ss->surfaceSpriteType);
 						}
 					}
 
@@ -1447,6 +1459,7 @@ void RB_DrawSurfaceSprites( shaderStage_t *stage, shaderCommands_t *input)
 
 	switch(stage->ss->surfaceSpriteType)
 	{
+	case SURFSPRITE_FLATTENED:
 	case SURFSPRITE_VERTICAL:
 		RB_DrawVerticalSurfaceSprites(stage, input);
 		break;
