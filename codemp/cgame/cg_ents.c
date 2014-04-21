@@ -3167,7 +3167,11 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 		return;
 	}
 
-	f = cg.frameInterpolation;
+	if ( cent->currentState.number == cg.predictedPlayerState.clientNum ) {
+		f = cg.playerInterpolation;
+	} else {
+		f = cg.frameInterpolation;
+	}
 
 	// this will linearize a sine or parabolic curve, but it is important
 	// to not extrapolate player positions if more recent data is available

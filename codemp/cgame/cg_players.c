@@ -11226,8 +11226,14 @@ SkipTrueView:
 		if (!cg.demoPlayback || !cg.nextSnap) {
 			VectorCopy(cent->currentState.pos.trDelta, tDir);
 		} else {
+			float f;
+			if ( cent->currentState.number == cg.predictedPlayerState.clientNum ) {
+				f = cg.playerInterpolation;
+			} else {
+				f = cg.frameInterpolation;
+			}
 			VectorSubtract(cent->nextState.pos.trDelta, cent->currentState.pos.trDelta, tDeltaAdd);
-			VectorMA(cent->currentState.pos.trDelta, cg.frameInterpolation, tDeltaAdd, tDir);
+			VectorMA(cent->currentState.pos.trDelta, f, tDeltaAdd, tDir);
 		}
 		distVelBase = SPEED_TRAIL_DISTANCE * (VectorNormalize(tDir) * 0.004f);
 

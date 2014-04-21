@@ -2132,7 +2132,7 @@ void CL_SetCGameTime( void ) {
 		cl.serverTime = clc.timeDemoBaseTime + clc.timeDemoFrames * 50;
 	}
 
-	while ( cl.serverTime >= cl.snap.serverTime ) {
+	while ( cl.serverTime >= cl.snapshots[(cl.snap.messageNum - 1) & PACKET_MASK].serverTime ) { //cl.snap.serverTime ) {
 		// feed another messag, which should change
 		// the contents of cl.snap
 		CL_ReadDemoMessage();

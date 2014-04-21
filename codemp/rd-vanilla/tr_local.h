@@ -89,7 +89,6 @@ typedef struct {
 	int			dlightBits;
 } trRefEntity_t;
 
-
 typedef struct {
 	vec3_t		origin;			// in world coordinates
 	vec3_t		axis[3];		// orientation in world

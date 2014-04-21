@@ -444,7 +444,13 @@ skipNPC:
 				break;
 			CG_SetNextSnap( snap );
 		}
-		if ( cg.time >= cg.snap->serverTime && cg.time < cg.nextSnap->serverTime )
+		if ( !cg.nextNextSnap ) {
+			snap = CG_ReadNextSnapshot();
+			if ( !snap )
+				break;
+			CG_SetNextNextSnap( snap );
+		}
+		if ( cg.time + cg.timeFraction >= cg.snap->serverTime && cg.time + cg.timeFraction < cg.nextSnap->serverTime )
 			break;
 		//Todo our own transition checking if we wanna hear certain sounds
 		CG_TransitionSnapshot();

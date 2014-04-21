@@ -134,6 +134,127 @@ void CG_SetInitialSnapshot( snapshot_t *snap ) {
 	}
 }
 
+static qboolean CG_IsTeleport( snapshot_t *lastSnap, snapshot_t *snap ) {
+	// if the next frame is a teleport for the playerstate, we
+	// can't interpolate during demos
+	if ( lastSnap && ( ( snap->ps.eFlags ^ lastSnap->ps.eFlags ) & EF_TELEPORT_BIT ) ) {
+		return qtrue;
+	}
+
+	// if changing follow mode, don't interpolate
+	if ( snap->ps.clientNum != lastSnap->ps.clientNum ) {
+		return qtrue;
+	}
+
+	// if changing server restarts, don't interpolate
+	if ( ( snap->snapFlags ^ lastSnap->snapFlags ) & SNAPFLAG_SERVERCOUNT ) {
+		return qtrue;
+	}
+
+	return qfalse;
+}
+
+static void CG_UpdateTps( snapshot_t *snap, qboolean isTeleport ) {
+	timedPlayerState_t	*tps, *lasttps;
+
+	tps = &cg.psHistory.states[cg.psHistory.nextSlot];
+	lasttps = &cg.psHistory.states[(cg.psHistory.nextSlot + MAX_STATE_HISTORY - 1) % MAX_STATE_HISTORY];
+	cg.psHistory.nextSlot = (cg.psHistory.nextSlot + 1) % MAX_STATE_HISTORY;
+	Com_Memset( tps, 0, sizeof( *tps ) );
+
+	if ( lasttps->serverTime != cg.snap->serverTime ) {
+		//Com_Printf( "Warning: lasttps->serverTime != cg.snap->serverTime\n" );
+	}
+
+	tps->ps = snap->ps;
+	tps->serverTime = snap->serverTime;
+	tps->isTeleport = isTeleport;
+	// determine correct lerp time for new snap
+	if (isTeleport) {
+		// if frame is a teleport, reset as best we can
+		tps->time = max(lasttps->time, tps->serverTime);
+	} else {
+		// so for smoothest experience, time should be cg.nextSnap->ps.commandTime
+		// but, we shouldn't drift time too far off or else player will move weird (will appear to be further ahead depending on ping)
+		// so, prevent to drift further than 1 frame away in future, or 2 in past
+		int bestNewTime = tps->ps.commandTime - lasttps->ps.commandTime + lasttps->time;
+		int deltaTime = tps->serverTime - lasttps->serverTime;
+		// allow  to drift ahead or behind by 1 frame only
+		int newTime = min( tps->serverTime + deltaTime, max( lasttps->serverTime, bestNewTime ) );
+		if ( lasttps->serverTime != 0 ) {
+			tps->time = newTime;
+		} else {
+			tps->time = tps->serverTime;
+		}
+		
+#ifdef _DEBUG
+		if ( tps->time < lasttps->time ) {
+			Com_Printf( "WARNING: Drifted backwards\n" );
+		}
+#endif
+
+		//Com_Printf("Corrected time %d ms (commandDiff %d, framedelta %d)\n", tps->time - tps->serverTime, tps->ps.commandTime - lasttps->ps.commandTime, deltaTime);
+	}
+}
+
+/*
+===================
+CG_SetNextSnap
+
+A new snapshot has just been read in from the client system.
+===================
+*/
+void CG_SetNextSnap( snapshot_t *snap ) {
+	int					num;
+	entityState_t		*es;
+	centity_t			*cent;
+
+	cg.nextSnap = snap;
+
+	//CG_CheckPlayerG2Weapons(&cg.snap->ps, &cg_entities[cg.snap->ps.clientNum]);
+	BG_PlayerStateToEntityState( &snap->ps, &cg_entities[ snap->ps.clientNum ].nextState, qfalse );
+	//cg_entities[ cg.snap->ps.clientNum ].interpolate = qtrue;
+	//No longer want to do this, as the cg_entities[clnum] and cg.predictedPlayerEntity are one in the same.
+
+	// check for extrapolation errors
+	for ( num = 0 ; num < snap->numEntities ; num++ ) 
+	{
+		es = &snap->entities[num];
+		cent = &cg_entities[ es->number ];
+
+		memcpy(&cent->nextState, es, sizeof(entityState_t));
+		//cent->nextState = *es;
+
+		// if this frame is a teleport, or the entity wasn't in the
+		// previous frame, don't interpolate
+		if ( !cent->currentValid || ( ( cent->currentState.eFlags ^ es->eFlags ) & EF_TELEPORT_BIT )  ) {
+			cent->interpolate = qfalse;
+		} else {
+			cent->interpolate = qtrue;
+		}
+	}
+
+	cg.nextFrameTeleport = CG_IsTeleport( cg.snap, snap );
+
+	if ( cg.nextNextSnap == NULL ) {
+		CG_UpdateTps( snap, cg.nextFrameTeleport );
+	}
+
+	// sort out solid entities
+	CG_BuildSolidList();
+}
+
+/*
+===================
+CG_SetNextNextSnap
+
+A new snapshot has just been read in from the client system.
+===================
+*/
+void CG_SetNextNextSnap( snapshot_t *snap ) {
+	cg.nextNextSnap = snap;
+	CG_UpdateTps( snap, CG_IsTeleport( cg.nextSnap, snap ) );
+}
 
 /*
 ===================
@@ -185,7 +306,12 @@ void CG_TransitionSnapshot( void ) {
 		cent->snapShotTime = cg.snap->serverTime;
 	}
 
-	cg.nextSnap = NULL;
+	if ( !cg.nextNextSnap ) {
+		cg.nextSnap = NULL;	
+	} else {
+		CG_SetNextSnap( cg.nextNextSnap );
+		cg.nextNextSnap = NULL;
+	}
 
 	// check for playerstate transition events
 	if ( oldFrame ) {
@@ -208,67 +334,6 @@ void CG_TransitionSnapshot( void ) {
 
 }
 
-
-/*
-===================
-CG_SetNextSnap
-
-A new snapshot has just been read in from the client system.
-===================
-*/
-void CG_SetNextSnap( snapshot_t *snap ) {
-	int					num;
-	entityState_t		*es;
-	centity_t			*cent;
-
-	cg.nextSnap = snap;
-
-	//CG_CheckPlayerG2Weapons(&cg.snap->ps, &cg_entities[cg.snap->ps.clientNum]);
-	BG_PlayerStateToEntityState( &snap->ps, &cg_entities[ snap->ps.clientNum ].nextState, qfalse );
-	//cg_entities[ cg.snap->ps.clientNum ].interpolate = qtrue;
-	//No longer want to do this, as the cg_entities[clnum] and cg.predictedPlayerEntity are one in the same.
-
-	// check for extrapolation errors
-	for ( num = 0 ; num < snap->numEntities ; num++ ) 
-	{
-		es = &snap->entities[num];
-		cent = &cg_entities[ es->number ];
-
-		memcpy(&cent->nextState, es, sizeof(entityState_t));
-		//cent->nextState = *es;
-
-		// if this frame is a teleport, or the entity wasn't in the
-		// previous frame, don't interpolate
-		if ( !cent->currentValid || ( ( cent->currentState.eFlags ^ es->eFlags ) & EF_TELEPORT_BIT )  ) {
-			cent->interpolate = qfalse;
-		} else {
-			cent->interpolate = qtrue;
-		}
-	}
-
-	// if the next frame is a teleport for the playerstate, we
-	// can't interpolate during demos
-	if ( cg.snap && ( ( snap->ps.eFlags ^ cg.snap->ps.eFlags ) & EF_TELEPORT_BIT ) ) {
-		cg.nextFrameTeleport = qtrue;
-	} else {
-		cg.nextFrameTeleport = qfalse;
-	}
-
-	// if changing follow mode, don't interpolate
-	if ( cg.nextSnap->ps.clientNum != cg.snap->ps.clientNum ) {
-		cg.nextFrameTeleport = qtrue;
-	}
-
-	// if changing server restarts, don't interpolate
-	if ( ( cg.nextSnap->snapFlags ^ cg.snap->snapFlags ) & SNAPFLAG_SERVERCOUNT ) {
-		cg.nextFrameTeleport = qtrue;
-	}
-
-	// sort out solid entities
-	CG_BuildSolidList();
-}
-
-
 /*
 ========================
 CG_ReadNextSnapshot
@@ -290,10 +355,21 @@ snapshot_t *CG_ReadNextSnapshot( void ) {
 
 	while ( cgs.processedSnapshotNum < cg.latestSnapshotNum ) {
 		// decide which of the two slots to load it into
-		if ( cg.snap == &cg.activeSnapshots[0] ) {
-			dest = &cg.activeSnapshots[1];
-		} else {
+		if ( !cg.snap ) {
 			dest = &cg.activeSnapshots[0];
+		} else {
+			// pick slot not already used
+			int curOffset;
+			for ( curOffset = 0; curOffset < 3; curOffset++ ) {
+				if ( ( !cg.snap || cg.snap != &cg.activeSnapshots[curOffset] ) &&
+						( !cg.nextSnap || cg.nextSnap != &cg.activeSnapshots[curOffset] ) ) {
+					break;
+				}
+			}
+			if ( curOffset == 3 ) {
+				Com_Printf( "WARNING: Couldn't find unused activeSnapshot\n" );
+			}
+			dest = &cg.activeSnapshots[curOffset % 3];
 		}
 
 		// try to read the snapshot from the client system
@@ -409,6 +485,21 @@ void CG_ProcessSnapshots( void ) {
 			// if time went backwards, we have a level restart
 			if ( cg.nextSnap->serverTime < cg.snap->serverTime ) {
 				CG_Error( "CG_ProcessSnapshots: Server time went backwards" );
+			}
+		}
+		if ( !cg.nextNextSnap ) {
+			snap = CG_ReadNextSnapshot();
+
+			// if we still don't have a nextframe, we will just have to
+			// extrapolate
+			if ( snap ) {
+				CG_SetNextNextSnap( snap );
+
+
+				// if time went backwards, we have a level restart
+				if ( cg.nextNextSnap->serverTime < cg.nextSnap->serverTime ) {
+					CG_Error( "CG_ProcessSnapshots: Server time went backwards" );
+				}
 			}
 		}
 

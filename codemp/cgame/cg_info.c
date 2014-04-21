@@ -2,6 +2,7 @@
 //
 // cg_info.c -- display information while data is being loading
 
+#include <stddef.h>
 #include "cg_local.h"
 #ifndef _WIN32
 #include <stddef.h>
