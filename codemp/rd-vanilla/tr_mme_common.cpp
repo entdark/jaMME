@@ -14,7 +14,7 @@ void R_MME_GetShot( void* output ) {
 		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[index]);
 		GLubyte* ptr = (GLubyte*)qglMapBufferARB(GL_PIXEL_PACK_BUFFER_ARB, GL_READ_ONLY_ARB);
 		if (ptr) {
-			memcpy( output, ptr, glConfig.vidHeight * glConfig.vidWidth * 3 + 16 );
+			memcpy( output, ptr, glConfig.vidHeight * glConfig.vidWidth * 3 );
 			qglUnmapBufferARB(GL_PIXEL_PACK_BUFFER_ARB);
 		}
 		// back to conventional pixel operation
