@@ -2629,7 +2629,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			//[TrueView]
 			|| cg.playerCent->currentState.weapon == WP_SABER
 			|| cg.playerCent->currentState.weapon == WP_MELEE))
-			|| cg_trueGuns.integer 
+			|| cg.trueView
 			|| cg.renderingThirdPerson )
 			//[/TrueView]
 		{ //h4q3ry

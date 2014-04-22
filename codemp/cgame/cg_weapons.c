@@ -590,7 +590,7 @@ getFlash:
 	//[TrueView]
 	//Make the guns do their charging visual in True View.
 	if ( (ps || cg.renderingThirdPerson || (cg.playerCent && cg.playerCent != cent)
-		|| cg_trueGuns.integer) &&
+		|| cg.trueView) &&
 	//if ( (ps || cg.renderingThirdPerson || cg.predictedPlayerState.clientNum != cent->currentState.number) &&
 	//[/TrueView]
 		( ( cent->currentState.modelindex2 == WEAPON_CHARGING_ALT && cent->currentState.weapon == WP_BRYAR_PISTOL ) ||
@@ -710,8 +710,7 @@ getFlash:
 	}
 
 	//[TrueView]
-	if (ps || cg.renderingThirdPerson || cg_trueGuns.integer 
-		|| (cg.playerCent && cent != cg.playerCent)) 
+	if (ps || cg.renderingThirdPerson || cg.trueView || (cg.playerCent && cent != cg.playerCent)) 
 	//[/TrueView]
 	{	// Make sure we don't do the thirdperson model effects for the local player if we're in first person
 		vec3_t flashorigin, flashdir;
@@ -805,7 +804,7 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 
 	//[TrueView]
 	if ( !cg.renderingThirdPerson
-		&& (cg_trueGuns.integer)
+		&& cg.trueView
 		&& cg_trueFOV.value 
 		&& (cg.playerPredicted && cg.predictedPlayerState.pm_type != PM_SPECTATOR
 		&& cg.predictedPlayerState.pm_type != PM_INTERMISSION) )
@@ -818,7 +817,7 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 
 	// allow the gun to be completely removed
 	//[TrueView]
-	if ((!cg_drawGun.integer || cg_trueGuns.integer)) {
+	if (!cg_drawGun.integer || cg.trueView) {
 	//[/TrueView]
 		vec3_t		origin;
 

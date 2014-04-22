@@ -817,6 +817,7 @@ typedef struct {
 	qboolean	mRMGWeather; //rwwRMG - added
 
 	qboolean	renderingThirdPerson;		// during deaths, chasecams, etc
+	qboolean	trueView;
 	qboolean	playerPredicted;
 	centity_t		*playerCent;			// mme var for clients to chase
 

@@ -98,7 +98,7 @@ static void CG_DemosUpdatePlayer( void ) {
 }
 
 #define RADIUS_LIMIT 701.0f
-#define EFFECT_LENGTH 400 //msec
+#define EFFECT_LENGTH 400.0f //msec
 
 static void VibrateView( const float range, const int eventTime, const float fxTime, const float wc, float scale, vec3_t origin, vec3_t angles) {
 	float shadingTime;
@@ -107,7 +107,7 @@ static void VibrateView( const float range, const int eventTime, const float fxT
 	if (range > 1 || range < 0) {
 		return;
 	}
-	scale *= fx_Vibrate.value * 100 * wc * range;
+	scale *= fx_Vibrate.value * 100.0f * wc * range;
 
 	shadingTime = (fxTime - (float)EFFECT_LENGTH) / 1000.0f;
 
@@ -153,24 +153,24 @@ static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
 	}
 }
 
-static void CG_SetPredictedThirdPerson(void) {
+void CG_SetPredictedThirdPerson(void) {
 	cg.renderingThirdPerson = ((cg_thirdPerson.integer
 		|| (cg.snap->ps.stats[STAT_HEALTH] <= 0)
-		|| (cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer)
-		|| (cg.playerCent->currentState.weapon == WP_MELEE && !cg_trueGuns.integer)
+		|| (cg.playerCent->currentState.weapon == WP_SABER && !cg.trueView)
+		|| (cg.playerCent->currentState.weapon == WP_MELEE && !cg.trueView)
 		|| BG_InGrappleMove(cg.predictedPlayerState.torsoAnim)
 		|| BG_InGrappleMove(cg.predictedPlayerState.legsAnim)
 
 		|| (cg.predictedPlayerState.forceHandExtend == HANDEXTEND_KNOCKDOWN 
-		&& ((cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer)
-		|| (cg.playerCent->currentState.weapon != WP_SABER && !cg_trueGuns.integer)))
+		&& ((cg.playerCent->currentState.weapon == WP_SABER && !cg.trueView)
+		|| (cg.playerCent->currentState.weapon != WP_SABER && !cg.trueView)))
 
 		|| (cg.predictedPlayerState.fallingToDeath)
 		|| cg.predictedPlayerState.m_iVehicleNum
 
 		|| (PM_InKnockDown(&cg.predictedPlayerState)
-		&& ((cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer)
-		|| (cg.playerCent->currentState.weapon != WP_SABER && !cg_trueGuns.integer))))
+		&& ((cg.playerCent->currentState.weapon == WP_SABER && !cg.trueView)
+		|| (cg.playerCent->currentState.weapon != WP_SABER && !cg.trueView))))
 
 		&& !cg_fpls.integer)
 		&& !cg.snap->ps.zoomMode;
@@ -183,11 +183,25 @@ static void CG_SetPredictedThirdPerson(void) {
 	}
 }
 
+static void demoTrueView_f(void) {
+	/* if at least one is 0 then we set full trueview */
+	if (!cg_trueSaber.integer || !cg_trueMelee.integer || !cg_trueGuns.integer) {
+		trap_Cvar_Set("cg_trueSaber", "1");
+		trap_Cvar_Set("cg_trueMelee", "1");
+		trap_Cvar_Set("cg_trueGuns", "1");
+	} else {
+		trap_Cvar_Set("cg_trueSaber", "0");
+		trap_Cvar_Set("cg_trueMelee", "0");
+		trap_Cvar_Set("cg_trueGuns", "0");
+	}
+}
+
 static int demoSetupView( void) {
 	vec3_t forward;
 	qboolean zoomFix;	//to see disruptor zoom when we are chasing a player
 	int inwater = qfalse;
 
+	cg.trueView = qfalse;
 	cg.playerPredicted = qfalse;
 	cg.playerCent = 0;
 	demo.viewFocus = 0;
@@ -199,6 +213,10 @@ static int demoSetupView( void) {
 			centity_t *cent = demo.chase.cent;
 			
 			if ( cent->currentState.number < MAX_CLIENTS ) {
+				int weapon = cent->currentState.weapon;
+				cg.trueView = (weapon == WP_SABER && cg_trueSaber.integer)
+					|| (weapon == WP_MELEE && cg_trueMelee.integer)
+					|| (weapon != WP_SABER && weapon != WP_MELEE && cg_trueGuns.integer);
 				cg.playerCent = cent;
 				cg.playerPredicted = cent == &cg_entities[cg.snap->ps.clientNum];
 				if (!cg.playerPredicted ) {
@@ -209,8 +227,8 @@ static int demoSetupView( void) {
 					CG_SetPredictedThirdPerson();
 				else
 					cg.renderingThirdPerson = ((cg_thirdPerson.integer || cent->currentState.eFlags & EF_DEAD
-						|| (cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaberOnly.integer)
-						|| (cg.playerCent->currentState.weapon == WP_MELEE && !cg_trueGuns.integer))
+						|| (cg.playerCent->currentState.weapon == WP_SABER && !cg.trueView)
+						|| (cg.playerCent->currentState.weapon == WP_MELEE && !cg.trueView))
 						&& !(cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
 						|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4));
 				inwater = CG_DemosCalcViewValues();
@@ -1246,6 +1264,7 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("clientOverride");
 	trap_AddCommand("musicPlay");
 	trap_AddCommand("stopLoop");
+	trap_AddCommand("trueView");
 
 	demo.media.additiveWhiteShader = trap_R_RegisterShader( "mme_additiveWhite" );
 	demo.media.mouseCursor = trap_R_RegisterShaderNoMip( "mme_cursor" );
@@ -1367,6 +1386,8 @@ qboolean CG_DemosConsoleCommand( void ) {
 		musicPlayCommand_f();
 	} else if (!Q_stricmp(cmd, "stopLoop")) {
 		stopLoopingSounds_f();
+	} else if (!Q_stricmp(cmd, "trueView")) {
+		demoTrueView_f();
 	} else {
 		return CG_ConsoleCommand();
 	}
