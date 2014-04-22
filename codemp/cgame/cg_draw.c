@@ -8154,10 +8154,12 @@ void CG_Draw2D (void) {
 	if (!cg.playerCent)
 		return;
 	else if (!cg.playerPredicted) {
+		cg.scoreBoardShowing = qfalse;
 		if (cg.playerCent->currentState.forcePowersActive)
 			CG_DrawActivePowers();
 		CG_DrawZoomMask();
-		CG_DrawCrosshairNames();
+		if (!(cg.playerCent->currentState.eFlags & EF_DEAD))
+			CG_DrawCrosshairNames();
 		CG_SaberClashFlare();
 		if (cg_drawStatus.integer)
 			CG_DrawFlagStatus();
