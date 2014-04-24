@@ -57,7 +57,7 @@ cvar_t	*mme_dofFrames;
 cvar_t	*mme_dofRadius;
 
 cvar_t	*mme_cpuSSE2;
-cvar_t	*mme_cpuPBO;
+cvar_t	*mme_pbo;
 
 cvar_t	*mme_renderWidth;
 cvar_t	*mme_renderHeight;
@@ -687,7 +687,7 @@ void R_MME_Init(void) {
 	mme_dofRadius = ri.Cvar_Get ( "mme_dofRadius", "2", CVAR_ARCHIVE );
 
 	mme_cpuSSE2 = ri.Cvar_Get ( "mme_cpuSSE2", "0", CVAR_ARCHIVE );
-	mme_cpuPBO = ri.Cvar_Get ( "mme_cpuPBO", "0", CVAR_ARCHIVE );
+	mme_pbo = ri.Cvar_Get ( "mme_pbo", "0", CVAR_ARCHIVE );
 	
 	mme_depthRange = ri.Cvar_Get ( "mme_depthRange", "512", CVAR_ARCHIVE );
 	mme_depthFocus = ri.Cvar_Get ( "mme_depthFocus", "1024", CVAR_ARCHIVE );
@@ -705,7 +705,7 @@ void R_MME_Init(void) {
 		workSize = mme_workMegs->integer;
 		if (workSize < 64)
 			workSize = 64;
-		if (workSize > 512)
+		else if (workSize > 512)
 			workSize = 512;
 		workSize *= 1024 * 1024;
 		workAlloc = (char *)calloc( workSize + 16, 1 );

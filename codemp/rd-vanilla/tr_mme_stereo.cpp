@@ -432,7 +432,7 @@ void R_MME_InitStereo(void) {
 		workSize = mme_workMegs->integer;
 		if (workSize < 64)
 			workSize = 64;
-		if (workSize > 512)
+		else if (workSize > 512)
 			workSize = 512;
 		workSize *= 1024 * 1024;
 		workAlloc = (char *)calloc( workSize + 16, 1 );

@@ -2,7 +2,7 @@
 
 extern GLuint pboIds[2];
 void R_MME_GetShot( void* output ) {
-	if (!mme_cpuPBO->integer || r_stereoSeparation->value != 0) {
+	if (!mme_pbo->integer || r_stereoSeparation->value != 0) {
 		qglReadPixels( 0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGB, GL_UNSIGNED_BYTE, output ); 
 	} else {
 		static int index = 0;

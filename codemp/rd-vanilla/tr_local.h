@@ -1299,7 +1299,7 @@ extern cvar_t	*mme_blurOverlap;
 extern cvar_t	*mme_blurGamma;
 extern cvar_t	*mme_dofFrames;
 extern cvar_t	*mme_cpuSSE2;
-extern cvar_t	*mme_cpuPBO;
+extern cvar_t	*mme_pbo;
 extern cvar_t	*mme_workMegs;
 extern cvar_t	*mme_depthRange;
 extern cvar_t	*mme_depthFocus;
