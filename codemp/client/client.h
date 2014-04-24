@@ -571,6 +571,7 @@ void CIN_SetExtents (int handle, int x, int y, int w, int h);
 void CIN_SetLooping (int handle, qboolean loop);
 void CIN_UploadCinematic(int handle);
 void CIN_CloseAllVideos(void);
+void CIN_AdjustTime(int time);
 
 void CL_UpdateHotSwap(void);
 

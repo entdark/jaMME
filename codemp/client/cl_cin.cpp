@@ -119,8 +119,7 @@ static cin_cache		cinTable[MAX_VIDEO_HANDLES];
 static int				currentHandle = -1;
 static int				CL_handle = -1;
 
-extern int				s_soundtime;		// sample PAIRS
-extern int   			s_paintedtime; 		// sample PAIRS
+static int				cinTime = 0;
 
 
 void CIN_CloseAllVideos(void) {
@@ -1138,7 +1137,7 @@ redump:
 			if (!cinTable[currentHandle].silent) {
 				if (cinTable[currentHandle].numQuads == -1) {
 					S_Update();
-					s_rawend = s_soundtime;
+//					s_rawend = s_soundtime;
 				}
 				ssize = RllDecodeStereoToStereo( framedata, sbuf, cinTable[currentHandle].RoQFrameSize, 0, (unsigned short)cinTable[currentHandle].roq_flags);
                 S_RawSamples( ssize, 22050, 2, 2, (byte *)sbuf, s_volume->value, 1 );
@@ -1148,7 +1147,7 @@ redump:
 			if (cinTable[currentHandle].numQuads == -1) {
 				readQuadInfo( framedata );
 				setupQuad( 0, 0 );
-				cinTable[currentHandle].startTime = cinTable[currentHandle].lastTime = Sys_Milliseconds()*com_timescale->value;
+				cinTable[currentHandle].startTime = cinTable[currentHandle].lastTime = cinTime/*Sys_Milliseconds()*/*com_timescale->value;
 			}
 			if (cinTable[currentHandle].numQuads != 1) cinTable[currentHandle].numQuads = 0;
 			break;
@@ -1220,7 +1219,7 @@ redump:
 
 static void RoQ_init( void )
 {
-	cinTable[currentHandle].startTime = cinTable[currentHandle].lastTime = Sys_Milliseconds()*com_timescale->value;
+	cinTable[currentHandle].startTime = cinTable[currentHandle].lastTime = cinTime/*Sys_Milliseconds()*/*com_timescale->value;
 
 	cinTable[currentHandle].RoQPlayed = 24;
 
@@ -1351,11 +1350,11 @@ e_status CIN_RunCinematic (int handle)
 		return cinTable[currentHandle].status;
 	}
 
-	thisTime = Sys_Milliseconds()*com_timescale->value;
+	thisTime = cinTime/*Sys_Milliseconds()*/*com_timescale->value;
 	if (cinTable[currentHandle].shader && (abs(thisTime - (double)cinTable[currentHandle].lastTime))>100) {
 		cinTable[currentHandle].startTime += thisTime - cinTable[currentHandle].lastTime;
 	}
-	cinTable[currentHandle].tfps = ((((Sys_Milliseconds()*com_timescale->value) - cinTable[currentHandle].startTime)*cinTable[currentHandle].roqFPS)/1000);
+	cinTable[currentHandle].tfps = (((thisTime/*(Sys_Milliseconds()*com_timescale->value)*/ - cinTable[currentHandle].startTime)*cinTable[currentHandle].roqFPS)/1000);
 
 	start = cinTable[currentHandle].startTime;
 	while(  (cinTable[currentHandle].tfps != cinTable[currentHandle].numQuads)
@@ -1363,7 +1362,7 @@ e_status CIN_RunCinematic (int handle)
 	{
 		RoQInterrupt();
 		if (start != cinTable[currentHandle].startTime) {
-		  cinTable[currentHandle].tfps = ((((Sys_Milliseconds()*com_timescale->value)
+		  cinTable[currentHandle].tfps = (((thisTime/*(Sys_Milliseconds()*com_timescale->value)*/
 							  - cinTable[currentHandle].startTime)*cinTable[currentHandle].roqFPS)/1000);
 			start = cinTable[currentHandle].startTime;
 		}
@@ -1468,7 +1467,7 @@ int CIN_PlayCinematic( const char *arg, int x, int y, int w, int h, int systemBi
 		
 		Con_Close();
 
-		s_rawend = s_soundtime;
+//		s_rawend = s_soundtime;
 
 		return currentHandle;
 	}
@@ -1689,3 +1688,6 @@ void CIN_UploadCinematic(int handle) {
 	}
 }
 
+void CIN_AdjustTime(int time) {
+	cinTime = time;
+}

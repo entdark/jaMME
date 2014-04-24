@@ -1265,3 +1265,6 @@ void trap_FX_RandomSeed( int time, float timeFraction ) {
 void trap_S_UpdatePitch( float pitch ) {
 	Q_syscall( CG_S_UPDATE_PITCH, PASSFLOAT(pitch) );
 }
+void trap_CIN_AdjustTime( int time ) {
+	Q_syscall( CG_CIN_ADJUST_TIME, time );
+}

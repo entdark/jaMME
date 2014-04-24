@@ -32,6 +32,7 @@ extern void trap_MME_Music( const char *musicName, float time, float length );
 extern void trap_R_RandomSeed( int time, float timeFraction );
 extern void trap_FX_RandomSeed( int time, float timeFraction );
 extern void trap_S_UpdatePitch( float pitch );
+extern void trap_CIN_AdjustTime( int time );
 int lastMusicStart;
 
 static void demoSynchMusic( int start, float length ) {
@@ -285,6 +286,7 @@ static int demoSetupView( void) {
 			FX_VibrateView( 1.0f, demo.viewOrigin, demo.viewAngles );
 	}
 	VectorCopy( demo.viewOrigin, cg.refdef.vieworg );
+	VectorCopy( demo.viewAngles, cg.refdef.viewangles );
 	AnglesToAxis( demo.viewAngles, cg.refdef.viewaxis );
 
 	if ( demo.viewTarget >= 0 ) {
@@ -702,6 +704,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		}
 	} else
 		trap_FX_AdjustTime(cg.time, cg.frametime, cg.timeFraction);
+	trap_CIN_AdjustTime(cg.time);
 
 	CG_RunLightStyles();
 	/* Prepare to render the screen */		
@@ -915,15 +918,15 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	CG_DrawActive( stereoView );
 
-	if ( demo.viewType == viewChase && cg.playerCent && ( cg.playerCent->currentState.number < MAX_CLIENTS ) ) {
+	if (demo.viewType == viewChase && cg.playerCent && (cg.playerCent->currentState.number < MAX_CLIENTS)) {
 		CG_Draw2D();
 	} else if (cg_draw2D.integer) {
 		vec4_t hcolor = {0, 0, 0, 0};
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 		CG_CameraDraw2D();
 	} else {
 		vec4_t hcolor = {0, 0, 0, 0};
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 	}
 
 	CG_UpdateFallVector();
