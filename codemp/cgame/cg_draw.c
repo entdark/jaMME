@@ -5229,8 +5229,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 	trap_R_SetColor( NULL );
 }
 
-qboolean CG_WorldCoordToScreenCoordFloat(vec3_t worldCoord, float *x, float *y)
-{
+qboolean CG_WorldCoordToScreenCoordFloat(vec3_t worldCoord, float *x, float *y) {
     vec3_t trans;
     vec_t xc, yc;
     vec_t px, py;
@@ -5255,8 +5254,7 @@ qboolean CG_WorldCoordToScreenCoordFloat(vec3_t worldCoord, float *x, float *y)
     return qtrue;
 }
 
-qboolean CG_WorldCoordToScreenCoord( vec3_t worldCoord, int *x, int *y )
-{
+qboolean CG_WorldCoordToScreenCoord( vec3_t worldCoord, int *x, int *y ) {
 	float	xF, yF;
 	qboolean retVal = CG_WorldCoordToScreenCoordFloat( worldCoord, &xF, &yF );
 	*x = (int)xF;
@@ -5271,59 +5269,43 @@ CG_SaberClashFlare
 */
 int cg_saberFlashTime = 0;
 vec3_t cg_saberFlashPos = {0, 0, 0};
-void CG_SaberClashFlare( void ) 
-{
-	int				maxTime = 150;
+void CG_SaberClashFlare( void ) {
+	int maxTime = 150.0f;
 	float t;
 	vec3_t dif;
 	vec3_t color;
-	int x,y;
+	float x,y;
 	float v, len;
 	trace_t tr;
 
 	t = (cg.time - cg_saberFlashTime) + cg.timeFraction;
-
-	if ( t <= 0 || t >= maxTime ) 
-	{
+	if ( t <= 0 || t >= maxTime ) {
 		return;
 	}
 
 	// Don't do clashes for things that are behind us
 	VectorSubtract( cg_saberFlashPos, cg.refdef.vieworg, dif );
-
-	if ( DotProduct( dif, cg.refdef.viewaxis[0] ) < 0.2 )
-	{
+	if ( DotProduct( dif, cg.refdef.viewaxis[0] ) < 0.2 ) {
 		return;
 	}
 
 	CG_Trace( &tr, cg.refdef.vieworg, NULL, NULL, cg_saberFlashPos, -1, CONTENTS_SOLID );
-
-	if ( tr.fraction < 1.0f )
-	{
+	if ( tr.fraction < 1.0f ) {
 		return;
 	}
 
 	len = VectorNormalize( dif );
-
 	// clamp to a known range
-	/*
-	if ( len > 800 )
-	{
-		len = 800;
-	}
-	*/
-	if ( len > 1200 )
-	{
+	if ( len > 1200 ) {
 		return;
 	}
 
-	v =  (1.0f - (t / maxTime )) * ((1.0f - (len / 800.0f)) * 2.0f + 0.35f);
-	if (v < 0.001f)
-	{
+	v =  (1.0f - (t / maxTime )) * ((1.0f - (len / 1200.0f)) * 2.0f + 0.35f);
+	if (v < 0.001f) {
 		v = 0.001f;
 	}
 
-	CG_WorldCoordToScreenCoord( cg_saberFlashPos, &x, &y );
+	CG_WorldCoordToScreenCoordFloat( cg_saberFlashPos, &x, &y );
 
 	VectorSet( color, 0.8f, 0.8f, 0.8f );
 	trap_R_SetColor( color );
@@ -7623,7 +7605,7 @@ static void CG_DrawInWaterTints (void) {
 		hcolor[0] = 0.7f;
 		hcolor[1] = 0;
 		hcolor[2] = 0;
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 	} else if ((cg.refdef.viewContents&CONTENTS_SLIME)) {
 	//tint screen green
 		vec4_t hcolor;
@@ -7632,7 +7614,7 @@ static void CG_DrawInWaterTints (void) {
 		hcolor[0] = 0;
 		hcolor[1] = 0.7f;
 		hcolor[2] = 0;
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 	} else if ((cg.refdef.viewContents&CONTENTS_WATER)) {
 	//tint screen light blue -- FIXME: don't do this if CONTENTS_FOG? (in case someone *does* make a water shader with fog in it?)
 		vec4_t hcolor;
@@ -7646,7 +7628,7 @@ static void CG_DrawInWaterTints (void) {
 //		hcolor[0] = 0.1;
 //		hcolor[1] = 0.4f;
 //		hcolor[2] = 0.7f;
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 	}
 }
 
@@ -7686,7 +7668,7 @@ static void CG_Draw2DScreenTints( void ) {
 			
 			if (!cg.renderingThirdPerson)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			
 			cgRageFadeTime = 0;
@@ -7760,7 +7742,7 @@ static void CG_Draw2DScreenTints( void ) {
 			
 			if (!cg.renderingThirdPerson && rageTime)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			else
 			{
@@ -7776,7 +7758,7 @@ static void CG_Draw2DScreenTints( void ) {
 						hcolor[2] = 0.1f;
 					}
 					hcolor[3] = 0.15f;
-					CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+					CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 				}
 				cgRageTime = 0;
 			}
@@ -7808,7 +7790,7 @@ static void CG_Draw2DScreenTints( void ) {
 			
 			if (!cg.renderingThirdPerson)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			
 			cgRageRecFadeTime = 0;
@@ -7842,7 +7824,7 @@ static void CG_Draw2DScreenTints( void ) {
 			
 			if (!cg.renderingThirdPerson && rageRecTime)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			else
 			{
@@ -7881,7 +7863,7 @@ static void CG_Draw2DScreenTints( void ) {
 			
 			if (!cg.renderingThirdPerson)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			
 			cgAbsorbFadeTime = 0;
@@ -7919,7 +7901,7 @@ static void CG_Draw2DScreenTints( void ) {
 			
 			if (!cg.renderingThirdPerson && absorbTime)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			else
 			{
@@ -7958,7 +7940,7 @@ static void CG_Draw2DScreenTints( void ) {
 			
 			if (!cg.renderingThirdPerson)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			
 			cgProtectFadeTime = 0;
@@ -7996,7 +7978,7 @@ static void CG_Draw2DScreenTints( void ) {
 			
 			if (!cg.renderingThirdPerson && protectTime)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			else
 			{
@@ -8031,7 +8013,7 @@ static void CG_Draw2DScreenTints( void ) {
 			
 			if (!cg.renderingThirdPerson)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			
 			cgYsalFadeTime = 0;
@@ -8065,7 +8047,7 @@ static void CG_Draw2DScreenTints( void ) {
 			
 			if (!cg.renderingThirdPerson && ysalTime)
 			{
-				CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			}
 			else
 			{
@@ -8077,6 +8059,7 @@ static void CG_Draw2DScreenTints( void ) {
 }
 
 void CG_CameraDraw2D( void ) {
+	CG_SaberClashFlare();
 	if (cg_drawFPS.integer) {
 		CG_DrawFPS(0);
 	}
@@ -8122,18 +8105,19 @@ void CG_Draw2D (void) {
 	}
 
 	if (cg_draw2D.integer == 0) {
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 		return;
 	}
 
 	if (cg_draw2D.integer == 3) {
 		CG_DrawInWaterTints();
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 		if (mov_fragsOnly.integer == 0)
 			return;
 	}
 
 	if (mov_fragsOnly.integer != 0) {
+		CG_SaberClashFlare();
 		if(!cg.renderingThirdPerson && mov_fragsOnly.integer == 2)CG_DrawZoomMask();
 		if (cg.playerPredicted)
 			CG_DrawReward();
@@ -8141,7 +8125,7 @@ void CG_Draw2D (void) {
 		if (cg_draw2D.integer == 3) {
 			CG_DrawInWaterTints();
 		}
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
+		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 		return;
 	}
 
