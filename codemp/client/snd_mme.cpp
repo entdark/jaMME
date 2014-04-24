@@ -139,7 +139,6 @@ void S_MMEUpdate( float scale ) {
 }
 
 void S_MMERecord( const char *baseName, float deltaTime ) {
-#ifdef SND_MME
 	const char *format = Cvar_VariableString("mme_screenShotFormat");
 	const int shot = Cvar_VariableIntegerValue("mme_saveShot");
 	const int depth = Cvar_VariableIntegerValue("mme_saveDepth");
@@ -178,7 +177,6 @@ void S_MMERecord( const char *baseName, float deltaTime ) {
 	}
 	mmeSound.deltaSamples += deltaTime * mmeSound.sampleRate;
 	mmeSound.gotFrame = qtrue;
-#endif
 }
 
 /* This is a seriously crappy hack, but it'll work for now */
@@ -215,112 +213,4 @@ void S_MMEStopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle) {
 				break;
 		}
 	}
-}
-
-
-
-
-// similar looking sound capture to actual MME capture, but for not modified sound code
-// let's leave actual MME capture above for future with rainbows and unicorns
-// UPD since jaMME 1.0: unicorns and rainbows arrived, so things below are prolly not needed
-
-extern int s_soundtime;
-extern portable_samplepair_t paintbuffer[PAINTBUFFER_SIZE];
-
-typedef struct {
-	char			baseName[MAX_OSPATH];
-	fileHandle_t	fileHandle;
-	long			fileSize;
-	unsigned int	deltaSamples;
-	int				time;
-	qboolean		gotFrame;
-	float			fps;
-	portable_samplepair_t buffer[PAINTBUFFER_SIZE];
-} mmeWave_t;
-
-static mmeWave_t mmeWave;
-
-void S_MMEClose(void) {
-	byte header[WAV_HEADERSIZE];
-
-	if (!mmeWave.fileHandle)
-		return;
-
-	S_MMEFillWavHeader( header, mmeWave.fileSize, dma.speed );
-	FS_Seek( mmeWave.fileHandle, 0, FS_SEEK_SET );
-	FS_Write( header, sizeof(header), mmeWave.fileHandle );
-	FS_FCloseFile( mmeWave.fileHandle );
-	Com_Memset( &mmeWave, 0, sizeof(mmeWave) );
-}
-
-extern int s_UseOpenAL;
-
-void S_MMEWavRecord(const char *baseName, const float fps) {
-#ifndef SND_MME
-	char fileName[MAX_OSPATH];
-	if (!mme_saveWav->integer || s_UseOpenAL)
-		return;
-
-	if (Q_stricmp(baseName, mmeWave.baseName)) {
-		if (mmeWave.fileHandle)
-			S_MMEClose();
-		Com_sprintf( fileName, sizeof(fileName), "%s.wav", baseName );
-		mmeWave.fileHandle = FS_FOpenFileReadWrite( fileName );
-		if (!mmeWave.fileHandle) {
-			mmeWave.fileHandle = FS_FOpenFileWrite( fileName );
-			if (!mmeWave.fileHandle) 
-				return;
-		}
-		mmeWave.fps = fps;
-		Q_strncpyz( mmeWave.baseName, baseName, sizeof( mmeWave.baseName ));
-		FS_Seek( mmeWave.fileHandle, 0, FS_SEEK_END );
-		mmeWave.fileSize = FS_filelength( mmeWave.fileHandle );
-		if ( mmeWave.fileSize < WAV_HEADERSIZE) {
-			int left = WAV_HEADERSIZE - mmeWave.fileSize;
-			while (left) {
-				FS_Write( &left, 1, mmeWave.fileHandle );
-				left--;
-       		}
-			mmeWave.fileSize = WAV_HEADERSIZE;
-		}
-		mmeWave.time = s_soundtime;
-		memcpy( mmeWave.buffer, paintbuffer, sizeof( mmeWave.buffer ) );
-	}
-	mmeWave.gotFrame = qtrue;
-#endif
-}
-
-void S_MMETransferWavChunks(void) {
-	int count;
-	short mixClip[MAXUPDATE*2];
-
-	if (!mmeWave.fileHandle) {
-		return;
-	}
-	if (!mmeWave.gotFrame) {
-		S_MMEClose();
-		return;
-	}
-	if (s_soundtime <= mmeWave.time) {
-		return;
-	}
-	count = s_soundtime - mmeWave.time;
-	if ( count < 1 ) {
-		return;
-	}
-	mmeWave.time = s_soundtime;
-
-	S_MixClipOutput(count, (int *)mmeWave.buffer, mixClip, 0, MAXUPDATE - 1);
-	FS_Write( mixClip, count * 4, mmeWave.fileHandle );
-	mmeWave.fileSize += count * 4;
-
-	memcpy( mmeWave.buffer, paintbuffer, sizeof( mmeWave.buffer ) );
-	mmeWave.gotFrame = qfalse;
-}
-
-qboolean S_MMERecording (void) {
-	if (mmeWave.gotFrame) {
-		s_soundtime += (int)ceil( dma.speed / mmeWave.fps );
-	}
-	return mmeWave.gotFrame;
 }

@@ -111,7 +111,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions>/MACHINE:I386 /FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>ALut.lib;OpenAL32.lib;winmm.lib;wsock32.lib;libmad.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;wsock32.lib;libmad.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -201,7 +201,7 @@
     </ClCompile>
     <Link>
       <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>ALut.lib;OpenAL32.lib;winmm.lib;wsock32.lib;libmad.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;wsock32.lib;libmad.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -327,18 +327,7 @@
     <ClInclude Include="server\NPCNav\navigator.h" />
     <ClInclude Include="client\snd_ambient.h" />
     <ClInclude Include="client\snd_local.h" />
-    <ClInclude Include="client\snd_mp3.h" />
-    <ClInclude Include="client\snd_music.h" />
     <ClInclude Include="client\snd_public.h" />
-    <ClInclude Include="mp3code\config.h" />
-    <ClInclude Include="mp3code\htable.h" />
-    <ClInclude Include="mp3code\jdw.h" />
-    <ClInclude Include="mp3code\l3.h" />
-    <ClInclude Include="mp3code\mhead.h" />
-    <ClInclude Include="mp3code\mp3struct.h" />
-    <ClInclude Include="mp3code\port.h" />
-    <ClInclude Include="mp3code\small_header.h" />
-    <ClInclude Include="mp3code\tableawd.h" />
     <ClInclude Include="zlib\crc32.h" />
     <ClInclude Include="zlib\deflate.h" />
     <ClInclude Include="zlib\gzguts.h" />
@@ -351,14 +340,6 @@
     <ClInclude Include="zlib\zconf.h" />
     <ClInclude Include="zlib\zlib.h" />
     <ClInclude Include="zlib\zutil.h" />
-    <ClInclude Include="client\eax\EaxMan.h" />
-    <ClInclude Include="client\eax\eax.h" />
-    <ClInclude Include="client\OpenAL\al.h" />
-    <ClInclude Include="client\OpenAL\alc.h" />
-    <ClInclude Include="client\OpenAL\alctypes.h" />
-    <ClInclude Include="client\OpenAL\altypes.h" />
-    <ClInclude Include="client\OpenAL\alu.h" />
-    <ClInclude Include="client\OpenAL\alut.h" />
     <ClInclude Include="renderer\tr_public.h" />
     <ClInclude Include="renderer\mdx_format.h" />
     <ClInclude Include="cgame\tr_types.h" />
@@ -421,8 +402,6 @@
     <ClInclude Include="Ratl\vector_vs.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="EaxMan.dll" />
-    <None Include="OpenAL32.dll" />
     <None Include="win32\icon.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -453,8 +432,8 @@
     <ClCompile Include="client\cl_parse.cpp" />
     <ClCompile Include="client\cl_scrn.cpp" />
     <ClCompile Include="client\cl_ui.cpp" />
-    <ClCompile Include="client\snd_demos.cpp" />
     <ClCompile Include="client\snd_effects.cpp" />
+    <ClCompile Include="client\snd_main.cpp" />
     <ClCompile Include="client\snd_mme.cpp" />
     <ClCompile Include="qcommon\CNetProfile.cpp" />
     <ClCompile Include="qcommon\GenericParser2.cpp" />
@@ -514,29 +493,6 @@
     <ClCompile Include="client\snd_dma.cpp" />
     <ClCompile Include="client\snd_mem.cpp" />
     <ClCompile Include="client\snd_mix.cpp" />
-    <ClCompile Include="client\snd_mp3.cpp" />
-    <ClCompile Include="client\snd_music.cpp" />
-    <ClCompile Include="mp3code\cdct.c" />
-    <ClCompile Include="mp3code\csbt.c" />
-    <ClCompile Include="mp3code\csbtb.c" />
-    <ClCompile Include="mp3code\csbtl3.c" />
-    <ClCompile Include="mp3code\cup.c" />
-    <ClCompile Include="mp3code\cupini.c" />
-    <ClCompile Include="mp3code\cupl1.c" />
-    <ClCompile Include="mp3code\cupl3.c" />
-    <ClCompile Include="mp3code\cwin.c" />
-    <ClCompile Include="mp3code\cwinb.c" />
-    <ClCompile Include="mp3code\cwinm.c" />
-    <ClCompile Include="mp3code\hwin.c" />
-    <ClCompile Include="mp3code\l3dq.c" />
-    <ClCompile Include="mp3code\l3init.c" />
-    <ClCompile Include="mp3code\mdct.c" />
-    <ClCompile Include="mp3code\mhead.c" />
-    <ClCompile Include="mp3code\msis.c" />
-    <ClCompile Include="mp3code\towave.c" />
-    <ClCompile Include="mp3code\uph.c" />
-    <ClCompile Include="mp3code\upsf.c" />
-    <ClCompile Include="mp3code\wavep.c" />
     <ClCompile Include="zlib\adler32.c" />
     <ClCompile Include="zlib\compress.c" />
     <ClCompile Include="zlib\crc32.c" />

@@ -10,13 +10,9 @@ void S_MuteSound(int entityNum, int entchannel);
 void S_StopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle );
 void S_StartSound( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx );
 void S_StartLocalSound( sfxHandle_t sfx, int channelNum );
-void S_StartLocalLoopingSound( sfxHandle_t sfx);
 
-void S_UnCacheDynamicMusic( void );
-void S_RestartMusic( void );
 void S_StartBackgroundTrack( const char *intro, const char *loop, int bCalledByCGameStart );
 void S_StopBackgroundTrack( void );
-float S_GetSampleLengthInMilliSeconds( sfxHandle_t sfxHandle);
 
 // cinematics and voice-over-network will send raw samples
 // 1.0 volume will be direct output of source samples
@@ -31,7 +27,6 @@ void S_MP3_CalcVols_f( void );
 
 // all continuous looping sounds must be added before calling S_Update
 void S_ClearLoopingSounds( void );
-void S_StopLoopingSound( int entityNum );
 void S_AddLoopingSound( const void *parent, int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle, int volume );
 
 // recompute the reletive volumes for all running sounds
@@ -52,10 +47,6 @@ void S_BeginRegistration( void );
 // checks for missing files
 sfxHandle_t	S_RegisterSound( const char *sample );
 
-extern qboolean s_shutUp;
-
-void S_FreeAllSFXMem(void);
-
 // MME
 void S_MMERecord( const char *baseName, float deltaTime );
 void S_MMEWavClose( void );
@@ -63,11 +54,6 @@ qboolean S_MMEAviExport(byte *out, int *size);
 void S_MMEUpdate( float scale );
 void S_MMEMusic( const char *musicName, float time, float length );
 
-extern qboolean doNotYell;
-
 void S_UpdatePitch(float pitch);
 
-void S_MMEWavRecord(const char *baseName, const float fps);
-void S_MMEClose(void);
-void S_MMETransferWavChunks(void);
-qboolean S_MMERecording (void);
+extern qboolean doNotYell;

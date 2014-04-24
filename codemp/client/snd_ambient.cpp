@@ -598,7 +598,7 @@ Parses an individual set group out of a set file buffer
 -------------------------
 */
 
-static sboolean AS_ParseSet( int setID, CSetGroup *sg )
+static qboolean AS_ParseSet( int setID, CSetGroup *sg )
 {
 	ambientSet_t	*set;
 	const char		*name;
@@ -708,7 +708,7 @@ Opens and parses a sound set file
 -------------------------
 */
 
-static sboolean AS_ParseFile( const char *filename, CSetGroup *sg )
+static qboolean AS_ParseFile( const char *filename, CSetGroup *sg )
 {
 	//Open the file and read the information from it
 	parseSize = FS_ReadFile( filename, (void **) &parseBuffer );

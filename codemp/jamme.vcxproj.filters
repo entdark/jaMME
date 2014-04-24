@@ -70,9 +70,6 @@
     <ClCompile Include="icarus\BlockStream.cpp">
       <Filter>ICARUS</Filter>
     </ClCompile>
-    <ClCompile Include="mp3code\cdct.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
     <ClCompile Include="client\cl_avi.cpp">
       <Filter>Client</Filter>
     </ClCompile>
@@ -154,38 +151,8 @@
     <ClCompile Include="zlib\crc32.c">
       <Filter>Zlib</Filter>
     </ClCompile>
-    <ClCompile Include="mp3code\csbt.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\cupl3.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\csbtb.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\csbtl3.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\cup.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\cupini.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\cupl1.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
     <ClCompile Include="qcommon\cvar.cpp">
       <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\cwin.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\cwinm.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\cwinb.c">
-      <Filter>mp3code</Filter>
     </ClCompile>
     <ClCompile Include="zlib\deflate.c">
       <Filter>Zlib</Filter>
@@ -244,9 +211,6 @@
     <ClCompile Include="qcommon\huffman.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="mp3code\hwin.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
     <ClCompile Include="zlib\infback.c">
       <Filter>Zlib</Filter>
     </ClCompile>
@@ -267,12 +231,6 @@
     </ClCompile>
     <ClCompile Include="zlib\ioapi.c">
       <Filter>ICARUS</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\l3init.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\l3dq.c">
-      <Filter>mp3code</Filter>
     </ClCompile>
     <ClCompile Include="botlib\l_crc.cpp">
       <Filter>Botlib</Filter>
@@ -301,20 +259,11 @@
     <ClCompile Include="qcommon\md4.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="mp3code\mdct.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
     <ClCompile Include="icarus\Memory.cpp">
       <Filter>ICARUS</Filter>
     </ClCompile>
-    <ClCompile Include="mp3code\mhead.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
     <ClCompile Include="qcommon\msg.cpp">
       <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\msis.c">
-      <Filter>mp3code</Filter>
     </ClCompile>
     <ClCompile Include="server\NPCNav\navigator.cpp">
       <Filter>Server</Filter>
@@ -382,24 +331,6 @@
     <ClCompile Include="sys\snapvector.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="client\snd_ambient.cpp">
-      <Filter>Client</Filter>
-    </ClCompile>
-    <ClCompile Include="client\snd_dma.cpp">
-      <Filter>Client</Filter>
-    </ClCompile>
-    <ClCompile Include="client\snd_mem.cpp">
-      <Filter>Client</Filter>
-    </ClCompile>
-    <ClCompile Include="client\snd_mix.cpp">
-      <Filter>Client</Filter>
-    </ClCompile>
-    <ClCompile Include="client\snd_mp3.cpp">
-      <Filter>Client</Filter>
-    </ClCompile>
-    <ClCompile Include="client\snd_music.cpp">
-      <Filter>Client</Filter>
-    </ClCompile>
     <ClCompile Include="qcommon\stringed_ingame.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -436,9 +367,6 @@
     <ClCompile Include="icarus\TaskManager.cpp">
       <Filter>ICARUS</Filter>
     </ClCompile>
-    <ClCompile Include="mp3code\towave.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
     <ClCompile Include="zlib\trees.c">
       <Filter>Zlib</Filter>
     </ClCompile>
@@ -448,12 +376,6 @@
     <ClCompile Include="zlib\uncompr.c">
       <Filter>Zlib</Filter>
     </ClCompile>
-    <ClCompile Include="mp3code\uph.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\upsf.c">
-      <Filter>mp3code</Filter>
-    </ClCompile>
     <ClCompile Include="qcommon\vm.cpp">
       <Filter>Common</Filter>
     </ClCompile>
@@ -462,9 +384,6 @@
     </ClCompile>
     <ClCompile Include="qcommon\vm_interpreted.cpp">
       <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="mp3code\wavep.c">
-      <Filter>mp3code</Filter>
     </ClCompile>
     <ClCompile Include="win32\win_input.cpp">
       <Filter>win32</Filter>
@@ -499,35 +418,29 @@
     <ClCompile Include="client\cl_mme.cpp">
       <Filter>Client</Filter>
     </ClCompile>
-    <ClCompile Include="client\snd_mme.cpp">
-      <Filter>Client</Filter>
+    <ClCompile Include="client\snd_ambient.cpp">
+      <Filter>Sound</Filter>
     </ClCompile>
-    <ClCompile Include="client\snd_demos.cpp">
-      <Filter>Client</Filter>
+    <ClCompile Include="client\snd_dma.cpp">
+      <Filter>Sound</Filter>
     </ClCompile>
     <ClCompile Include="client\snd_effects.cpp">
-      <Filter>Client</Filter>
+      <Filter>Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="client\snd_mem.cpp">
+      <Filter>Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="client\snd_mix.cpp">
+      <Filter>Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="client\snd_mme.cpp">
+      <Filter>Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="client\snd_main.cpp">
+      <Filter>Sound</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="client\OpenAL\al.h">
-      <Filter>Client\OpenAL</Filter>
-    </ClInclude>
-    <ClInclude Include="client\OpenAL\alc.h">
-      <Filter>Client\OpenAL</Filter>
-    </ClInclude>
-    <ClInclude Include="client\OpenAL\alctypes.h">
-      <Filter>Client\OpenAL</Filter>
-    </ClInclude>
-    <ClInclude Include="client\OpenAL\alut.h">
-      <Filter>Client\OpenAL</Filter>
-    </ClInclude>
-    <ClInclude Include="client\OpenAL\altypes.h">
-      <Filter>Client\OpenAL</Filter>
-    </ClInclude>
-    <ClInclude Include="client\OpenAL\alu.h">
-      <Filter>Client\OpenAL</Filter>
-    </ClInclude>
     <ClInclude Include="botlib\aasfile.h">
       <Filter>Botlib</Filter>
     </ClInclude>
@@ -630,9 +543,6 @@
     <ClInclude Include="zlib\crc32.h">
       <Filter>Zlib</Filter>
     </ClInclude>
-    <ClInclude Include="mp3code\config.h">
-      <Filter>mp3code</Filter>
-    </ClInclude>
     <ClInclude Include="Ravl\CVec.h">
       <Filter>Ravl</Filter>
     </ClInclude>
@@ -641,12 +551,6 @@
     </ClInclude>
     <ClInclude Include="qcommon\disablewarnings.h">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="client\eax\eax.h">
-      <Filter>Client</Filter>
-    </ClInclude>
-    <ClInclude Include="client\eax\EaxMan.h">
-      <Filter>Client</Filter>
     </ClInclude>
     <ClInclude Include="qcommon\exe_headers.h">
       <Filter>Common</Filter>
@@ -699,9 +603,6 @@
     <ClInclude Include="qcommon\hstring.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="mp3code\htable.h">
-      <Filter>mp3code</Filter>
-    </ClInclude>
     <ClInclude Include="icarus\icarus.h">
       <Filter>ICARUS</Filter>
     </ClInclude>
@@ -732,17 +633,11 @@
     <ClInclude Include="zlib\ioapi.h">
       <Filter>ICARUS</Filter>
     </ClInclude>
-    <ClInclude Include="mp3code\jdw.h">
-      <Filter>mp3code</Filter>
-    </ClInclude>
     <ClInclude Include="ui\keycodes.h">
       <Filter>Modcode</Filter>
     </ClInclude>
     <ClInclude Include="client\keys.h">
       <Filter>Client</Filter>
-    </ClInclude>
-    <ClInclude Include="mp3code\l3.h">
-      <Filter>mp3code</Filter>
     </ClInclude>
     <ClInclude Include="botlib\l_utils.h">
       <Filter>Botlib</Filter>
@@ -774,23 +669,14 @@
     <ClInclude Include="renderer\mdx_format.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="mp3code\mhead.h">
-      <Filter>mp3code</Filter>
-    </ClInclude>
     <ClInclude Include="qcommon\MiniHeap.h">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="mp3code\mp3struct.h">
-      <Filter>mp3code</Filter>
     </ClInclude>
     <ClInclude Include="server\NPCNav\navigator.h">
       <Filter>Server</Filter>
     </ClInclude>
     <ClInclude Include="qcommon\platform.h">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="mp3code\port.h">
-      <Filter>mp3code</Filter>
     </ClInclude>
     <ClInclude Include="icarus\Q3_Registers.h">
       <Filter>ICARUS</Filter>
@@ -864,24 +750,6 @@
     <ClInclude Include="server\server.h">
       <Filter>Server</Filter>
     </ClInclude>
-    <ClInclude Include="mp3code\small_header.h">
-      <Filter>mp3code</Filter>
-    </ClInclude>
-    <ClInclude Include="client\snd_public.h">
-      <Filter>Client</Filter>
-    </ClInclude>
-    <ClInclude Include="client\snd_ambient.h">
-      <Filter>Client</Filter>
-    </ClInclude>
-    <ClInclude Include="client\snd_local.h">
-      <Filter>Client</Filter>
-    </ClInclude>
-    <ClInclude Include="client\snd_mp3.h">
-      <Filter>Client</Filter>
-    </ClInclude>
-    <ClInclude Include="client\snd_music.h">
-      <Filter>Client</Filter>
-    </ClInclude>
     <ClInclude Include="qcommon\sstring.h">
       <Filter>Common</Filter>
     </ClInclude>
@@ -896,9 +764,6 @@
     </ClInclude>
     <ClInclude Include="qcommon\tags.h">
       <Filter>Common</Filter>
-    </ClInclude>
-    <ClInclude Include="mp3code\tableawd.h">
-      <Filter>mp3code</Filter>
     </ClInclude>
     <ClInclude Include="icarus\taskmanager.h">
       <Filter>ICARUS</Filter>
@@ -945,27 +810,27 @@
     <ClInclude Include="client\cl_demos.h">
       <Filter>Client</Filter>
     </ClInclude>
+    <ClInclude Include="client\snd_public.h">
+      <Filter>Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="client\snd_ambient.h">
+      <Filter>Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="client\snd_local.h">
+      <Filter>Sound</Filter>
+    </ClInclude>
     <ClInclude Include="client\snd_mix.h">
-      <Filter>Client</Filter>
+      <Filter>Sound</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="EaxMan.dll">
-      <Filter>Client</Filter>
-    </None>
     <None Include="win32\icon.ico">
       <Filter>win32</Filter>
-    </None>
-    <None Include="OpenAL32.dll">
-      <Filter>Client\OpenAL</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Client">
       <UniqueIdentifier>{4f0526e1-838f-4a51-9197-4f2851acf7d9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Client\OpenAL">
-      <UniqueIdentifier>{b9371fee-4624-4171-af26-fd66cfb9e912}</UniqueIdentifier>
     </Filter>
     <Filter Include="Zlib">
       <UniqueIdentifier>{76c4dab6-079f-44ad-ac3e-c690820ade27}</UniqueIdentifier>
@@ -981,9 +846,6 @@
     </Filter>
     <Filter Include="ICARUS">
       <UniqueIdentifier>{e8fb0216-a0ad-4b68-a6d0-da953b2a0ce8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="mp3code">
-      <UniqueIdentifier>{302c20cd-01d0-42ae-acc3-972bac22e53d}</UniqueIdentifier>
     </Filter>
     <Filter Include="Common">
       <UniqueIdentifier>{d2955e3c-5055-4538-a82e-b953e80631f7}</UniqueIdentifier>
@@ -1005,6 +867,9 @@
     </Filter>
     <Filter Include="RMG">
       <UniqueIdentifier>{27e6cecc-fea6-4571-a751-27cee4b75c9c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sound">
+      <UniqueIdentifier>{b0da3bc4-32d7-4d0a-9ade-4213f897125e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -831,7 +831,6 @@ void CL_Disconnect( qboolean showMainMenu ) {
 	SCR_StopCinematic ();
 
 	S_MMEWavClose();
-	S_MMEClose();
 
 	S_ClearSoundBuffer();
 
@@ -1244,16 +1243,7 @@ void CL_Snd_Restart_f( void ) {
 	S_Shutdown();
 	S_Init();
 
-//	S_FreeAllSFXMem();			// These two removed by BTO (VV)
-//	S_UnCacheDynamicMusic();	// S_Shutdown() already does this!
-
 //	CL_Vid_Restart_f();
-
-	extern qboolean	s_soundMuted;
-	s_soundMuted = qfalse;		// we can play again
-
-	extern void S_RestartMusic( void );
-	S_RestartMusic();
 }
 
 
@@ -2315,6 +2305,8 @@ void CL_Frame ( int msec ) {
 		CL_DemoSetCGameTime();
 	}
 
+	if (!cls.cgameStarted || !clc.newDemoPlayer)
+		CIN_AdjustTime(Sys_Milliseconds()*com_timescale->value);
 	// update the screen
 	SCR_UpdateScreen();
 
@@ -2587,8 +2579,6 @@ void CL_InitRef( void ) {
 	ri.Com_TheHunkMarkHasBeenMade = Com_TheHunkMarkHasBeenMade;
 	ri.SV_GetConfigstring = SV_GetConfigstring;
 	ri.SV_SetConfigstring = SV_SetConfigstring;
-	ri.S_RestartMusic = S_RestartMusic;
-	ri.SND_RegisterAudio_LevelLoadEnd = SND_RegisterAudio_LevelLoadEnd;
 	ri.CIN_RunCinematic = CIN_RunCinematic;
 	ri.CIN_PlayCinematic = CIN_PlayCinematic;
 	ri.CIN_UploadCinematic = CIN_UploadCinematic;

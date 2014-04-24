@@ -303,8 +303,6 @@ typedef struct {
 	int				(*CM_PointContents)					( const vec3_t p, clipHandle_t model );
 	intptr_t		(QDECL *VM_Call)					( vm_t *vm, int callnum, ... );
 	qboolean		(*Com_TheHunkMarkHasBeenMade)		( void );
-	void			(*S_RestartMusic)					( void );
-	qboolean		(*SND_RegisterAudio_LevelLoadEnd)	( qboolean bDeleteEverythingNotUsedThisLevel );
 	e_status		(*CIN_RunCinematic)					( int handle );
 	int				(*CIN_PlayCinematic)				( const char *arg0, int xpos, int ypos, int width, int height, int bits );
 	void			(*CIN_UploadCinematic)				( int handle );

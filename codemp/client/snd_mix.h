@@ -48,53 +48,7 @@ typedef struct {
 	int				index;
 } mixEffect_t;
 
-typedef struct {
-	vec3_t		origin;
-	vec3_t		velocity;
-	sfxHandle_t	handle;
-	int			lastFrame;
-	int			volume;
-} entitySound_t;
-
-typedef struct {
-	const void	*parent;
-	vec3_t		origin;
-	vec3_t		velocity;
-	sfxHandle_t	handle;
-	int			volume;
-} loopQueue_t;
-
-typedef struct {
-	sfxHandle_t	handle;
-	vec3_t		origin;
-	short		entNum;
-	char		entChan;
-	char		hasOrigin;
-} channelQueue_t;
-
-typedef struct {
-	float		seekTime;
-	float		length;
-	char		startName[MAX_QPATH];
-	char		loopName[MAX_QPATH];
-	qboolean	playing;
-	qboolean	reload;
-	qboolean	override;
-} backgroundSound_t;
-
 extern	cvar_t			*s_effects;
-
-#define	MAX_SNDQUEUE	512
-#define	MAX_LOOPQUEUE	512
-extern	channelQueue_t	s_channelQueue[MAX_SNDQUEUE];
-extern	int				s_channelQueueCount;
-
-extern	loopQueue_t		s_loopQueue[MAX_LOOPQUEUE];
-extern	int				s_loopQueueCount;
-
-extern	entitySound_t	s_entitySounds[MAX_GENTITIES];
-
-extern	backgroundSound_t s_background;
 
 extern void S_DMAInit(void);
 extern void S_DMA_Update( float scale );
