@@ -13,7 +13,7 @@
 #include "../server/NPCNav/navigator.h"
 
 int demo_protocols[] =
-{ 26, 0 };
+{ 26, NULL };
 
 #define	MAXPRINTMSG	4096
 
