@@ -166,7 +166,7 @@ qboolean demoCentityBoxSize( const centity_t *cent, vec3_t container ) {
 		VectorSet( container, 0, 20, 10 );
 		break;
 	case ET_HOLOCRON:
-		VectorSet( container, -24, 60, 20 );
+		VectorSet( container, 10, 30, 10 );
 		break;
 	case ET_NPC:
 		//TODO: need to find out box sizes of other classes
@@ -274,6 +274,9 @@ void chaseEntityOrigin( centity_t *cent, vec3_t origin ) {
 	switch(cent->currentState.eType) {
 	case ET_PLAYER:
 		origin[2] += DEFAULT_VIEWHEIGHT;
+		break;
+	case ET_HOLOCRON:
+		origin[2] += 20;
 		break;
 	case ET_NPC:
 		switch (cent->currentState.NPC_class) {
