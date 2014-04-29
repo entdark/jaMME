@@ -201,7 +201,10 @@ static void hudMakeTarget( int targetNum, char *dst, int dstSize) {
 }
 
 static void hudMakeBone( int boneNum, char *dst, int dstSize) {
-	Com_sprintf(dst, dstSize, "%d %s", boneNum, boneList[boneNum] );
+	if ( boneNum >= 0 )
+		Com_sprintf(dst, dstSize, "%d %s", boneNum, boneList[boneNum] );
+	else
+		Com_sprintf(dst, dstSize, "%d %s", boneNum, "invalid bone");
 }
 
 const char *demoTimeString( int time ) {

@@ -318,7 +318,7 @@ void G2_Generate_Matrix(const model_t *mod, boneInfo_v &blist, int index, const 
 		VectorCopy(angles, newAngles);
 
 		// why I should need do this Fuck alone knows. But I do.
-		if (left == POSITIVE_Y)
+		if (left == POSITIVE_Y && !(flags & BONE_ANGLES_MME_DELTA))
 		{
 			newAngles[0] +=180;
 		}

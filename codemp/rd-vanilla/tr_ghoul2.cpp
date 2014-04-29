@@ -1856,6 +1856,36 @@ void G2_TransformBone (int child,CBoneCache &BC)
 			}
 		}
 	}
+	else if (angleOverride & BONE_ANGLES_MME_DELTA)
+	{
+		mdxaBone_t &bone = BC.mFinalBones[child].boneMatrix;
+		boneInfo_t &boneOverride = boneList[boneListIndex];
+
+		mdxaBone_t temp, firstPass;
+
+		// give us the matrix the animation thinks we should have, so we can get the correct X&Y coors
+		Multiply_3x4Matrix(&firstPass, &BC.mFinalBones[parent].boneMatrix, &tbone[2]);
+
+		Multiply_3x4Matrix(&temp,&firstPass, &skel->BasePoseMat);
+		float	matrixScale = VectorLength((float*)&temp);
+
+		mdxaBone_t	newMatrixTemp;
+		
+		Multiply_3x4Matrix(&newMatrixTemp, &temp, &boneOverride.matrix);
+		//for (int i=0; i<3;i++)
+		//{
+		//	for(int x=0;x<3; x++)
+		//	{
+		//		newMatrixTemp.matrix[i][x] = boneOverride.matrix.matrix[i][x]*matrixScale;
+		//	}
+		//}
+
+		//newMatrixTemp.matrix[0][3] = temp.matrix[0][3];
+		//newMatrixTemp.matrix[1][3] = temp.matrix[1][3]; 
+		//newMatrixTemp.matrix[2][3] = temp.matrix[2][3];
+
+		Multiply_3x4Matrix(&bone, &newMatrixTemp,&skel->BasePoseMatInv);
+	}
 	else if (angleOverride & BONE_ANGLES_PREMULT)
 	{
 		if ((angleOverride&BONE_ANGLES_RAGDOLL) || (angleOverride&BONE_ANGLES_IK))
