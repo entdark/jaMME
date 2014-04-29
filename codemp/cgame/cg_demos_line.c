@@ -358,6 +358,7 @@ void demoLineCommand_f(void) {
 		}
 	} else if (!Q_stricmp(cmd, "clear")) {
 		lineClear();
+		CG_DemosAddLog( "Timeline points cleared" );
 	} else if (!Q_stricmp(cmd, "sync")) {
 		demo.line.offset = demo.play.time;
 		demo.line.offset -= demo.line.offset * demo.line.speed;
