@@ -808,6 +808,7 @@ void trap_FX_AddSprite( addspriteArgStruct_t *p )
 	if( p->shader == cgs.media.bryarFrontFlash			||
 		p->shader == cgs.media.greenFrontFlash			||
 		p->shader == cgs.media.lightningFlash			||
+		p->shader == cgs.media.yellowDroppedSaberShader	||
 		p->shader == cgs.media.redSaberGlowShader		||
 		p->shader == cgs.media.greenSaberGlowShader		||
 		p->shader == cgs.media.blueSaberGlowShader ) {
