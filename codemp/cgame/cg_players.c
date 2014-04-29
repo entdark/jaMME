@@ -813,8 +813,7 @@ int CG_G2EvIndexForModel(void *g2, int animIndex)
 
 #define DEFAULT_FEMALE_SOUNDPATH "chars/mp_generic_female/misc"//"chars/tavion/misc"
 #define DEFAULT_MALE_SOUNDPATH "chars/mp_generic_male/misc"//"chars/kyle/misc"
-void CG_LoadCISounds(clientInfo_t *ci, qboolean modelloaded)
-{
+void CG_LoadCISounds(clientInfo_t *ci, qboolean modelloaded) {
 	fileHandle_t f;
 	qboolean	isFemale = qfalse;
 	int			i = 0;
@@ -845,48 +844,39 @@ void CG_LoadCISounds(clientInfo_t *ci, qboolean modelloaded)
 
 	soundpath[0] = 0;
 
-	if (f)
-	{
+	if (f) {
 		trap_FS_Read(soundpath, fLen, f);
 		soundpath[fLen] = 0;
 
 		i = fLen;
 
-		while (i >= 0 && soundpath[i] != '\n')
-		{
-			if (soundpath[i] == 'f')
-			{
+		while (i >= 0 && soundpath[i] != '\n') {
+			if (soundpath[i] == 'f') {
 				isFemale = qtrue;
 				soundpath[i] = 0;
 			}
-
 			i--;
 		}
 
 		i = 0;
-
-		while (soundpath[i] && soundpath[i] != '\r' && soundpath[i] != '\n')
-		{
+		while (soundpath[i] && soundpath[i] != '\r' && soundpath[i] != '\n') {
 			i++;
 		}
 		soundpath[i] = 0;
-
 		trap_FS_FCloseFile(f);
-	}
-
-	if (isFemale)
-	{
-		ci->gender = GENDER_FEMALE;
-	}
-	else
-	{
-		ci->gender = GENDER_MALE;
+		
+		if (isFemale) {
+			ci->gender = GENDER_FEMALE;
+		} else {
+			ci->gender = GENDER_MALE;
+		}
+	} else {
+		isFemale = ci->gender == GENDER_FEMALE;
 	}
 
 	trap_S_ShutUp(qtrue);
 
-	for ( i = 0 ; i < MAX_CUSTOM_SOUNDS ; i++ )
-	{
+	for ( i = 0 ; i < MAX_CUSTOM_SOUNDS ; i++ ) {
 		s = cg_customSoundNames[i];
 		if ( !s ) {
 			break;
@@ -10709,10 +10699,18 @@ SkipTrueView:
 	//trigger animation-based sounds, done before next lerp frame.
 	CG_TriggerAnimSounds(cent);
 
-	if (!CG_DemosPlayerAnimation(cent->currentState.clientNum)) {
+	{
+	int newAnim = CG_DemosPlayerAnimation(cent->currentState.clientNum);
+	if (newAnim == 0) {
 		// get the animation state (after rotation, to allow feet shuffle)
 		CG_PlayerAnimation( cent, &legs.oldframe, &legs.frame, &legs.backlerp,
 			 &torso.oldframe, &torso.frame, &torso.backlerp );
+	} else if (newAnim == 2) {
+		legs.renderfx |= RF_FORCE_ENT_ALPHA;
+		legs.shaderRGBA[3] = 42;
+		trap_R_AddRefEntityToScene(&legs);
+		return;
+	}
 	}
 
 	// add the talk baloon or disconnect icon
