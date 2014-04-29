@@ -851,7 +851,9 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 						} else {
 							color = colorYellow;
 						}
+						demo.anim.drawing = qtrue;
 						demoDrawBox( origins[i], container, color );
+						demo.anim.drawing = qfalse;
 					}
 				}
 			} else
@@ -1233,7 +1235,7 @@ void demoPlaybackInit(void) {
 	}
 	for (i = 0; i < MAX_CLIENTS; i++) {
 		demo.anim.override[i] = qfalse;
-		demo.anim.points[i] = 0; //wrong zeroing, or not?
+//		demo.anim.points[i] = NULL; //wrong zeroing, or not?
 	}
 #endif
 
@@ -1275,7 +1277,7 @@ void demoPlaybackInit(void) {
 	demo.media.switchOff = trap_R_RegisterShaderNoMip( "mme_message_off" );
 
 	trap_SendConsoleCommand("exec mmedemos.cfg\n");
-	trap_Cvar_Set( "mov_captureName", "" );
+//	trap_Cvar_Set( "mov_captureName", "" );
 	trap_Cvar_VariableStringBuffer( "mme_demoStartProject", projectFile, sizeof( projectFile ));
 	if (projectFile[0]) {
 		trap_Cvar_Set( "mme_demoStartProject", "" );

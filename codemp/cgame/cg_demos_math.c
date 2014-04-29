@@ -602,13 +602,13 @@ void demoDrawSetupVerts( polyVert_t *verts, const vec4_t color ) {
 	}
 }
 
-void demoDrawRawLine(const vec3_t start, const vec3_t end, float width, polyVert_t *verts ) {
+void demoDrawRawLine(const vec3_t start, const vec3_t end, const float width, polyVert_t *verts ) {
 	vec3_t up;
 	vec3_t middle;
 
 	VectorScale( start, 0.5, middle ) ;
 	VectorMA( middle, 0.5, end, middle );
-	if ( VectorDistance( middle, cg.refdef.vieworg ) < 100 )
+	if ( VectorDistance( middle, cg.refdef.vieworg ) < 100 && !demo.anim.drawing )
 		return;
 	GetPerpendicularViewVector( cg.refdef.vieworg, start, end, up );
 	VectorMA( start, width, up, verts[0].xyz);
@@ -620,13 +620,10 @@ void demoDrawRawLine(const vec3_t start, const vec3_t end, float width, polyVert
 
 void demoDrawLine( const vec3_t p0, const vec3_t p1, const vec4_t color) {
 	polyVert_t verts[4];
+	const float scale = demo.anim.drawing ? 0.1f : 1.0f;
 
 	demoDrawSetupVerts( verts, color );
-#if defined DEMO_ANIM && defined _DEBUG
-	demoDrawRawLine( p0, p1, 0.1f, verts );
-#else
-	demoDrawRawLine( p0, p1, 1.0f, verts );
-#endif
+	demoDrawRawLine( p0, p1, scale, verts );
 }
 
 void demoDrawCross( const vec3_t origin, const vec4_t color ) {
@@ -649,9 +646,7 @@ void demoDrawBox( const vec3_t origin, const vec3_t container, const vec4_t colo
 	unsigned int i;
 	vec3_t boxCorners[8];
 	polyVert_t verts[4];
-	static const float xMul[4] = {1,1,-1,-1};
-	static const float yMul[4] = {1,-1,-1,1};
-
+	const float scale = demo.anim.drawing ? 0.1f : 1.0f;
 
 	demoDrawSetupVerts( verts, color );
 	/* Create the box corners */
@@ -660,19 +655,11 @@ void demoDrawBox( const vec3_t origin, const vec3_t container, const vec4_t colo
 		boxCorners[i][1] = origin[1] + (((i+1) & 2) ? +container[2] : -container[2]);
 		boxCorners[i][2] = origin[2] + container[i >>2];
 	}
-#if defined DEMO_ANIM && defined _DEBUG
 	for (i = 0; i < 4;i++) {
-		demoDrawRawLine( boxCorners[i], boxCorners[(i+1) & 3], 0.1f, verts );
-		demoDrawRawLine( boxCorners[4+i], boxCorners[4+((i+1) & 3)], 0.1f, verts );
-		demoDrawRawLine( boxCorners[i], boxCorners[4+i], 0.1f, verts );
+		demoDrawRawLine( boxCorners[i], boxCorners[(i+1) & 3], scale, verts );
+		demoDrawRawLine( boxCorners[4+i], boxCorners[4+((i+1) & 3)], scale, verts );
+		demoDrawRawLine( boxCorners[i], boxCorners[4+i], scale, verts );
 	}
-#else
-	for (i = 0; i < 4;i++) {
-		demoDrawRawLine( boxCorners[i], boxCorners[(i+1) & 3], 1.0f, verts );
-		demoDrawRawLine( boxCorners[4+i], boxCorners[4+((i+1) & 3)], 1.0f, verts );
-		demoDrawRawLine( boxCorners[i], boxCorners[4+i], 1.0f, verts );
-	}
-#endif
 }
 
 void demoDrawCrosshair( void ) {

@@ -75,7 +75,7 @@ typedef struct demoMain_s {
 	float			serverDeltaTime;
 #ifdef DEMO_ANIM
 	struct {
-		qboolean	locked;
+		qboolean	locked, drawing;
 		int			target;
 		int			bone;
 		vec3_t		angles[MAX_BONES];
