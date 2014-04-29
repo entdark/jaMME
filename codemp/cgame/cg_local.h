@@ -1057,6 +1057,7 @@ Ghoul2 Insert End
 	int					chargeTime;
 	qboolean			charging;
 
+	vec2_t				moveKeysPos;
 } cg_t;
 
 #define MAX_TICS	14
@@ -1888,7 +1889,7 @@ void CG_PlayerShieldHit(int entitynum, vec3_t angles, int amount);
 char *ConfigValue( const char *configs[4], const char *value );
 void CG_ClientOverride_f(void);
 
-qboolean CG_DemosPlayerAnimation(int client);
+int CG_DemosPlayerAnimation(int client);
 
 
 //

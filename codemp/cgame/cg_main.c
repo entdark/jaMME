@@ -660,6 +660,13 @@ static void CG_Set2DRatio(void) {
 		cgs.widthRatioCoef = 1.0f;
 }
 
+static void CG_SetMovementKeysPos( void ) {
+	if ( sscanf( cg_drawMovementKeysPos.string, "%f %f", &cg.moveKeysPos[0], &cg.moveKeysPos[1] ) != 2 ) {
+		cg.moveKeysPos[0] = (SCREEN_WIDTH / 2);
+		cg.moveKeysPos[1] = (SCREEN_HEIGHT / 2);
+	}
+}
+
 static void CG_SVRunningChange( void ) {
 	cgs.localServer = sv_running.integer;
 }

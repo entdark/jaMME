@@ -2805,6 +2805,78 @@ static void CG_DrawPickupItem( void ) {
 	}
 }
 
+static void CG_DrawMovementKeys( void ) {
+	usercmd_t cmd = { 0 };
+	int moveDir = cg.snap->ps.movementDir;
+	char str1[32] = { 0 }, str2[32] = { 0 };
+	float w1 = 0.0f, w2 = 0.0f, height = 0.0f;
+	int fontIndex = FONT_MEDIUM;
+
+	if ( !cg_drawMovementKeys.integer || !cg.snap ) //RAZTODO: works with demo playback??
+		return;
+
+	if ( cg.clientNum == cg.predictedPlayerState.clientNum && !cg.demoPlayback )
+		trap_GetUserCmd( trap_GetCurrentCmdNumber(), &cmd );
+	else {
+		float xyspeed = sqrtf( cg.snap->ps.velocity[0]*cg.snap->ps.velocity[0] + cg.snap->ps.velocity[1]*cg.snap->ps.velocity[1] );
+
+		if ( (cg.snap->ps.pm_flags & PMF_JUMP_HELD) )//zspeed > lastZSpeed || zspeed > 10 )
+			cmd.upmove = 1;
+		else if ( (cg.snap->ps.pm_flags & PMF_DUCKED) )
+			cmd.upmove = -1;
+
+		if ( xyspeed < 10 )
+			moveDir = -1;
+
+		switch ( moveDir ) {
+		case 0: // W
+			cmd.forwardmove = 1;
+			break;
+		case 1: // WA
+			cmd.forwardmove = 1;
+			cmd.rightmove = -1;
+			break;
+		case 2: // A
+			cmd.rightmove = -1;
+			break;
+		case 3: // AS
+			cmd.rightmove = -1;
+			cmd.forwardmove = -1;
+			break;
+		case 4: // S
+			cmd.forwardmove = -1;
+			break;
+		case 5: // SD
+			cmd.forwardmove = -1;
+			cmd.rightmove = 1;
+			break;
+		case 6: // D
+			cmd.rightmove = 1;
+			break;
+		case 7: // DW
+			cmd.rightmove = 1;
+			cmd.forwardmove = 1;
+			break;
+		default:
+			break;
+		}
+	}
+
+	w1 = CG_Text_Width( "v W ^", cg_drawMovementKeysScale.value, fontIndex );
+	w2 = CG_Text_Width( "A S D", cg_drawMovementKeysScale.value, fontIndex );
+	height = CG_Text_Height( "A S D v W ^", cg_drawMovementKeysScale.value, fontIndex );
+
+	Com_sprintf( str1, sizeof(str1), va( "^%cv ^%cW ^%c^", (cmd.upmove < 0) ? COLOR_RED : COLOR_WHITE,
+		(cmd.forwardmove > 0) ? COLOR_RED : COLOR_WHITE, (cmd.upmove > 0) ? COLOR_RED : COLOR_WHITE ) );
+	Com_sprintf( str2, sizeof(str2), va( "^%cA ^%cS ^%cD", (cmd.rightmove < 0) ? COLOR_RED : COLOR_WHITE,
+		(cmd.forwardmove < 0) ? COLOR_RED : COLOR_WHITE, (cmd.rightmove > 0) ? COLOR_RED : COLOR_WHITE ) );
+
+	CG_Text_Paint( cg.moveKeysPos[0] - max( w1, w2 ) / 2.0f, cg.moveKeysPos[1], cg_drawMovementKeysScale.value, colorWhite,
+		str1, 0.0f, 0, ITEM_TEXTSTYLE_OUTLINED, fontIndex );
+	CG_Text_Paint( cg.moveKeysPos[0] - max( w1, w2 ) / 2.0f, cg.moveKeysPos[1] + height, cg_drawMovementKeysScale.value,
+		colorWhite, str2, 0.0f, 0, ITEM_TEXTSTYLE_OUTLINED, fontIndex );
+}
+
 /*
 ================
 CG_DrawTeamBackground
@@ -4132,7 +4204,7 @@ void CG_AddLagometerSnapshotInfo( snapshot_t *snap ) {
 //		lasttime = snap->serverTime;
 
 		//enemy terriroty version
-		snap->ping = (snap->serverTime - snap->ps.commandTime) - 50;
+		snap->ping = (snap->serverTime - snap->ps.commandTime) - cg.frametime;
 	}// else
 		lagometer.snapshotSamples[ lagometer.snapshotCount & ( LAG_SAMPLES - 1) ] = snap->ping;
 	lagometer.snapshotFlags[ lagometer.snapshotCount & ( LAG_SAMPLES - 1) ] = snap->snapFlags;
@@ -4885,8 +4957,9 @@ static qboolean CG_CrosshairColour(vec4_t ecolor, centity_t *crossEnt, int chEnt
 				}
 			}
 
-			if (cg.playerPredicted && cg.snap->ps.duelInProgress) {
-				if (crossES->number != cg.snap->ps.duelIndex) {
+			if (cg.snap->ps.duelInProgress) {
+				if (crossES->number != cg.snap->ps.duelIndex &&
+					crossES->number != cg.snap->ps.clientNum) {
 				//grey out crosshair for everyone but your foe if you're in a duel
 					ecolor[0] = 0.4f;
 					ecolor[1] = 0.4f;
@@ -5270,7 +5343,7 @@ CG_SaberClashFlare
 int cg_saberFlashTime = 0;
 vec3_t cg_saberFlashPos = {0, 0, 0};
 void CG_SaberClashFlare( void ) {
-	int maxTime = 150.0f;
+	float maxTime = 150.0f;
 	float t;
 	vec3_t dif;
 	vec3_t color;
@@ -5594,10 +5667,10 @@ static void CG_DrawHolocronIcons(void) {
 	while (i < NUM_FORCE_POWERS) {
 		if (cg.snap->ps.holocronBits & (1 << forcePowerSorted[i])) {
 			CG_DrawPic( startx, starty, endx*cgs.widthRatioCoef, endy, cgs.media.forcePowerIcons[forcePowerSorted[i]]);
-			starty += (icon_size+2)*cgs.widthRatioCoef; //+2 for spacing
-			if ((starty+icon_size*cgs.widthRatioCoef) >= SCREEN_HEIGHT-80) {
+			starty += icon_size+2; //+2 for spacing
+			if ((starty+icon_size) >= SCREEN_HEIGHT-100) {
 				starty = 10;//SCREEN_HEIGHT - icon_size*3;
-				startx += (icon_size+2);
+				startx += (icon_size+2)*cgs.widthRatioCoef;
 			}
 		}
 		i++;
@@ -6169,6 +6242,15 @@ static void CG_ScanForCrosshairEntity( void ) {
 		if (trace.entityNum < /*MAX_CLIENTS*/ENTITYNUM_WORLD) {
 			cg.crosshairClientNum = trace.entityNum;
 			cg.crosshairClientTime = cg.time;
+			
+			if (cg.snap->ps.duelInProgress && mov_duelIsolation.integer
+				&& trace.entityNum != cg.snap->ps.duelIndex
+				&& trace.entityNum != cg.snap->ps.clientNum) {
+				cg.crosshairClientNum = ENTITYNUM_NONE;
+				cg.crosshairClientTime = 0;
+				CG_DrawCrosshair(trace.endpos, 0);
+				return;
+			}
 
 			if (cg.crosshairClientNum < ENTITYNUM_WORLD) {
 				centity_t *veh = &cg_entities[cg.crosshairClientNum];
@@ -6344,8 +6426,9 @@ static void CG_DrawCrosshairNames(void) {
 		}
 	}
 
-	if (cg.playerPredicted && cg.snap->ps.duelInProgress) {
-		if (cg.crosshairClientNum != cg.snap->ps.duelIndex) {
+	if (cg.snap->ps.duelInProgress) {
+		if (cg.crosshairClientNum != cg.snap->ps.duelIndex &&
+			cg.crosshairClientNum != cg.snap->ps.clientNum) {
 		  //grey out crosshair for everyone but your foe if you're in a duel
 			baseColor = CT_BLACK;
 		}
@@ -8109,11 +8192,11 @@ void CG_Draw2D (void) {
 		return;
 	}
 
-	if (cg_draw2D.integer == 3) {
+	if (cg_draw2D.integer == 3 && mov_fragsOnly.integer == 0) {
+		CG_SaberClashFlare();
 		CG_DrawInWaterTints();
 		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-		if (mov_fragsOnly.integer == 0)
-			return;
+		return;
 	}
 
 	if (mov_fragsOnly.integer != 0) {
@@ -8227,6 +8310,7 @@ void CG_Draw2D (void) {
 			if (cg_drawStatus.integer)
 				CG_DrawStats();
 
+			CG_DrawMovementKeys();
 			CG_DrawPickupItem();
 			//Do we want to use this system again at some point?
 			CG_DrawReward();
