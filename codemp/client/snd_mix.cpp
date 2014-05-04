@@ -276,7 +276,7 @@ static void S_MixChannel( mixChannel_t *ch, int speed, int count, int *output ) 
 	index = ch->index;
 	indexAdd = (sound->speed * speed) >> MIX_SHIFT;
 	indexLeft = sound->samples - index;
-	ch->wasMixed = (leftVol | rightVol) > 10;
+	ch->wasMixed = (leftVol | rightVol) > 0;//10;
 	if (!ch->wasMixed) {
 		indexAdd *= count;
 		if ( indexAdd >= indexLeft ) {
@@ -430,7 +430,7 @@ static void S_MixLoop( mixLoop_t *loop, const loopQueue_t *lq, int speed, int co
 	indexAdd = (sound->speed * speed) >> MIX_SHIFT;
 	indexTotal = sound->samples;
 	data = sound->data;
-	if ( (leftVol | rightVol) <= 10 ) {
+	if ( (leftVol | rightVol) <= 0) {//10 ) {
 		index += count * indexAdd;
 		index %= indexTotal;
 	} else for (i = 0; i < count;i++) {
