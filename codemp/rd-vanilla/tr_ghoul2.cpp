@@ -1084,7 +1084,7 @@ void G2_TimingModel(boneInfo_t &bone,int currentTime,int numFramesInFile,int &cu
 	}
 	else
 	{			
-		time = ((currentTime - bone.startTime) + tr.refdef.timeFraction) / 50.0f;
+		time = ((currentTime - bone.startTime) + G2API_GetTimeFraction()) / 50.0f;
 	}
 	if (time<0.0f)
 	{
@@ -1456,9 +1456,11 @@ void G2_TransformBone (int child,CBoneCache &BC)
 	static int				j, boneListIndex;
 	int				angleOverride = 0;
 	int				incomingTime = BC.incomingTime;
+	float			incomingTimeFraction = G2API_GetTimeFraction();
 
-	if (abs(BC.incomingTime - tr.refdef.time) <= 1)
-		incomingTime = tr.refdef.time;
+	// this should never happen
+	if (incomingTime != G2API_GetTime(0))
+		incomingTimeFraction = 0;
 
 #if DEBUG_G2_TIMING
 	bool printTiming=false;
@@ -1478,7 +1480,7 @@ void G2_TransformBone (int child,CBoneCache &BC)
 		// set blending stuff if we need to
 		if (boneList[boneListIndex].flags & BONE_ANIM_BLEND)
 		{
-			float blendTime = (incomingTime - boneList[boneListIndex].blendStart) + tr.refdef.timeFraction;
+			float blendTime = (incomingTime - boneList[boneListIndex].blendStart) + incomingTimeFraction;
 			// only set up the blend anim if we actually have some blend time left on this bone anim - otherwise we might corrupt some blend higher up the hiearchy
 			if (blendTime >= 0.0f && blendTime < boneList[boneListIndex].blendTime) {
 				TB.blendFrame	 = boneList[boneListIndex].blendFrame;
@@ -1550,11 +1552,11 @@ void G2_TransformBone (int child,CBoneCache &BC)
 		char mess[1000];
 		if (TB.blendMode)
 		{
-			sprintf(mess,"b %2d %5d   %4d %4d %4d %4d  %f %f\n",boneListIndex,BC.incomingTime,(int)TB.newFrame,(int)TB.currentFrame,(int)TB.blendFrame,(int)TB.blendOldFrame,TB.backlerp,TB.blendLerp);
+			sprintf(mess,"b %2d %5d (%5d)   %4d %4d %4d %4d  %f %f\n",boneListIndex,BC.incomingTime,incomingTime,(int)TB.newFrame,(int)TB.currentFrame,(int)TB.blendFrame,(int)TB.blendOldFrame,TB.backlerp,TB.blendLerp);
 		}
 		else
 		{
-			sprintf(mess,"a %2d %5d   %4d %4d            %f\n",boneListIndex,BC.incomingTime,TB.newFrame,TB.currentFrame,TB.backlerp);
+			sprintf(mess,"a %2d %5d (%5d)   %4d %4d            %f\n",boneListIndex,BC.incomingTime,incomingTime,TB.newFrame,TB.currentFrame,TB.backlerp);
 		}
 		Com_OPrintf("%s",mess);
 		const boneInfo_t &bone=boneList[boneListIndex];
@@ -1586,7 +1588,7 @@ void G2_TransformBone (int child,CBoneCache &BC)
 				bone.flags
 				);
 		}
-//		Com_OPrintf("%s",mess);
+		Com_OPrintf("%s",mess);
 	}
 #endif
 //	boldFrame = (mdxaFrame_t *)((byte *)BC.header + BC.header->ofsFrames + TB.blendOldFrame * BC.frameSize );
@@ -1717,7 +1719,7 @@ void G2_TransformBone (int child,CBoneCache &BC)
 
  			Multiply_3x4Matrix(&temp, &toMatrix,&skel->BasePoseMatInv); //dest first arg
 
-			float blendTime = (incomingTime - boneList[boneListIndex].boneBlendStart) + tr.refdef.timeFraction;
+			float blendTime = (incomingTime - boneList[boneListIndex].boneBlendStart) + incomingTimeFraction;
 			float blendLerp = (blendTime / boneList[boneListIndex].boneBlendTime);
 			if (blendLerp>0.0f)
 			{
@@ -1750,10 +1752,10 @@ void G2_TransformBone (int child,CBoneCache &BC)
 			Multiply_3x4Matrix(&firstPass, &BC.mFinalBones[parent].boneMatrix, &tbone[2]);
 
 			// are we attempting to blend with the base animation? and still within blend time?
-			if (boneOverride.boneBlendTime && (((boneOverride.boneBlendTime + boneOverride.boneBlendStart) < /*BC.incomingTime*/tr.refdef.time)))
+			if (boneOverride.boneBlendTime && (((boneOverride.boneBlendTime + boneOverride.boneBlendStart) < incomingTime)))
 			{
 				// ok, we are supposed to be blending. Work out lerp
-				float blendTime = (incomingTime - boneList[boneListIndex].boneBlendStart) + tr.refdef.timeFraction;
+				float blendTime = (incomingTime - boneList[boneListIndex].boneBlendStart) + incomingTimeFraction;
 				float blendLerp = (blendTime / boneList[boneListIndex].boneBlendTime);
 
 				if (blendLerp <= 1)

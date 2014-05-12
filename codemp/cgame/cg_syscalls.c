@@ -1109,6 +1109,11 @@ void trap_G2API_SetTime(int time, int clock)
 	Q_syscall(CG_G2_SETTIME, time, clock);
 }
 
+void trap_G2API_SetTimeFraction(float timeFraction)
+{
+	Q_syscall(CG_G2_SETTIMEFRACTION, PASSFLOAT(timeFraction));
+}
+
 //hack for smoothing during ugly situations. forgive me.
 void trap_G2API_AbsurdSmoothing(void *ghoul2, qboolean status)
 {

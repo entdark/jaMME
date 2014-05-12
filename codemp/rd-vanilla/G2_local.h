@@ -89,7 +89,9 @@ void		G2_RemoveRedundantBolts(boltInfo_v &bltlist, surfaceInfo_v &slist, int *ac
 
 // API calls - G2_API.cpp
 void		G2API_SetTime(int currentTime, int clock);
+void		G2API_SetTimeFraction(float timeFraction);
 int			G2API_GetTime(int argTime);
+float		G2API_GetTimeFraction();
 
 qhandle_t	G2API_PrecacheGhoul2Model(const char *fileName);
 

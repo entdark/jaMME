@@ -1541,6 +1541,7 @@ Q_EXPORT refexport_t* QDECL GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.G2API_SetSkin						= G2API_SetSkin;
 	re.G2API_SetSurfaceOnOff				= G2API_SetSurfaceOnOff;
 	re.G2API_SetTime						= G2API_SetTime;
+	re.G2API_SetTimeFraction				= G2API_SetTimeFraction;
 	re.G2API_SkinlessModel					= G2API_SkinlessModel;
 	re.G2API_StopBoneAngles					= G2API_StopBoneAngles;
 	re.G2API_StopBoneAnglesIndex			= G2API_StopBoneAnglesIndex;

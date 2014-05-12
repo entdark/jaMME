@@ -727,6 +727,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	trap_G2API_SetTime(cg.time, 0);
 	trap_G2API_SetTime(cg.time, 1);
+	trap_G2API_SetTimeFraction(cg.timeFraction);
 
 	CG_RunLightStyles();
 	/* Prepare to render the screen */		

@@ -2569,6 +2569,7 @@ int			trap_G2API_GetSurfaceRenderStatus(void *ghoul2, const int modelIndex, cons
 
 int			trap_G2API_GetTime(void);
 void		trap_G2API_SetTime(int time, int clock);
+void		trap_G2API_SetTimeFraction(float timeFraction);
 
 void		trap_G2API_AbsurdSmoothing(void *ghoul2, qboolean status);
 

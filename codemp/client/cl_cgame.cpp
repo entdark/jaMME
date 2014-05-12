@@ -1532,6 +1532,10 @@ Ghoul2 Insert End
 		re.G2API_SetTime(args[1], args[2]);
 		return 0;
 
+	case CG_G2_SETTIMEFRACTION:
+		re.G2API_SetTimeFraction(VMF(1));
+		return 0;
+
 	case CG_G2_ABSURDSMOOTHING:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
