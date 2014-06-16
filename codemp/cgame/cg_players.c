@@ -9527,6 +9527,37 @@ void SmoothTrueView(vec3_t eyeAngles) {
 }
 //[/TrueView]
 
+/*
+===============
+CG_ForceLoopingSounds
+MME replacement for force looping sounds
+===============
+*/
+void CG_ForceLoopingSounds( centity_t *cent ) {
+	int activePowers = cent->currentState.forcePowersActive;
+	int num = cent->currentState.number;
+	vec3_t origin;
+	VectorCopy(cent->lerpOrigin, origin);
+	if (mov_soundDisable.integer & SDISABLE_FORCE
+	|| mov_soundDisable.integer & SDISABLE_FORCELOOPING)
+		return;
+	if (activePowers & (1 << FP_SPEED)) {
+		trap_S_AddRealLoopingSound(num, origin, vec3_origin, cgs.media.speedLoopSound );
+	}
+	if (activePowers & (1 << FP_PROTECT)) {
+		trap_S_AddRealLoopingSound(num, origin, vec3_origin, cgs.media.protectLoopSound );
+	}
+	if (activePowers & (1 << FP_ABSORB)) {
+		trap_S_AddRealLoopingSound(num, origin, vec3_origin, cgs.media.absorbLoopSound );
+	}
+	if (activePowers & (1 << FP_RAGE)) {
+		trap_S_AddRealLoopingSound(num, origin, vec3_origin, cgs.media.rageLoopSound );
+	}
+	if (activePowers & (1 << FP_SEE)) {
+		trap_S_AddRealLoopingSound(num, origin, vec3_origin, cgs.media.seeLoopSound );
+	}
+}
+
 
 void CG_Player( centity_t *cent ) {
 	clientInfo_t	*ci;
@@ -10332,6 +10363,8 @@ skipEffectOverride:
 		legs.renderfx |= RF_SHADOW_ONLY;
 	}
 	VectorCopy (legs.origin, legs.oldorigin);	// don't positionally lerp at all
+	
+	CG_ForceLoopingSounds( cent );
 
 	CG_G2PlayerAngles( cent, legs.axis, rootAngles );
 	CG_G2PlayerHeadAnims( cent );

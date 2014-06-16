@@ -3424,15 +3424,14 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_GENERAL_SOUND:
 		DEBUGNAME("EV_GENERAL_SOUND");
-		if (!(mov_soundDisable.integer & SDISABLE_FORCE)
-			&& !(mov_soundDisable.integer & SDISABLE_FORCELOOPING)
-			&& (es->saberEntityNum == TRACK_CHANNEL_2
-			|| es->saberEntityNum == TRACK_CHANNEL_3
-			|| es->saberEntityNum == TRACK_CHANNEL_5))
+		if (es->saberEntityNum == TRACK_CHANNEL_2 || es->saberEntityNum == TRACK_CHANNEL_3
+			|| es->saberEntityNum == TRACK_CHANNEL_5)
 		{ //channels 2 and 3 are for speed and rage, 5 for sight
 			if ( cgs.gameSounds[ es->eventParm ] )
 			{
-				CG_S_AddRealLoopingSound(es->number, es->pos.trBase, vec3_origin, cgs.gameSounds[ es->eventParm ] );
+				//CG_S_AddRealLoopingSound(es->number, es->pos.trBase, vec3_origin, cgs.gameSounds[ es->eventParm ] );
+				//does not work at all
+				trap_S_AddRealLoopingSound(es->number, es->pos.trBase, vec3_origin, cgs.gameSounds[ es->eventParm ] );
 			}
 		}
 		else

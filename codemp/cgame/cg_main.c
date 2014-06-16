@@ -1198,8 +1198,12 @@ static void CG_RegisterSounds( void ) {
 
 	trap_S_RegisterSound( "sound/weapons/rocket/tick.wav" );
 	trap_S_RegisterSound( "sound/weapons/rocket/lock.wav" );
-
-	trap_S_RegisterSound("sound/weapons/force/speedloop.wav");
+	
+	cgs.media.speedLoopSound = trap_S_RegisterSound("sound/weapons/force/speedloop.wav");
+	cgs.media.protectLoopSound = trap_S_RegisterSound("sound/weapons/force/protectloop.wav");
+	cgs.media.absorbLoopSound = trap_S_RegisterSound("sound/weapons/force/absorbloop.wav");
+	cgs.media.rageLoopSound = trap_S_RegisterSound("sound/weapons/force/rageloop.wav");
+	cgs.media.seeLoopSound = trap_S_RegisterSound("sound/weapons/force/seeloop.wav");
 
 	trap_S_RegisterSound("sound/weapons/force/protecthit.mp3"); //PDSOUND_PROTECTHIT
 	trap_S_RegisterSound("sound/weapons/force/protect.mp3"); //PDSOUND_PROTECT
@@ -1240,8 +1244,7 @@ static void CG_RegisterSounds( void ) {
 	cgs.media.dramaticFailure = trap_S_RegisterSound("music/badsmall.mp3");
 
 	//PRECACHE ALL MUSIC HERE (don't need to precache normally because it's streamed off the disk)
-	if (com_buildScript.integer)
-	{
+	if (com_buildScript.integer) {
 		trap_S_StartBackgroundTrack( "music/mp/duel.mp3", "music/mp/duel.mp3", qfalse );
 	}
 

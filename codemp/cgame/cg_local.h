@@ -1464,6 +1464,12 @@ typedef struct {
 
 	// For vehicles only now
 	sfxHandle_t	noAmmoSound;
+
+	sfxHandle_t speedLoopSound;
+	sfxHandle_t protectLoopSound;
+	sfxHandle_t absorbLoopSound;
+	sfxHandle_t rageLoopSound;
+	sfxHandle_t seeLoopSound;
 } cgMedia_t;
 
 
