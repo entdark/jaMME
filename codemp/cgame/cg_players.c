@@ -10662,10 +10662,16 @@ SkipTrueView:
 	}
 
 	if (cent->frame_minus1_refreshed || cent->frame_minus2_refreshed) {
-		vec3_t			tDir;
+		vec3_t			tDir, tDeltaAdd;
 		float			distVelBase;
+		qboolean		inverted = qfalse;
 
-		VectorCopy(cent->currentState.pos.trDelta, tDir);
+		if (!cg.demoPlayback || !cg.nextSnap) {
+			VectorCopy(cent->currentState.pos.trDelta, tDir);
+		} else {
+			VectorSubtract(cent->nextState.pos.trDelta, cent->currentState.pos.trDelta, tDeltaAdd);
+			VectorMA(cent->currentState.pos.trDelta, cg.frameInterpolation, tDeltaAdd, tDir);
+		}
 		distVelBase = SPEED_TRAIL_DISTANCE * (VectorNormalize(tDir) * 0.004f);
 
 		if (cent->frame_minus1_refreshed) {
@@ -10680,11 +10686,11 @@ SkipTrueView:
 			//once per frame anyway, so we might end up with speed trails very spread out.
 			//in order to avoid that, we'll get the direction of the last trail from the player
 			//and place the trail refent a set distance from the player location this frame
-			if (!cg.demoPlayback)
+			if (!cg.demoPlayback) {
 				VectorSubtract(cent->frame_minus1, legs.origin, tDir);
-			else {
-				VectorCopy(cent->currentState.pos.trDelta, tDir);
+			} else {
 				VectorInverse(tDir);
+				inverted = qtrue;
 			}
 			VectorNormalize(tDir);
 
@@ -10711,10 +10717,9 @@ SkipTrueView:
 			reframe_minus2.shaderRGBA[3] = 50;
 
 			//Same as above but do it between trail points instead of the player and first trail entry
-			if (!cg.demoPlayback)
+			if (!cg.demoPlayback) {
 				VectorSubtract(cent->frame_minus2, cent->frame_minus1, tDir);
-			else {
-				VectorCopy(cent->currentState.pos.trDelta, tDir);
+			} else if (!inverted) {
 				VectorInverse(tDir);
 			}
 			VectorNormalize(tDir);

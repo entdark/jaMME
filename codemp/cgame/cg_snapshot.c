@@ -224,7 +224,6 @@ void CG_SetNextSnap( snapshot_t *snap ) {
 	cg.nextSnap = snap;
 
 	//CG_CheckPlayerG2Weapons(&cg.snap->ps, &cg_entities[cg.snap->ps.clientNum]);
-	//CG_CheckPlayerG2Weapons(&cg.snap->ps, &cg.predictedPlayerEntity);
 	BG_PlayerStateToEntityState( &snap->ps, &cg_entities[ snap->ps.clientNum ].nextState, qfalse );
 	//cg_entities[ cg.snap->ps.clientNum ].interpolate = qtrue;
 	//No longer want to do this, as the cg_entities[clnum] and cg.predictedPlayerEntity are one in the same.
