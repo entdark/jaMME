@@ -1338,7 +1338,7 @@ void R_AddLightningBoltSurfaces( trRefEntity_t *e );
 
 void R_AddPolygonSurfaces( void );
 
-void R_DecomposeSort( uint64_t sort, int64_t *entityNum, shader_t **shader, int64_t *fogNum, int64_t *dlightMap );
+void R_DecomposeSort( const uint64_t sort, int64_t *entityNum, shader_t **shader, int64_t *fogNum, int64_t *dlightMap );
 
 void R_AddDrawSurf( surfaceType_t *surface, shader_t *shader, int64_t fogIndex, int64_t dlightMap );
 

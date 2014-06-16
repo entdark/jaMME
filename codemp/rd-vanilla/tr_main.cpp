@@ -1136,7 +1136,7 @@ void R_AddDrawSurf( surfaceType_t *surface, shader_t *shader,
 R_DecomposeSort
 =================
 */
-void R_DecomposeSort( uint64_t sort, int64_t *entityNum, shader_t **shader, 
+void R_DecomposeSort( const uint64_t sort, int64_t *entityNum, shader_t **shader, 
 					 int64_t *fogNum, int64_t *dlightMap ) {
 	*fogNum = ( sort >> QSORT_FOGNUM_SHIFT ) & 31;
 	*shader = tr.sortedShaders[ ( sort >> QSORT_SHADERNUM_SHIFT ) & (MAX_SHADERS-1) ];
