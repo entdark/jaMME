@@ -901,13 +901,9 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 }
 
 void CG_AddViewWeapon( playerState_t *ps ) {
-	if ( ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
+	if ( ps->pm_type == PM_INTERMISSION || ps->persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
 		return;
 	}
-	if ( ps->pm_type == PM_INTERMISSION ) {
-		return;
-	}
-
 	CG_AddViewWeaponDirect( &cg_entities[cg.predictedPlayerState.clientNum] );
 }
 
