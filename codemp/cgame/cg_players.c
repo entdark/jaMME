@@ -1998,6 +1998,8 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 			CG_LoadClientInfo( &newInfo );
 		}
 	}
+	if ( clientNum == cg.clientNum )
+		trap_Cvar_Set("sex", newInfo.gender == GENDER_FEMALE ? "female" : "male");
 
 	// replace whatever was there with the new one
 	newInfo.infoValid = qtrue;
@@ -2298,6 +2300,8 @@ void CG_ActualLoadDeferredPlayers( void )
 			CG_LoadClientInfo( ci );
 //			break;
 		}
+		if ( i == cg.clientNum )
+			trap_Cvar_Set("sex", ci->gender == GENDER_FEMALE ? "female" : "male");
 	}
 }
 
