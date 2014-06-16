@@ -1112,13 +1112,11 @@ static void CG_OffsetFirstPersonView( void ) {
 	delta = (cg.time - pe->landTime) + cg.timeFraction;
 	if ( delta < LAND_DEFLECT_TIME ) {
 		f = delta / LAND_DEFLECT_TIME;
-//		origin[2] += pe->landChange * f;	//maybe we need cg.refdef.vieworg[2]
-		cg.refdef.vieworg[2] += pe->landChange * f;
+		origin[2] += pe->landChange * f;
 	} else if ( delta < LAND_DEFLECT_TIME + LAND_RETURN_TIME ) {
 		delta -= LAND_DEFLECT_TIME;
 		f = 1.0 - ( delta / LAND_RETURN_TIME );
-//		origin[2] += pe->landChange * f;
-		cg.refdef.vieworg[2] += pe->landChange * f;
+		origin[2] += pe->landChange * f;
 	}
 
 	// add step offset
