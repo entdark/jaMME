@@ -704,6 +704,9 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		trap_FX_AdjustTime(cg.time, cg.frametime, cg.timeFraction);
 	trap_CIN_AdjustTime(cg.time);
 
+	trap_G2API_SetTime(cg.time, 0);
+	trap_G2API_SetTime(cg.time, 1);
+
 	CG_RunLightStyles();
 	/* Prepare to render the screen */		
 	trap_S_ClearLoopingSounds();

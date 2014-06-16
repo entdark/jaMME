@@ -1027,11 +1027,6 @@ qboolean demoGetSnapshot( int snapNumber, snapshot_t *snap ) {
 void CL_DemoSetCGameTime( void ) {
 	/* We never timeout */
 	clc.lastPacketTime = cls.realtime;
-
-	// This here was the main issue, this never updated servertime.
-	cl.serverTime = lastSeekTime; // Now it will use whatever the demo is currently at. Meaning 100% accurate!
-
-	cl.oldServerTime = cl.serverTime;
 }
 
 void CL_DemoShutDown( void ) {

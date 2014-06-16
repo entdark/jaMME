@@ -3025,7 +3025,7 @@ void CG_TriggerAnimSounds( centity_t *cent )
 	{
 		CG_PlayerAnimEvents( cent->localAnimIndex, sFileIndex, qfalse, cent->pe.legs.frame, curFrame, cent->currentState.number );
 	}
-	cent->pe.legs.oldFrame = cent->pe.torso.frame;
+	cent->pe.legs.oldFrame = cent->pe.legs.frame;
 	cent->pe.legs.frame = curFrame;
 
 	if (cent->noLumbar)
@@ -3043,7 +3043,7 @@ void CG_TriggerAnimSounds( centity_t *cent )
 	{
 		CG_PlayerAnimEvents( cent->localAnimIndex, sFileIndex, qtrue, cent->pe.torso.frame, curFrame, cent->currentState.number );
 	}
-	cent->pe.torso.oldFrame = cent->pe.torso.oldFrame;
+	cent->pe.torso.oldFrame = cent->pe.torso.frame;
 	cent->pe.torso.frame = curFrame;
 	cent->pe.torso.backlerp = 1.0f - (currentFrame - (float)curFrame);	
 }
@@ -12503,8 +12503,7 @@ CG_ResetPlayerEntity
 A player just came into view or teleported, so reset all animation info
 ===============
 */
-void CG_ResetPlayerEntity( centity_t *cent ) 
-{
+void CG_ResetPlayerEntity( centity_t *cent ) {
 	clientInfo_t *ci;
 	int i = 0;
 	int j = 0;
@@ -12629,7 +12628,7 @@ void CG_ResetPlayerEntity( centity_t *cent )
 		cent->pe.stepTime = 0;
 	
 		maxs = ((cent->currentState.solid >> 16) & 255) - 32;
-		if ( maxs == 46 )
+		if ( maxs > 16 )
 			cent->pe.viewHeight = DEFAULT_VIEWHEIGHT;
 		else
 			cent->pe.viewHeight = CROUCH_VIEWHEIGHT;
@@ -12664,7 +12663,6 @@ void CG_ResetPlayerEntity( centity_t *cent )
 			}
 		}
 	}
-
 
 	if ( cg_debugPosition.integer ) {
 		CG_Printf("%i ResetPlayerEntity yaw=%i\n", cent->currentState.number, cent->pe.torso.yawAngle );
