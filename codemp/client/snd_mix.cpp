@@ -124,12 +124,13 @@ const mixSound_t *S_MixGetSound( sfxHandle_t sfxHandle ) {
 	if (!openSound) {
 		return mixSounds[sfxHandle] = &mixEmptySound;
 	}
-	if (openSound->totalSamples > (1 << (30 - MIX_SHIFT))) {
+	/* Jedi Academy does not limit sounds at all */
+/*	if (openSound->totalSamples > (1 << (30 - MIX_SHIFT))) {
 		S_SoundClose( openSound );
 		Com_Printf( "Mixer:Sound file too large\n" );
 		return mixSounds[sfxHandle] = &mixEmptySound;
 	}
-	sound = S_MixAllocSound( openSound->totalSamples );
+*/	sound = S_MixAllocSound( openSound->totalSamples );
 	if (!sound) {
 		S_SoundClose( openSound );
 		Com_Printf( "Mixer:Failed to alloc memory for sound, try to increase com_soundMegs\n" );
