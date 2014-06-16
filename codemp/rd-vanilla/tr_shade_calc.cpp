@@ -9,26 +9,36 @@
 #define	WAVEVALUE( table, base, amplitude, phase, freq )  ((base) + table[ Q_ftol( ( ( (phase) + tess.shaderTime * (freq) ) * FUNCTABLE_SIZE ) ) & FUNCTABLE_MASK ] * (amplitude))
 
 float WAVEVALUENEW(genFunc_t func, float base, float amplitude, float phase, float freq) {
-	double angle;
+	double t = (tr.refdef.time ? (double)(tr.refdef.time * 0.001) : tess.shaderTime);
+	if (func == GF_SAWTOOTH || func == GF_INVERSE_SAWTOOTH)
+		//maybe some other shaders require that too
+		//linear + clamp require tess.shaderTime
+		if (!Q_stricmp(tess.shader->name, "halfShieldShell"))
+			t = tr.refdef.time * 0.001;
+		else
+			t = tess.shaderTime;
+	double angle = (double)phase + t * (double)freq + (double)tr.refdef.timeFraction * (double)freq * 0.001;
+	angle = fmod(angle, 1.0);
 
 	switch (func) {
 	case GF_SIN:
-		angle = (double)phase + (tr.refdef.time ? (double)(tr.refdef.time * 0.001) : (double)tess.shaderTime) * (double)freq + (double)tr.refdef.timeFraction * (double)freq * 0.001;
-		angle = fmod(angle, 1.0);
 		return base + sin(DEG2RAD(angle * 360.0)) * amplitude;
 	case GF_TRIANGLE:
-		return WAVEVALUE(tr.triangleTable, base, amplitude, phase, freq);
+		if (angle < 0.25) {
+			angle = angle / 0.25;
+		} else if (angle < 0.5) {
+			angle = 1.0 - ((angle - 0.25) / 0.25);
+		} else if (angle < 0.75) {
+			angle = -((angle - 0.5) / 0.25);
+		} else if (angle <= 1.0) {
+			angle = -(1.0 - ((angle - 0.75) / 0.25));
+		}
+		return base + angle * amplitude;
 	case GF_SQUARE:
 		return WAVEVALUE(tr.squareTable, base, amplitude, phase, freq);
 	case GF_SAWTOOTH:
-		//maybe some other shaders require that too
-		//linear + clamp require tess.shaderTime
-		angle = (double)phase + ((!Q_stricmp(tess.shader->name, "halfShieldShell")) ? (double)(tr.refdef.time * 0.001) : (double)tess.shaderTime) * (double)freq + (double)tr.refdef.timeFraction * (double)freq * 0.001;
-		angle = fmod(angle, 1.0);
 		return base + angle * amplitude;
 	case GF_INVERSE_SAWTOOTH:
-		angle = (double)phase + ((!Q_stricmp(tess.shader->name, "halfShieldShell")) ? (double)(tr.refdef.time * 0.001) : (double)tess.shaderTime) * (double)freq + (double)tr.refdef.timeFraction * (double)freq * 0.001;
-		angle = fmod(angle, 1.0);
 		return base + (1.0 - angle) * amplitude;
 	case GF_NONE:
 	default:
@@ -48,10 +58,8 @@ float NewCosTable (double jediAcademy) {
 	return cos(DEG2RAD(jediAcademy * 360.0));
 }
 
-static float *TableForFunc( genFunc_t func ) 
-{
-	switch ( func )
-	{
+static float *TableForFunc( genFunc_t func ) {
+	switch ( func ) {
 	case GF_SIN:
 		return tr.sinTable;
 	case GF_TRIANGLE:
@@ -77,8 +85,7 @@ static float *TableForFunc( genFunc_t func )
 ** Evaluates a given waveForm_t, referencing backEnd.refdef.time directly
 */
 extern float GetNoiseTime( int t ); //from tr_noise, returns 0 to 2
-static float EvalWaveForm( const waveForm_t *wf ) 
-{
+static float EvalWaveForm( const waveForm_t *wf ) {
 	float	*table;
 
 	if ( wf->func == GF_NOISE ) {
@@ -96,28 +103,19 @@ static float EvalWaveForm( const waveForm_t *wf )
 	return WAVEVALUENEW( wf->func, wf->base, wf->amplitude, wf->phase, wf->frequency );
 }
 
-static float EvalWaveFormClamped( const waveForm_t *wf )
-{
+static float EvalWaveFormClamped( const waveForm_t *wf ) {
 	float glow  = EvalWaveForm( wf );
-
 	if ( glow < 0 )
-	{
 		return 0;
-	}
-
-	if ( glow > 1 )
-	{
+	else if ( glow > 1 )
 		return 1;
-	}
-
 	return glow;
 }
 
 /*
 ** RB_CalcStretchTexCoords
 */
-void RB_CalcStretchTexCoords( const waveForm_t *wf, float *st )
-{
+void RB_CalcStretchTexCoords( const waveForm_t *wf, float *st ) {
 	float p;
 	texModInfo_t tmi;
 
@@ -148,8 +146,7 @@ RB_CalcDeformVertexes
 
 ========================
 */
-void RB_CalcDeformVertexes( deformStage_t *ds )
-{
+void RB_CalcDeformVertexes( deformStage_t *ds ) {
 	int i;
 	vec3_t	offset;
 	float	scale;
@@ -157,25 +154,17 @@ void RB_CalcDeformVertexes( deformStage_t *ds )
 	float	*normal = ( float * ) tess.normal;
 	float	*table;
 
-	if ( ds->deformationWave.frequency == 0 )
-	{
+	if ( ds->deformationWave.frequency == 0 ) {
 		scale = EvalWaveForm( &ds->deformationWave );
-
-		for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4 )
-		{
-			VectorScale( normal, scale, offset );
-			
+		for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4 ) {
+			VectorScale( normal, scale, offset );			
 			xyz[0] += offset[0];
 			xyz[1] += offset[1];
 			xyz[2] += offset[2];
 		}
-	}
-	else
-	{
+	} else {
 		table = TableForFunc( ds->deformationWave.func );
-
-		for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4 )
-		{
+		for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4 ) {
 			float off = ( xyz[0] + xyz[1] + xyz[2] ) * ds->deformationSpread;
 
 /*			scale = WAVEVALUE( table, ds->deformationWave.base, 
@@ -188,8 +177,7 @@ void RB_CalcDeformVertexes( deformStage_t *ds )
 				ds->deformationWave.phase + off,
 				ds->deformationWave.frequency );
 
-			VectorScale( normal, scale, offset );
-			
+			VectorScale( normal, scale, offset );			
 			xyz[0] += offset[0];
 			xyz[1] += offset[1];
 			xyz[2] += offset[2];
@@ -236,8 +224,7 @@ RB_CalcBulgeVertexes
 
 ========================
 */
-void RB_CalcBulgeVertexes( deformStage_t *ds )
-{
+void RB_CalcBulgeVertexes( deformStage_t *ds ) {
 	//Old bulge code:
 	/*
 	int i;
@@ -267,18 +254,14 @@ void RB_CalcBulgeVertexes( deformStage_t *ds )
 	float	*normal = ( float * ) tess.normal;
 	float	scale;
 
-	if ( ds->bulgeSpeed == 0.0f && ds->bulgeWidth == 0.0f )
-	{
+	if ( ds->bulgeSpeed == 0.0f && ds->bulgeWidth == 0.0f ) {
 		// We don't have a speed and width, so just use height to expand uniformly
-		for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4 ) 
-		{
+		for ( i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4 ) {
 			xyz[0] += normal[0] * ds->bulgeHeight;
 			xyz[1] += normal[1] * ds->bulgeHeight;
 			xyz[2] += normal[2] * ds->bulgeHeight;
 		}
-	}
-	else
-	{
+	} else {
 		// I guess do some extra dumb stuff..the fact that it uses ST seems bad though because skin pages may be set up in certain ways that can cause
 		//	very noticeable seams on sufaces ( like on the huge ion_cannon ).
 		const float *st = ( const float * ) tess.texCoords[0];
@@ -287,12 +270,11 @@ void RB_CalcBulgeVertexes( deformStage_t *ds )
 
 		now = backEnd.refdef.time * ds->bulgeSpeed * 0.001 + tr.refdef.timeFraction * ds->bulgeSpeed * 0.001;
 
-		for ( i = 0; i < tess.numVertexes; i++, xyz += 4, st += 2 * NUM_TEX_COORDS, normal += 4 ) 
-		{
+		for ( i = 0; i < tess.numVertexes; i++, xyz += 4, st += 2 * NUM_TEX_COORDS, normal += 4 ) {
 //			off = (float)( FUNCTABLE_SIZE / (M_PI*2) ) * ( st[0] * ds->bulgeWidth + now );
+//			scale = tr.sinTable[ off & FUNCTABLE_MASK ] * ds->bulgeHeight;
 			off = (st[0] * ds->bulgeWidth + now) / (M_PI*2);
-
-			scale = NewSinTable(off)/*tr.sinTable[ off & FUNCTABLE_MASK ]*/ * ds->bulgeHeight;
+			scale = NewSinTable(off) * ds->bulgeHeight;
 				
 			xyz[0] += normal[0] * scale;
 			xyz[1] += normal[1] * scale;
@@ -678,8 +660,7 @@ COLORS
 ** RB_CalcColorFromEntity
 */
 
-void RB_CalcColorFromEntity( unsigned char *dstColors )
-{
+void RB_CalcColorFromEntity( unsigned char *dstColors ) {
 	int	i;
 	int *pColors = ( int * ) dstColors;
 	int c;
@@ -689,8 +670,7 @@ void RB_CalcColorFromEntity( unsigned char *dstColors )
 
 	c = * ( int * ) backEnd.currentEntity->e.shaderRGBA;
 
-	for ( i = 0; i < tess.numVertexes; i++, pColors++ )
-	{
+	for ( i = 0; i < tess.numVertexes; i++, pColors++ ) {
 		*pColors = c;
 	}
 }
@@ -698,8 +678,7 @@ void RB_CalcColorFromEntity( unsigned char *dstColors )
 /*
 ** RB_CalcColorFromOneMinusEntity
 */
-void RB_CalcColorFromOneMinusEntity( unsigned char *dstColors )
-{
+void RB_CalcColorFromOneMinusEntity( unsigned char *dstColors ) {
 	int	i;
 	int *pColors = ( int * ) dstColors;
 	unsigned char invModulate[4];
@@ -715,8 +694,7 @@ void RB_CalcColorFromOneMinusEntity( unsigned char *dstColors )
 
 	c = * ( int * ) invModulate;
 
-	for ( i = 0; i < tess.numVertexes; i++, pColors++ )
-	{
+	for ( i = 0; i < tess.numVertexes; i++, pColors++ ) {
 		*pColors = * ( int * ) invModulate;
 	}
 }
@@ -724,8 +702,7 @@ void RB_CalcColorFromOneMinusEntity( unsigned char *dstColors )
 /*
 ** RB_CalcAlphaFromEntity
 */
-void RB_CalcAlphaFromEntity( unsigned char *dstColors )
-{
+void RB_CalcAlphaFromEntity( unsigned char *dstColors ) {
 	int	i;
 
 	if ( !backEnd.currentEntity )
@@ -733,8 +710,7 @@ void RB_CalcAlphaFromEntity( unsigned char *dstColors )
 
 	dstColors += 3;
 
-	for ( i = 0; i < tess.numVertexes; i++, dstColors += 4 )
-	{
+	for ( i = 0; i < tess.numVertexes; i++, dstColors += 4 ) {
 		*dstColors = backEnd.currentEntity->e.shaderRGBA[3];
 	}
 }
@@ -742,8 +718,7 @@ void RB_CalcAlphaFromEntity( unsigned char *dstColors )
 /*
 ** RB_CalcAlphaFromOneMinusEntity
 */
-void RB_CalcAlphaFromOneMinusEntity( unsigned char *dstColors )
-{
+void RB_CalcAlphaFromOneMinusEntity( unsigned char *dstColors ) {
 	int	i;
 
 	if ( !backEnd.currentEntity )
@@ -751,8 +726,7 @@ void RB_CalcAlphaFromOneMinusEntity( unsigned char *dstColors )
 
 	dstColors += 3;
 
-	for ( i = 0; i < tess.numVertexes; i++, dstColors += 4 )
-	{
+	for ( i = 0; i < tess.numVertexes; i++, dstColors += 4 ) {
 		*dstColors = 0xff - backEnd.currentEntity->e.shaderRGBA[3];
 	}
 }
@@ -760,8 +734,7 @@ void RB_CalcAlphaFromOneMinusEntity( unsigned char *dstColors )
 /*
 ** RB_CalcWaveColor
 */
-void RB_CalcWaveColor( const waveForm_t *wf, unsigned char *dstColors )
-{
+void RB_CalcWaveColor( const waveForm_t *wf, unsigned char *dstColors ) {
 	int i;
 	int v;
 	float glow;
@@ -795,8 +768,7 @@ void RB_CalcWaveColor( const waveForm_t *wf, unsigned char *dstColors )
 /*
 ** RB_CalcWaveAlpha
 */
-void RB_CalcWaveAlpha( const waveForm_t *wf, unsigned char *dstColors )
-{
+void RB_CalcWaveAlpha( const waveForm_t *wf, unsigned char *dstColors ) {
 	int i;
 	int v;
 	float glow;
@@ -805,8 +777,7 @@ void RB_CalcWaveAlpha( const waveForm_t *wf, unsigned char *dstColors )
 
 	v = 255 * glow;
 
-	for ( i = 0; i < tess.numVertexes; i++, dstColors += 4 )
-	{
+	for ( i = 0; i < tess.numVertexes; i++, dstColors += 4 ) {
 		dstColors[3] = v;
 	}
 }
@@ -974,8 +945,7 @@ void RB_CalcFogTexCoords( float *st ) {
 /*
 ** RB_CalcEnvironmentTexCoords
 */
-void RB_CalcEnvironmentTexCoords( float *st ) 
-{
+void RB_CalcEnvironmentTexCoords( float *st ) {
 	int			i;
 	float		*v, *normal;
 	vec3_t		viewer, reflected;
@@ -984,8 +954,7 @@ void RB_CalcEnvironmentTexCoords( float *st )
 	v = tess.xyz[0];
 	normal = tess.normal[0];
 
-	for (i = 0 ; i < tess.numVertexes ; i++, v += 4, normal += 4, st += 2 ) 
-	{
+	for (i = 0 ; i < tess.numVertexes ; i++, v += 4, normal += 4, st += 2 ) {
 		VectorSubtract (backEnd.ori.viewOrigin, v, viewer);
 		VectorNormalizeFast (viewer);
 
@@ -1003,15 +972,13 @@ void RB_CalcEnvironmentTexCoords( float *st )
 /*
 ** RB_CalcTurbulentTexCoords
 */
-void RB_CalcTurbulentTexCoords( const waveForm_t *wf, float *st )
-{
+void RB_CalcTurbulentTexCoords( const waveForm_t *wf, float *st ) {
 	int i;
 	double now;
 
 	now = (wf->phase + /*tess.shaderTime*/tr.refdef.time * 0.001 * wf->frequency + tr.refdef.timeFraction * 0.001 * wf->frequency);
 
-	for ( i = 0; i < tess.numVertexes; i++, st += 2 )
-	{
+	for ( i = 0; i < tess.numVertexes; i++, st += 2 ) {
 		float s = st[0];
 		float t = st[1];
 
@@ -1025,12 +992,9 @@ void RB_CalcTurbulentTexCoords( const waveForm_t *wf, float *st )
 /*
 ** RB_CalcScaleTexCoords
 */
-void RB_CalcScaleTexCoords( const float scale[2], float *st )
-{
+void RB_CalcScaleTexCoords( const float scale[2], float *st ) {
 	int i;
-
-	for ( i = 0; i < tess.numVertexes; i++, st += 2 )
-	{
+	for ( i = 0; i < tess.numVertexes; i++, st += 2 ) {
 		st[0] *= scale[0];
 		st[1] *= scale[1];
 	}
@@ -1039,8 +1003,7 @@ void RB_CalcScaleTexCoords( const float scale[2], float *st )
 /*
 ** RB_CalcScrollTexCoords
 */
-void RB_CalcScrollTexCoords( const float scrollSpeed[2], float *st )
-{
+void RB_CalcScrollTexCoords( const float scrollSpeed[2], float *st ) {
 	int i;
 	double timeScale = (!tr.refdef.time ? tess.shaderTime : (tr.refdef.time * 0.001)) + tr.refdef.timeFraction * 0.001;
 	double adjustedScrollS, adjustedScrollT;
@@ -1053,8 +1016,7 @@ void RB_CalcScrollTexCoords( const float scrollSpeed[2], float *st )
 	adjustedScrollS = adjustedScrollS - floor( adjustedScrollS );
 	adjustedScrollT = adjustedScrollT - floor( adjustedScrollT );
 
-	for ( i = 0; i < tess.numVertexes; i++, st += 2 )
-	{
+	for ( i = 0; i < tess.numVertexes; i++, st += 2 ) {
 		st[0] += adjustedScrollS;
 		st[1] += adjustedScrollT;
 	}
@@ -1063,15 +1025,11 @@ void RB_CalcScrollTexCoords( const float scrollSpeed[2], float *st )
 /*
 ** RB_CalcTransformTexCoords
 */
-void RB_CalcTransformTexCoords( const texModInfo_t *tmi, float *st  )
-{
+void RB_CalcTransformTexCoords( const texModInfo_t *tmi, float *st  ) {
 	int i;
-
-	for ( i = 0; i < tess.numVertexes; i++, st += 2 )
-	{
+	for ( i = 0; i < tess.numVertexes; i++, st += 2 ) {
 		float s = st[0];
 		float t = st[1];
-
 		st[0] = s * tmi->matrix[0][0] + t * tmi->matrix[1][0] + tmi->translate[0];
 		st[1] = s * tmi->matrix[0][1] + t * tmi->matrix[1][1] + tmi->translate[1];
 	}
@@ -1080,8 +1038,7 @@ void RB_CalcTransformTexCoords( const texModInfo_t *tmi, float *st  )
 /*
 ** RB_CalcRotateTexCoords
 */
-void RB_CalcRotateTexCoords( float degsPerSecond, float *st )
-{
+void RB_CalcRotateTexCoords( float degsPerSecond, float *st ) {
 	double timeScale = (!tr.refdef.time ? tess.shaderTime : (tr.refdef.time * 0.001));
 	double degs;
 	double index;
@@ -1180,8 +1137,7 @@ void RB_CalcSpecularAlpha( unsigned char *alphas ) {
 **
 ** The basic vertex lighting calc
 */
-void RB_CalcDiffuseColor( unsigned char *colors )
-{
+void RB_CalcDiffuseColor( unsigned char *colors ) {
 	int				i, j;
 	float			*v, *normal;
 	float			incoming;
@@ -1235,8 +1191,7 @@ void RB_CalcDiffuseColor( unsigned char *colors )
 **
 ** The basic vertex lighting calc * Entity Color
 */
-void RB_CalcDiffuseEntityColor( unsigned char *colors )
-{
+void RB_CalcDiffuseEntityColor( unsigned char *colors ) {
 	int				i;
 	float			*v, *normal;
 	float			incoming;
@@ -1248,8 +1203,8 @@ void RB_CalcDiffuseEntityColor( unsigned char *colors )
 	int				numVertexes;
 	float			j,r,g,b;
 
-	if ( !backEnd.currentEntity )
-	{//error, use the normal lighting
+	if ( !backEnd.currentEntity ) {
+	//error, use the normal lighting
 		RB_CalcDiffuseColor(colors);
 	}
 
@@ -1302,8 +1257,7 @@ void RB_CalcDiffuseEntityColor( unsigned char *colors )
 }
 
 //---------------------------------------------------------
-void RB_CalcDisintegrateColors( unsigned char *colors )
-{
+void RB_CalcDisintegrateColors( unsigned char *colors ) {
 	int			i, numVertexes;
 	float		dis, threshold;
 	float		*v;
@@ -1318,74 +1272,57 @@ void RB_CalcDisintegrateColors( unsigned char *colors )
 
 	numVertexes = tess.numVertexes;
 
-	if ( ent->renderfx & RF_DISINTEGRATE1 )
-	{
+	if ( ent->renderfx & RF_DISINTEGRATE1 ) {
 		// this handles the blacken and fading out of the regular player model
-		for ( i = 0 ; i < numVertexes ; i++, v += 4 )
-		{
+		for ( i = 0 ; i < numVertexes ; i++, v += 4 ) {
 			VectorSubtract( backEnd.currentEntity->e.oldorigin, v, temp );
 
 			dis = VectorLengthSquared( temp );
 
-			if ( dis < threshold * threshold )
-			{
-				// completely disintegrated
+			if ( dis < threshold * threshold ) {
+			// completely disintegrated
 				colors[i*4+3] = 0x00;
-			}
-			else if ( dis < threshold * threshold + 60 )
-			{
-				// blacken before fading out
+			} else if ( dis < threshold * threshold + 60 ) {
+			// blacken before fading out
 				colors[i*4+0] = 0x0;
 				colors[i*4+1] = 0x0;
 				colors[i*4+2] = 0x0;
 				colors[i*4+3] = 0xff;
-			}
-			else if ( dis < threshold * threshold + 150 )
-			{
-				// darken more
+			} else if ( dis < threshold * threshold + 150 ) {
+			// darken more
 				colors[i*4+0] = 0x6f;
 				colors[i*4+1] = 0x6f;
 				colors[i*4+2] = 0x6f;
 				colors[i*4+3] = 0xff;
-			}
-			else if ( dis < threshold * threshold + 180 )
-			{
-				// darken at edge of burn
+			} else if ( dis < threshold * threshold + 180 ) {
+			// darken at edge of burn
 				colors[i*4+0] = 0xaf;
 				colors[i*4+1] = 0xaf;
 				colors[i*4+2] = 0xaf;
 				colors[i*4+3] = 0xff;
-			}
-			else
-			{
-				// not burning at all yet
+			} else {
+			// not burning at all yet
 				colors[i*4+0] = 0xff;
 				colors[i*4+1] = 0xff;
 				colors[i*4+2] = 0xff;
 				colors[i*4+3] = 0xff;
 			}
 		}
-	}
-	else if ( ent->renderfx & RF_DISINTEGRATE2 )
-	{
+	} else if ( ent->renderfx & RF_DISINTEGRATE2 ) {
 		// this handles the glowing, burning bit that scales away from the model
-		for ( i = 0 ; i < numVertexes ; i++, v += 4 )
-		{
+		for ( i = 0 ; i < numVertexes ; i++, v += 4 ) {
 			VectorSubtract( backEnd.currentEntity->e.oldorigin, v, temp );
 
 			dis = VectorLengthSquared( temp );
 
-			if ( dis < threshold * threshold )
-			{
-				// done burning
+			if ( dis < threshold * threshold ) {
+			// done burning
 				colors[i*4+0] = 0x00;
 				colors[i*4+1] = 0x00;
 				colors[i*4+2] = 0x00;
 				colors[i*4+3] = 0x00;
-			}
-			else
-			{
-				// still full burn
+			} else {
+			// still full burn
 				colors[i*4+0] = 0xff;
 				colors[i*4+1] = 0xff;
 				colors[i*4+2] = 0xff;
@@ -1396,31 +1333,25 @@ void RB_CalcDisintegrateColors( unsigned char *colors )
 }
 
 //---------------------------------------------------------
-void RB_CalcDisintegrateVertDeform( void )
-{
+void RB_CalcDisintegrateVertDeform( void ) {
 	float	*xyz = ( float * ) tess.xyz;
 	float	*normal = ( float * ) tess.normal;
 	float	scale;
 	vec3_t	temp;
 
-	if ( backEnd.currentEntity->e.renderfx & RF_DISINTEGRATE2 )
-	{
+	if ( backEnd.currentEntity->e.renderfx & RF_DISINTEGRATE2 ) {
 		float	threshold = (backEnd.refdef.time - backEnd.currentEntity->e.endTime) * 0.045f;
 
-		for ( int i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4 ) 
-		{
+		for ( int i = 0; i < tess.numVertexes; i++, xyz += 4, normal += 4 ) {
 			VectorSubtract( backEnd.currentEntity->e.oldorigin, xyz, temp );
 
 			scale = VectorLengthSquared( temp );
 
-			if ( scale < threshold * threshold )
-			{
+			if ( scale < threshold * threshold ) {
 				xyz[0] += normal[0] * 2.0f;
 				xyz[1] += normal[1] * 2.0f;
 				xyz[2] += normal[2] * 0.5f;
-			}
-			else if ( scale < threshold * threshold + 50 )
-			{
+			} else if ( scale < threshold * threshold + 50 ) {
 				xyz[0] += normal[0] * 1.0f;
 				xyz[1] += normal[1] * 1.0f;
 //				xyz[2] += normal[2] * 1;
