@@ -780,20 +780,13 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 	float		fovOffset;
 	vec3_t		angles;
 	weaponInfo_t	*weapon;
-	float	cgFov = cg_fov.value;
+	float	cgFov;
 
 	// no gun if in third person view or a camera is active
-	//if ( cg.renderingThirdPerson || cg.cameraMode) {
 	if ( cg.renderingThirdPerson ) {
 		return;
 	}
-
-	if (cgFov < 1) {
-		cgFov = 1;
-	} else if (cgFov > 180) {
-		cgFov = 180;
-	}
-
+	
 	//[TrueView]
 	if ( !cg.renderingThirdPerson
 		&& cg.trueView
@@ -805,7 +798,11 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 		cgFov = cg_fov.value;
 	//[/TrueView]
 
-	cgFov = Com_Clampi( 1, 180, cgFov );
+	if (cgFov < 1) {
+		cgFov = 1;
+	} else if (cgFov > 180) {
+		cgFov = 180;
+	}
 
 	// allow the gun to be completely removed
 	//[TrueView]
