@@ -7718,30 +7718,34 @@ static void CG_DrawInWaterTints (void) {
 	}
 }
 
+static qboolean CG_HasYsalamiri(int gametype, entityState_t *es) {
+	if (gametype == GT_CTY && ((es->powerups & (1 << PW_REDFLAG)) || (es->powerups & (1 << PW_BLUEFLAG)))) {
+		return qtrue;
+	}
+	if (es->powerups & (1 << PW_YSALAMIRI)) {
+		return qtrue;
+	}
+	return qfalse;
+}
+
 static void CG_Draw2DScreenTints( void ) {
-	float			rageTime, rageRecTime, absorbTime, protectTime, ysalTime;
-	vec4_t			hcolor;
-	if (cgs.clientinfo[cg.snap->ps.clientNum].team != TEAM_SPECTATOR)
-	{
-		if (cg.snap->ps.fd.forcePowersActive & (1 << FP_RAGE))
-		{
+	float	rageTime, rageRecTime, absorbTime, protectTime, ysalTime;
+	vec4_t	hcolor;
+	int		forcePowersActive = cg.playerPredicted ?
+								cg.snap->ps.fd.forcePowersActive :
+								cg.playerCent->currentState.forcePowersActive;
+
+	if (cgs.clientinfo[cg.playerCent->currentState.clientNum].team != TEAM_SPECTATOR) {
+		if (forcePowersActive & (1 << FP_RAGE)) {
 			if (!cgRageTime)
-			{
-				cgRageTime = cg.time;
-			}
-			
-			rageTime = (cg.time - cgRageTime) + cg.timeFraction;
-			
+				cgRageTime = cg.time;			
+			rageTime = (cg.time - cgRageTime) + cg.timeFraction;			
 			rageTime /= 9000;
 			
 			if (rageTime < 0)
-			{
 				rageTime = 0;
-			}
-			if (rageTime > 0.15)
-			{
+			else if (rageTime > 0.15)
 				rageTime = 0.15f;
-			}
 			
 			if (mov_rageColour.string[0] == '0') {
 				hcolor[0] = 0.7f;
@@ -7753,40 +7757,26 @@ static void CG_Draw2DScreenTints( void ) {
 			hcolor[3] = rageTime;
 			
 			if (!cg.renderingThirdPerson)
-			{
 				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
 			
 			cgRageFadeTime = 0;
 			cgRageFadeVal = 0;
-		}
-		else if (cgRageTime)
-		{
-			if (!cgRageFadeTime)
-			{
+		} else if (cgRageTime) {
+			if (!cgRageFadeTime) {
 				cgRageFadeTime = cg.time;
 				cgRageFadeVal = 0.15f;
-			}
-			
-			rageTime = cgRageFadeVal;
-			
+			}			
+			rageTime = cgRageFadeVal;			
 			cgRageFadeVal -= ((cg.time - cgRageFadeTime) + cg.timeFraction)*0.000005f;
 			
 			if (rageTime < 0)
-			{
 				rageTime = 0;
-			}
-			if (rageTime > 0.15f)
-			{
+			else if (rageTime > 0.15f)
 				rageTime = 0.15f;
-			}
 			
-			if (cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
-			{
-				float checkRageRecTime = rageTime;
-				
-				if (checkRageRecTime < 0.15f)
-				{
+			if (cg.playerPredicted && cg.snap->ps.fd.forceRageRecoveryTime > cg.time) {
+				float checkRageRecTime = rageTime;				
+				if (checkRageRecTime < 0.15f) {
 					checkRageRecTime = 0.15f;
 				}
 				
@@ -7813,9 +7803,7 @@ static void CG_Draw2DScreenTints( void ) {
 					}
 				}
 				hcolor[3] = checkRageRecTime;
-			}
-			else
-			{
+			} else {
 				if (mov_rageColour.string[0] == '0') {
 					hcolor[0] = 0.7f;
 					hcolor[1] = 0;
@@ -7826,14 +7814,10 @@ static void CG_Draw2DScreenTints( void ) {
 				hcolor[3] = rageTime;
 			}
 			
-			if (!cg.renderingThirdPerson && rageTime)
-			{
+			if (!cg.renderingThirdPerson && rageTime) {
 				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
-			else
-			{
-				if (cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
-				{
+			} else {
+				if (cg.playerPredicted && cg.snap->ps.fd.forceRageRecoveryTime > cg.time) {
 					if (mov_rageColour.string[0] == '0') {
 						hcolor[0] = 0.2f;
 						hcolor[1] = 0.2f;
@@ -7848,26 +7832,16 @@ static void CG_Draw2DScreenTints( void ) {
 				}
 				cgRageTime = 0;
 			}
-		}
-		else if (cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
-		{
+		} else if (cg.playerPredicted && cg.snap->ps.fd.forceRageRecoveryTime > cg.time) {
 			if (!cgRageRecTime)
-			{
-				cgRageRecTime = cg.time;
-			}
-			
-			rageRecTime = (cg.time - cgRageRecTime) + cg.timeFraction;
-			
+				cgRageRecTime = cg.time;			
+			rageRecTime = (cg.time - cgRageRecTime) + cg.timeFraction;			
 			rageRecTime /= 9000;
 			
-			if (rageRecTime < 0.15f)//0)
-			{
+			if (rageRecTime < 0.15f)
 				rageRecTime = 0.15f;//0;
-			}
-			if (rageRecTime > 0.15f)
-			{
+			else if (rageRecTime > 0.15f)
 				rageRecTime = 0.15f;
-			}
 			
 			hcolor[3] = rageRecTime;
 			hcolor[0] = 0.2f;
@@ -7875,33 +7849,22 @@ static void CG_Draw2DScreenTints( void ) {
 			hcolor[2] = 0.2f;
 			
 			if (!cg.renderingThirdPerson)
-			{
 				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
 			
 			cgRageRecFadeTime = 0;
 			cgRageRecFadeVal = 0;
-		}
-		else if (cgRageRecTime)
-		{
-			if (!cgRageRecFadeTime)
-			{
+		} else if (cg.playerPredicted && cgRageRecTime) {
+			if (!cgRageRecFadeTime) {
 				cgRageRecFadeTime = cg.time;
 				cgRageRecFadeVal = 0.15f;
-			}
-			
-			rageRecTime = cgRageRecFadeVal;
-			
+			}			
+			rageRecTime = cgRageRecFadeVal;			
 			cgRageRecFadeVal -= ((cg.time - cgRageRecFadeTime) + cg.timeFraction)*0.000005f;
 			
 			if (rageRecTime < 0)
-			{
 				rageRecTime = 0;
-			}
-			if (rageRecTime > 0.15f)
-			{
+			else if (rageRecTime > 0.15f)
 				rageRecTime = 0.15f;
-			}
 			
 			hcolor[3] = rageRecTime;
 			hcolor[0] = 0.2f;
@@ -7909,34 +7872,21 @@ static void CG_Draw2DScreenTints( void ) {
 			hcolor[2] = 0.2f;
 			
 			if (!cg.renderingThirdPerson && rageRecTime)
-			{
 				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
 			else
-			{
 				cgRageRecTime = 0;
-			}
 		}
 		
-		if (cg.snap->ps.fd.forcePowersActive & (1 << FP_ABSORB))
-		{
+		if (forcePowersActive & (1 << FP_ABSORB)) {
 			if (!cgAbsorbTime)
-			{
-				cgAbsorbTime = cg.time;
-			}
-			
-			absorbTime = (cg.time - cgAbsorbTime) + cg.timeFraction;
-			
+				cgAbsorbTime = cg.time;			
+			absorbTime = (cg.time - cgAbsorbTime) + cg.timeFraction;			
 			absorbTime /= 9000;
 			
 			if (absorbTime < 0)
-			{
 				absorbTime = 0;
-			}
-			if (absorbTime > 0.15f)
-			{
+			else if (absorbTime > 0.15f)
 				absorbTime = 0.15f;
-			}
 			
 			if (mov_absorbColour.string[0] == '0') {
 				hcolor[0] = 0;
@@ -7948,33 +7898,22 @@ static void CG_Draw2DScreenTints( void ) {
 			hcolor[3] = absorbTime/2;
 			
 			if (!cg.renderingThirdPerson)
-			{
 				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
 			
 			cgAbsorbFadeTime = 0;
 			cgAbsorbFadeVal = 0;
-		}
-		else if (cgAbsorbTime)
-		{
-			if (!cgAbsorbFadeTime)
-			{
+		} else if (cgAbsorbTime) {
+			if (!cgAbsorbFadeTime) {
 				cgAbsorbFadeTime = cg.time;
 				cgAbsorbFadeVal = 0.15f;
-			}
-			
-			absorbTime = cgAbsorbFadeVal;
-			
+			}			
+			absorbTime = cgAbsorbFadeVal;			
 			cgAbsorbFadeVal -= ((cg.time - cgAbsorbFadeTime) + cg.timeFraction)*0.000005f;
 			
 			if (absorbTime < 0)
-			{
 				absorbTime = 0;
-			}
-			if (absorbTime > 0.15f)
-			{
+			else if (absorbTime > 0.15f)
 				absorbTime = 0.15f;
-			}
 			
 			if (mov_absorbColour.string[0] == '0') {
 				hcolor[0] = 0;
@@ -7986,34 +7925,22 @@ static void CG_Draw2DScreenTints( void ) {
 			hcolor[3] = absorbTime/2;
 			
 			if (!cg.renderingThirdPerson && absorbTime)
-			{
 				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
 			else
-			{
 				cgAbsorbTime = 0;
-			}
 		}
 		
-		if (cg.snap->ps.fd.forcePowersActive & (1 << FP_PROTECT))
-		{
-			if (!cgProtectTime)
-			{
+		if (forcePowersActive & (1 << FP_PROTECT)) {
+			if (!cgProtectTime) {
 				cgProtectTime = cg.time;
-			}
-			
-			protectTime = (cg.time - cgProtectTime) + cg.timeFraction;
-			
+			}			
+			protectTime = (cg.time - cgProtectTime) + cg.timeFraction;			
 			protectTime /= 9000;
 			
 			if (protectTime < 0)
-			{
 				protectTime = 0;
-			}
-			if (protectTime > 0.15f)
-			{
+			else if (protectTime > 0.15f)
 				protectTime = 0.15f;
-			}
 			
 			if (mov_protectColour.string[0] == '0') {
 				hcolor[0] = 0;
@@ -8025,33 +7952,22 @@ static void CG_Draw2DScreenTints( void ) {
 			hcolor[3] = protectTime/2;
 			
 			if (!cg.renderingThirdPerson)
-			{
 				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
 			
 			cgProtectFadeTime = 0;
 			cgProtectFadeVal = 0;
-		}
-		else if (cgProtectTime)
-		{
-			if (!cgProtectFadeTime)
-			{
+		} else if (cgProtectTime) {
+			if (!cgProtectFadeTime) {
 				cgProtectFadeTime = cg.time;
 				cgProtectFadeVal = 0.15f;
-			}
-			
-			protectTime = cgProtectFadeVal;
-			
+			}			
+			protectTime = cgProtectFadeVal;			
 			cgProtectFadeVal -= ((cg.time - cgProtectFadeTime) + cg.timeFraction)*0.000005f;
 			
 			if (protectTime < 0)
-			{
 				protectTime = 0;
-			}
-			if (protectTime > 0.15f)
-			{
+			else if (protectTime > 0.15f)
 				protectTime = 0.15f;
-			}
 			
 			if (mov_protectColour.string[0] == '0') {
 				hcolor[0] = 0;
@@ -8063,34 +7979,22 @@ static void CG_Draw2DScreenTints( void ) {
 			hcolor[3] = protectTime/2;
 			
 			if (!cg.renderingThirdPerson && protectTime)
-			{
 				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
 			else
-			{
 				cgProtectTime = 0;
-			}
 		}
 		
-		if (BG_HasYsalamiri(cgs.gametype, &cg.snap->ps))
-		{
+		if ((cg.playerPredicted && BG_HasYsalamiri(cgs.gametype, &cg.snap->ps))
+			|| (!cg.playerPredicted && CG_HasYsalamiri(cgs.gametype, &cg.playerCent->currentState))) {
 			if (!cgYsalTime)
-			{
-				cgYsalTime = cg.time;
-			}
-			
-			ysalTime = (cg.time - cgYsalTime) + cg.timeFraction;
-			
+				cgYsalTime = cg.time;			
+			ysalTime = (cg.time - cgYsalTime) + cg.timeFraction;			
 			ysalTime /= 9000;
 			
 			if (ysalTime < 0)
-			{
 				ysalTime = 0;
-			}
-			if (ysalTime > 0.15f)
-			{
+			else if (ysalTime > 0.15f)
 				ysalTime = 0.15f;
-			}
 			
 			hcolor[3] = ysalTime/2;
 			hcolor[0] = 0.7f;
@@ -8098,33 +8002,22 @@ static void CG_Draw2DScreenTints( void ) {
 			hcolor[2] = 0;
 			
 			if (!cg.renderingThirdPerson)
-			{
 				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
 			
 			cgYsalFadeTime = 0;
 			cgYsalFadeVal = 0;
-		}
-		else if (cgYsalTime)
-		{
-			if (!cgYsalFadeTime)
-			{
+		} else if (cgYsalTime) {
+			if (!cgYsalFadeTime) {
 				cgYsalFadeTime = cg.time;
 				cgYsalFadeVal = 0.15f;
-			}
-			
-			ysalTime = cgYsalFadeVal;
-			
+			}			
+			ysalTime = cgYsalFadeVal;			
 			cgYsalFadeVal -= ((cg.time - cgYsalFadeTime) + cg.timeFraction)*0.000005f;
 			
 			if (ysalTime < 0)
-			{
 				ysalTime = 0;
-			}
-			if (ysalTime > 0.15f)
-			{
+			else if (ysalTime > 0.15f)
 				ysalTime = 0.15f;
-			}
 			
 			hcolor[3] = ysalTime/2;
 			hcolor[0] = 0.7f;
@@ -8132,13 +8025,9 @@ static void CG_Draw2DScreenTints( void ) {
 			hcolor[2] = 0;
 			
 			if (!cg.renderingThirdPerson && ysalTime)
-			{
 				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
-			}
 			else
-			{
 				cgYsalTime = 0;
-			}
 		}
 	}
 	CG_DrawInWaterTints();
