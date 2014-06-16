@@ -1132,6 +1132,8 @@ typedef struct {
 
 	qhandle_t	simpleFlagRed;
 	qhandle_t	simpleFlagBlue;
+	qhandle_t	simpleFlagModelRed;
+	qhandle_t	simpleFlagModelBlue;
 
 	qhandle_t	flagPoleModel;
 	qhandle_t	flagFlapModel;

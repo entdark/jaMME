@@ -1963,39 +1963,30 @@ Ghoul2 Insert End
 */
 
 	if ( item->giType == IT_TEAM && (mov_simpleFlags.integer || (cg_newFX.integer & NEWFX_SIMPLEFLAG)) ) {
-		vec3_t angs;
-
 		memset( &ent, 0, sizeof( ent ) );
-		ent.reType = RT_ORIENTED_QUAD;
 		VectorCopy( cent->lerpOrigin, ent.origin );
-		ent.radius = 28;
-		//ent.customShader = cg_items[es->modelindex].icon;
-
-		if (cgs.gametype == GT_CTF)
-		{
-			if (item->giTag == PW_REDFLAG)
-			{
+		if (item->giTag == PW_REDFLAG && cgs.media.simpleFlagModelRed)
+			ent.hModel = cgs.media.simpleFlagModelRed;
+		else if (item->giTag == PW_BLUEFLAG && cgs.media.simpleFlagModelBlue)
+			ent.hModel = cgs.media.simpleFlagModelBlue;
+		if (!ent.hModel) {
+			ent.reType = RT_ORIENTED_QUAD;
+			ent.customShader = cg_items[es->modelindex].icon;
+			if (item->giTag == PW_REDFLAG && cgs.media.simpleFlagRed)
 				ent.customShader = cgs.media.simpleFlagRed;
-			}
-			else if (item->giTag == PW_BLUEFLAG)
-			{
+			else if (item->giTag == PW_BLUEFLAG && cgs.media.simpleFlagBlue)
 				ent.customShader = cgs.media.simpleFlagBlue;
-			}
+		
+			MAKERGBA( ent.shaderRGBA, 255, 255, 255, 200 );
+			ent.renderfx |= RF_FORCE_ENT_ALPHA;
+			ent.radius = 28.0f;
 		}
-		//instead of cg_items[es->modelindex].icon
-
-		MAKERGBA( ent.shaderRGBA, 255, 255, 255, 200 );
-		ent.origin[2] += 44 + 7.0f * sin((double)((double)cg.time + cg.timeFraction) / 1000.0 * 1.337);
-		ent.renderfx |= RF_FORCE_ENT_ALPHA;
-		cent->currentState.apos.trType = TR_LINEAR;
-		VectorSet( cent->currentState.apos.trDelta, 0.0f, 128.0f, 0.0f );
-		demoNowTrajectory(&cent->currentState.apos, angs);
-		angs[PITCH] = 0.0f;
-		angs[ROLL] = 0.0f;
-		AnglesToAxis( angs, ent.axis );
-
-	//	VectorSet( ent.modelScale, 1.0f, 1.0f, 1.337f );
-	//	ScaleModelAxis( &ent );
+		
+		scale = (2 * M_PI) / 1300;
+		ent.origin[2] += 48.0f + cos( scale * (cg.timeFraction + (cg.time % 1300)) ) * 4;
+		if (ent.hModel)
+			ent.origin[2] += 32.0f;
+		AnglesToAxis( cg.autoAngles, ent.axis );
 
 		// render it, flip it around, render it again
 		trap_R_AddRefEntityToScene( &ent );
@@ -2754,11 +2745,11 @@ Ghoul2 Insert End
 		{
 			if ( s1->eFlags & EF_MISSILE_STICK )
 			{
-				RotateAroundDirection(ent.axis, 0.5 * cg.timeFraction + ((cg.time / 2) % 360));//Did this so regular missiles don't get broken
+				RotateAroundDirection(ent.axis, 0.5f * cg.timeFraction + (float)((cg.time) % (360 * 2)) * 0.5f);//Did this so regular missiles don't get broken
 			}
 			else
 			{
-				RotateAroundDirection(ent.axis, 0.25 * cg.timeFraction + ((cg.time / 4) % 360));
+				RotateAroundDirection(ent.axis, 0.25f * cg.timeFraction + (float)((cg.time) % (360 * 4)) * 0.25f);
 			}
 		} 
 		else 

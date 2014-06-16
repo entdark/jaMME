@@ -1725,8 +1725,10 @@ static void CG_RegisterGraphics( void ) {
 			cgs.media.blueFlagModel = trap_R_RegisterModel( "models/flags/b_flag_ysal.md3" );
 		}
 
-		cgs.media.simpleFlagRed = trap_R_RegisterShaderNoMip( "models/flags/redflag" );
-		cgs.media.simpleFlagBlue = trap_R_RegisterShaderNoMip( "models/flags/blueflag" );
+		cgs.media.simpleFlagRed = trap_R_RegisterShaderNoMip( "models/flags/rflag" );
+		cgs.media.simpleFlagBlue = trap_R_RegisterShaderNoMip( "models/flags/bflag" );
+		cgs.media.simpleFlagModelRed = trap_R_RegisterModel( "models/flags/rflag.md3" );
+		cgs.media.simpleFlagModelBlue = trap_R_RegisterModel( "models/flags/bflag.md3" );
 
 		trap_R_RegisterShaderNoMip( "gfx/hud/mpi_rflag_x" );
 		trap_R_RegisterShaderNoMip( "gfx/hud/mpi_bflag_x" );

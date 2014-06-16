@@ -4710,25 +4710,15 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 			return;
 		//[/TrueView]
 	}
-/*
-	if (cent->currentState.number == cg.snap->ps.clientNum &&
-		!cg.renderingThirdPerson)
-	{
-		return;
-	}
-*/
-	if (!cent->ghoul2)
-	{
+
+	if (!cent->ghoul2) {
 		return;
 	}
 
-	if (cent->currentState.eType == ET_NPC)
-	{
+	if (cent->currentState.eType == ET_NPC) {
 		ci = cent->npcClient;
 		assert(ci);
-	}
-	else
-	{
+	} else {
 		ci = &cgs.clientinfo[cent->currentState.number];
 	}
 
@@ -4757,58 +4747,48 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 	memset( &ent, 0, sizeof( ent ) );
 	VectorMA( boltOrg, 24, axis[0], ent.origin );
 
-	angles[ROLL] += 20;
-	AnglesToAxis( angles, ent.axis );
-
-	ent.hModel = hModel;
-
 	if ( mov_simpleFlags.integer || (cg_newFX.integer & NEWFX_SIMPLEFLAG)) {
-		int team = 0;
-
-		ent.modelScale[0] = 0.5;
-		ent.modelScale[1] = -0.5;//0.5;//edited by ent; raz0r's simple flag
-		ent.modelScale[2] = 0.5;
-		ScaleModelAxis(&ent);
-			
-		ent.reType = RT_ORIENTED_QUAD;
-
-		team = cgs.clientinfo[cent->currentState.number].team;
-
-		if (cgs.gametype == GT_CTF)
-		{
-			if (team == TEAM_RED)
-			{
+		int team = ci->team;
+		if (team == TEAM_RED && cgs.media.simpleFlagModelBlue)
+			ent.hModel = cgs.media.simpleFlagModelBlue;
+		else if (team == TEAM_BLUE && cgs.media.simpleFlagModelRed)
+			ent.hModel = cgs.media.simpleFlagModelRed;
+		if (!ent.hModel) {
+			ent.reType = RT_ORIENTED_QUAD;
+			ent.customShader = cg_items[cent->currentState.modelindex].icon;
+			if (ci->shaderOverride == 2 && !cg_renderToTextureFX.integer)
+				ent.customShader = cgs.media.cloakedShader;
+			else if (ci->shaderOverride == 2 && cg_renderToTextureFX.integer)
+				ent.customShader = ci->shaderOverride;
+			else if (team == TEAM_RED && cgs.media.simpleFlagBlue)
 				ent.customShader = cgs.media.simpleFlagBlue;
-			}
-			else
-			{
+			else if (team == TEAM_BLUE && cgs.media.simpleFlagRed)
 				ent.customShader = cgs.media.simpleFlagRed;
-			}
+		
+			MAKERGBA( ent.shaderRGBA, 255, 255, 255, 200 );		
+			ent.renderfx |= RF_FORCE_ENT_ALPHA;
+			ent.radius = 32.0f;
 		}
-		ent.shaderRGBA[0] = ent.shaderRGBA[1] = ent.shaderRGBA[2] = 255;
-		ent.shaderRGBA[3] = 200;
-		ent.radius = 32;
-		/* works wrong :s
-		VectorCopy( cent->currentState.angles, angs );
-		angs[2] = 0.0f;
-		AnglesToAxis( angs, ent.axis );
-		*/
-		ent.origin[2] += 17;
-		ent.renderfx |= RF_FORCE_ENT_ALPHA;
+		
+		ent.origin[2] += 17.0f + ent.hModel ? 32.0f : 0.0f;
+		angles[YAW] += ent.hModel ? 90.0f : 0.0f;
+		angles[PITCH] = 0;
+		angles[ROLL] = 0;
+		AnglesToAxis( angles, ent.axis );
 
-		if (ci->shaderOverride == 2 && !cg_renderToTextureFX.integer)
-			ent.customShader = cgs.media.cloakedShader;
-		else if (ci->shaderOverride == 2 && cg_renderToTextureFX.integer)
-			ent.customShader = ci->shaderOverride;
-
-		trap_R_AddRefEntityToScene( &ent );
-		ent.modelScale[0] = 1.0;
-		ent.modelScale[1] = -1.0;
-		ent.modelScale[2] = 1.0;
+		// render it, flip it around, render it again
+		VectorSet( ent.modelScale, 0.5f, -0.5f, 0.5f );
 		ScaleModelAxis( &ent );
-	//	trap_R_AddRefEntityToScene( &ent );
+		trap_R_AddRefEntityToScene( &ent );
+		VectorSet( ent.modelScale, 1.0f, -1.0f, 1.0f );
+		ScaleModelAxis( &ent );
 		trap_R_AddRefEntityToScene( &ent );
 	} else {
+		ent.hModel = hModel;
+
+		angles[ROLL] += 20;
+		AnglesToAxis( angles, ent.axis );
+
 		ent.modelScale[0] = 0.5;
 		ent.modelScale[1] = 0.5;
 		ent.modelScale[2] = 0.5;
@@ -4823,8 +4803,8 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 		*/
 		//FIXME: Not doing this at the moment because sorting totally messes up
 
-		if ( cg_newFX.integer & NEWFX_TRANSFLAG )
-		{// render the flag on our back transparently
+		if ( cg_newFX.integer & NEWFX_TRANSFLAG ) {
+		// render the flag on our back transparently
 			ent.renderfx |= RF_FORCE_ENT_ALPHA;
 			ent.shaderRGBA[3] = 100;
 		}
