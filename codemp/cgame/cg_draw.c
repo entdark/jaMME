@@ -5097,15 +5097,10 @@ static qboolean CG_CrosshairColour(vec4_t ecolor, centity_t *crossEnt, int chEnt
 				ecolor[2] = 0.0f;
 			}
 		}
-
 		ecolor[3] = 1.0f;
-
 		trap_R_SetColor( ecolor );
 	}
-	if (!corona)
-		return qfalse;
-	else
-		return qtrue;
+	return corona;
 }
 
 /*
@@ -5894,6 +5889,7 @@ static void CG_DrawRocketLocking( int lockEntNum, int lockTime )
 			CG_DrawPic( cx - sz * ratioFix, cy - sz * 2, sz * 2 * ratioFix, sz * 2, trap_R_RegisterShaderNoMip( "gfx/2d/lock" ));
 		}
 	}
+	trap_R_SetColor( NULL );
 }
 
 extern void CG_CalcVehMuzzle(Vehicle_t *pVeh, centity_t *ent, int muzzleNum);
