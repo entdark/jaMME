@@ -596,28 +596,6 @@ void CL_Netchan_Transmit( netchan_t *chan, msg_t* msg);	//int length, const byte
 void CL_Netchan_TransmitNextFragment( netchan_t *chan );
 qboolean CL_Netchan_Process( netchan_t *chan, msg_t *msg );
 
-//
-// cl_avi.c
-//
-#define PCM_BUFFER_SIZE 44100
-typedef struct audioFormat_s
-{
-  int rate;
-  int format;
-  int channels;
-  int bits;
-
-  int sampleSize;
-  int totalBytes;
-} audioFormat_t;
-
-qboolean CL_OpenAVIForWriting( const char *filename );
-void CL_TakeVideoFrame( void );
-void CL_WriteAVIVideoFrame( const byte *imageBuffer, int size );
-void CL_WriteAVIAudioFrame( const byte *pcmBuffer, int size );
-qboolean CL_CloseAVI( void );
-qboolean CL_VideoRecording( void );
-
 
 //
 // cl_mme.c

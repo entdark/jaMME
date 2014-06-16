@@ -24,10 +24,6 @@ void CL_MME_CheckCvarChanges(void) {
 		cl_avidemo->modified = qfalse;
 		clc.aviDemoRemain = 0;
 	}
-	if (cl_aviFrameRate->modified) {
-		cl_aviFrameRate->modified = qfalse;
-		clc.aviDemoRemain = 0;
-	}
 	if ( cls.state == CA_DISCONNECTED)
 		CL_DemoListNext_f();
 }

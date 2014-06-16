@@ -117,9 +117,6 @@ typedef struct {
 	qboolean			(*RegisterImages_LevelLoadEnd)			( void );
 	qboolean			(*RegisterModels_LevelLoadEnd)			( qboolean bDeleteEverythingNotUsedThisLevel );
 
-	// AVI recording
-	void				(*TakeVideoFrame)						( int h, int w, byte* captureBuffer, byte *encodeBuffer, qboolean motionJpeg );
-
 	// G2 stuff
 	void				(*InitSkins)							( void );
 	void				(*InitShaders)							( qboolean server );
@@ -306,7 +303,6 @@ typedef struct {
 	e_status		(*CIN_RunCinematic)					( int handle );
 	int				(*CIN_PlayCinematic)				( const char *arg0, int xpos, int ypos, int width, int height, int bits );
 	void			(*CIN_UploadCinematic)				( int handle );
-	void			(*CL_WriteAVIVideoFrame)			( const byte *imageBuffer, int size );
 
 	// g2 data access
 	char *			(*GetSharedMemory)					( void ); // cl.mSharedMemory

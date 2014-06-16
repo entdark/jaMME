@@ -421,7 +421,6 @@
     <ClCompile Include="client\FxSystem.cpp" />
     <ClCompile Include="client\FxTemplate.cpp" />
     <ClCompile Include="client\FxUtil.cpp" />
-    <ClCompile Include="client\cl_avi.cpp" />
     <ClCompile Include="client\cl_cgame.cpp" />
     <ClCompile Include="client\cl_cin.cpp" />
     <ClCompile Include="client\cl_console.cpp" />

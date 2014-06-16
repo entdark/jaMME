@@ -47,8 +47,6 @@ cvar_t	*cl_shownet;
 cvar_t	*cl_showSend;
 cvar_t	*cl_timedemo;
 cvar_t	*cl_avidemo;
-cvar_t	*cl_aviFrameRate;
-cvar_t	*cl_aviMotionJpeg;
 cvar_t	*cl_forceavidemo;
 
 cvar_t	*cl_freelook;
@@ -638,9 +636,6 @@ CL_ShutdownAll
 =====================
 */
 void CL_ShutdownAll( qboolean shutdownRef ) {
-	if(CL_VideoRecording())
-		CL_CloseAVI();
-
 	if(clc.demorecording)
 		CL_StopRecord_f();
 
@@ -829,13 +824,6 @@ void CL_Disconnect( qboolean showMainMenu ) {
 	cl_connectedGAME = 0;
 	cl_connectedCGAME = 0;
 	cl_connectedUI = 0;
-
-	// Stop recording any video
-	if( CL_VideoRecording( ) ) {
-		// Finish rendering current frame
-		SCR_UpdateScreen( );
-		CL_CloseAVI( );
-	}
 }
 
 
@@ -1138,14 +1126,6 @@ doesn't know what graphics to reload
 */
 extern bool g_nOverrideChecked;
 void CL_Vid_Restart_f( void ) {
-	// Settings may have changed so stop recording now
-	if( CL_VideoRecording( ) ) {
-		CL_CloseAVI( );
-	}
-
-	if(clc.demorecording)
-		CL_StopRecord_f();
-
 	//rww - sort of nasty, but when a user selects a mod
 	//from the menu all it does is a vid_restart, so we
 	//have to check for new net overrides for the mod then.
@@ -2101,30 +2081,6 @@ void CL_Frame ( int msec ) {
 		VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
 	}
 
-	// if recording an avi, lock to a fixed fps
-	if ( CL_VideoRecording( ) && cl_aviFrameRate->integer && msec) {
-		// save the current screen
-		if ( cls.state == CA_ACTIVE || cl_forceavidemo->integer) {
-			float frameTime, fps;
-			char shotName[MAX_OSPATH];
-			Com_sprintf( shotName, sizeof( shotName ), "videos/%s", mme_demoFileName->string );
-			CL_TakeVideoFrame( );
-
-			// fixed time for next frame'
-			fps = cl_aviFrameRate->value * com_timescale->value;
-			if ( fps > 1000.0f)
-				fps = 1000.0f;
-			frameTime = (1000.0f / fps);
-			if (frameTime < 1) {
-				frameTime = 1;
-			}
-			frameTime += clc.aviDemoRemain;
-			msec = (int)frameTime;
-			clc.aviDemoRemain = frameTime - msec;
-
-			S_MMERecord( shotName, 1.0f / (cl_aviFrameRate->value * com_timescale->value ));
-		}
-	}
 	if (cl_avidemo->integer > 0 && msec) {
 		// save the current screen
 		if (cls.state == CA_ACTIVE || cl_forceavidemo->integer) {
@@ -2459,7 +2415,6 @@ void CL_InitRef( void ) {
 	ri.CIN_RunCinematic = CIN_RunCinematic;
 	ri.CIN_PlayCinematic = CIN_PlayCinematic;
 	ri.CIN_UploadCinematic = CIN_UploadCinematic;
-	ri.CL_WriteAVIVideoFrame = CL_WriteAVIVideoFrame;
 
 	// g2 data access
 	ri.GetSharedMemory = GetSharedMemory;
@@ -2546,67 +2501,6 @@ void CL_SetForcePowers_f( void ) {
 	return;
 }
 
-/*
-==================
-CL_VideoFilename
-==================
-*/
-void CL_VideoFilename( char *buf, int bufSize ) {
-	time_t rawtime;
-	char timeStr[32] = {0}; // should really only reach ~19 chars
-
-	time( &rawtime );
-	strftime( timeStr, sizeof( timeStr ), "%Y-%m-%d_%H-%M-%S", localtime( &rawtime ) ); // or gmtime
-
-	Com_sprintf( buf, bufSize, "videos/video%s.avi", timeStr );
-}
-
-/*
-===============
-CL_Video_f
-
-video
-video [filename]
-===============
-*/
-void CL_Video_f( void )
-{
-	char  filename[ MAX_OSPATH ];
-
-	if( !clc.demoplaying )
-	{
-		Com_Printf( "The video command can only be used when playing back demos\n" );
-		return;
-	}
-
-	if( Cmd_Argc( ) == 2 )
-	{
-		// explicit filename
-		Com_sprintf( filename, MAX_OSPATH, "videos/%s.avi", Cmd_Argv( 1 ) );
-	}
-	else
-	{
-		CL_VideoFilename( filename, MAX_OSPATH );
-
-		if ( FS_FileExists( filename ) ) {
-			Com_Printf( "Video: Couldn't create a file\n"); 
-			return;
- 		}
-	}
-
-	CL_OpenAVIForWriting( filename );
-}
-
-/*
-===============
-CL_StopVideo_f
-===============
-*/
-void CL_StopVideo_f( void )
-{
-	CL_CloseAVI( );
-}
-
 #define G2_VERT_SPACE_CLIENT_SIZE 256
 
 qboolean doNotYell;
@@ -2647,8 +2541,6 @@ void CL_Init( void ) {
 
 	cl_timedemo = Cvar_Get ("timedemo", "0", 0);
 	cl_avidemo = Cvar_Get ("cl_avidemo", "0", 0);
-	cl_aviFrameRate = Cvar_Get ("cl_aviFrameRate", "25", CVAR_ARCHIVE);
-	cl_aviMotionJpeg = Cvar_Get ("cl_aviMotionJpeg", "1", CVAR_ARCHIVE);
 	cl_forceavidemo = Cvar_Get ("cl_forceavidemo", "0", 0);
 
 	rconAddress = Cvar_Get ("rconAddress", "", 0);
@@ -2772,8 +2664,6 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("fs_referencedList", CL_ReferencedPK3List_f );
 	Cmd_AddCommand ("model", CL_SetModel_f );
 	Cmd_AddCommand ("forcepowers", CL_SetForcePowers_f );
-	Cmd_AddCommand ("video", CL_Video_f );
-	Cmd_AddCommand ("stopvideo", CL_StopVideo_f );
 
 	// MME commands
 //	Cmd_AddCommand ("csList", CL_CSList_f);
@@ -2847,8 +2737,6 @@ void CL_Shutdown( void ) {
 	Cmd_RemoveCommand ("showip");
 	Cmd_RemoveCommand ("model");
 	Cmd_RemoveCommand ("forcepowers");
-	Cmd_RemoveCommand ("video");
-	Cmd_RemoveCommand ("stopvideo");
 
 	Cvar_Set( "cl_running", "0" );
 

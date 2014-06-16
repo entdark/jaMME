@@ -1471,7 +1471,6 @@ void	R_DeleteTextures( void );
 float	R_SumOfUsedImages( qboolean bUseFormat );
 void	R_InitSkins( void );
 skin_t	*R_GetSkinByHandle( qhandle_t hSkin );
-const void *RB_TakeVideoFrameCmd( const void *data );
 void RE_HunkClearCrap(void);
 
 
@@ -1938,7 +1937,6 @@ typedef enum {
 	RC_SWAP_BUFFERS,
 	RC_WORLD_EFFECTS,
 	RC_AUTO_MAP,
-	RC_VIDEOFRAME,
 	RC_CAPTURE,
 	RC_CAPTURE_STEREO,
 } renderCommand_t;
@@ -1994,7 +1992,7 @@ void RE_BeginFrame( stereoFrame_t stereoFrame );
 void RE_EndFrame( int *frontEndMsec, int *backEndMsec );
 void RE_SaveJPG(char * filename, int quality, int image_width, int image_height, byte *image_buffer, int padding);
 size_t RE_SaveJPGToBuffer(byte *buffer, size_t bufSize, int quality, int image_width, int image_height, byte *image_buffer, int padding);
-void RE_TakeVideoFrame( int width, int height, byte *captureBuffer, byte *encodeBuffer, qboolean motionJpeg );
+
 int RE_SavePNG( char *filename, byte *buf, size_t width, size_t height, int byteDepth );
 
 /*

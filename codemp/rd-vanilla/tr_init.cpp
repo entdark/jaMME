@@ -1757,9 +1757,6 @@ Q_EXPORT refexport_t* QDECL GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.RegisterImages_LevelLoadEnd			= RE_RegisterImages_LevelLoadEnd;
 	re.RegisterModels_LevelLoadEnd			= RE_RegisterModels_LevelLoadEnd;
 
-	// AVI recording
-	re.TakeVideoFrame						= RE_TakeVideoFrame;
-
 	// G2 stuff
 	re.InitSkins							= R_InitSkins;
 	re.InitShaders							= R_InitShaders;

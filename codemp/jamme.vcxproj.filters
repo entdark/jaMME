@@ -70,9 +70,6 @@
     <ClCompile Include="icarus\BlockStream.cpp">
       <Filter>ICARUS</Filter>
     </ClCompile>
-    <ClCompile Include="client\cl_avi.cpp">
-      <Filter>Client</Filter>
-    </ClCompile>
     <ClCompile Include="client\cl_ui.cpp">
       <Filter>Client</Filter>
     </ClCompile>
