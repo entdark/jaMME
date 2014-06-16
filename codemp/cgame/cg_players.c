@@ -444,13 +444,10 @@ static qboolean CG_RegisterClientModelname( clientInfo_t *ci, const char *modelN
 	//[/TrueView]
 
 retryModel:
-	if (badModel)
-	{
-		if (modelName && modelName[0])
-		{
+	if (badModel) {
+		if (modelName && modelName[0]) {
 			Com_Printf("WARNING: Attempted to load an unsupported multiplayer model %s! (bad or missing bone, or missing animation sequence)\n", modelName);
 		}
-
 		modelName = "kyle";
 		skinName = "default";
 
@@ -458,24 +455,20 @@ retryModel:
 	}
 
 	// First things first.  If this is a ghoul2 model, then let's make sure we demolish this first.
-	if (ci->ghoul2Model && trap_G2_HaveWeGhoul2Models(ci->ghoul2Model))
-	{
+	if (ci->ghoul2Model && trap_G2_HaveWeGhoul2Models(ci->ghoul2Model)) {
 		trap_G2API_CleanGhoul2Models(&(ci->ghoul2Model));
 	}
 
-	if (!BG_IsValidCharacterModel(modelName, skinName))
-	{
+	if (!BG_IsValidCharacterModel(modelName, skinName)) {
 		modelName = "kyle";
 		skinName = "default";
 	}
 
-	if ( cgs.gametype >= GT_TEAM && !cgs.jediVmerc && cgs.gametype != GT_SIEGE )
-	{ //We won't force colors for siege.
+	if ( cgs.gametype >= GT_TEAM && !cgs.jediVmerc && cgs.gametype != GT_SIEGE ) {
+	//We won't force colors for siege.
 		BG_ValidateSkinForTeam( ci->modelName, ci->skinName, ci->team, ci->colorOverride );
 		skinName = ci->skinName;
-	}
-	else
-	{
+	} else {
 		ci->colorOverride[0] = ci->colorOverride[1] = ci->colorOverride[2] = 0.0f;
 	}
 
@@ -486,20 +479,15 @@ retryModel:
 		&& strstr(skinName,"lower"))
 	{//three part skin
 		useSkinName = va("models/players/%s/|%s", modelName, skinName);
-	}
-	else
-	{
+	} else {
 		useSkinName = va("models/players/%s/model_%s.skin", modelName, skinName);
 	}
 
 	checkSkin = trap_R_RegisterSkin(useSkinName);
 
-	if (checkSkin)
-	{
+	if (checkSkin) {
 		ci->torsoSkin = checkSkin;
-	}
-	else
-	{ //fallback to the default skin
+	} else { //fallback to the default skin
 		ci->torsoSkin = trap_R_RegisterSkin(va("models/players/%s/model_default.skin", modelName, skinName));
 	}
 	Com_sprintf( afilename, sizeof( afilename ), "models/players/%s/model.glm", modelName );
