@@ -385,8 +385,6 @@ extern	cvar_t	*cl_avidemo;
 
 extern	cvar_t	*cl_activeAction;
 
-extern	cvar_t	*cl_mme_capture;
-
 extern	cvar_t	*cl_allowDownload;
 extern	cvar_t	*cl_allowAltEnter;
 extern	cvar_t	*cl_conXOffset;
