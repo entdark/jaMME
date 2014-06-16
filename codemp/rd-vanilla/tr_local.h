@@ -1328,10 +1328,8 @@ void R_SwapBuffers( int );
 
 void R_RenderView( viewParms_t *parms );
 
-
 void R_SetupProjection( void );
 void R_SetupFrustum (void);
-
 
 void R_AddMD3Surfaces( trRefEntity_t *e );
 void R_AddNullModelSurfaces( trRefEntity_t *e );
@@ -2045,8 +2043,8 @@ void R_MME_Init(void);
 void R_MME_InitStereo(void);
 void R_MME_Shutdown(void);
 void R_MME_ShutdownStereo(void);
-void R_MME_TakeShot( void );
-void R_MME_TakeShotStereo( void );
+qboolean R_MME_TakeShot( void );
+qboolean R_MME_TakeShotStereo( void );
 const void *R_MME_CaptureShotCmd( const void *data );
 const void *R_MME_CaptureShotCmdStereo( const void *data );
 void R_MME_Capture( const char *shotName, float fps, float focus );
@@ -2057,6 +2055,8 @@ qboolean R_MME_JitterOrigin( float *x, float *y );
 
 int R_MME_MultiPassNext( );
 int R_MME_MultiPassNextStereo( );
+
+void R_MME_DoNotTake( );
 
 //Bloom Stuff
 void R_BloomInit( void );
@@ -2086,3 +2086,7 @@ void R_FrameBuffer_StartFrame( void );
 void R_FrameBuffer_EndFrame( void );
 //Try to do an fbo blur
 qboolean R_FrameBuffer_Blur( float scale, int frame, int total );
+
+extern qboolean finishStereo;
+extern qboolean r_capturingDofOrStereo;
+extern qboolean r_latestDofOrStereoFrame;

@@ -1244,11 +1244,8 @@ Ghoul2 Insert End
 
 /* New MME Syscalls */
 
-void trap_MME_Capture( const char *baseName, float fps, float focus ) {
-	Q_syscall( CG_MME_CAPTURE, baseName, PASSFLOAT(fps), PASSFLOAT( focus ) );
-}
-void trap_MME_CaptureStereo( const char *baseName, float fps, float focus ) {
-	Q_syscall( CG_MME_CAPTURE_STEREO, baseName, PASSFLOAT(fps), PASSFLOAT(focus) );
+void trap_MME_Capture( const char *baseName, float fps, float focus, float radius ) {
+	Q_syscall( CG_MME_CAPTURE, baseName, PASSFLOAT(fps), PASSFLOAT( focus ), PASSFLOAT( radius ) );
 }
 void trap_MME_BlurInfo( int* total, int* index ) {
 	Q_syscall( CG_MME_BLURINFO, total, index );

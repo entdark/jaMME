@@ -1714,11 +1714,9 @@ Ghoul2 Insert End
 		Key_SetOverstrikeMode( (qboolean)args[1] );
 		return 0;
 	case CG_MME_CAPTURE:
-		re.Capture( (char *)VMA(1), VMF(2), VMF(3) );
+		re.Capture( (char *)VMA(1), VMF(2), VMF(3), VMF(4) );
+		re.CaptureStereo( (char *)VMA(1), VMF(2), VMF(3), VMF(4) );
 		S_MMERecord( (char *)VMA(1), 1.0f / VMF(2) );
-		return 0;
-	case CG_MME_CAPTURE_STEREO:
-		re.CaptureStereo( (char *)VMA(1), VMF(2), VMF(3) );
 		return 0;
 	case CG_MME_BLURINFO:
 		re.BlurInfo( (int *)VMA(1), (int *)VMA(2) );

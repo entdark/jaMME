@@ -488,7 +488,6 @@ void R_SetupProjection( void ) {
 	// set up projection matrix
 	//
 	zNear	= r_znear->value;
-//	zProj	= r_znear->value;
 	zProj	= r_zproj->value;
 	zFar	= tr.viewParms.zFar;
 	stereoSep = r_stereoSeparation->value;
@@ -504,25 +503,19 @@ void R_SetupProjection( void ) {
 	depth = zFar - zNear;
 
 	tr.viewParms.projectionMatrix[0] = 2 * zNear / width;
-//	tr.viewParms.projectionMatrix[0] = 2 * zProj / width;
 	tr.viewParms.projectionMatrix[4] = 0;
-//	tr.viewParms.projectionMatrix[8] = ( xmax + xmin ) / width;	// normally 0
-	tr.viewParms.projectionMatrix[8] = (xmax + xmin + 2 * stereoSep) / width;
-//	tr.viewParms.projectionMatrix[12] = 0;
+	tr.viewParms.projectionMatrix[8] = (xmax + xmin + 2 * stereoSep) / width;	// normally 0
 	tr.viewParms.projectionMatrix[12] = 2 * zProj * stereoSep / width;
 
 	tr.viewParms.projectionMatrix[1] = 0;
 	tr.viewParms.projectionMatrix[5] = 2 * zNear / height;
-//	tr.viewParms.projectionMatrix[5] = 2 * zProj / height;
 	tr.viewParms.projectionMatrix[9] = ( ymax + ymin ) / height;	// normally 0
 	tr.viewParms.projectionMatrix[13] = 0;
 
 	tr.viewParms.projectionMatrix[2] = 0;
 	tr.viewParms.projectionMatrix[6] = 0;
 	tr.viewParms.projectionMatrix[10] = -( zFar + zNear ) / depth;
-//	tr.viewParms.projectionMatrix[10] = -( zFar + zProj ) / depth;
 	tr.viewParms.projectionMatrix[14] = -2 * zFar * zNear / depth;
-//	tr.viewParms.projectionMatrix[14] = -2 * zFar * zProj / depth;
 
 	tr.viewParms.projectionMatrix[3] = 0;
 	tr.viewParms.projectionMatrix[7] = 0;
@@ -541,61 +534,32 @@ void R_SetupFrustum (void) {
 	int		i;
 	float	xs, xc;
 	float	ang;
-	float	xmin, xmax, ymin, ymax, stereoSep;
-//	float	oppleg, adjleg, length;
-	float	zNear, zProj;
-	vec3_t ofsorigin;
+	float	stereoSep;
+	vec3_t	origin;
 
-	zNear = r_znear->value;
-	zProj = r_zproj->value;
 	stereoSep = r_stereoSeparation->value;
-
-	ymax = zNear * tan( tr.refdef.fov_y * M_PI / 360.0f );
-	ymin = -ymax;
-
-	xmax = zNear * tan( tr.refdef.fov_x * M_PI / 360.0f );
-	xmin = -xmax;
-
+	
 	if(stereoSep == 0) {
-		// symmetric case can be simplified
-		VectorCopy(tr.viewParms.ori.origin, ofsorigin);
-
-		ang = tr.viewParms.fovX / 180 * M_PI * 0.5f;
-		xs = sin( ang );
-		xc = cos( ang );
-
-		VectorScale( tr.viewParms.ori.axis[0], xs, tr.viewParms.frustum[0].normal );
-		VectorMA( tr.viewParms.frustum[0].normal, xc, tr.viewParms.ori.axis[1], tr.viewParms.frustum[0].normal );
-
-		VectorScale( tr.viewParms.ori.axis[0], xs, tr.viewParms.frustum[1].normal );
-		VectorMA( tr.viewParms.frustum[1].normal, -xc, tr.viewParms.ori.axis[1], tr.viewParms.frustum[1].normal );
+		VectorCopy(tr.viewParms.ori.origin, origin);
 	} else {
-		// In stereo rendering, due to the modification of the projection matrix, dest->or.origin is not the
-		// actual origin that we're rendering so offset the tip of the view pyramid.
-		VectorMA(tr.viewParms.ori.origin, stereoSep*20, tr.viewParms.ori.axis[1], ofsorigin);
-
-		ang = tr.viewParms.fovX / 180 * M_PI * 0.5f;
-		xs = sin( ang );
-		xc = cos( ang );
-
-//		oppleg = xmax + stereoSep;
-//		length = sqrt(oppleg * oppleg + zProj * zProj);
-		VectorScale( tr.viewParms.ori.axis[0], xs, tr.viewParms.frustum[0].normal );
-		VectorMA( tr.viewParms.frustum[0].normal, xc, tr.viewParms.ori.axis[1], tr.viewParms.frustum[0].normal );
-
-//		oppleg = xmin + stereoSep;
-//		length = sqrt(oppleg * oppleg + zProj * zProj);
-		VectorScale( tr.viewParms.ori.axis[0], xs, tr.viewParms.frustum[1].normal );
-		VectorMA( tr.viewParms.frustum[1].normal, -xc, tr.viewParms.ori.axis[1], tr.viewParms.frustum[1].normal );
+		VectorMA(tr.viewParms.ori.origin, stereoSep*20, tr.viewParms.ori.axis[1], origin);
 	}
 
-	ang = tr.viewParms.fovY / 180 * M_PI * 0.5f;
+	VectorCopy(tr.viewParms.ori.origin, origin);
+
+	ang = tr.viewParms.fovX / 180 * M_PI * 0.5f;
 	xs = sin( ang );
 	xc = cos( ang );
 
-//	length = sqrt(ymax * ymax + zProj * zProj);
-//	oppleg = ymax / length;
-//	adjleg = zProj / length;
+	VectorScale( tr.viewParms.ori.axis[0], xs, tr.viewParms.frustum[0].normal );
+	VectorMA( tr.viewParms.frustum[0].normal, xc, tr.viewParms.ori.axis[1], tr.viewParms.frustum[0].normal );
+
+	VectorScale( tr.viewParms.ori.axis[0], xs, tr.viewParms.frustum[1].normal );
+	VectorMA( tr.viewParms.frustum[1].normal, -xc, tr.viewParms.ori.axis[1], tr.viewParms.frustum[1].normal );
+	
+	ang = tr.viewParms.fovY / 180 * M_PI * 0.5f;
+	xs = sin( ang );
+	xc = cos( ang );
 
 	VectorScale( tr.viewParms.ori.axis[0], xs, tr.viewParms.frustum[2].normal );
 	VectorMA( tr.viewParms.frustum[2].normal, xc, tr.viewParms.ori.axis[2], tr.viewParms.frustum[2].normal );
@@ -605,7 +569,7 @@ void R_SetupFrustum (void) {
 
 	for (i=0 ; i<4 ; i++) {
 		tr.viewParms.frustum[i].type = PLANE_NON_AXIAL;
-		tr.viewParms.frustum[i].dist = DotProduct (ofsorigin, tr.viewParms.frustum[i].normal);
+		tr.viewParms.frustum[i].dist = DotProduct (origin, tr.viewParms.frustum[i].normal);
 		SetPlaneSignbits( &tr.viewParms.frustum[i] );
 	}
 }

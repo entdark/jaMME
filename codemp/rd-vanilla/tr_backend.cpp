@@ -434,7 +434,7 @@ static void RB_Hyperspace( void ) {
 static void SetFinalProjection( void ) {
 	float	xmin, xmax, ymin, ymax;
 	float	width, height, depth;
-	float	zNear, zFar;
+	float	zNear, zFar, zProj, stereoSep;
 	float	dx, dy;
 	vec2_t	pixelJitter, eyeJitter;
 	
@@ -443,6 +443,9 @@ static void SetFinalProjection( void ) {
 	//
 	zNear	= r_znear->value;
 	zFar	= backEnd.viewParms.zFar;
+
+	zProj	= r_zproj->value;
+	stereoSep = r_stereoSeparation->value;
 
 	ymax = zNear * tan( backEnd.viewParms.fovY * M_PI / 360.0f );
 	ymin = -ymax;
@@ -457,7 +460,11 @@ static void SetFinalProjection( void ) {
 	pixelJitter[0] = pixelJitter[1] = 0;
 	eyeJitter[0] = eyeJitter[1] = 0;
 	/* Jitter the view */
-	R_MME_JitterView( pixelJitter, eyeJitter );
+	if ( stereoSep <= 0.0f) {
+		R_MME_JitterView( pixelJitter, eyeJitter );
+	} else if ( stereoSep > 0.0f) {
+		R_MME_JitterViewStereo( pixelJitter, eyeJitter );
+	}
 
 	dx = ( pixelJitter[0]*width ) / backEnd.viewParms.viewportWidth;
 	dy = ( pixelJitter[1]*height ) / backEnd.viewParms.viewportHeight;
@@ -474,11 +481,10 @@ static void SetFinalProjection( void ) {
 	qglGetFloatv(GL_PROJECTION_MATRIX, backEnd.viewParms.projectionMatrix );
 	qglPopMatrix();
 
-#if 0
 	backEnd.viewParms.projectionMatrix[0] = 2 * zNear / width;
 	backEnd.viewParms.projectionMatrix[4] = 0;
-	backEnd.viewParms.projectionMatrix[8] = ( xmax + xmin ) / width;	// normally 0
-	backEnd.viewParms.projectionMatrix[12] = 0;
+	backEnd.viewParms.projectionMatrix[8] = ( xmax + xmin + 2 * stereoSep ) / width;	// normally 0
+	backEnd.viewParms.projectionMatrix[12] = 2 * zProj * stereoSep / width;
 
 	backEnd.viewParms.projectionMatrix[1] = 0;
 	backEnd.viewParms.projectionMatrix[5] = 2 * zNear / height;
@@ -494,15 +500,15 @@ static void SetFinalProjection( void ) {
 	backEnd.viewParms.projectionMatrix[7] = 0;
 	backEnd.viewParms.projectionMatrix[11] = -1;
 	backEnd.viewParms.projectionMatrix[15] = 0;
-#endif
 }
 
 void SetViewportAndScissor( void ) {
 	qglMatrixMode(GL_PROJECTION);
 
-	if (r_stereoSeparation->value == 0) {
-		SetFinalProjection();
-	}
+	R_SetupFrustum();
+	R_SetupProjection();
+	SetFinalProjection();
+	
 	qglLoadMatrixf( backEnd.viewParms.projectionMatrix );
 
 	qglMatrixMode(GL_MODELVIEW);
@@ -1662,37 +1668,19 @@ const void	*RB_DrawSurfs( const void *data ) {
 
 	backEnd.refdef = cmd->refdef;
 	backEnd.viewParms = cmd->viewParms;
-
-	//mme
 	//Jitter the camera origin
 	if ( !backEnd.viewParms.isPortal && !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL) ) {
-//		int i;
 		float x, y;
-		if ( R_MME_JitterOrigin( &x, &y ) && r_stereoSeparation->value == 0) {
+		if ( (r_stereoSeparation->value <= 0 && R_MME_JitterOrigin( &x, &y ))
+			|| (r_stereoSeparation->value > 0 && R_MME_JitterOriginStereo( &x, &y ))) {
 			orientationr_t* or = &backEnd.viewParms.ori;
 			orientationr_t* world = &backEnd.viewParms.world;
 
-//			VectorScale( or->axis[0], 0.5, or->axis[0] );
-//			VectorScale( or->axis[1], 0.3, or->axis[1] );
-//			VectorScale( or->axis[2], 0.8, or->axis[2] );
 			VectorMA( or->origin, x, or->axis[1], or->origin );
 			VectorMA( or->origin, y, or->axis[2], or->origin );
-//			or->origin[2] += 4000;
-//			or->origin[2] += 0.1 * x;
 			R_RotateForWorld( or, world );
-//			for ( i = 0; i < 16; i++ ) {
-//				int r = (rand() & 0xffff ) - 0x4000;
-//				world->modelMatrix[i] *= (0.9 + r * 0.0001);
-//				or->modelMatrix[i] *= (0.9 + r * 0.0001);
-//			}
-		}// else { 	
-//			for ( i = 0; i < 16; i++ ) {
-//				int r = (rand() & 0xffff ) - 0x4000;
-//				backEnd.viewParms.world.modelMatrix[i] *= (0.9 + r * 0.0001);
-//			}
-//		}
+		}
 	}
-
 	RB_RenderDrawSurfList( cmd->drawSurfs, cmd->numDrawSurfs );
 
 	// Dynamic Glow/Flares:
@@ -1892,7 +1880,9 @@ void RB_ShowImages( void ) {
 //	Com_Printf ("%i msec to draw all images\n", end - start );
 }
 
-
+qboolean finishStereo = qfalse;
+qboolean r_capturingDofOrStereo = qfalse;
+qboolean r_latestDofOrStereoFrame = qfalse;
 /*
 =============
 RB_SwapBuffers
@@ -1913,10 +1903,20 @@ const void	*RB_SwapBuffers( const void *data ) {
 	}
 
 	cmd = (const swapBuffersCommand_t *)data;
+	
+	backEnd.projection2D = qfalse;
 
-	if ( r_stereoSeparation->value == 0) {
+	r_capturingDofOrStereo = qfalse;
+	r_latestDofOrStereoFrame = qfalse;
+
+	/* Take and merge DOF frames */
+	if ( r_stereoSeparation->value <= 0.0f && !finishStereo) {
 		if ( R_MME_MultiPassNext() ) {
-			return (const void *)-1;
+			return (const void *)NULL;
+		}
+	} else if ( r_stereoSeparation->value > 0.0f) {
+		if ( R_MME_MultiPassNextStereo() ) {
+			return (const void *)NULL;
 		}
 	}
 	// we measure overdraw by reading back the stencil buffer and
@@ -1937,20 +1937,37 @@ const void	*RB_SwapBuffers( const void *data ) {
 		Hunk_FreeTempMemory( stencilReadback );
 	}
 
-    if ( !glState.finishCalled ) {
-        qglFinish();
-	}
 	/* Allow MME to take a screenshot */
-	if ( r_stereoSeparation->value == 0) {
-		R_MME_TakeShot( );
+	if ( r_stereoSeparation->value < 0.0f && finishStereo) {
+		r_capturingDofOrStereo = qtrue;
+		r_latestDofOrStereoFrame = qtrue;
+		ri.Cvar_SetValue("r_stereoSeparation", -r_stereoSeparation->value);
+		return (const void *)NULL;
+	} else if ( r_stereoSeparation->value <= 0.0f) {
+		if ( R_MME_TakeShot( ) && r_stereoSeparation->value != 0.0f) {
+			r_capturingDofOrStereo = qtrue;
+			r_latestDofOrStereoFrame = qfalse;
+			ri.Cvar_SetValue("r_stereoSeparation", -r_stereoSeparation->value);
+			finishStereo = qtrue;
+			return (const void *)NULL;
+		}
+	} else if ( r_stereoSeparation->value > 0.0f) {
+		if ( finishStereo) {
+			R_MME_TakeShotStereo( );
+			R_MME_DoNotTake( );
+			ri.Cvar_SetValue("r_stereoSeparation", -r_stereoSeparation->value);
+			finishStereo = qfalse;
+		}
+	}
+    
+	if ( !glState.finishCalled ) {
+        qglFinish();
 	}
 	R_FrameBuffer_EndFrame();
 
     GLimp_LogComment( "***************** RB_SwapBuffers *****************\n\n\n" );
 
     GLimp_EndFrame();
-
-	backEnd.projection2D = qfalse;
 
 	return (const void *)(cmd + 1);
 }
@@ -2037,11 +2054,10 @@ again:
 			data = R_DrawWireframeAutomap(data);
 			break;
 		case RC_CAPTURE:
-			if (r_stereoSeparation->value == 0) {
-				data = R_MME_CaptureShotCmd( data );
-			} else {
-				data = RB_IncDataCapture( data );
-			}
+			data = R_MME_CaptureShotCmd( data );
+			break;
+		case RC_CAPTURE_STEREO:
+			data = R_MME_CaptureShotCmdStereo( data );
 			break;
 		case RC_END_OF_LIST:
 		default:

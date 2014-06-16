@@ -395,13 +395,10 @@ SCR_DrawScreenField
 This will be called twice if rendering in stereo mode
 ==================
 */
-void SCR_DrawScreenField( stereoFrame_t stereoFrame, qboolean useCenter ) {
-	if(useCenter)
-		re.BeginFrame( STEREO_CENTER );
-	else 
-		re.BeginFrame( stereoFrame );
-
+void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	qboolean uiFullscreen = (qboolean)(uivm && VM_Call( uivm, UI_IS_FULLSCREEN ));
+
+	re.BeginFrame( stereoFrame );
 
 	// wide aspect ratio screens need to have the sides cleared
 	// unless they are displaying game renderings
@@ -498,14 +495,13 @@ void SCR_UpdateScreen( void ) {
 
 	// If there is no VM, there are also no rendering commands issued. Stop the renderer in
 	// that case.
-	if( uivm || com_dedicated->integer )
-	{
+	if( uivm || com_dedicated->integer ) {
 		// if running in stereo, we need to draw the frame twice
 		if ( cls.glconfig.stereoEnabled ) {
-			SCR_DrawScreenField( STEREO_LEFT, qfalse );
-			SCR_DrawScreenField( STEREO_RIGHT, qfalse );
+			SCR_DrawScreenField( STEREO_LEFT );
+			SCR_DrawScreenField( STEREO_RIGHT );
 		} else {
-			SCR_DrawScreenField( STEREO_CENTER, qfalse );
+			SCR_DrawScreenField( STEREO_CENTER );
 		}
 
 		if ( com_speeds->integer ) {
@@ -529,8 +525,7 @@ static int			scr_center_widths[MAX_SCR_LINES];
 
 cvar_t		*scr_centertime;
 
-void SCR_CenterPrint (char *str)//, PalIdx_t colour)
-{
+void SCR_CenterPrint (char *str) {//, PalIdx_t colour) {
 	char	*s, *last, *start, *write_pos, *save_pos;
 	int		num_chars;
 	int		num_lines;

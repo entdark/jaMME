@@ -51,11 +51,6 @@ cvar_t	*cl_aviFrameRate;
 cvar_t	*cl_aviMotionJpeg;
 cvar_t	*cl_forceavidemo;
 
-cvar_t	*cl_mme_capture;
-cvar_t	*cl_mme_fps;
-cvar_t	*cl_mme_name;
-cvar_t	*cl_mme_focus;
-
 cvar_t	*cl_freelook;
 cvar_t	*cl_sensitivity;
 
@@ -2155,56 +2150,15 @@ void CL_Frame ( int msec ) {
 		}
 	}
 
-	if (cl_mme_capture->integer && msec && !(cl_avidemo->integer > 0)) {
-//		CL_CaptureStereo(cl_mme_name->string, cl_mme_fps->value, cl_mme_focus->value);
-		float stereoSep = Cvar_VariableValue( "r_stereoSeparation" );
-		float frameTime, fps;
-		
-		if (stereoSep != 0) {
-			if (stereoSep > 0)
-				stereoSep = -stereoSep; // we start always with negative for correct sync
-
-			Cvar_SetValue("r_stereoSeparation", stereoSep);
-			SCR_UpdateScreen();
-			re.Capture( cl_mme_name->string, cl_mme_fps->value, cl_mme_focus->value );
-//			Cbuf_ExecuteText( EXEC_NOW, "screenshot_mme left\n" );
-
-			stereoSep = -stereoSep;
-
-			Cvar_SetValue("r_stereoSeparation", stereoSep);
-			SCR_UpdateScreen();
-			re.CaptureStereo( cl_mme_name->string, cl_mme_fps->value, cl_mme_focus->value  );
-//			Cbuf_ExecuteText( EXEC_NOW, "screenshot_mme right\n" );
-		} else {
-//			re.Capture( cl_mme_name->string, cl_mme_fps->value, cl_mme_focus->value  );
-		}
-
-		// fixed time for next frame'
-		fps = cl_mme_fps->value * com_timescale->value;
-		if ( fps > 1000.0f)
-			fps = 1000.0f;
-		frameTime = (1000.0f / fps);
-		if (frameTime < 1) {
-			frameTime = 1;
-		}
-		frameTime += clc.aviDemoRemain;
-		msec = (int)frameTime;
-		clc.aviDemoRemain = frameTime - msec;
-
-		S_MMERecord( cl_mme_name->string, 1.0f / (cl_mme_fps->value * com_timescale->value ));
-	}
-
 	// save the msec before checking pause
 	cls.realFrametime = msec;
 
 	// decide the simulation time
 	cls.frametime = msec;
-	if(cl_framerate->integer)
-	{
+	if(cl_framerate->integer) {
 		avgFrametime+=msec;
 		char mess[256];
-		if(!(frameCount&0x1f))
-		{
+		if(!(frameCount&0x1f)) {
 			Com_sprintf(mess,sizeof(mess),"Frame rate=%f\n\n",1000.0f*(1.0/(avgFrametime/32.0f)));
 	//		Com_OPrintf("%s", mess);
 			Com_Printf("%s", mess);
@@ -2252,6 +2206,7 @@ void CL_Frame ( int msec ) {
 
 	if (!cls.cgameStarted || !clc.newDemoPlayer)
 		CIN_AdjustTime(Sys_Milliseconds()*com_timescale->value);
+	
 	// update the screen
 	SCR_UpdateScreen();
 
@@ -2264,34 +2219,11 @@ void CL_Frame ( int msec ) {
 	Con_RunConsole();
 
 	// reset the heap for Ghoul2 vert transform space gameside
-	if (G2VertSpaceServer)
-	{
+	if (G2VertSpaceServer) {
 		G2VertSpaceServer->ResetHeap();
 	}
 
 	cls.framecount++;
-}
-
-void CL_CaptureStereo ( const char *shotName, float fps, float focus ) {
-	float stereoSep;
-		
-	stereoSep = Cvar_VariableValue( "r_stereoSeparation" );
-	if (stereoSep != 0) {
-		if (stereoSep > 0)
-			stereoSep = -stereoSep;
-
-		Cvar_SetValue("r_stereoSeparation", stereoSep);
-		SCR_UpdateScreen();
-		re.Capture( shotName, fps, focus );
-
-		stereoSep = -stereoSep;
-
-		Cvar_SetValue("r_stereoSeparation", stereoSep);
-		SCR_UpdateScreen();
-		re.CaptureStereo( shotName, fps, focus  );
-	} else {
-		re.Capture( shotName, fps, focus  );
-	}
 }
 
 //============================================================================
@@ -2719,11 +2651,6 @@ void CL_Init( void ) {
 	cl_aviMotionJpeg = Cvar_Get ("cl_aviMotionJpeg", "1", CVAR_ARCHIVE);
 	cl_forceavidemo = Cvar_Get ("cl_forceavidemo", "0", 0);
 
-	cl_mme_capture = Cvar_Get ("cl_mme_capture", "0", CVAR_INTERNAL);
-	cl_mme_fps = Cvar_Get ("cl_mme_fps", "0", CVAR_INTERNAL);
-	cl_mme_name = Cvar_Get ("cl_mme_name", "", CVAR_INTERNAL);
-	cl_mme_focus = Cvar_Get("cl_mme_focus", "0", CVAR_INTERNAL);
-
 	rconAddress = Cvar_Get ("rconAddress", "", 0);
 
 	cl_yawspeed = Cvar_Get ("cl_yawspeed", "140", CVAR_ARCHIVE);
@@ -2866,7 +2793,7 @@ void CL_Init( void ) {
 
 	doNotYell = qfalse;
 
-//	Com_Printf( "----- Client Initialization Complete -----\n" );
+	Com_Printf( "----- Client Initialization Complete -----\n" );
 }
 
 
