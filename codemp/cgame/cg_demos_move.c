@@ -160,8 +160,8 @@ qboolean demoCentityBoxSize( const centity_t *cent, vec3_t container ) {
 		VectorSet( container, -5, 5, 5 );
 		break;
 	case ET_MOVER:
-		VectorSet( container, -10, 10, 10 );	//let's find out sizes for ET_SPECIAL, ET_HOLOCRON, ET_GENERAL, ET_MOVER
-		break;									//currently they have ET_PLAYER container
+		VectorSet( container, -10, 10, 10 );
+		break;
 	case ET_SPECIAL: //portable shield
 		VectorSet( container, 0, 20, 10 );
 		break;
@@ -207,10 +207,13 @@ qboolean demoCentityBoxSize( const centity_t *cent, vec3_t container ) {
 			break;
 		case CLASS_R2D2:
 		case CLASS_R5D2:
-			VectorSet( container, 0, 64, 20 );
+			VectorSet( container, -24, 20, 20 );
 			break;
 		case CLASS_SEEKER:
 			VectorSet( container, -5, 5, 5 );
+			break;
+		case CLASS_SENTRY:
+			VectorSet( container, -25, 25, 25 );
 			break;
 		case CLASS_VEHICLE:
 			VectorSet( container, 0, 100, 50 );
