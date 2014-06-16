@@ -382,12 +382,10 @@ extern	cvar_t	*m_filter;
 
 extern	cvar_t	*cl_timedemo;
 extern	cvar_t	*cl_avidemo;
-extern	cvar_t	*cl_aviFrameRate;
-extern	cvar_t	*cl_aviMotionJpeg;
-
-extern	cvar_t	*cl_mme_capture;
 
 extern	cvar_t	*cl_activeAction;
+
+extern	cvar_t	*cl_mme_capture;
 
 extern	cvar_t	*cl_allowDownload;
 extern	cvar_t	*cl_allowAltEnter;

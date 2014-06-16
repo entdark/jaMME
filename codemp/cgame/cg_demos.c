@@ -921,6 +921,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	//Always!!! start with negative
 	if (captureFrame && stereoSep > 0.0f)
 		trap_Cvar_Set("r_stereoSeparation", va("%f", -stereoSep));
+	CG_DrawActive( stereoView );
+
 	if (demo.viewType == viewChase && cg.playerCent && (cg.playerCent->currentState.number < MAX_CLIENTS)) {
 		CG_Draw2D();
 	} else if (cg_draw2D.integer) {
