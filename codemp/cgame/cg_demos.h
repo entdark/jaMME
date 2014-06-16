@@ -191,6 +191,7 @@ void cameraUpdate( int time, float timeFraction );
 void cameraDraw( int time, float timeFraction );
 qboolean cameraParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data);
 void cameraSave( fileHandle_t fileHandle );
+void cameraPointReset( demoCameraPoint_t *point );
 
 void demoLineCommand_f(void);
 demoLinePoint_t *linePointSynch(int playTime);

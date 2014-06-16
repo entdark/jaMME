@@ -391,7 +391,7 @@ static qboolean cameraFovAt( int time, float timeFraction, float *fov ) {
 	return qtrue;
 }
 
-static void cameraPointReset( demoCameraPoint_t *point ) {
+void cameraPointReset( demoCameraPoint_t *point ) {
 	demoCameraPoint_t *p;
 	int i;
 	
@@ -1072,6 +1072,7 @@ void demoCameraCommand_f(void) {
 		demoCommandValue( CG_Argv(2), oldFov );
 	} else if (!Q_stricmp(cmd, "smoothPos")) {
 		int index = atoi( CG_Argv(2));
+		demoCameraPoint_t *point;	
 		if ( index >= 0 && index < posLast) {
 			demo.camera.smoothPos = index;
 		} else {
@@ -1092,6 +1093,11 @@ void demoCameraCommand_f(void) {
 			break;
 		}
 		Com_Printf( " interpolation\n" );
+		point = demo.camera.points;
+		while (point) {
+			cameraPointReset( point );
+			point = point->next;
+		}
 	} else if (!Q_stricmp(cmd, "smoothAngles")) {
 		int index = atoi( CG_Argv(2));
 		if ( index >= 0 && index < angleLast) {

@@ -252,6 +252,7 @@ static int hudGetChecked( hudItem_t *item, vec4_t color ) {
 }
 
 static void hudToggleButton( hudItem_t *item, int change ) {
+	demoCameraPoint_t *point;	
 	if (!change)
 		return;
 	switch ( item->handler ) {
@@ -279,6 +280,11 @@ static void hudToggleButton( hudItem_t *item, int change ) {
 				demo.camera.smoothPos++;
 			else
 				demo.camera.smoothPos = 0;
+		}
+		point = demo.camera.points;
+		while (point) {
+			cameraPointReset( point );
+			point = point->next;
 		}
 		return;
 	}
