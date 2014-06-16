@@ -521,7 +521,7 @@ demo <demoname>
 ====================
 */
 void CL_PlayDemo_f( void ) {
-	char		name[MAX_OSPATH], testName[MAX_OSPATH];
+	char		name[MAX_OSPATH], *testName, testNameActual[MAX_OSPATH];
 	char		*ext;
 	qboolean	haveConvert;
 	cvar_t		*fs_game;
@@ -540,7 +540,19 @@ void CL_PlayDemo_f( void ) {
 	Cvar_Set( "sv_killserver", "2" );
 
 	// open the demo file
-	Q_strncpyz( testName, Cmd_Argv(1), sizeof( testName ) );
+	Q_strncpyz( testNameActual, Cmd_Argv(1), sizeof( testNameActual ) );
+	// if to associate dm_26 files with jamme.exe then we can open them from "demos" folder directly
+	// TODO: open demo files from any place
+	testName = strstr(testNameActual, "/demos/");
+	if (!testName) {
+		testName = strstr(testNameActual, "\\demos\\");
+		if (!testName)
+			testName = testNameActual;
+		else
+			testName = testName + 7;
+	} else {
+		testName = testName + 7;
+	}
 	// check for an extension .dm_?? (?? is protocol)
 	ext = testName + strlen(testName) - 6;
 	if ((strlen(testName) > 6) && (ext[0] == '.') && ((ext[1] == 'd') || (ext[1] == 'D')) && ((ext[2] == 'm') || (ext[2] == 'M')) && (ext[3] == '_'))
