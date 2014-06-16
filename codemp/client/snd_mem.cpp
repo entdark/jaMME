@@ -141,7 +141,7 @@ static openSound_t *S_StreamOpen( const char *fileName, int dataSize ) {
 	fileSize = FS_FOpenFileRead( fileName, &fileHandle, qtrue );
 	if ( fileSize <= 0 || fileHandle <= 0)
 		return 0;
-	open = (openSound_t *)Z_Malloc( sizeof( openSound_t ) + dataSize, TAG_SND_RAWDATA );	//???
+	open = (openSound_t *)Z_Malloc( sizeof( openSound_t ) + dataSize, TAG_SND_RAWDATA );
 	memset( open, 0, sizeof( openSound_t ) + dataSize);
 	open->fileSize = fileSize;
 	open->fileHandle = fileHandle;
@@ -533,6 +533,7 @@ static int S_MP3Read( openSound_t *open, qboolean stereo, int size, short *data 
 		/* Sound parameters. */
 		if (mp3->frame.header.samplerate != open->rate ) {
 			Com_Printf( "mp3read, samplerate change?!?!?!\n");
+			open->rate = mp3->frame.header.samplerate;
 			return done;
 		}
 		mad_synth_frame (&mp3->synth, &mp3->frame);

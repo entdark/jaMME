@@ -506,8 +506,6 @@ Change the volumes of all the playing sounds for changes in their positions
 ============
 */
 void S_Respatialize( int entityNum, const vec3_t head, vec3_t axis[3], int inwater ) {
-//	float timeScale;
-
 	if (s_listenNumber == entityNum ) {
 		vec3_t delta;
 		float deltaTime;
@@ -523,12 +521,7 @@ void S_Respatialize( int entityNum, const vec3_t head, vec3_t axis[3], int inwat
 	VectorCopy(axis[0], s_listenAxis[0]);
 	VectorCopy(axis[1], s_listenAxis[1]);
 	VectorCopy(axis[2], s_listenAxis[2]);
-/*	timeScale = *((float *)&inwater);
-	if (timeScale >= 1 && timeScale < 10 ) {
-		s_playScale = timeScale - 1;
-	} else {
-		s_playScale = 1;
-	}*/
+
 	s_hadSpatialize = qtrue;
 	s_playScale *= com_timescale->value;
 
@@ -635,9 +628,6 @@ background music functions
 //
 void S_StartBackgroundTrack( const char *intro, const char *loop, int bCalledByCGameStart ) {
 	if ( !intro || !intro[0] )
-		return;
-
-	if ( !s_musicVolume->value )
 		return;
 
 	if ( !loop || !loop[0] ) 
