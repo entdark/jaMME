@@ -679,6 +679,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		cg.headEndTime = 0;
 		cg.headStartTime = 0;
 		cg.v_dmg_time = 0;
+		cg.kick_time = 0;
 		cg.fallingToDeath = 0;
 		trap_S_ClearLoopingSounds();
 	} else {
