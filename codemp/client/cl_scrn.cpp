@@ -99,6 +99,36 @@ static void SCR_DrawChar( int x, int y, float size, int ch ) {
 					   fcol + size, frow + size2, 
 					   cls.charSetShader );
 }
+static void SCR_DrawChar2( float x, float y, float width, float height, int ch ) {
+	int row, col;
+	float frow, fcol;
+	float ax, ay, aw, ah;
+	float size, size2;
+
+	ch &= 255;
+
+	if ( ch == ' ' ) {
+		return;
+	}
+
+	ax = x;
+	ay = y;
+	aw = width;
+	ah = height;
+
+	row = ch>>4;
+	col = ch&15;
+
+	frow = row*0.0625;
+	fcol = col*0.0625;
+	size = 0.03125;
+	size2 = 0.0625;
+
+	re.DrawStretchPic( ax, ay, aw, ah,
+					   fcol, frow, 
+					   fcol + size, frow + size2, 
+					   cls.charSetShader );
+}
 
 /*
 ** SCR_DrawSmallChar
@@ -196,6 +226,50 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 	}
 	re.SetColor( NULL );
 }
+static void SCR_DrawStringExt2( float x, float y, float charWidth, float charHeight, const char *string, float *setColor, qboolean forceColor, qboolean noColorEscape ) {
+	vec4_t		color;
+	const char	*s;
+	float		xx;
+
+	// draw the drop shadow
+	color[0] = color[1] = color[2] = 0;
+	color[3] = setColor[3];
+	re.SetColor( color );
+	s = string;
+	xx = x;
+	while ( *s ) {
+		if ( !noColorEscape && Q_IsColorString( s ) ) {
+			s += 2;
+			continue;
+		}
+		SCR_DrawChar2( xx+2, y+2, charWidth, charHeight, *s );
+		xx += charWidth;
+		s++;
+	}
+
+
+	// draw the colored text
+	s = string;
+	xx = x;
+	re.SetColor( setColor );
+	while ( *s ) {
+		if ( Q_IsColorString( s ) ) {
+			if ( !forceColor ) {
+				Com_Memcpy( color, g_color_table[ColorIndex(*(s+1))], sizeof( color ) );
+				color[3] = setColor[3];
+				re.SetColor( color );
+			}
+			if ( !noColorEscape ) {
+				s += 2;
+				continue;
+			}
+		}
+		SCR_DrawChar2( xx, y, charWidth, charHeight, *s );
+		xx += charWidth;
+		s++;
+	}
+	re.SetColor( NULL );
+}
 
 
 void SCR_DrawBigString( int x, int y, const char *s, float alpha, qboolean noColorEscape ) {
@@ -286,8 +360,9 @@ SCR_DrawDemoRecording
 =================
 */
 void SCR_DrawDemoRecording( void ) {
-	char	string[1024];
-	int		pos;
+	const float ratio = cls.ratioFix;
+	char string[1024];
+	int pos;
 
 	if ( !clc.demorecording ) {
 		return;
@@ -296,10 +371,19 @@ void SCR_DrawDemoRecording( void ) {
 		return;
 	}
 
-	pos = FS_FTell( clc.demofile );
-	Com_sprintf( string, sizeof(string), "RECORDING %s: %ik", clc.demoName, pos / 1024 );
-
-	SCR_DrawStringExt( 320 - strlen( string ) * 4, 20, 8, string, g_color_table[7], qtrue, qfalse );
+	if (cl_drawRecording->integer >= 2 && cls.recordingShader) {
+		vec4_t colour = {1.0f, 0.1f, 0.1f, 1.0f};
+		const float size = 10.0f;
+		re.SetColor(colour);
+		if ((cl_drawRecording->integer == 3 && (cls.realtime % 1536) < 768) || cl_drawRecording->integer != 3)
+			re.DrawStretchPic(0-size*ratio/1.84f, SCREEN_HEIGHT-size*1.92f, size*3*ratio, size*3, 0, 0, 1, 1, cls.recordingShader);
+		SCR_DrawStringExt2(0+(size+4)*ratio, SCREEN_HEIGHT-size-2, size*ratio, size, "REC", colour, qtrue, qfalse);
+	} else if (cl_drawRecording->integer) {
+		const float size = 8.0f;
+		pos = FS_FTell(clc.demofile);
+		Com_sprintf(string, sizeof(string), "RECORDING %s: %ik", clc.demoName, pos / 1024);
+		SCR_DrawStringExt2(SCREEN_WIDTH/2.0f-strlen(string)*(size/2.0f)*ratio, 20.0f, size*ratio, size, string, g_color_table[7], qtrue, qfalse);
+	}
 }
 
 
