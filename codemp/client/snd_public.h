@@ -27,7 +27,7 @@ void S_MP3_CalcVols_f( void );
 
 // all continuous looping sounds must be added before calling S_Update
 void S_ClearLoopingSounds( void );
-void S_AddLoopingSound( const void *parent, int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle, int volume );
+void S_AddLoopingSound( const void *parent, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle, int volume );
 
 // recompute the reletive volumes for all running sounds
 // relative to the given entityNum / orientation

@@ -432,7 +432,7 @@ Called during entity generation for a frame
 Include velocity in case I get around to doing doppler...
 ==================
 */
-void S_AddLoopingSound( const void *parent, int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle, int volume ) {
+void S_AddLoopingSound( const void *parent, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle, int volume ) {
 	loopQueue_t *lq;
 
 	if ( !s_soundStarted || s_soundMuted ) {
@@ -465,29 +465,7 @@ S_AddAmbientLoopingSound
 ==================
 */
 void S_AddAmbientLoopingSound( const vec3_t origin, unsigned char volume, sfxHandle_t sfxHandle ) {
-	loopQueue_t *lq;
-
-	if ( !s_soundStarted || s_soundMuted ) {
-		return;
-	}
-
-	if ( sfxHandle <= 0 || sfxHandle >= sfxEntryCount) {
-		Com_DPrintf( "S_AddAmbientLoopingSound: Illegal sfxhandle %d\n", sfxHandle );
-		return;
-	}
-	
-	if ( s_loopQueueCount >= MAX_LOOPQUEUE ) {
-		Com_Printf( "S_AddAmbientLoopingSound: Queue overflow %d\n", sfxHandle );
-		return;
-	}
-
-	lq = s_loopQueue + s_loopQueueCount++;
-
-	lq->handle = sfxHandle;
-	VectorCopy( origin, lq->origin );
-	VectorClear( lq->velocity );
-	lq->volume = volume;
-	lq->parent = (void *)-1;
+	S_AddLoopingSound((void *)-1, origin, vec3_origin, sfxHandle, volume);
 }
 
 

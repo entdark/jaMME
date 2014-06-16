@@ -791,11 +791,10 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		S_ClearLoopingSounds();
 		return 0;
 	case CG_S_ADDLOOPINGSOUND:
-		S_AddLoopingSound( ((char *)cl.entityBaselines) + args[1], args[1], (const float *)VMA(2), (const float *)VMA(3), args[4], 127 );
+		S_AddLoopingSound( ((char *)cl.entityBaselines) + args[1], (const float *)VMA(2), (const float *)VMA(3), args[4], 127 );
 		return 0;
 	case CG_S_ADDREALLOOPINGSOUND:
-		//S_AddRealLoopingSound( args[1], (const float *)VMA(2), (const float *)VMA(3), args[4] );
-		S_AddLoopingSound( ((char *)cl.entityBaselines) + args[1], args[1], (const float *)VMA(2), (const float *)VMA(3), args[4], 90 );
+		S_AddLoopingSound( ((char *)cl.entityBaselines) + args[1], (const float *)VMA(2), (const float *)VMA(3), args[4], 90 );
 		return 0;
 	case CG_S_STOPLOOPINGSOUND:
 		return 0;
