@@ -12160,13 +12160,6 @@ skipCloaked:
 	{
 		CG_AddPlayerWeapon( &legs, NULL, cent, ci->team, rootAngles, qtrue );
 	}
-
-	//stupid hack but it works! brought from cg_demos.c
-	if (cg.playerCent && cent == &cg_entities[cg.snap->ps.clientNum] && cg.playerCent == cent) {
-		CG_AddViewWeapon( &cg.predictedPlayerState  );
-	} else if ( cg.playerCent && cg.playerCent->currentState.number < MAX_CLIENTS && cg.playerCent == cent)  {
-		CG_AddViewWeaponDirect( cg.playerCent );
-	}
 	// add powerups floating behind the player
 	CG_PlayerPowerups( cent, &legs );
 

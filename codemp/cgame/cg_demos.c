@@ -794,26 +794,26 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	CG_CalcScreenEffects();
 
-	if ( !cg.hyperspace ) {
-		CG_AddPacketEntities(qfalse);	// adter calcViewValues, so predicted player state is correct
-		CG_AddMarks();
-		CG_AddParticles ();
-		CG_AddLocalEntities();
-
-		trap_FX_AddScheduledEffects(qfalse);
-	}
+	CG_AddPacketEntities(qfalse);	// adter calcViewValues, so predicted player state is correct
+	CG_AddMarks();
+	CG_AddParticles ();
+	CG_AddLocalEntities();
 	
 	if ( cg.playerCent == &cg_entities[cg.predictedPlayerState.clientNum] ) {
 		// warning sounds when powerup is wearing off
 		CG_PowerupTimerSounds();
+		CG_AddViewWeapon( &cg.predictedPlayerState  );
+	} else if ( cg.playerCent && cg.playerCent->currentState.number < MAX_CLIENTS )  {
+		CG_AddViewWeaponDirect( cg.playerCent );
 	}
 	trap_S_UpdateEntityPosition(ENTITYNUM_NONE, cg.refdef.vieworg);
 	CG_PlayBufferedSounds();
-
+	
+	trap_FX_AddScheduledEffects(qfalse);
+	
 	cg.refdef.time = cg.time;
 	cg.refdef.timeFraction = cg.timeFraction;
 	memcpy( cg.refdef.areamask, cg.snap->areamask, sizeof( cg.refdef.areamask ) );
-
 	/* Render some extra demo related stuff */
 	if (!captureFrame) {
 		switch (demo.editType) {
