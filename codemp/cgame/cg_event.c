@@ -1399,33 +1399,28 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		clientNum = 0;
 	}
 
-	if (es->eType == ET_NPC)
-	{
+	if (es->eType == ET_NPC) {
 		clientNum = es->number;
-
-		if (!cent->npcClient)
-		{
+		if (!cent->npcClient) {
 			CG_CreateNPCClient(&cent->npcClient); //allocate memory for it
-
-			if (!cent->npcClient)
-			{
+			if (!cent->npcClient) {
 				assert(0);
 				return;
 			}
-
 			memset(cent->npcClient, 0, sizeof(clientInfo_t));
 			cent->npcClient->ghoul2Model = NULL;
 		}
-
 		ci = cent->npcClient;
-
 		assert(ci);
-	}
-	else
-	{
+	} else {
 		ci = &cgs.clientinfo[ clientNum ];
 	}
-
+	switch ( es->eType ) {
+	case ET_PLAYER:
+		if ( ci->hide || !ci->infoValid )
+			return;
+	}
+	
 	switch ( event ) {
 	//
 	// movement generated events

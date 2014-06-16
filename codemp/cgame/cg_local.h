@@ -276,6 +276,7 @@ typedef struct {
 
 	qboolean		deferred;
 
+	qboolean		hide;
 	qboolean		newAnims;		// true if using the new mission pack animations
 	qboolean		fixedlegs;		// true if legs yaw is always the same as torso yaw
 	qboolean		fixedtorso;		// true if torso never changes yaw

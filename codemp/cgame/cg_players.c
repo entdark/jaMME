@@ -1671,6 +1671,10 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	v = ConfigValue( strings, "effect");
 	if ( v[0] )
 		newInfo.effectOverride = trap_FX_RegisterEffect( v );
+	
+	//hide player
+	v = ConfigValue( strings, "hide");
+	newInfo.hide = (v[0] && atoi(v) > 0);
 
 	// bot skill
 	v = ConfigValue( strings, "skill");
@@ -2129,7 +2133,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 
 static void CG_ShowOverride( const char *configString, const char *overrideString ) {
 	static char * entryList[] = {
-		"n", "t", "model", "c1", "c2", "st", "st2", "shader", "effect", 0
+		"n", "t", "model", "c1", "c2", "hide", "st", "st2", "shader", "effect", 0
 	};
 	int n;
 
@@ -2185,6 +2189,7 @@ void CG_ClientOverride_f(void) {
 		CG_Printf("t \"0-3\", Change team number\n" );
 		CG_Printf("c1 \"0-9,w-zhexcode\", Change saber color1\n" );
 		CG_Printf("c2 \"0-9,w-zhexcode\", Change saber color2\n" );
+		CG_Printf("hide \"0,1\", hide player yes or no\n" );
 		CG_Printf("st \"hiltname\", Change saber hilt\n" );
 		CG_Printf("st2 \"hiltname\", Change saber hilt2\n" );
 		CG_Printf("shader \"shadername\", Shader override to be use on the whole player\n" );
@@ -9752,9 +9757,8 @@ void CG_Player( centity_t *cent ) {
 
 	// it is possible to see corpses from disconnected players that may
 	// not have valid clientinfo
-	if ( !ci->infoValid ) {
+	if ( ci->hide || !ci->infoValid )
 		return;
-	}
 
 	// Add the player to the radar if on the same team and its a team game
 	if (cgs.gametype >= GT_TEAM)
