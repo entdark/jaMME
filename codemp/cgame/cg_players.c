@@ -9517,6 +9517,48 @@ void SmoothTrueView(vec3_t eyeAngles) {
 		}
 	}
 }
+
+static void CG_G2TurnHeadOFF(centity_t *cent) {
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "head_eyes_mouth", TURN_OFF );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada_eyes_mouth", TURN_OFF );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "head", TURN_OFF );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada", TURN_OFF );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada_face", TURN_OFF );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb", TURN_OFF );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb_face", TURN_OFF );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb_eyes_mouth", TURN_OFF );
+}
+static void CG_G2TurnHeadON(centity_t *cent) {
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "head_eyes_mouth", TURN_ON );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada_eyes_mouth", TURN_ON );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "head", TURN_ON );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada", TURN_ON );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada_face", TURN_ON );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb", TURN_ON );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb_face", TURN_ON );
+	trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb_eyes_mouth", TURN_ON );
+}
+
+static void CG_AddRefEntityTruewView(refEntity_t *ent, centity_t *cent) {
+	centity_t centTemp;
+	refEntity_t entTemp;
+	
+	memcpy(&centTemp, cent, sizeof(centity_t));
+	memcpy(&entTemp, ent, sizeof(refEntity_t));
+	CG_SetGhoul2Info(&entTemp, &centTemp);
+	entTemp.renderfx &= ~RF_THIRD_PERSON;
+	entTemp.renderfx |= RF_FIRST_PERSON; //not visible in mirrors
+	CG_G2TurnHeadOFF(&centTemp);
+	trap_R_AddRefEntityToScene(&entTemp);
+	
+	memcpy(&centTemp, cent, sizeof(centity_t));
+	memcpy(&entTemp, ent, sizeof(refEntity_t));
+	CG_SetGhoul2Info(&entTemp, &centTemp);
+	entTemp.renderfx &= ~RF_FIRST_PERSON;
+	entTemp.renderfx |= RF_THIRD_PERSON; //visible in mirrors only
+	CG_G2TurnHeadON(&centTemp);
+	trap_R_AddRefEntityToScene(&entTemp);
+}
 //[/TrueView]
 
 /*
@@ -9571,7 +9613,8 @@ void CG_Player( centity_t *cent ) {
 	qboolean		g2HasWeapon = qfalse;
 	qboolean		drawPlayerSaber = qfalse;
 	qboolean		checkDroidShields = qfalse;
-	refdef_t *refdef = &cg.refdef;
+	refdef_t		*refdef = &cg.refdef;
+	qboolean		trueview = qfalse;
 
 
 	if (cg.snap->ps.duelInProgress /*&& cent->currentState.number != cg.snap->ps.clientNum*/)
@@ -10350,8 +10393,8 @@ skipEffectOverride:
 	VectorCopy( cent->lerpOrigin, legs.lightingOrigin );
 	legs.shadowPlane = shadowPlane;
 	legs.renderfx = renderfx;
-	if (cg_shadows.integer == 2 && (renderfx & RF_THIRD_PERSON))
-	{ //can see own shadow
+	if (cg_shadows.integer == 2 && (renderfx & RF_THIRD_PERSON)) {
+		//can see own shadow
 		legs.renderfx |= RF_SHADOW_ONLY;
 	}
 	VectorCopy (legs.origin, legs.oldorigin);	// don't positionally lerp at all
@@ -10447,6 +10490,7 @@ skipEffectOverride:
 				}
 			}
 
+//			trueview = qtrue;
 			//Set the original eye Origin
 			VectorCopy( refdef->vieworg, OldeyeOrigin);
 
@@ -10513,39 +10557,18 @@ skipEffectOverride:
 			//set the player view axis
 			AnglesToAxis( refdef->viewangles, refdef->viewaxis );
 
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "head_eyes_mouth", TURN_OFF );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada_eyes_mouth", TURN_OFF );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "head", TURN_OFF );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada", TURN_OFF );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada_face", TURN_OFF );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb", TURN_OFF );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb_face", TURN_OFF );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb_eyes_mouth", TURN_OFF );
+			CG_G2TurnHeadOFF(cent);
 
 		}
 		else
 		{
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "head_eyes_mouth", TURN_ON );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada_eyes_mouth", TURN_ON );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "head", TURN_ON );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada", TURN_ON );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada_face", TURN_ON );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb", TURN_ON );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb_face", TURN_ON );
-			trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb_eyes_mouth", TURN_ON );
+			CG_G2TurnHeadON(cent);
 
 		}
 	}
 	else if ( !(cent->torsoBolt & (1 << (G2_MODELPART_HEAD-10) )) )
 	{
-		trap_G2API_SetSurfaceOnOff( cent->ghoul2, "head_eyes_mouth", TURN_ON );
-		trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada_eyes_mouth", TURN_ON );
-		trap_G2API_SetSurfaceOnOff( cent->ghoul2, "head", TURN_ON );
-		trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada", TURN_ON );
-		trap_G2API_SetSurfaceOnOff( cent->ghoul2, "heada_face", TURN_ON );
-		trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb", TURN_ON );
-		trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb_face", TURN_ON );
-		trap_G2API_SetSurfaceOnOff( cent->ghoul2, "headb_eyes_mouth", TURN_ON );
+		CG_G2TurnHeadON(cent);
 	}
 SkipTrueView:
 	//[/TrueView]
@@ -10632,7 +10655,10 @@ SkipTrueView:
 			legs.customShader = cgs.media.cloakedShader;
 		else
 			legs.customShader = ci->shaderOverride;
-		trap_R_AddRefEntityToScene( &legs );
+		if (trueview)
+			CG_AddRefEntityTruewView( &legs, cent );
+		else
+			trap_R_AddRefEntityToScene( &legs );
 	}
 
 	if (cent->frame_minus1_refreshed || cent->frame_minus2_refreshed) {
@@ -10669,7 +10695,10 @@ SkipTrueView:
 			VectorCopy(cent->frame_minus1, reframe_minus1.origin);
 
 			//reframe_minus1.customShader = 2;
-			trap_R_AddRefEntityToScene(&reframe_minus1);
+			if (trueview)
+				CG_AddRefEntityTruewView(&reframe_minus1, cent);
+			else
+				trap_R_AddRefEntityToScene(&reframe_minus1);
 		}
 
 		if (cent->frame_minus2_refreshed) {
@@ -10697,7 +10726,10 @@ SkipTrueView:
 			VectorCopy(cent->frame_minus2, reframe_minus2.origin);
 
 			//reframe_minus2.customShader = 2;
-			trap_R_AddRefEntityToScene(&reframe_minus2);
+			if (trueview)
+				CG_AddRefEntityTruewView(&reframe_minus2, cent);
+			else
+				trap_R_AddRefEntityToScene(&reframe_minus2);
 		}
 	}
 
@@ -11043,7 +11075,10 @@ SkipTrueView:
 			legs.shaderRGBA[3] = (((cent->teamPowerEffectTime - cg.time) - cg.timeFraction) / 8); // MOAR PRECISION FOR BYTE
 
 			legs.customShader = trap_R_RegisterShader( "powerups/ysalimarishell" );
-			trap_R_AddRefEntityToScene(&legs);
+			if (trueview)
+				CG_AddRefEntityTruewView(&legs, cent);
+			else
+				trap_R_AddRefEntityToScene(&legs);
 
 			legs.customShader = 0;
 			legs.renderfx = preRFX;
@@ -11917,7 +11952,10 @@ stillDoSaber:
 					legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
 					legs.customShader = cgs.media.forceShell;
 
-					trap_R_AddRefEntityToScene( &legs );	//draw the shell
+					if (trueview)
+						CG_AddRefEntityTruewView( &legs, cent );
+					else
+						trap_R_AddRefEntityToScene( &legs );	//draw the shell
 
 					legs.customShader = 0;	//reset to player model
 
@@ -12000,7 +12038,10 @@ stillDoSaber:
 		if (cg.playerCent && (cg.playerCent->currentState.forcePowersActive & (1 << FP_SEE)) 
 			&& cg.playerCent != cent)
 		{//just draw him
-			trap_R_AddRefEntityToScene( &legs );
+			if (trueview)
+				CG_AddRefEntityTruewView( &legs, cent );
+			else
+				trap_R_AddRefEntityToScene( &legs );
 		}
 		else
 		{
@@ -12017,14 +12058,20 @@ stillDoSaber:
 				legs.shaderRGBA[0] = legs.shaderRGBA[1] = legs.shaderRGBA[2] = 255.0f * perc;
 				legs.shaderRGBA[3] = 0;
 				legs.customShader = cgs.media.cloakedShader;
-				trap_R_AddRefEntityToScene( &legs );
+				if (trueview)
+					CG_AddRefEntityTruewView( &legs, cent );
+				else
+					trap_R_AddRefEntityToScene( &legs );
 
 				legs.shaderRGBA[0] = legs.shaderRGBA[1] = legs.shaderRGBA[2] = 255;
 				legs.shaderRGBA[3] = 255 * (1.0f - perc); // let model alpha in
 				legs.customShader = 0; // use regular skin
 				legs.renderfx &= ~RF_RGB_TINT;
 				legs.renderfx |= RF_FORCE_ENT_ALPHA;
-				trap_R_AddRefEntityToScene( &legs );
+				if (trueview)
+					CG_AddRefEntityTruewView( &legs, cent );
+				else
+					trap_R_AddRefEntityToScene( &legs );
 			}
 		}
 	}
@@ -12033,7 +12080,10 @@ stillDoSaber:
 		if (cg.playerCent && (cg.playerCent->currentState.forcePowersActive & (1 << FP_SEE)) 
 			&& cg.playerCent != cent)
 		{//just draw him
-			trap_R_AddRefEntityToScene( &legs );
+			if (trueview)
+				CG_AddRefEntityTruewView( &legs, cent );
+			else
+				trap_R_AddRefEntityToScene( &legs );
 		}
 		else
 		{
@@ -12055,7 +12105,10 @@ stillDoSaber:
 
 				ScaleModelAxis(&legs);
 
-				trap_R_AddRefEntityToScene( &legs );
+				if (trueview)
+					CG_AddRefEntityTruewView( &legs, cent );
+				else
+					trap_R_AddRefEntityToScene( &legs );
 				
 				legs.modelScale[0] = 0.98f;
 				legs.modelScale[1] = 0.98f;
@@ -12071,7 +12124,10 @@ stillDoSaber:
 				{
 					trap_R_SetRefractProp(1.0f, 0.0f, qfalse, qfalse); //don't need to do this every frame.. but..
 					legs.customShader = 2; //crazy "refractive" shader
-					trap_R_AddRefEntityToScene( &legs );
+					if (trueview)
+						CG_AddRefEntityTruewView( &legs, cent );
+					else
+						trap_R_AddRefEntityToScene( &legs );
 					legs.customShader = 0;
 				}
 				else
@@ -12079,7 +12135,10 @@ stillDoSaber:
 					legs.renderfx = 0;//&= ~(RF_RGB_TINT|RF_ALPHA_FADE);
 					legs.shaderRGBA[0] = legs.shaderRGBA[1] = legs.shaderRGBA[2] = legs.shaderRGBA[3] = 255;
 					legs.customShader = cgs.media.cloakedShader;
-					trap_R_AddRefEntityToScene( &legs );
+					if (trueview)
+						CG_AddRefEntityTruewView( &legs, cent );
+					else
+						trap_R_AddRefEntityToScene( &legs );
 					legs.customShader = 0;
 				}
 			}
@@ -12091,7 +12150,10 @@ stillDoSaber:
 	if (!(cent->currentState.powerups & (1 << PW_CLOAKED)))
 	{ //don't add the normal model if cloaked
 		CG_CheckThirdPersonAlpha( cent, &legs );
-		trap_R_AddRefEntityToScene(&legs);
+		if (trueview)
+			CG_AddRefEntityTruewView( &legs, cent );
+		else
+			trap_R_AddRefEntityToScene(&legs);
 	}
 skipCloaked:
 
@@ -12152,7 +12214,10 @@ skipCloaked:
 		}
 
 		reframe_hold.ghoul2 = cent->frame_hold;
-		trap_R_AddRefEntityToScene(&reframe_hold);
+		if (trueview)
+			CG_AddRefEntityTruewView(&reframe_hold, cent);
+		else
+			trap_R_AddRefEntityToScene(&reframe_hold);
 	}
 	else
 	{
@@ -12205,7 +12270,10 @@ skipCloaked:
 			legs.customShader = cgs.media.electricBody2Shader;
 		}
 
-		trap_R_AddRefEntityToScene(&legs);
+		if (trueview)
+			CG_AddRefEntityTruewView(&legs, cent);
+		else
+			trap_R_AddRefEntityToScene(&legs);
 	}
 
 	if (!cg.snap->ps.duelInProgress && cent->currentState.bolt1
@@ -12220,7 +12288,10 @@ skipCloaked:
 		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
 		legs.customShader = cgs.media.forceSightBubble;
 		
-		trap_R_AddRefEntityToScene( &legs );
+		if (trueview)
+			CG_AddRefEntityTruewView( &legs, cent );
+		else
+			trap_R_AddRefEntityToScene( &legs );
 	}
 
 	if ( CG_VehicleShouldDrawShields( cent ) //vehicle
@@ -12250,7 +12321,10 @@ skipCloaked:
 			legs.customShader = cgs.media.playerShieldDamage;
 		}
 		
-		trap_R_AddRefEntityToScene( &legs );
+		if (trueview)
+			CG_AddRefEntityTruewView( &legs, cent );
+		else
+			trap_R_AddRefEntityToScene( &legs );
 	}
 	//For now, these two are using the old shield shader. This is just so that you
 	//can tell it apart from the JM/duel shaders, but it's still very obvious.
@@ -12288,7 +12362,10 @@ skipCloaked:
 		ScaleModelAxis(&prot);
 		*/
 
-		trap_R_AddRefEntityToScene( &prot );
+		if (trueview)
+			CG_AddRefEntityTruewView( &prot, cent );
+		else
+			trap_R_AddRefEntityToScene( &prot );
 	}
 	//if (cent->currentState.forcePowersActive & (1 << FP_ABSORB))
 	//Showing only when the power has been active (absorbed something) recently now, instead of always.
@@ -12319,7 +12396,10 @@ skipCloaked:
 			legs.customShader = cgs.media.playerShieldDamage;
 		}
 		
-		trap_R_AddRefEntityToScene( &legs );
+		if (trueview)
+			CG_AddRefEntityTruewView( &legs, cent );
+		else
+			trap_R_AddRefEntityToScene( &legs );
 	}
 
 	if (cent->currentState.isJediMaster && cg.playerCent != cent) {
@@ -12332,7 +12412,10 @@ skipCloaked:
 		legs.renderfx |= RF_NODEPTH;
 		legs.customShader = cgs.media.forceShell;
 		
-		trap_R_AddRefEntityToScene( &legs );
+		if (trueview)
+			CG_AddRefEntityTruewView( &legs, cent );
+		else
+			trap_R_AddRefEntityToScene( &legs );
 
 		legs.renderfx &= ~RF_NODEPTH;
 	}
@@ -12408,7 +12491,10 @@ skipCloaked:
 		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
 		legs.customShader = cgs.media.sightShell;
 		
-		trap_R_AddRefEntityToScene( &legs );
+		if (trueview)
+			CG_AddRefEntityTruewView( &legs, cent );
+		else
+			trap_R_AddRefEntityToScene( &legs );
 	}
 
 	// Electricity
@@ -12444,7 +12530,10 @@ skipCloaked:
 				legs.customShader = cgs.media.electricBody2Shader;
 			}
 
-			trap_R_AddRefEntityToScene( &legs );
+			if (trueview)
+				CG_AddRefEntityTruewView( &legs, cent );
+			else
+				trap_R_AddRefEntityToScene( &legs );
 
 			if ( !(mov_soundDisable.integer & SDISABLE_FORCE) && (random() > 0.9f)
 				&& cg.frametime > 0
@@ -12478,7 +12567,10 @@ skipCloaked:
 		legs.renderfx &= ~RF_RGB_TINT;
 		legs.customShader = cgs.media.playerShieldDamage;
 		
-		trap_R_AddRefEntityToScene( &legs );
+		if (trueview)
+			CG_AddRefEntityTruewView( &legs, cent );
+		else
+			trap_R_AddRefEntityToScene( &legs );
 	}
 
 #if 0
