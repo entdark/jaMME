@@ -3202,7 +3202,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_PLAY_EFFECT:
 		{
-			qboolean alt = qfalse;
 			DEBUGNAME("EV_PLAY_EFFECT");
 			switch(es->eventParm)
 			{ //it isn't a hack, it's ingenuity!
@@ -3226,10 +3225,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				CG_GetEventStuff(CG_EventCoeff(WP_DET_PACK, qtrue), cg.time, Distance(position, cg.refdef.vieworg));
 				break;
 			case EFFECT_EXPLOSION_FLECHETTE:
-				if (cent->currentState.eFlags & EF_ALT_FIRING)
-					alt = qtrue;
 				eID = cgs.effects.mFlechetteAltBlow;
-				CG_GetEventStuff(CG_EventCoeff(WP_FLECHETTE, alt), cg.time, Distance(position, cg.refdef.vieworg));
+				CG_GetEventStuff(CG_EventCoeff(WP_FLECHETTE, qtrue), cg.time, Distance(position, cg.refdef.vieworg));
 				break;
 			case EFFECT_STUNHIT:
 				eID = cgs.effects.mStunBatonFleshImpact;
