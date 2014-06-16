@@ -304,6 +304,92 @@ static void demoFrameInterpolate( demoFrame_t frames[], int frameCount, int inde
 	}
 }
 
+static void demoPrecacheModel(char *str) {
+	char skinName[MAX_QPATH], modelName[MAX_QPATH];
+	char *p;
+	qhandle_t skinID = 0;
+	int i = 0;
+	
+	strcpy(modelName, str);
+	if (strstr(modelName, ".glm")) {
+		//Check to see if it has a custom skin attached.
+		//see if it has a skin name
+		p = Q_strrchr(modelName, '*');
+		if (p) { //found a *, we should have a model name before it and a skin name after it.
+			*p = 0; //terminate the modelName string at this point, then go ahead and parse to the next 0 for the skin.
+			p++;
+			while (p && *p) {
+				skinName[i] = *p;
+				i++;
+				p++;
+			}
+			skinName[i] = 0;
+
+			if (skinName[0]) { //got it, register the skin under the model path.
+				char baseFolder[MAX_QPATH];
+
+				strcpy(baseFolder, modelName);
+				p = Q_strrchr(baseFolder, '/'); //go back to the first /, should be the path point
+
+				if (p) { //got it.. terminate at the slash and register.
+					char *useSkinName;
+					*p = 0;
+					if (strchr(skinName, '|')) {//three part skin
+						useSkinName = va("%s/|%s", baseFolder, skinName);
+					} else {
+						useSkinName = va("%s/model_%s.skin", baseFolder, skinName);
+					}
+					skinID = re.RegisterSkin(useSkinName);
+				}
+			}
+		}
+	}
+	re.RegisterModel( str );
+}
+
+static void demoPrecacheClient(char *str) {
+	const char *v;
+	int     team;
+	char	modelName[MAX_QPATH];
+	char	skinName[MAX_QPATH];
+	char		*slash;
+	qhandle_t torsoSkin;
+	void	  *ghoul2;
+	memset(&ghoul2, 0, sizeof(ghoul2));
+
+	v = Info_ValueForKey(str, "t");
+	team = atoi(v);
+	v = Info_ValueForKey(str, "model");
+	Q_strncpyz( modelName, v, sizeof( modelName ) );
+
+	slash = strchr( modelName, '/' );
+	if ( !slash ) {
+		// modelName did not include a skin name
+		Q_strncpyz( skinName, "default", sizeof( skinName ) );
+	} else {
+		Q_strncpyz( skinName, slash + 1, sizeof( skinName ) );
+		// truncate modelName
+		*slash = 0;
+	}
+
+	// fix for transparent custom skin parts
+	if (strchr(skinName, '|')
+		&& strstr(skinName,"head")
+		&& strstr(skinName,"torso")
+		&& strstr(skinName,"lower"))
+	{//three part skin
+		torsoSkin = re.RegisterSkin(va("models/players/%s/|%s", modelName, skinName));
+	} else {
+		if (team == TEAM_RED) {
+			Q_strncpyz(skinName, "red", sizeof(skinName));
+		} else if (team == TEAM_BLUE) {
+			Q_strncpyz(skinName, "blue", sizeof(skinName));
+		}
+		torsoSkin = re.RegisterSkin(va("models/players/%s/model_%s.skin", modelName, skinName));
+	}
+	re.G2API_InitGhoul2Model((CGhoul2Info_v **)&ghoul2, va("models/players/%s/model.glm", modelName), 0, torsoSkin, 0, 0, 0);
+}
+
 void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothen ) {
 	fileHandle_t	oldHandle = 0;
 	fileHandle_t	newHandle = 0;
@@ -412,6 +498,15 @@ void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothe
 					int num = atoi( Cmd_Argv(1) );
 					s = Cmd_ArgsFrom( 2 );
 					demoFrameAddString( &workFrame->string, num, Cmd_ArgsFrom( 2 ) );
+					//Nerevar's way to precache models, sounds and skins
+					char *str = workFrame->string.data + workFrame->string.offsets[num];
+					if ( num >= CS_MODELS && num < CS_MODELS+MAX_MODELS ) {
+						demoPrecacheModel(str);
+					} else if ( num >= CS_SOUNDS && num < CS_SOUNDS+MAX_SOUNDS && (str[0] || str[1] == '$') ) {
+						if ( str[0] != '*' ) S_RegisterSound( str );	// player specific sounds don't register here
+					} else if ( num >= CS_PLAYERS && num < CS_PLAYERS+MAX_CLIENTS ) {
+						demoPrecacheClient(str);
+					}	
 					break;
 				}
 				if ( clientNum >= 0 && clientNum < MAX_CLIENTS ) {

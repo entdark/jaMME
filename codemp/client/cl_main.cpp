@@ -548,7 +548,7 @@ void CL_PlayDemo_f( void ) {
 
 	Cvar_Set( "mme_demoFileName", testName );
 
-	if ( haveConvert ) {
+	if ( haveConvert && !mme_demoPrecache->integer ) {
 		Com_sprintf (name, MAX_OSPATH, "mmedemos/%s.mme", testName );
 		if (FS_FileExists( name )) {
 			if (demoPlay( name ))
@@ -2638,6 +2638,7 @@ void CL_Init( void ) {
 	mme_demoFileName = Cvar_Get ("mme_demoFileName", "", CVAR_TEMP | CVAR_NORESTART );
 	mme_demoStartProject = Cvar_Get ("mme_demoStartProject", "", CVAR_TEMP );
 	mme_demoAutoQuit = Cvar_Get ("mme_demoAutoQuit", "0", CVAR_ARCHIVE );
+	mme_demoPrecache = Cvar_Get ("mme_demoPrecache", "0", CVAR_ARCHIVE );
 
 	//
 	// register our commands

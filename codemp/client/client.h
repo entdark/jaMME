@@ -405,6 +405,7 @@ extern	cvar_t	*mme_demoFileName;
 extern  cvar_t	*mme_demoListQuit;
 extern	cvar_t	*mme_demoStartProject;
 extern	cvar_t	*mme_demoAutoQuit;
+extern	cvar_t	*mme_demoPrecache;
 
 //=================================================
 // cl_demos
