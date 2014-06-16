@@ -276,7 +276,7 @@ static qboolean cameraAnglesAt( int time, float timeFraction, vec3_t angles) {
 		return qtrue;
 	}
 
-	lerp = (((int)time - match[1]->time) + timeFraction) / (match[2]->time - match[1]->time);
+	lerp = ((time - match[1]->time) + timeFraction) / (match[2]->time - match[1]->time);
 
 	switch ( demo.camera.smoothAngles ) {
 	case angleLinear:
@@ -426,42 +426,6 @@ void cameraPointReset( demoCameraPoint_t *point ) {
 		i--;
 	}
 
-}
-
-static void cameraDrawPath( demoCameraPoint_t *point, const vec4_t color) {
-	int i;
-	polyVert_t verts[4];
-	qboolean skipFirst = qtrue;
-	vec3_t origin, lastOrigin; 
-	demoCameraPoint_t *match[4];
-	vec3_t control[4];
-	float lerp, lerpFactor;
-	int len, steps;
-
-	cameraPointMatch( point, CAM_ORIGIN, match );
-	if (match[1] != point)
-		return;
-	if (!match[2])
-		return;
-	cameraMatchOrigin( match, control );
-	
-	len = VectorDistance( control[1], control[2] );
-	steps = len / 25;
-	if (steps < 5) 
-		steps = 5;
-	demoDrawSetupVerts( verts, color );
-	lerpFactor = 0.9999f / steps;
-	for ( i = 0; i <= steps; i++) {
-		lerp = i * lerpFactor;
-		posGet( lerp, demo.camera.smoothPos, control, origin );
-		if (skipFirst) {
-			skipFirst = qfalse;
-			VectorCopy( origin, lastOrigin );
-			continue;
-		}
-		demoDrawRawLine( origin, lastOrigin, 1, verts );
-		VectorCopy( origin, lastOrigin);
-	}
 }
 
 demoCameraPoint_t *cameraPointSynch( int time ) {
@@ -707,6 +671,150 @@ void cameraMove(void) {
 	}
 }
 
+static void cameraDrawPath( demoCameraPoint_t *point, const vec4_t color) {
+	int i;
+	polyVert_t verts[4];
+	qboolean skipFirst = qtrue;
+	vec3_t origin, lastOrigin; 
+	demoCameraPoint_t *match[4];
+	vec3_t control[4];
+	float lerp, lerpFactor;
+	int len, steps;
+
+	cameraPointMatch( point, CAM_ORIGIN, match );
+	if (match[1] != point)
+		return;
+	if (!match[2])
+		return;
+	cameraMatchOrigin( match, control );
+	
+	len = VectorDistance( control[1], control[2] );
+	steps = len / 25;
+	if (steps < 5) 
+		steps = 5;
+	demoDrawSetupVerts( verts, color );
+	lerpFactor = 0.9999f / steps;
+	for ( i = 0; i <= steps; i++) {
+		lerp = i * lerpFactor;
+		posGet( lerp, demo.camera.smoothPos, control, origin );
+		if (skipFirst) {
+			skipFirst = qfalse;
+			VectorCopy( origin, lastOrigin );
+			continue;
+		}
+		demoDrawRawLine( origin, lastOrigin, 1, verts );
+		VectorCopy( origin, lastOrigin);
+	}
+}
+
+void cameraDraw( int time, float timeFraction ) {
+	demoCameraPoint_t *point;
+	centity_t *targetCent;
+	vec3_t origin, angles, forward;
+	point = cameraPointSynch( time - 10000 );
+	if (!point)
+		return;
+	while ( point && point->time < (time - 10000))
+		point = point->next;
+	while (point && point->time < (time + 10000)) {
+		/* Draw the splines */
+		cameraDrawPath( point, colorRed );
+		demoDrawCross( point->origin, colorRed );
+		point = point->next;
+	}
+	/* Draw current line */
+	if ( cameraOriginAt( time, timeFraction, origin) && cameraAnglesAt( time, timeFraction, angles )) {
+		AngleVectors( angles, forward, 0, 0);
+		VectorMA( origin, 80, forward, angles );
+		demoDrawLine( origin, angles, colorWhite );
+	}
+	/* Draw a box around an optional target */
+	targetCent = demoTargetEntity( demo.camera.target );
+	if (targetCent) {
+		vec3_t container;
+		demoCentityBoxSize( targetCent, container );
+		demoDrawBox( targetCent->lerpOrigin, container, colorWhite );
+	}
+}
+
+static void cameraSmooth( void ) {
+	demoCameraPoint_t *startPoint, *endPoint;
+	demoCameraPoint_t *point;
+
+	float doneLen, totalLen;
+	int	totalTime;
+
+	if (demo.camera.start == demo.camera.end) {
+		Com_Printf( "No valid selection start/end\n");
+		return;
+	}
+	startPoint = cameraPointSynch( demo.camera.start );
+	if (!startPoint || startPoint->time != demo.camera.start ) {
+		Com_Printf( "Camera start doesn't match a camera point\n");
+		return;
+	}
+	endPoint = cameraPointSynch( demo.camera.end );
+	if (!endPoint || endPoint->time != demo.camera.end ) {
+		Com_Printf( "Camera end doesn't match a camera point\n");
+		return;
+	}
+	totalTime = endPoint->time - startPoint->time;
+	totalLen = 0;
+	point = startPoint;
+	while ( point ) {
+		totalLen += cameraPointLength( point );
+		if (point == endPoint)
+			break;
+		point = point->next;
+		if (!point)
+			CG_Error("Point chain corrupt");
+	}
+	if (!totalLen) {
+		Com_Printf( "Total length is 0, can't smoothen.\n");
+		return;
+	}
+	point = startPoint;
+	doneLen = 0;
+	while ( point ) {
+		if (point == endPoint)
+			return;
+		if (!point)
+			CG_Error("Point chain corrupt");
+		point->time = startPoint->time + (doneLen / totalLen ) * totalTime;
+		doneLen += cameraPointLength( point );
+		point = point->next;
+	}
+}
+
+static void cameraMoveAll( const vec3_t move ) {
+	demoCameraPoint_t *point;
+	
+	point = demo.camera.points;
+
+	while (point) {
+		VectorAdd( point->origin, move, point->origin );
+		cameraPointReset( point );
+		point = point->next;
+	}
+}
+
+static void cameraRotateAll( const vec3_t origin, const vec3_t angles ) {
+	demoCameraPoint_t *point;
+	vec3_t matrix[3];
+
+	demoCreateRotationMatrix( angles, matrix );
+	point = demo.camera.points;
+	while (point) {
+		VectorSubtract( point->origin, origin, point->origin );
+		demoRotatePoint( point->origin, matrix );
+		VectorAdd( point->origin, origin, point->origin );
+		VectorSubtract( point->angles, angles, point->angles );
+		AnglesNormalize360( point->angles );
+		cameraPointReset( point );
+		point = point->next;
+	}
+}
+
 typedef struct  {
 	int		time, target;
 	vec3_t	origin, angles;
@@ -830,114 +938,6 @@ void cameraSave( fileHandle_t fileHandle ) {
 		point = point->next;
 	}
 	demoSaveLine( fileHandle, "</camera>\n" );
-}
-
-void cameraDraw( int time, float timeFraction ) {
-	demoCameraPoint_t *point;
-	centity_t *targetCent;
-	vec3_t origin, angles, forward;
-	point = cameraPointSynch( time - 10000 );
-	if (!point)
-		return;
-	while ( point && point->time < (time - 10000))
-		point = point->next;
-	while (point && point->time < (time + 10000)) {
-		/* Draw the splines */
-		cameraDrawPath( point, colorRed );
-		demoDrawCross( point->origin, colorRed );
-		point = point->next;
-	}
-	/* Draw current line */
-	if ( cameraOriginAt( time, timeFraction, origin) && cameraAnglesAt( time, timeFraction, angles )) {
-		AngleVectors( angles, forward, 0, 0);
-		VectorMA( origin, 80, forward, angles );
-		demoDrawLine( origin, angles, colorWhite );
-	}
-	/* Draw a box around an optional target */
-	targetCent = demoTargetEntity( demo.camera.target );
-	if (targetCent) {
-		vec3_t container;
-		demoCentityBoxSize( targetCent, container );
-		demoDrawBox( targetCent->lerpOrigin, container, colorWhite );
-	}
-}
-
-static void cameraSmooth( void ) {
-	demoCameraPoint_t *startPoint, *endPoint;
-	demoCameraPoint_t *point;
-
-	float doneLen, totalLen;
-	int	totalTime;
-
-	if (demo.camera.start == demo.camera.end) {
-		Com_Printf( "No valid selection start/end\n");
-		return;
-	}
-	startPoint = cameraPointSynch( demo.camera.start );
-	if (!startPoint || startPoint->time != demo.camera.start ) {
-		Com_Printf( "Camera start doesn't match a camera point\n");
-		return;
-	}
-	endPoint = cameraPointSynch( demo.camera.end );
-	if (!endPoint || endPoint->time != demo.camera.end ) {
-		Com_Printf( "Camera end doesn't match a camera point\n");
-		return;
-	}
-	totalTime = endPoint->time - startPoint->time;
-	totalLen = 0;
-	point = startPoint;
-	while ( point ) {
-		totalLen += cameraPointLength( point );
-		if (point == endPoint)
-			break;
-		point = point->next;
-		if (!point)
-			CG_Error("Point chain corrupt");
-	}
-	if (!totalLen) {
-		Com_Printf( "Total length is 0, can't smoothen.\n");
-		return;
-	}
-	point = startPoint;
-	doneLen = 0;
-	while ( point ) {
-		if (point == endPoint)
-			return;
-		if (!point)
-			CG_Error("Point chain corrupt");
-		point->time = startPoint->time + (doneLen / totalLen ) * totalTime;
-		doneLen += cameraPointLength( point );
-		point = point->next;
-	}
-}
-
-static void cameraMoveAll( const vec3_t move ) {
-	demoCameraPoint_t *point;
-	
-	point = demo.camera.points;
-
-	while (point) {
-		VectorAdd( point->origin, move, point->origin );
-		cameraPointReset( point );
-		point = point->next;
-	}
-}
-
-static void cameraRotateAll( const vec3_t origin, const vec3_t angles ) {
-	demoCameraPoint_t *point;
-	vec3_t matrix[3];
-
-	demoCreateRotationMatrix( angles, matrix );
-	point = demo.camera.points;
-	while (point) {
-		VectorSubtract( point->origin, origin, point->origin );
-		demoRotatePoint( point->origin, matrix );
-		VectorAdd( point->origin, origin, point->origin );
-		VectorSubtract( point->angles, angles, point->angles );
-		AnglesNormalize360( point->angles );
-		cameraPointReset( point );
-		point = point->next;
-	}
 }
 
 void demoCameraCommand_f(void) {
@@ -1164,7 +1164,7 @@ void demoCameraCommand_f(void) {
 		Com_Printf("camera shift time, move time indexes of camera points by certain amount.\n" );
 		Com_Printf("camera next/prev, go to time index of next or previous point.\n" );
 		Com_Printf("camera start/end, current time with be set as start/end of selection.\n" );
-		Com_Printf("camera pos/angles/fov (a)0 (a)0 (a)0, Directly control position/angles, optional a before number to add to current value.\n" );
+		Com_Printf("camera pos/angles (a)0 (a)0 (a)0, Directly control position/angles, optional a before number to add to current value.\n" );
 		Com_Printf("camera fov (a)0, Directly control fov, optional a before number to add to current value.\n" );
 		Com_Printf("camera target, Clear/Set the target currently being aimed at.\n" );
 		Com_Printf("camera targetNext/Prev, Go the next or previous player.\n" );
