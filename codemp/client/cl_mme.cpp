@@ -17,6 +17,7 @@ cvar_t	*mme_demoFileName;
 cvar_t	*mme_demoStartProject;
 cvar_t	*mme_demoListQuit;
 cvar_t	*mme_demoAutoQuit;
+cvar_t	*mme_demoRemove;
 cvar_t	*mme_demoPrecache;
 
 void CL_MME_CheckCvarChanges(void) {

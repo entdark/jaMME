@@ -1029,6 +1029,8 @@ errorreturn:
 
 static void demoPlayStop( demoPlay_t *play ) {
 	FS_FCloseFile( play->fileHandle );
+	if (FS_FileExists( play->fileName ) && mme_demoRemove->integer)
+		FS_FileErase( play->fileName );
 	Z_Free( play );
 }
 
