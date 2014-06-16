@@ -1019,7 +1019,7 @@ void R_Register( void )
 	r_showImages						= ri.Cvar_Get( "r_showImages",						"0",						CVAR_CHEAT );
 	r_debugLight						= ri.Cvar_Get( "r_debuglight",						"0",						CVAR_TEMP );
 	r_debugSort							= ri.Cvar_Get( "r_debugSort",						"0",						CVAR_CHEAT );
-	r_dlightStyle						= ri.Cvar_Get( "r_dlightStyle",						"1",						CVAR_TEMP );
+	r_dlightStyle						= ri.Cvar_Get( "r_dlightStyle",						"1",						CVAR_ARCHIVE );
 	r_surfaceSprites					= ri.Cvar_Get( "r_surfaceSprites",					"1",						CVAR_TEMP );
 	r_surfaceWeather					= ri.Cvar_Get( "r_surfaceWeather",					"0",						CVAR_TEMP );
 	r_windSpeed							= ri.Cvar_Get( "r_windSpeed",						"0",						CVAR_NONE );
