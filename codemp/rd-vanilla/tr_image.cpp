@@ -2277,200 +2277,30 @@ int SaveJPG( int quality, int image_width, int image_height, mmeShotType_t image
 }
 
 
-/*
-=================
-SaveJPGToBuffer
-
-Encodes JPEG from image in image_buffer and writes to buffer.
-Expects RGB input data
-=================
-*/
-size_t RE_SaveJPGToBuffer(byte *buffer, size_t bufSize, int quality,
-	int image_width, int image_height, byte *image_buffer, int padding)
-{
-	struct jpeg_compress_struct cinfo;
-	struct jpeg_error_mgr jerr;
-	JSAMPROW row_pointer[1];	/* pointer to JSAMPLE row[s] */
-	my_dest_ptr dest;
-	int row_stride;		/* physical row width in image buffer */
-	size_t outcount;
-
-	/* Step 1: allocate and initialize JPEG compression object */
-
-	cinfo.err = jpeg_std_error(&jerr);
-	cinfo.err->error_exit = R_JPGErrorExit;
-	cinfo.err->output_message = R_JPGOutputMessage;
-	
-	/* Now we can initialize the JPEG compression object. */
-	jpeg_create_compress(&cinfo);
-
-	/* Step 2: specify data destination (eg, a file) */
-	/* Note: steps 2 and 3 can be done in either order. */
-
-	jpegDest(&cinfo, buffer, bufSize);
-
-	/* Step 3: set parameters for compression */
-	cinfo.image_width = image_width; 	/* image width and height, in pixels */
-	cinfo.image_height = image_height;
-	cinfo.input_components = 3;		/* # of color components per pixel */
-	cinfo.in_color_space = JCS_RGB; 	/* colorspace of input image */
-	jpeg_set_defaults(&cinfo);
-	jpeg_set_quality(&cinfo, quality, TRUE /* limit to baseline-JPEG values */);
-
-	/* If quality is set high, disable chroma subsampling */
-	if (quality >= 85) {
-		cinfo.comp_info[0].h_samp_factor = 1;
-		cinfo.comp_info[0].v_samp_factor = 1;
-	}
-
-	/* Step 4: Start compressor */
-
-	jpeg_start_compress(&cinfo, TRUE);
-
-	/* Step 5: while (scan lines remain to be written) */
-	/*           jpeg_write_scanlines(...); */
-
-	row_stride = image_width * cinfo.input_components + padding; /* JSAMPLEs per row in image_buffer */
-
-	while (cinfo.next_scanline < cinfo.image_height) {
-		/* jpeg_write_scanlines expects an array of pointers to scanlines.
-		* Here the array is only one element long, but you could pass
-		* more than one scanline at a time if that's more convenient.
-		*/
-		row_pointer[0] = &image_buffer[((cinfo.image_height-1)*row_stride)-cinfo.next_scanline * row_stride];
-		(void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
-	}
-
-	/* Step 6: Finish compression */
-	jpeg_finish_compress(&cinfo);
-
-	dest = (my_dest_ptr) cinfo.dest;
-	outcount = dest->size - dest->pub.free_in_buffer;
-
-	/* Step 7: release JPEG compression object */
-	jpeg_destroy_compress(&cinfo);
-
-	/* And we're done! */
-	return outcount;
-}
-
-
-void RE_SaveJPG(char * filename, int quality, int image_width, int image_height, byte *image_buffer, int padding)
-{
-	byte *out;
-	size_t bufSize;
-
-	bufSize = image_width * image_height * 3;
-	out = (byte *)Hunk_AllocateTempMemory(bufSize);
-
-	bufSize = RE_SaveJPGToBuffer(out, bufSize, quality, image_width, image_height, image_buffer, padding);
-	ri.FS_WriteFile(filename, out, bufSize);
-
-	Hunk_FreeTempMemory(out);
-}
-
-void user_read_data( png_structp png_ptr, png_bytep data, png_size_t length ) {
-}
-void user_write_data( png_structp png_ptr, png_bytep data, png_size_t length ) {
-	fileHandle_t fp = (fileHandle_t)png_get_io_ptr( png_ptr );
-	ri.FS_Write( data, length, fp );
-}
-void user_flush_data( png_structp png_ptr ) {
-	//TODO: ri.FS_Flush?
-}
-
 #ifdef _MSC_VER
 	#pragma warning( push )
 	#pragma warning( disable: 4611 )
 #endif
 
 int RE_SavePNG( char *filename, byte *buf, size_t width, size_t height, int byteDepth ) {
-	fileHandle_t fp;
-	png_structp png_ptr = NULL;
-	png_infop info_ptr = NULL;
-	int x, y;
-	png_byte ** row_pointers = NULL;
-	/* "status" contains the return value of this function. At first
-	it is set to a value which means 'failure'. When the routine
-	has finished its work, it is set to a value which means
-	'success'. */
-	int status = -1;
-	/* The following number is set by trial and error only. I cannot
-	see where it it is documented in the libpng manual.
-	*/
-	int depth = 8;
-
-	fp = ri.FS_FOpenFileWrite( filename );
-	if ( !fp ) {
-		goto fopen_failed;
+	int outSize = width * height * 4;
+	mmeShotType_t shotType;
+	byte *outBuf;
+	switch (byteDepth) {
+	default:
+	case 3:
+		shotType = mmeShotTypeRGB;
+		break;
+	case 4:
+		shotType = mmeShotTypeRGBA;
+		break;
 	}
-
-	png_ptr = png_create_write_struct (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (png_ptr == NULL) {
-		goto png_create_write_struct_failed;
+	outSize = SavePNG( mme_pngCompression->integer, width, height, mmeShotTypeRGB, buf, outBuf, outSize );
+	if (outSize) {
+		ri.FS_WriteFile( filename, outBuf, outSize );
+		return 0;
 	}
-
-	info_ptr = png_create_info_struct (png_ptr);
-	if (info_ptr == NULL) {
-		goto png_create_info_struct_failed;
-	}
-
-	/* Set up error handling. */
-
-	if (setjmp (png_jmpbuf (png_ptr))) {
-		goto png_failure;
-	}
-
-	/* Set image attributes. */
-
-	png_set_IHDR (png_ptr,
-		info_ptr,
-		width,
-		height,
-		depth,
-		PNG_COLOR_TYPE_RGB,
-		PNG_INTERLACE_NONE,
-		PNG_COMPRESSION_TYPE_DEFAULT,
-		PNG_FILTER_TYPE_DEFAULT);
-
-	/* Initialize rows of PNG. */
-
-	row_pointers = (png_byte **)png_malloc (png_ptr, height * sizeof (png_byte *));
-	for ( y=0; y<height; ++y ) {
-		png_byte *row = (png_byte *)png_malloc (png_ptr, sizeof (uint8_t) * width * byteDepth);
-		row_pointers[height-y-1] = row;
-		for (x = 0; x < width; ++x) {
-			byte *px = buf + (width * y + x)*3;
-			*row++ = px[0];
-			*row++ = px[1];
-			*row++ = px[2];
-		}
-	}
-
-	/* Write the image data to "fp". */
-
-//	png_init_io (png_ptr, fp);
-	png_set_write_fn( png_ptr, (png_voidp)fp, user_write_data, user_flush_data );
-	png_set_rows (png_ptr, info_ptr, row_pointers);
-	png_write_png (png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
-
-	/* The routine has successfully written the file, so we set
-	"status" to a value which indicates success. */
-
-	status = 0;
-
-	for (y = 0; y < height; y++) {
-		png_free (png_ptr, row_pointers[y]);
-	}
-	png_free (png_ptr, row_pointers);
-
-png_failure:
-png_create_info_struct_failed:
-	png_destroy_write_struct (&png_ptr, &info_ptr);
-png_create_write_struct_failed:
-	ri.FS_FCloseFile( fp );
-fopen_failed:
-	return status;
+	return -1;
 }
 
 #ifdef _MSC_VER
@@ -2839,20 +2669,16 @@ R_CreateDlightImage
 ================
 */
 #define	DLIGHT_SIZE	16
-static void R_CreateDlightImage( void ) 
-{
+static void R_CreateDlightImage( void ) {
 	int		width, height;
 	byte	*pic;
 	GLenum	format;
 
 	R_LoadImage("gfx/2d/dlight", &pic, &width, &height, &format);
-	if (pic)
-	{                                    
+	if (pic) {                                    
 		tr.dlightImage = R_CreateImage("*dlight", pic, width, height, GL_RGBA, qfalse, qfalse, qfalse, GL_CLAMP );
 		Z_Free(pic);
-	}
-	else
-	{	// if we dont get a successful load
+	} else { // if we dont get a successful load
 		int		x,y;
 		byte	data[DLIGHT_SIZE][DLIGHT_SIZE][4];
 		int		b;

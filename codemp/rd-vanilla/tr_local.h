@@ -1462,7 +1462,7 @@ void		R_GammaCorrect( byte *buffer, int bufSize );
 void	R_ImageList_f( void );
 void	R_SkinList_f( void );
 void	R_FontList_f( void );
-void	R_ScreenShot_f( void );
+const void *RB_ScreenShotCmd( const void *data );
 
 void	R_InitFogTable( void );
 float	R_FogFactor( float s, float t );
@@ -1916,6 +1916,12 @@ typedef struct {
 typedef struct {
 	int		commandId;
 	char	name[MAX_OSPATH];
+	mmeShotFormat_t format;
+} screenShotCommand_t;
+
+typedef struct {
+	int		commandId;
+	char	name[MAX_OSPATH];
 	float	fps;
 	float	focus;
 	float	radius;
@@ -1937,6 +1943,7 @@ typedef enum {
 	RC_SWAP_BUFFERS,
 	RC_WORLD_EFFECTS,
 	RC_AUTO_MAP,
+	RC_SCREENSHOT,
 	RC_CAPTURE,
 	RC_CAPTURE_STEREO,
 } renderCommand_t;
@@ -1990,8 +1997,6 @@ void RE_RotatePic2 ( float x, float y, float w, float h,
 					  float s1, float t1, float s2, float t2,float a, qhandle_t hShader );
 void RE_BeginFrame( stereoFrame_t stereoFrame );
 void RE_EndFrame( int *frontEndMsec, int *backEndMsec );
-void RE_SaveJPG(char * filename, int quality, int image_width, int image_height, byte *image_buffer, int padding);
-size_t RE_SaveJPGToBuffer(byte *buffer, size_t bufSize, int quality, int image_width, int image_height, byte *image_buffer, int padding);
 
 int RE_SavePNG( char *filename, byte *buf, size_t width, size_t height, int byteDepth );
 
