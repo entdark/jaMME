@@ -238,7 +238,7 @@ static void S_MixLipSync(const mixSound_t *sound, const mixChannel_t *ch) {
 		index += indexAdd;
 	}
 
-	lipForce = (float)((float)sampleToCompare / 32768.0f) * s_lip_threshold_4->value; // should be better
+	lipForce = (float)((float)sampleToCompare / 32768.0f) * s_lip_threshold_4->value;
 	if (lipForce < s_lip_threshold_1->value)
 		wavVol = -1;
 	else if (lipForce < s_lip_threshold_2->value)
@@ -263,6 +263,8 @@ static void S_MixChannel( mixChannel_t *ch, int speed, int count, int *output ) 
 
 	if (ch->entChan == CHAN_VOICE || ch->entChan == CHAN_VOICE_ATTEN || ch->entChan == CHAN_VOICE_GLOBAL)
 		volume = s_volumeVoice->value * (1 << MIX_SHIFT) * 0.5;
+	else if (ch->entChan == CHAN_AMBIENT)
+		volume = s_volumeVoice->value * ch->volume * 0.375; //0.5 * 0.75
 	else
 		volume = s_volume->value * (1 << MIX_SHIFT) * 0.5;
 
@@ -276,7 +278,7 @@ static void S_MixChannel( mixChannel_t *ch, int speed, int count, int *output ) 
 	index = ch->index;
 	indexAdd = (sound->speed * speed) >> MIX_SHIFT;
 	indexLeft = sound->samples - index;
-	ch->wasMixed = (leftVol | rightVol) > 0;//10;
+	ch->wasMixed = (leftVol | rightVol) > 0;
 	if (!ch->wasMixed) {
 		indexAdd *= count;
 		if ( indexAdd >= indexLeft ) {
@@ -355,6 +357,7 @@ void S_MixChannels( mixChannel_t *ch, int channels, int speed, int count, int *o
 				free->entChan = q->entChan;
 				free->entNum = q->entNum;
 				free->index = 0;
+				free->volume = q->volume;
 				VectorCopy( q->origin, free->origin );
 				free->hasOrigin = q->hasOrigin;
 				freeLeft--;
@@ -430,7 +433,7 @@ static void S_MixLoop( mixLoop_t *loop, const loopQueue_t *lq, int speed, int co
 	indexAdd = (sound->speed * speed) >> MIX_SHIFT;
 	indexTotal = sound->samples;
 	data = sound->data;
-	if ( (leftVol | rightVol) <= 0) {//10 ) {
+	if ( (leftVol | rightVol) <= 0 ) {
 		index += count * indexAdd;
 		index %= indexTotal;
 	} else for (i = 0; i < count;i++) {

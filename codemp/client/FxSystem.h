@@ -90,7 +90,7 @@ public:
 	inline	void	PlaySound( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle, int volume, int radius )
 	{
 		//S_StartSound( origin, ENTITYNUM_NONE, CHAN_AUTO, sfxHandle, volume, radius );
-		S_StartSound( origin, ENTITYNUM_NONE, CHAN_AUTO, sfxHandle );
+		S_StartSound( origin, ENTITYNUM_NONE, CHAN_AUTO, -1, sfxHandle );
 	}
 	inline	void	PlayLocalSound(sfxHandle_t sfxHandle, int entchannel)
 	{

@@ -8,7 +8,7 @@ void S_AddAmbientLoopingSound( const vec3_t origin, unsigned char volume, sfxHan
 void S_StartAmbientSound( const vec3_t origin, int entityNum, unsigned char volume, sfxHandle_t sfxHandle );
 void S_MuteSound(int entityNum, int entchannel);
 void S_StopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle );
-void S_StartSound( const vec3_t origin, int entnum, int entchannel, sfxHandle_t sfx );
+void S_StartSound( const vec3_t origin, int entnum, int entchannel, unsigned char volume, sfxHandle_t sfx );
 void S_StartLocalSound( sfxHandle_t sfx, int channelNum );
 
 void S_StartBackgroundTrack( const char *intro, const char *loop, int bCalledByCGameStart );

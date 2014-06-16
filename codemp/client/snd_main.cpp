@@ -289,33 +289,7 @@ Starts an ambient, 'one-shot" sound.
 */
 
 void S_StartAmbientSound( const vec3_t origin, int entityNum, unsigned char volume, sfxHandle_t sfxHandle ) {
-	channelQueue_t *q;
-
-	if ( !s_soundStarted || s_soundMuted ) {
-		return;
-	}
-	if ( !origin && ( entityNum < 0 || entityNum > MAX_GENTITIES ) ) {
-		Com_Error( ERR_DROP, "S_StartAmbientSound: bad entitynum %i", entityNum );
-	}
-	if ( s_channelQueueCount >= MAX_SNDQUEUE ) {
-		Com_Printf( "S_StartAmbientSound: Queue overflow, dropping\n");
-		return;
-	}
-	if ( sfxHandle <= 0 || sfxHandle >= sfxEntryCount) {
-		Com_DPrintf( "S_StartAmbientSound: Illegal sfxhandle %d\n", sfxHandle );
-		return;
-	}
-
-	q = s_channelQueue + s_channelQueueCount++;
-	q->entChan = CHAN_AMBIENT;
-	q->entNum = entityNum;
-	q->handle = sfxHandle;
-	if (origin) {
-		VectorCopy( origin, q->origin );
-		q->hasOrigin = qtrue;
-	} else {
-		q->hasOrigin = qfalse;
-	}
+	S_StartSound(origin, entityNum, CHAN_AMBIENT, volume, sfxHandle);
 }
 
 /*
@@ -349,7 +323,7 @@ if pos is NULL, the sound will be dynamically sourced from the entity
 Entchannel 0 will never override a playing sound
 ====================
 */
-void S_StartSound(const vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfxHandle ) {
+void S_StartSound(const vec3_t origin, int entityNum, int entchannel, unsigned char volume, sfxHandle_t sfxHandle ) {
 	channelQueue_t *q;
 
 	if ( !s_soundStarted || s_soundMuted ) {
@@ -371,6 +345,7 @@ void S_StartSound(const vec3_t origin, int entityNum, int entchannel, sfxHandle_
 	q->entChan = entchannel;
 	q->entNum = entityNum;
 	q->handle = sfxHandle;
+	q->volume = volume;
 	if (origin) {
 		VectorCopy( origin, q->origin );
 		q->hasOrigin = qtrue;
@@ -389,7 +364,7 @@ void S_StartLocalSound( sfxHandle_t sfxHandle, int channelNum ) {
 		return;
 	}
 
-	S_StartSound (NULL, s_listenNumber, channelNum, sfxHandle );
+	S_StartSound (NULL, s_listenNumber, channelNum, -1, sfxHandle );
 }
 
 

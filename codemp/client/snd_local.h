@@ -54,6 +54,7 @@ typedef struct {
 	short		entNum;
 	char		entChan;
 	char		hasOrigin;
+	unsigned char volume;
 } channelQueue_t;
 
 struct openSound_s;

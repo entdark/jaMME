@@ -25,6 +25,7 @@ typedef struct {
 	char			entChan;
 	char			hasOrigin;
 	char			wasMixed;
+	unsigned char	volume;
 } mixChannel_t;
 
 typedef struct {
