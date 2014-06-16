@@ -982,6 +982,7 @@ typedef struct {
 	float		bobfracsin;
 	int			bobcycle;
 	int			bobcyclePrev;
+	int			bobCycle[MAX_CLIENTS];
 	float		xyspeed;
 	int     nextOrbitTime;
 

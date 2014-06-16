@@ -1704,10 +1704,15 @@ static qboolean CG_InRoll(int anim) {
 
 //works wrong, need to debug, but I am lazy
 static void CG_BobFootsteps(void) {
-	float bobmove, f;
+	float bobmove, bobmoveNext, f;
 	int bobCycle, bobFinal;
 	entityState_t *es = &cg.playerCent->currentState;
+	entityState_t *ns = &cg.playerCent->nextState;
 	float velocity = sqrt(es->pos.trDelta[0] * es->pos.trDelta[0] + es->pos.trDelta[1] * es->pos.trDelta[1]);
+	
+	if (!cg.nextSnap || cg.nextSnap->serverTime <= cg.snap->serverTime) {
+		return;
+	}
 
 	if (es->saberMove == LS_SPINATTACK)
 		bobmove = 0.2f;
@@ -1725,17 +1730,29 @@ static void CG_BobFootsteps(void) {
 	else
 		bobmove = 0.2f;
 
-	if (!cg.nextSnap || cg.nextSnap->serverTime <= cg.snap->serverTime) {
-		return;
-	}
+	if (ns->saberMove == LS_SPINATTACK)
+		bobmoveNext = 0.2f;
+	else if (((ns->solid >> 16) & 255) - 32 < 16) //duck
+		bobmoveNext = 0.5f;
+	else if (CG_InRoll(ns->legsAnim)) //roll
+		bobmoveNext = 0.5f;
+	else if (ns->legsAnim == BOTH_FORCELAND1 ||
+		ns->legsAnim == BOTH_FORCELANDBACK1 ||
+		ns->legsAnim == BOTH_FORCELANDRIGHT1 ||
+		ns->legsAnim == BOTH_FORCELANDLEFT1)
+		bobmoveNext = 0.2f;
+	else if (velocity >= 250 )
+		bobmoveNext = 0.4f;
+	else
+		bobmoveNext = 0.2f;
 
 	f = (cg.timeFraction + (cg.time - cg.snap->serverTime)) / (cg.nextSnap->serverTime - cg.snap->serverTime);
 
-	bobCycle = (int)(cg.bobcyclePrev + bobmove * cg.time) & 255;
+	cg.bobcyclePrev = (int)(bobmove * cg.snap->serverTime) & 255;
+	bobCycle = (int)(bobmoveNext * cg.nextSnap->serverTime) & 255;
 	if ( bobCycle < cg.bobcyclePrev ) {
 		bobCycle += 256;		// handle wraparound
 	}
-	cg.bobcyclePrev = bobCycle;
 	bobFinal = cg.bobcyclePrev + f * ( bobCycle - cg.bobcyclePrev );
 
 	cg.bobcycle = (bobFinal & 128) >> 7;
@@ -1934,8 +1951,7 @@ int CG_DemosCalcViewValues( void ) {
 	cg.xyspeed = sqrt( es->pos.trDelta[0] * es->pos.trDelta[0] +
 		es->pos.trDelta[1] * es->pos.trDelta[1] );
 
-	if (cg.xyspeed > 270)
-	{
+	if (cg.xyspeed > 270) {
 		cg.xyspeed = 270;
 	}
 
@@ -1988,14 +2004,12 @@ int CG_DemosCalcViewValues( void ) {
 		}
 	}
 
-	if (cg.snap->ps.weapon == WP_EMPLACED_GUN &&
-		cg.snap->ps.emplacedIndex)
-	{ //constrain the view properly for emplaced guns
+	if (cg.snap->ps.weapon == WP_EMPLACED_GUN && cg.snap->ps.emplacedIndex && cg.playerPredicted) {
+	//constrain the view properly for emplaced guns
 		CG_EmplacedView(cg_entities[cg.snap->ps.emplacedIndex].currentState.angles);
 	}
 
-	if ( !manningTurret )
-	{
+	if (!manningTurret) {
 		if ( cg.playerPredicted && cg.predictedPlayerState.m_iVehicleNum //in a vehicle
 			&& BG_UnrestrainedPitchRoll( &cg.predictedPlayerState, cg_entities[cg.predictedPlayerState.m_iVehicleNum].m_pVehicle ) )//can roll/pitch without restriction
 		{//use the vehicle's viewangles to render view!
