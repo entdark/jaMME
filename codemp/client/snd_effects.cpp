@@ -243,6 +243,8 @@ void S_EffectUnderWater(mixEffect_t *effect, int speed, const int count, int *ou
 		output[i*2+1] = (int)in[i*2+1]*UNDERWATER_VOLUME;
     }
 
+	if (!underWater)
+		return;
 	/* the underwater echo sounds "data/underwater_loop" */
 	volume = s_volume->value * (1 << MIX_SHIFT) * 0.5f;
 	sound = S_MixGetSound(underWater);
