@@ -3054,7 +3054,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 			trap_Cvar_Set("ui_myteam", va("%i", es->bolt2));
 
-			if (!( trap_Key_GetCatcher() & KEYCATCH_UI ) && !es->bolt1)
+			if (!( trap_Key_GetCatcher() & KEYCATCH_UI ) && !es->bolt1 && !cg.demoPlayback)
 			{
 				trap_OpenUIMenu(UIMENU_PLAYERCONFIG);
 			}

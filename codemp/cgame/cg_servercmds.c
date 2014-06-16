@@ -331,8 +331,7 @@ CG_SetConfigValues
 Called on load to set the initial values from configure strings
 ================
 */
-void CG_SetConfigValues( void ) 
-{
+void CG_SetConfigValues( void ) {
 	const char *s;
 	const char *str;
 
@@ -341,16 +340,12 @@ void CG_SetConfigValues( void )
 	cgs.levelStartTime = atoi( CG_ConfigString( CS_LEVEL_START_TIME ) );
 	if( cgs.gametype == GT_CTF || cgs.gametype == GT_CTY ) {
 		int redflagId = 0, blueflagId = 0;
-
 		s = CG_ConfigString( CS_FLAGSTATUS );
-
 		redflagId = s[0] - '0';
 		blueflagId = s[1] - '0';
-
 		// fix: proper flag statuses mapping for dropped flag
 		if ( redflagId >= 0 && redflagId < ARRAY_LEN( ctfFlagStatusRemap ) ) 
 			cgs.redflag = ctfFlagStatusRemap[redflagId];
-
 		if ( blueflagId >= 0 && blueflagId < ARRAY_LEN( ctfFlagStatusRemap ) ) 
 			cgs.blueflag = ctfFlagStatusRemap[blueflagId];
 	}
@@ -977,11 +972,9 @@ static void CG_ConfigStringModified( void ) {
 		if( cgs.gametype == GT_CTF || cgs.gametype == GT_CTY ) {
 			// format is rb where its red/blue, 0 is at base, 1 is taken, 2 is dropped
 			int redflagId = str[0] - '0', blueflagId = str[1] - '0';
-
 			//Raz: improved flag status remapping
 			if ( redflagId >= 0 && redflagId < ARRAY_LEN( ctfFlagStatusRemap ) ) 
 				cgs.redflag = ctfFlagStatusRemap[redflagId];
-
 			if ( blueflagId >= 0 && blueflagId < ARRAY_LEN( ctfFlagStatusRemap ) )  
 				cgs.blueflag = ctfFlagStatusRemap[blueflagId];
 		}
@@ -1456,6 +1449,8 @@ static void CG_ServerCommand( void ) {
 
 	if ( !strcmp( cmd, "spc" ) )
 	{
+		if (cg.demoPlayback)
+			return;
 		trap_Cvar_Set("ui_myteam", "3");
 		trap_OpenUIMenu(UIMENU_PLAYERCONFIG); //UIMENU_CLASSSEL
 		return;
@@ -1483,7 +1478,7 @@ static void CG_ServerCommand( void ) {
 
 		trap_Cvar_Set("ui_myteam", va("%i", setTeam));
 
-		if (!( trap_Key_GetCatcher() & KEYCATCH_UI ) && doMenu)
+		if (!( trap_Key_GetCatcher() & KEYCATCH_UI ) && doMenu && !cg.demoPlayback)
 		{
 			trap_OpenUIMenu(UIMENU_PLAYERCONFIG);
 		}
