@@ -303,7 +303,7 @@ static void CG_DrawZoomMask( void )
 		color1[3] = 1.0f;
 		trap_R_SetColor( color1 );
 	
-		CG_DrawPic( 0, 0, 640, 480, cgs.media.binocularMask );
+		CG_DrawPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, cgs.media.binocularMask );
 
 		CG_DrawPic( 4, 282 - level, 16, 16, cgs.media.binocularArrow );
 
@@ -345,7 +345,7 @@ static void CG_DrawZoomMask( void )
 
 		// Draw target mask
 		trap_R_SetColor( colorTable[CT_WHITE] );
-		CG_DrawPic( 0, 0, 640, 480, cgs.media.disruptorMask );
+		CG_DrawPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, cgs.media.disruptorMask );
 
 		// apparently 99.0f is the full zoom level
 		if ( level >= 99 )
@@ -360,7 +360,7 @@ static void CG_DrawZoomMask( void )
 		}
 
 		// Draw rotating insert
-		CG_DrawRotatePic2( 320, 240, 640, 480, -level, cgs.media.disruptorInsert );
+		CG_DrawRotatePic2( SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT, -level, cgs.media.disruptorInsert );
 
 		// Increase the light levels under the center of the target
 //		CG_DrawPic( 198, 118, 246, 246, cgs.media.disruptorLight );
@@ -856,7 +856,7 @@ static void CG_DrawSaberStyle( centity_t *cent, menuDef_t *menuHUD)
 			trap_R_SetColor( colorTable[CT_WHITE] );
 
 			CG_DrawPic( 
-				640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef,
+				SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef,
 				focusItem->window.rect.y,
 				focusItem->window.rect.w*cgs.widthRatioCoef, 
 				focusItem->window.rect.h, 
@@ -875,7 +875,7 @@ static void CG_DrawSaberStyle( centity_t *cent, menuDef_t *menuHUD)
 			trap_R_SetColor( colorTable[CT_WHITE] );
 
 			CG_DrawPic( 
-				640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef,
+				SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef,
 				focusItem->window.rect.y,
 				focusItem->window.rect.w*cgs.widthRatioCoef, 
 				focusItem->window.rect.h, 
@@ -892,7 +892,7 @@ static void CG_DrawSaberStyle( centity_t *cent, menuDef_t *menuHUD)
 			trap_R_SetColor( colorTable[CT_WHITE] );
 
 			CG_DrawPic( 
-				640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef,
+				SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef,
 				focusItem->window.rect.y,
 				focusItem->window.rect.w*cgs.widthRatioCoef, 
 				focusItem->window.rect.h, 
@@ -958,7 +958,7 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 		trap_R_SetColor( colorTable[CT_YELLOW] );
 		if (focusItem)
 		{
-			UI_DrawProportionalString(640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef, focusItem->window.rect.y, "--", NUM_FONT_SMALL, focusItem->window.foreColor);
+			UI_DrawProportionalString(SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef, focusItem->window.rect.y, "--", NUM_FONT_SMALL, focusItem->window.foreColor);
 		}
 	}
 	else
@@ -1006,7 +1006,7 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 			value =ps->ammo[weaponData[cent->currentState.weapon].ammoIndex];
 
 			CG_DrawNumField (
-				640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef, 
+				SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef, 
 				focusItem->window.rect.y, 
 				3, 
 				value, 
@@ -1044,7 +1044,7 @@ static void CG_DrawAmmo( centity_t	*cent,menuDef_t *menuHUD)
 		trap_R_SetColor( calcColor);
 
 		CG_DrawPic( 
-			640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef,
+			SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef,
 			focusItem->window.rect.y,
 			focusItem->window.rect.w*cgs.widthRatioCoef, 
 			focusItem->window.rect.h, 
@@ -1161,7 +1161,7 @@ void CG_DrawForcePower( menuDef_t *menuHUD )
 		trap_R_SetColor( calcColor);
 
 		CG_DrawPic( 
-			640 - (640 - (float)focusItem->window.rect.x)*cgs.widthRatioCoef,
+			SCREEN_WIDTH - (SCREEN_WIDTH - (float)focusItem->window.rect.x)*cgs.widthRatioCoef,
 			focusItem->window.rect.y,
 			focusItem->window.rect.w*cgs.widthRatioCoef, 
 			focusItem->window.rect.h, 
@@ -1179,7 +1179,7 @@ void CG_DrawForcePower( menuDef_t *menuHUD )
 		trap_R_SetColor( focusItem->window.foreColor );	
 
 		CG_DrawNumField (
-			640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef, 
+			SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef, 
 			focusItem->window.rect.y, 
 			3, 
 			cg.snap->ps.fd.forcePower, 
@@ -1360,7 +1360,7 @@ void CG_DrawHUD(centity_t	*cent)
 				if (focusItem)
 				{
 					UI_DrawScaledProportionalString(
-						640 - (640 - focusItem->window.rect.x)*cgs.widthRatioCoef - 17, 
+						SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef - 17, 
 						focusItem->window.rect.y, 
 						scoreStr, 
 						UI_RIGHT|UI_DROPSHADOW, 
@@ -2476,7 +2476,7 @@ void CG_DrawVehicleDamage(const centity_t *veh,int brokenLimbs,const menuDef_t	*
 
 		if (graphicHandle)
 		{
-			if (item->window.rect.x <= 320) {
+			if (item->window.rect.x <= SCREEN_WIDTH / 2) {
 				CG_DrawPic( 
 					item->window.rect.x, 
 					item->window.rect.y, 
@@ -2485,7 +2485,7 @@ void CG_DrawVehicleDamage(const centity_t *veh,int brokenLimbs,const menuDef_t	*
 					graphicHandle );
 			} else {
 				CG_DrawPic( 
-					640 - (640 - item->window.rect.x)*cgs.widthRatioCoef, 
+					SCREEN_WIDTH - (SCREEN_WIDTH - item->window.rect.x)*cgs.widthRatioCoef, 
 					item->window.rect.y, 
 					item->window.rect.w*cgs.widthRatioCoef, 
 					item->window.rect.h, 
@@ -2535,7 +2535,7 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 			{
 				trap_R_SetColor( item->window.foreColor );
 			}
-			if (item->window.rect.x <= 320) {
+			if (item->window.rect.x <= SCREEN_WIDTH / 2) {
 				CG_DrawPic( 
 					item->window.rect.x, 
 					item->window.rect.y, 
@@ -2544,7 +2544,7 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 					veh->m_pVehicle->m_pVehicleInfo->dmgIndicBackgroundHandle );
 			} else {
 				CG_DrawPic( 
-					640 - (640 - item->window.rect.x)*cgs.widthRatioCoef, 
+					SCREEN_WIDTH - (SCREEN_WIDTH - item->window.rect.x)*cgs.widthRatioCoef, 
 					item->window.rect.y, 
 					item->window.rect.w*cgs.widthRatioCoef, 
 					item->window.rect.h, 
@@ -2559,7 +2559,7 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 		if (veh->m_pVehicle->m_pVehicleInfo->dmgIndicFrameHandle)
 		{
 			trap_R_SetColor( item->window.foreColor );
-			if (item->window.rect.x <= 320) {
+			if (item->window.rect.x <= SCREEN_WIDTH / 2) {
 				CG_DrawPic( 
 					item->window.rect.x, 
 					item->window.rect.y, 
@@ -2568,7 +2568,7 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 					veh->m_pVehicle->m_pVehicleInfo->dmgIndicFrameHandle );
 			} else {
 				CG_DrawPic( 
-					640 - (640 - item->window.rect.x)*cgs.widthRatioCoef, 
+					SCREEN_WIDTH - (SCREEN_WIDTH - item->window.rect.x)*cgs.widthRatioCoef, 
 					item->window.rect.y, 
 					item->window.rect.w*cgs.widthRatioCoef, 
 					item->window.rect.h, 
@@ -2585,7 +2585,7 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 			VectorCopy4 ( colorTable[CT_HUD_GREEN], color );
 			color[3] = percShields;
 			trap_R_SetColor( color );
-			if (item->window.rect.x <= 320) {
+			if (item->window.rect.x <= SCREEN_WIDTH / 2) {
 				CG_DrawPic( 
 					item->window.rect.x, 
 					item->window.rect.y, 
@@ -2594,7 +2594,7 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 					veh->m_pVehicle->m_pVehicleInfo->dmgIndicShieldHandle );
 			} else {
 				CG_DrawPic( 
-					640 - (640 - item->window.rect.x)*cgs.widthRatioCoef, 
+					SCREEN_WIDTH - (SCREEN_WIDTH - item->window.rect.x)*cgs.widthRatioCoef, 
 					item->window.rect.y, 
 					item->window.rect.w*cgs.widthRatioCoef, 
 					item->window.rect.h, 
@@ -2791,7 +2791,7 @@ static void CG_DrawPickupItem( void ) {
 		{
 			CG_RegisterItemVisuals( value );
 			trap_R_SetColor( fadeColor );
-			CG_DrawPic( 640 - (640 - 585)*cgs.widthRatioCoef, 480 - yOffset - ICON_SIZE, ICON_SIZE*cgs.widthRatioCoef, ICON_SIZE, cg_items[ value ].icon );
+			CG_DrawPic( SCREEN_WIDTH - (SCREEN_WIDTH - 585)*cgs.widthRatioCoef, SCREEN_HEIGHT - yOffset - ICON_SIZE, ICON_SIZE*cgs.widthRatioCoef, ICON_SIZE, cg_items[ value ].icon );
 			trap_R_SetColor( NULL );
 		}
 	}
@@ -2988,11 +2988,11 @@ static float CG_DrawEnemyInfo ( float y ) {
 			size = ICON_SIZE * 1.25;
 			y += 5;
 
-			CG_DrawPic( 640 - size*cgs.widthRatioCoef - 12 + xOffset, y, size*cgs.widthRatioCoef, size, cgs.media.weaponIcons[WP_SABER] );
+			CG_DrawPic( SCREEN_WIDTH - size*cgs.widthRatioCoef - 12 + xOffset, y, size*cgs.widthRatioCoef, size, cgs.media.weaponIcons[WP_SABER] );
 
 			y += size;
 
-			CG_Text_Paint( 630 - CG_Text_Width ( title, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, title, 0, 0, 0, FONT_MEDIUM );
+			CG_Text_Paint( SCREEN_WIDTH - 10 - CG_Text_Width ( title, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, title, 0, 0, 0, FONT_MEDIUM );
 
 			return y + BIGCHAR_HEIGHT + 2;
 		}
@@ -3034,32 +3034,32 @@ static float CG_DrawEnemyInfo ( float y ) {
 	y += 5;
 
 	if ( ci->modelIcon )
-		CG_DrawPic( 640 - size*cgs.widthRatioCoef - 5 + xOffset, y, size*cgs.widthRatioCoef, size, ci->modelIcon );
+		CG_DrawPic( SCREEN_WIDTH - size*cgs.widthRatioCoef - 5 + xOffset, y, size*cgs.widthRatioCoef, size, ci->modelIcon );
 
 	y += size;
 
-//	CG_Text_Paint( 630 - CG_Text_Width ( ci->name, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, ci->name, 0, 0, 0, FONT_MEDIUM );
-	CG_Text_Paint( 630 - CG_Text_Width ( ci->name, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, ci->name, 0, 0, 0, FONT_SMALL2 );
+//	CG_Text_Paint( SCREEN_WIDTH - 10 - CG_Text_Width ( ci->name, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, ci->name, 0, 0, 0, FONT_MEDIUM );
+	CG_Text_Paint( SCREEN_WIDTH - 10 - CG_Text_Width ( ci->name, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, ci->name, 0, 0, 0, FONT_SMALL2 );
 
 	y += 15;
-//	CG_Text_Paint( 630 - CG_Text_Width ( title, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, title, 0, 0, 0, FONT_MEDIUM );
-	CG_Text_Paint( 630 - CG_Text_Width ( title, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, title, 0, 0, 0, FONT_SMALL2 );
+//	CG_Text_Paint( SCREEN_WIDTH - 10 - CG_Text_Width ( title, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, title, 0, 0, 0, FONT_MEDIUM );
+	CG_Text_Paint( SCREEN_WIDTH - 10 - CG_Text_Width ( title, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, title, 0, 0, 0, FONT_SMALL2 );
 
 	if ( (cgs.gametype == GT_DUEL || cgs.gametype == GT_POWERDUEL) && cgs.clientinfo[cg.playerCent->currentState.number].team != TEAM_SPECTATOR) {
 		//also print their score
 		char text[1024];
 		y += 23;//15;
 		Com_sprintf(text, sizeof(text), "%i/%i", cgs.clientinfo[clientNum].score, cgs.fraglimit );
-		CG_Text_Paint( 630 - CG_Text_Width ( text, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, text, 0, 0, 0, FONT_MEDIUM );
+		CG_Text_Paint( SCREEN_WIDTH - 10 - CG_Text_Width ( text, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, text, 0, 0, 0, FONT_MEDIUM );
 	}
 
 // nmckenzie: DUEL_HEALTH - fixme - need checks and such here.  And this is coded to duelist 1 right now, which is wrongly.
 	if ( cgs.showDuelHealths >= 2) {
 		y += 15;
 		if ( cgs.duelist1 == clientNum )
-			CG_DrawDuelistHealth ( 640 - size - 5 + xOffset, y, 64, 8, 1 );
+			CG_DrawDuelistHealth ( SCREEN_WIDTH - size - 5 + xOffset, y, 64, 8, 1 );
 		else if ( cgs.duelist2 == clientNum )
-			CG_DrawDuelistHealth ( 640 - size - 5 + xOffset, y, 64, 8, 2 );
+			CG_DrawDuelistHealth ( SCREEN_WIDTH - size - 5 + xOffset, y, 64, 8, 2 );
 	}
 
 	return y + BIGCHAR_HEIGHT + 2;
@@ -3185,7 +3185,7 @@ CG_DrawRadar
 float	cg_radarRange = 2500.0f;
 
 #define RADAR_RADIUS			60
-#define RADAR_X					(640 - (640 - 580)*cgs.widthRatioCoef - RADAR_RADIUS*cgs.widthRatioCoef)
+#define RADAR_X					(SCREEN_WIDTH - (SCREEN_WIDTH - 580)*cgs.widthRatioCoef - RADAR_RADIUS*cgs.widthRatioCoef)
 //#define RADAR_Y					10 //dynamic based on passed Y val
 #define RADAR_CHAT_DURATION		6000
 static int radarLockSoundDebounceTime = 0;
@@ -3219,7 +3219,7 @@ float CG_DrawRadar ( float y )
 	if ( !local->infoValid )
 		return y;
 
-	radar_x = 640 - (640 - (580 - RADAR_RADIUS)) * cgs.widthRatioCoef;
+	radar_x = SCREEN_WIDTH - (SCREEN_WIDTH - (580 - RADAR_RADIUS)) * cgs.widthRatioCoef;
 
 	// Draw the radar background image
 	color[0] = color[1] = color[2] = 1.0f;
@@ -3840,7 +3840,7 @@ static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
 	w = (pwidth + lwidth + 4 + 7) * TINYCHAR_WIDTH*cgs.widthRatioCoef;
 
 	if ( right )
-		x = 640 - w;//*cgs.widthRatioCoef;
+		x = SCREEN_WIDTH - w;
 	else
 		x = 0;
 
@@ -4000,13 +4000,13 @@ static void CG_DrawPowerupIcons(int y)
 					icoShader = trap_R_RegisterShader( item->icon );
 				}
 
-				CG_DrawPic( (640-(ico_size*1.1)*cgs.widthRatioCoef) + xOffset, y, ico_size*cgs.widthRatioCoef, ico_size, icoShader );
+				CG_DrawPic( (SCREEN_WIDTH-(ico_size*1.1)*cgs.widthRatioCoef) + xOffset, y, ico_size*cgs.widthRatioCoef, ico_size, icoShader );
 	
 				y += ico_size;
 
 				if (j != PW_REDFLAG && j != PW_BLUEFLAG && secondsleft < 999)
 				{
-					UI_DrawProportionalString((640-(ico_size*1.1)*cgs.widthRatioCoef)+(ico_size/2*cgs.widthRatioCoef) + xOffset, y-8, va("%i", secondsleft), UI_CENTER | UI_BIGFONT | UI_DROPSHADOW, colorTable[CT_WHITE]);
+					UI_DrawProportionalString((SCREEN_WIDTH-(ico_size*1.1)*cgs.widthRatioCoef)+(ico_size/2*cgs.widthRatioCoef) + xOffset, y-8, va("%i", secondsleft), UI_CENTER | UI_BIGFONT | UI_DROPSHADOW, colorTable[CT_WHITE]);
 				}
 
 				y += (ico_size/3);
@@ -4221,12 +4221,12 @@ static void CG_DrawDisconnect( void ) {
 		return;	//we don't need that msg in demos
 	if (cg.mMapChange) {			
 		s = CG_GetStringEdString("MP_INGAME", "SERVER_CHANGING_MAPS");	// s = "Server Changing Maps";			
-		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
-		CG_DrawBigString( 320 - w/2, 100, s, 1.0F);
+		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH*cgs.widthRatioCoef;
+		CG_DrawBigString( SCREEN_WIDTH / 2 - w/2, 100, s, 1.0F);
 
 		s = CG_GetStringEdString("MP_INGAME", "PLEASE_WAIT");	// s = "Please wait...";
-		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
-		CG_DrawBigString( 320 - w/2, 200, s, 1.0F);
+		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH*cgs.widthRatioCoef;
+		CG_DrawBigString( SCREEN_WIDTH / 2 - w/2, 200, s, 1.0F);
 		return;
 	}
 
@@ -4240,18 +4240,18 @@ static void CG_DrawDisconnect( void ) {
 
 	// also add text in center of screen
 	s = CG_GetStringEdString("MP_INGAME", "CONNECTION_INTERRUPTED"); // s = "Connection Interrupted"; // bk 010215 - FIXME
-	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
-	CG_DrawBigString( 320 - w/2, 100, s, 1.0F);
+	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH*cgs.widthRatioCoef;
+	CG_DrawBigString( SCREEN_WIDTH / 2 - w/2, 100, s, 1.0F);
 
 	// blink the icon
 	if ( ( cg.time >> 9 ) & 1 ) {
 		return;
 	}
 
-	x = 640 - 48;
-	y = 480 - 48;
+	x = SCREEN_WIDTH - 48*cgs.widthRatioCoef;
+	y = SCREEN_HEIGHT - 48;
 
-	CG_DrawPic( x, y, 48, 48, trap_R_RegisterShader("gfx/2d/net.tga" ) );
+	CG_DrawPic( x, y, 48*cgs.widthRatioCoef, 48, trap_R_RegisterShader("gfx/2d/net.tga" ) );
 }
 
 
@@ -4278,8 +4278,8 @@ static void CG_DrawLagometer( void ) {
 	//
 	// draw the graph
 	//
-	x = 640 - 48*cgs.widthRatioCoef;
-	y = 480 - 165;
+	x = SCREEN_WIDTH - 48*cgs.widthRatioCoef;
+	y = SCREEN_HEIGHT - 165;
 
 	trap_R_SetColor( NULL );
 	CG_DrawPic( x, y, 48*cgs.widthRatioCoef, 48, cgs.media.lagometerShader );
@@ -5116,13 +5116,13 @@ CG_DrawCrosshair
 
 float cg_crosshairPrevPosX = 0;
 float cg_crosshairPrevPosY = 0;
-#define CRAZY_CROSSHAIR_MAX_ERROR_X	(100.0f*640.0f/480.0f)
+#define CRAZY_CROSSHAIR_MAX_ERROR_X	(100.0f*SCREEN_WIDTH/SCREEN_HEIGHT)
 #define CRAZY_CROSSHAIR_MAX_ERROR_Y	(100.0f)
 void CG_LerpCrosshairPos( float *x, float *y )
 {
 	if ( cg_crosshairPrevPosX )
 	{//blend from old pos
-		float maxMove = 30.0f * ((float)cg.frametime/500.0f) * 640.0f/480.0f;
+		float maxMove = 30.0f * ((float)cg.frametime/500.0f) * (float)SCREEN_WIDTH/(float)SCREEN_HEIGHT;
 		float xDiff = (*x - cg_crosshairPrevPosX);
 		if ( fabs(xDiff) > CRAZY_CROSSHAIR_MAX_ERROR_X )
 		{
@@ -5224,8 +5224,8 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 			return;
 		}
 		//CG_LerpCrosshairPos( &x, &y );
-		x -= 320;
-		y -= 240;
+		x -= SCREEN_WIDTH / 2;
+		y -= SCREEN_HEIGHT / 2;
 	} else {
 		x = cg_crosshairX.integer;
 		y = cg_crosshairY.integer;
@@ -5234,8 +5234,8 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 	if (!hShader)
 		hShader = cgs.media.crosshairShader[cg_drawCrosshair.integer % NUM_CROSSHAIRS];
 
-	chX = x + cg.refdef.x + 0.5 * (640 - w*cgs.widthRatioCoef);
-	chY = y + cg.refdef.y + 0.5 * (480 - h);
+	chX = x + (float)cg.refdef.x + 0.5f * ((float)SCREEN_WIDTH - w*cgs.widthRatioCoef);
+	chY = y + (float)cg.refdef.y + 0.5f * ((float)SCREEN_HEIGHT - h);
 	trap_R_DrawStretchPic(chX, chY, w*cgs.widthRatioCoef, h, 0, 0, 1, 1, hShader);
 
 	//draw a health bar directly under the crosshair if we're looking at something
@@ -5282,8 +5282,8 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 		w *= 2.0f;
 		h *= 2.0f;
 
-		trap_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (640 - w*cgs.widthRatioCoef), 
-			y + cg.refdef.y + 0.5 * (480 - h), 
+		trap_R_DrawStretchPic( x + (float)cg.refdef.x + 0.5f * ((float)SCREEN_WIDTH - w*cgs.widthRatioCoef), 
+			y + (float)cg.refdef.y + 0.5f * ((float)SCREEN_HEIGHT - h), 
 			w*cgs.widthRatioCoef, h, 0, 0, 1, 1, cgs.media.forceCoronaShader );
 	}
 
@@ -5302,8 +5302,8 @@ qboolean CG_WorldCoordToScreenCoordFloat(vec3_t worldCoord, float *x, float *y) 
 	
     VectorSubtract(worldCoord, cg.refdef.vieworg, trans);
    
-    xc = 640 / 2.0;
-    yc = 480 / 2.0;
+    xc = SCREEN_WIDTH / 2.0f;
+    yc = SCREEN_HEIGHT / 2.0f;
     
 	// z = how far is the object in our forward direction
     z = DotProduct(trans, cg.refdef.viewaxis[0]);
@@ -5645,7 +5645,9 @@ static void CG_DrawHolocronIcons(void) {
 	int endx = icon_size;
 	int endy = icon_size;
 
-	if (cg.snap->ps.zoomMode) {
+	int holocronBits = cg.playerPredicted ? cg.snap->ps.holocronBits : cg.playerCent->currentState.time2;
+
+	if (cg.zoomMode) {
 	//don't display over zoom mask
 		return;
 	}
@@ -5654,7 +5656,7 @@ static void CG_DrawHolocronIcons(void) {
 	}
 
 	while (i < NUM_FORCE_POWERS) {
-		if (cg.snap->ps.holocronBits & (1 << forcePowerSorted[i])) {
+		if (holocronBits & (1 << forcePowerSorted[i])) {
 			CG_DrawPic( startx, starty, endx*cgs.widthRatioCoef, endy, cgs.media.forcePowerIcons[forcePowerSorted[i]]);
 			starty += icon_size+2; //+2 for spacing
 			if ((starty+icon_size) >= SCREEN_HEIGHT-100) {
@@ -5884,7 +5886,7 @@ static void CG_DrawRocketLocking( int lockEntNum, int lockTime )
 		if (dif == 8) {
 			//since we have hardcoded rotated pic with ratio fix above,
 			//we want undepended (on mov_ratioFix) hardcoded coef here too
-			float ratioFix = (640.0*cgs.glconfig.vidHeight) / (480.0*cgs.glconfig.vidWidth);
+			float ratioFix = ((float)SCREEN_WIDTH*cgs.glconfig.vidHeight) / ((float)SCREEN_HEIGHT*cgs.glconfig.vidWidth);
 			color[0] = color[1] = color[2] = sin(cg.time * 0.05 + cg.timeFraction * 0.05) * 0.5f + 0.5f;
 			color[3] = 1.0f; // this art is additive, so the alpha value does nothing
 
@@ -6824,7 +6826,7 @@ static qboolean CG_DrawFollow( void ) {
 	CG_Text_Paint ( 320 - CG_Text_Width ( s, 2.0f, FONT_MEDIUM ) / 2, 80, 2.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM );
 */
 	strcat( s, va(": %s", cgs.clientinfo[ cg.snap->ps.clientNum ].name));
-	CG_Text_Paint ( 320 - CG_Text_Width ( s, 0.5f, FONT_LARGE ) / 2, 1, 0.5f, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWED, FONT_LARGE );
+	CG_Text_Paint ( 320 - CG_Text_Width ( s, 0.7f, FONT_LARGE ) / 2, 1, 0.7f, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWED, FONT_LARGE );
 	return qtrue;
 }
 
@@ -7132,7 +7134,7 @@ void CG_DrawJetpackFuel(void)
 	vec4_t aColor;
 	vec4_t bColor;
 	vec4_t cColor;
-	float x = 640 - (640 - JPFUELBAR_X)*cgs.widthRatioCoef;
+	float x = SCREEN_WIDTH - (SCREEN_WIDTH - JPFUELBAR_X)*cgs.widthRatioCoef;
 	float y = JPFUELBAR_Y;
 	float percent = ((float)cg.snap->ps.jetpackFuel/100.0f)*JPFUELBAR_H;
 
@@ -8249,6 +8251,9 @@ void CG_Draw2D (void) {
 		return;
 	else if (!cg.playerPredicted) {
 		cg.scoreBoardShowing = qfalse;
+		CG_Draw2DScreenTints();
+		if (cg.playerCent->currentState.time2)
+			CG_DrawHolocronIcons();
 		if (cg.playerCent->currentState.forcePowersActive)
 			CG_DrawActivePowers();
 		CG_DrawZoomMask();

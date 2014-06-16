@@ -655,7 +655,7 @@ itemInfo_t			cg_items[MAX_ITEMS];
 
 static void CG_Set2DRatio(void) {
 	if (mov_ratioFix.integer)
-		cgs.widthRatioCoef = (640.0*cgs.glconfig.vidHeight) / (480.0*cgs.glconfig.vidWidth);
+		cgs.widthRatioCoef = (float)(SCREEN_WIDTH * cgs.glconfig.vidHeight) / (float)(SCREEN_HEIGHT * cgs.glconfig.vidWidth);
 	else
 		cgs.widthRatioCoef = 1.0f;
 }
@@ -3075,8 +3075,8 @@ Ghoul2 Insert End
 
 	// get the rendering configuration from the client system
 	trap_GetGlconfig( &cgs.glconfig );
-	cgs.screenXScale = cgs.glconfig.vidWidth / 640.0;
-	cgs.screenYScale = cgs.glconfig.vidHeight / 480.0;
+	cgs.screenXScale = cgs.glconfig.vidWidth / (float)SCREEN_WIDTH;
+	cgs.screenYScale = cgs.glconfig.vidHeight / (float)SCREEN_HEIGHT;
 
 	// get the gamestate from the client system
 	trap_GetGameState( &cgs.gameState );
