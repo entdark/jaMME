@@ -819,7 +819,9 @@ typedef struct {
 	qboolean	renderingThirdPerson;		// during deaths, chasecams, etc
 	qboolean	trueView;
 	qboolean	playerPredicted;
-	centity_t		*playerCent;			// mme var for clients to chase
+	centity_t		*playerCent;
+
+	qboolean	zoomMode;
 
 	// prediction state
 	qboolean	hyperspace;				// true if prediction has hit a trigger_teleport

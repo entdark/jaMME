@@ -1299,7 +1299,7 @@ static int CG_CalcFov( void ) {
 	float	f;
 	int		inwater;
 	//[TrueView]
-	float cgFov;
+	float	cgFov;
 	//float	cgFov = cg_fov.value;
 	
 	if(cg.playerPredicted && (!cg.renderingThirdPerson
@@ -1346,9 +1346,7 @@ static int CG_CalcFov( void ) {
 		}
 
 		//will probably only work with base and base-based mods
-		if (!cg.playerPredicted
-			&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-			|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4)) {
+		if (!cg.playerPredicted && cg.zoomMode) {
 			fov_x *= 0.46f;
 			goto notZoom;
 		}
@@ -2221,10 +2219,7 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 	}
 	else
 	{
-		qboolean zoomOn = (cg.playerCent && ((cg.playerPredicted && cg.predictedPlayerState.zoomMode)
-			|| (!cg.playerPredicted
-			&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-			|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))));
+		qboolean zoomOn = (cg.playerCent && cg.zoomMode);
 		//[TrueView]
 		if(cg.playerPredicted && (!cg.renderingThirdPerson 
 			&& (cg.trueView
@@ -3082,6 +3077,8 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 	cg.trueView = (cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaber.integer)
 		|| (cg.playerCent->currentState.weapon == WP_MELEE && cg_trueMelee.integer)
 		|| (cg.playerCent->currentState.weapon != WP_SABER && cg.playerCent->currentState.weapon != WP_MELEE && cg_trueGuns.integer);
+	cg.zoomMode = cg.snap->ps.zoomMode || cg.predictedPlayerState.zoomMode;
+	cg.fallingToDeath = cg.snap->ps.fallingToDeath;
 	CG_SetPredictedThirdPerson();
 
 	// build cg.refdef
@@ -3214,14 +3211,12 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 //[TrueView]
 //Checks to see if the current camera position is valid based on the last known safe location.  If it's not safe, place
 //the camera at the last position safe location
-void CheckCameraLocation( vec3_t OldeyeOrigin )  
-{
+void CheckCameraLocation( vec3_t OldeyeOrigin ) {
 	trace_t			trace;
 //	refdef_t *refdef = &cg.refdef;//CG_GetRefdef();
 
 	CG_Trace(&trace, OldeyeOrigin, cameramins, cameramaxs, cg.refdef.vieworg, cg.playerCent->currentState.number, GetCameraClip());
-	if (trace.fraction <= 1.0)
-	{
+	if (trace.fraction <= 1.0) {
 		VectorCopy(trace.endpos, cg.refdef.vieworg);
 	}
 }

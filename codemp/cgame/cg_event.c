@@ -2723,14 +2723,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			|| (!cg.playerPredicted
 			&& es->number == cg.playerCent->currentState.number))
 		{
-			if ((cg.playerPredicted && cg.snap->ps.zoomMode)
-				|| (!cg.playerPredicted && (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-				|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4)))
-			{
+			if (cg.zoomMode) {
 				trap_S_StartLocalSound(trap_S_RegisterSound("sound/weapons/disruptor/zoomstart.wav"), CHAN_AUTO);
-			}
-			else
-			{
+			} else {
 				trap_S_StopSound(cg.playerCent->currentState.number, CHAN_WEAPON, cg_weapons[WP_DISRUPTOR].altChargeSound);
 				trap_S_StartLocalSound(trap_S_RegisterSound("sound/weapons/disruptor/zoomend.wav"), CHAN_AUTO);
 			}

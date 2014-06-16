@@ -165,18 +165,16 @@ void CG_SetPredictedThirdPerson(void) {
 		|| BG_InGrappleMove(cg.predictedPlayerState.legsAnim)
 
 		|| (cg.predictedPlayerState.forceHandExtend == HANDEXTEND_KNOCKDOWN 
-		&& ((cg.playerCent->currentState.weapon == WP_SABER && !cg.trueView)
-		|| (cg.playerCent->currentState.weapon != WP_SABER && !cg.trueView)))
+		&& !cg.trueView)
 
 		|| (cg.predictedPlayerState.fallingToDeath)
 		|| cg.predictedPlayerState.m_iVehicleNum
 
 		|| (PM_InKnockDown(&cg.predictedPlayerState)
-		&& ((cg.playerCent->currentState.weapon == WP_SABER && !cg.trueView)
-		|| (cg.playerCent->currentState.weapon != WP_SABER && !cg.trueView))))
+		&& !cg.trueView))
 
 		&& !cg_fpls.integer)
-		&& !cg.snap->ps.zoomMode;
+		&& !cg.zoomMode;
 
 	if (cg.predictedPlayerState.pm_type == PM_SPECTATOR) { //always first person for spec
 		cg.renderingThirdPerson = 0;
@@ -228,14 +226,18 @@ static int demoSetupView( void) {
 					//Make sure lerporigin of playercent is val
 					CG_CalcEntityLerpPositions( cg.playerCent );
 				}
-				if (cg.playerPredicted)
+				if (cg.playerPredicted) {
+					cg.zoomMode = cg.snap->ps.zoomMode || cg.predictedPlayerState.zoomMode;
 					CG_SetPredictedThirdPerson();
-				else
+				} else {
+					cg.zoomMode = cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+						|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4;
 					cg.renderingThirdPerson = ((cg_thirdPerson.integer || cent->currentState.eFlags & EF_DEAD
-						|| (cg.playerCent->currentState.weapon == WP_SABER && !cg.trueView)
-						|| (cg.playerCent->currentState.weapon == WP_MELEE && !cg.trueView))
-						&& !(cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-						|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4));
+						|| (weapon == WP_SABER && !cg.trueView)
+						|| (weapon == WP_MELEE && !cg.trueView)
+						|| cg.fallingToDeath)
+						&& !cg.zoomMode);
+				}
 				inwater = CG_DemosCalcViewValues();
 				// first person blend blobs, done after AnglesToAxis
 				if ( !cg.renderingThirdPerson && cg.predictedPlayerState.pm_type != PM_SPECTATOR) {
@@ -803,10 +805,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		&& (cg.renderingThirdPerson
 		|| demo.chase.distance > mov_chaseRange.value))) {
 		trap_R_SetRangeFog(0.0f);
-	} else if ((cg.playerPredicted && cg.predictedPlayerState.zoomMode)
-		|| (!cg.playerPredicted
-		&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-		|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))) {
+	} else if (cg.zoomMode) {
 		//zooming with binoculars or sniper, set the fog range based on the zoom level -rww
 		cg_rangedFogging = qtrue;
 		//smaller the fov the less fog we have between the view and cull dist

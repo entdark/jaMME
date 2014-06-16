@@ -322,10 +322,7 @@ static void CG_DrawZoomMask( void )
 			flip = !flip;
 		}
 	}
-	else if (cg.playerPredicted && cg.predictedPlayerState.zoomMode
-		|| (!cg.playerPredicted
-		&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-		|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4)))
+	else if (cg.zoomMode)
 	{
 		// disruptor zoom mode
 		level = (float)(50.0f - zoomFov) / 50.0f;//(float)(80.0f - zoomFov) / 80.0f;
@@ -340,9 +337,7 @@ static void CG_DrawZoomMask( void )
 			level = 1.0f;
 		}
 
-		if (!cg.playerPredicted
-			&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-			|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))
+		if (!cg.playerPredicted)
 			level = 0.46f;
 
 		// Using a magic number to convert the zoom level to a rotation amount that correlates more or less with the zoom artwork. 
@@ -431,24 +426,21 @@ static void CG_DrawZoomMask( void )
 
 		for (fi = 18.5f; fi <= 18.5f + max; fi+= 3 ) // going from 15 to 45 degrees, with 5 degree increments
 		{
-			cx = 320 + sin( (fi+90.0f)/57.296f ) * 190;
-			cy = 240 + cos( (fi+90.0f)/57.296f ) * 190;
+			cx = SCREEN_WIDTH / 2 + sin( (fi+90.0f)/57.296f ) * 190;
+			cy = SCREEN_HEIGHT / 2 + cos( (fi+90.0f)/57.296f ) * 190;
 
 			CG_DrawRotatePic2( cx, cy, 12, 24, 90 - fi, cgs.media.disruptorInsertTick );
 		}
 
 		if ((cg.playerPredicted && cg.predictedPlayerState.weaponstate == WEAPON_CHARGING_ALT)
-			|| (!cg.playerPredicted
-			&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-			|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4) && cg.charging
-			&& cg.chargeTime && cg.time > cg.chargeTime))
+			|| (!cg.playerPredicted && cg.charging && cg.chargeTime && cg.time > cg.chargeTime))
 		{
 			trap_R_SetColor( colorTable[CT_WHITE] );
 
 			// draw the charge level
 			if (cg.playerPredicted)
 				max = ((cg.time - cg.predictedPlayerState.weaponChargeTime) + cg.timeFraction) / (50.0f * 30.0f); // bad hardcodedness 50 is disruptor charge unit and 30 is max charge units allowed.
-			else if (cg.time > cg.chargeTime && cg.chargeTime)
+			else
 				max = ((cg.time - cg.chargeTime) + cg.timeFraction) / (50.0f * 30.0f);
 
 			if ( max > 1.0f )
@@ -5188,10 +5180,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 		return;
 
 	//not while scoped
-	if ((cg.playerPredicted && cg.predictedPlayerState.zoomMode != 0)
-		|| (!cg.playerPredicted
-		&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-		|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))) {
+	if (cg.zoomMode) {
 		return;
 	}
 
@@ -5702,11 +5691,8 @@ static void CG_DrawActivePowers(void) {
 	int endx = icon_size;
 	int endy = icon_size;
 
-	if ((cg.playerPredicted && cg.snap->ps.zoomMode)
-		|| (!cg.playerPredicted
-		&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-		|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4)))
-	{ //don't display over zoom mask
+	//don't display over zoom mask
+	if (cg.zoomMode) {
 		return;
 	}
 
@@ -8201,7 +8187,8 @@ void CG_Draw2D (void) {
 
 	if (mov_fragsOnly.integer != 0) {
 		CG_SaberClashFlare();
-		if(!cg.renderingThirdPerson && mov_fragsOnly.integer == 2)CG_DrawZoomMask();
+		if(!cg.renderingThirdPerson && mov_fragsOnly.integer == 2)
+			CG_DrawZoomMask();
 		if (cg.playerPredicted)
 			CG_DrawReward();
 		CG_DrawCenterString();

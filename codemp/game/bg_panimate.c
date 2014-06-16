@@ -3022,61 +3022,46 @@ void BG_SetAnim(playerState_t *ps, animation_t *animations, int setAnimParts,int
 	BG_SetAnimFinal(ps, animations, setAnimParts, anim, setAnimFlags, blendTime);
 }
 
-void PM_SetAnim(int setAnimParts,int anim,int setAnimFlags, int blendTime)
-{	
+void PM_SetAnim(int setAnimParts,int anim,int setAnimFlags, int blendTime) {	
 	BG_SetAnim(pm->ps, pm->animations, setAnimParts, anim, setAnimFlags, blendTime);
 }
 
 
-float BG_GetTorsoAnimPoint(playerState_t * ps, int AnimIndex)
-{
+//[AnimationSys]
+float BG_GetTorsoAnimPoint(playerState_t *ps, int AnimIndex) {
 	float attackAnimLength = 0;
 	float currentPoint = 0;
 	float animSpeedFactor = 1.0f;
-	float animPercentage = 0;
 
 	//Be sure to scale by the proper anim speed just as if we were going to play the animation
 	BG_SaberStartTransAnim(ps->clientNum, ps->fd.saberAnimLevel, ps->weapon, ps->torsoAnim, &animSpeedFactor, ps->brokenLimbs);
 
-	if( animSpeedFactor > 0 )
-	{
-		attackAnimLength = (bgAllAnims[AnimIndex].anims[ps->legsAnim].numFrames-1) * fabs((float)(bgAllAnims[AnimIndex].anims[ps->legsAnim].frameLerp)) * (1/animSpeedFactor);
+	if (animSpeedFactor > 0) {
+		attackAnimLength = (bgAllAnims[AnimIndex].anims[ps->torsoAnim].numFrames-1) * fabs((float)(bgAllAnims[AnimIndex].anims[ps->torsoAnim].frameLerp)) * (1/animSpeedFactor);
 		attackAnimLength--;
 	}
 
 	currentPoint = ps->torsoTimer;
 
-	animPercentage = currentPoint/attackAnimLength;
-
-
-	//Com_Printf("%f\n", animPercentage);
-
-	return animPercentage;
+	return currentPoint / attackAnimLength;
 }
 
 
-float BG_GetLegsAnimPoint(playerState_t * ps, int AnimIndex)
-{
+float BG_GetLegsAnimPoint(playerState_t * ps, int AnimIndex) {
 	float attackAnimLength = 0;
 	float currentPoint = 0;
 	float animSpeedFactor = 1.0f;
-	float animPercentage = 0;
 
 	//Be sure to scale by the proper anim speed just as if we were going to play the animation
 	BG_SaberStartTransAnim(ps->clientNum, ps->fd.saberAnimLevel, ps->weapon, ps->legsAnim, &animSpeedFactor, ps->brokenLimbs);
 
-	if( animSpeedFactor > 0 )
-	{
+	if (animSpeedFactor > 0) {
 		attackAnimLength = (bgAllAnims[AnimIndex].anims[ps->legsAnim].numFrames-1) * fabs((float)(bgAllAnims[AnimIndex].anims[ps->legsAnim].frameLerp)) * (1/animSpeedFactor);
 		attackAnimLength--;
 	}
 
 	currentPoint = ps->legsTimer;
 
-	animPercentage = currentPoint/attackAnimLength;
-
-	//Com_Printf("%f\n", animPercentage);
-
-	return animPercentage;
+	return currentPoint / attackAnimLength;
 }
 //[/AnimationSys]

@@ -415,7 +415,7 @@ qboolean CG_ParseSurfsFile( const char *modelName, const char *skinName, char *s
 
 //[TrueView]
 //Warning flag for models that are incompatible with True View
-qboolean	trueviewwarning = qfalse;
+static qboolean trueviewwarning = qfalse;
 //[/TrueView]
 
 /*
@@ -9275,7 +9275,7 @@ void SmoothTrueView(vec3_t eyeAngles) {
 	qboolean	eyeRange = qtrue;
 	qboolean	UseRefDef = qfalse;
 	qboolean	DidSpecial = qfalse;
-	refdef_t *refdef = &cg.refdef;//CG_GetRefdef();
+	refdef_t	*refdef = &cg.refdef;//CG_GetRefdef();
 
 	if (!cg.playerCent)
 		return;
@@ -10015,11 +10015,7 @@ void CG_Player( centity_t *cent ) {
 			if (!cg_fpls.integer || cent->currentState.weapon != WP_SABER)
 #else
 			//[TrueView]
-			if (!cg.trueView
-				|| ((cg.predictedPlayerState.zoomMode && cg.playerPredicted)
-				|| (!cg.playerPredicted
-				&& (cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-				|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4))))
+			if (!cg.trueView || cg.zoomMode)
 			//[/TrueView]
 #endif
 			{
@@ -10865,10 +10861,6 @@ SkipTrueView:
 			|| cg.playerCent->currentState.weapon == WP_SABER
 			|| cg.playerCent->currentState.weapon == WP_MELEE))
 			|| cg.trueView))
-		/*
-		if ( (cent->currentState.forcePowersActive & (1 << FP_GRIP)) &&
-			(cg.renderingThirdPerson || cent->currentState.number != cg.snap->ps.clientNum) )
-		*/
 		//[/TrueView]
 		{
 			vec3_t boltDir;
@@ -11099,7 +11091,6 @@ SkipTrueView:
 			|| (cg.playerCent && (cg.playerCent->currentState.weapon == WP_SABER
 			|| cg.playerCent->currentState.weapon == WP_MELEE))
 		|| cg.playerCent != cent))
-	//if (cgs.gametype == GT_HOLOCRON && cent->currentState.time2 && (cg.renderingThirdPerson || cg.snap->ps.clientNum != cent->currentState.number))
 	//[/TrueView]
 	{
 		int i = 0;
