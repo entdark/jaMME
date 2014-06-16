@@ -462,8 +462,8 @@ typedef struct shader_s {
 	short		numUnfoggedPasses;
 	shaderStage_t	*stages;		
 
-  float clampTime;                                  // time this shader is clamped to
-  float timeOffset;                                 // current time offset for this shader
+  double clampTime;                                  // time this shader is clamped to
+  double timeOffset;                                 // current time offset for this shader
 
 	// True if this shader has a stage with glow in it (just an optimization).
 	bool hasGlow;
@@ -528,7 +528,7 @@ typedef struct {
 	byte		areamask[MAX_MAP_AREA_BYTES];
 	qboolean	areamaskModified;	// qtrue if areamask changed since last scene
 
-	float		floatTime;			// tr.refdef.time / 1000.0
+	double		floatTime;			// tr.refdef.time / 1000.0
 
 	// text messages for deform text shaders
 	char		text[MAX_RENDER_STRINGS][MAX_RENDER_STRING_LENGTH];
@@ -1552,7 +1552,7 @@ struct shaderCommands_s
 	stageVars_t	svars;
 
 	shader_t	*shader;
-	float		shaderTime;
+	double		shaderTime;
 	int			fogNum;
 
 	int			dlightBits;	// or together of all vertexDlightBits

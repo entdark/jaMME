@@ -779,7 +779,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	int				i;
 	drawSurf_t		*drawSurf;
 	uint64_t		oldSort;
-	float			originalTime;
+	double			originalTime;
 	trRefEntity_t	*curEnt;
 	postRender_t	*pRender;
 	bool			didShadowPass = false;
@@ -1312,7 +1312,7 @@ void	RB_SetGL2D (void) {
 
 	// set time for 2D shaders
 	backEnd.refdef.time = ri.Milliseconds()*ri.Cvar_VariableValue( "timescale" );
-	backEnd.refdef.floatTime = backEnd.refdef.time * 0.001f;
+	backEnd.refdef.floatTime = backEnd.refdef.time * 0.001;
 }
 
 
@@ -2002,14 +2002,14 @@ again:
 			if ( (int)data == NULL)
 				goto again;
 			break;
-		case RC_VIDEOFRAME:
-			data = RB_TakeVideoFrameCmd( data );
-			break;
 		case RC_WORLD_EFFECTS:
 			data = RB_WorldEffects( data );
 			break;
 		case RC_AUTO_MAP:
 			data = R_DrawWireframeAutomap(data);
+			break;
+		case RC_SCREENSHOT:
+			data = RB_ScreenShotCmd( data );
 			break;
 		case RC_CAPTURE:
 			data = R_MME_CaptureShotCmd( data );

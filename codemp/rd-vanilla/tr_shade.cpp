@@ -213,7 +213,7 @@ R_BindAnimatedImage
 
 // de-static'd because tr_quicksprite wants it
 void R_BindAnimatedImage( textureBundle_t *bundle ) {
-	int		index;
+	uint64_t index;
 
 	if ( bundle->isVideoMap ) {
 		ri.CIN_RunCinematic(bundle->videoMapHandle);
@@ -221,8 +221,7 @@ void R_BindAnimatedImage( textureBundle_t *bundle ) {
 		return;
 	}
 
-	if ((r_fullbright->value /*|| tr.refdef.doFullbright */) && bundle->isLightmap)
-	{
+	if ((r_fullbright->value /*|| tr.refdef.doFullbright */) && bundle->isLightmap) {
 		GL_Bind( tr.whiteImage );
 		return;
 	}
@@ -232,37 +231,27 @@ void R_BindAnimatedImage( textureBundle_t *bundle ) {
 		return;
 	}
 
-	if (backEnd.currentEntity->e.renderfx & RF_SETANIMINDEX )
-	{
+	if (backEnd.currentEntity->e.renderfx & RF_SETANIMINDEX ) {
 		index = backEnd.currentEntity->e.skinNum;
-	}
-	else
-	{
+	} else {
 		// it is necessary to do this messy calc to make sure animations line up
 		// exactly with waveforms of the same frequency
-		index = Q_ftol( tess.shaderTime * bundle->imageAnimationSpeed * FUNCTABLE_SIZE );
-		index >>= FUNCTABLE_SIZE2;
-
-		if ( index < 0 ) {
-			index = 0;	// may happen with shader time offsets
-		}
+//		index = Q_dutol( tess.shaderTime * bundle->imageAnimationSpeed * FUNCTABLE_SIZE );
+//		index >>= FUNCTABLE_SIZE2;
+		index = (uint64_t)(tess.shaderTime * (double)bundle->imageAnimationSpeed * (double)FUNCTABLE_SIZE / 1024.0);
 	}
 
-	if ( bundle->oneShotAnimMap )
-	{
-		if ( index >= bundle->numImageAnimations )
-		{
+	if ( bundle->oneShotAnimMap ) {
+		if ( index >= bundle->numImageAnimations ) {
 			// stick on last frame
 			index = bundle->numImageAnimations - 1;
 		}
-	}
-	else
-	{
+	} else {
 		// loop
 		index %= bundle->numImageAnimations;
 	}
 
-	GL_Bind( *((image_t**)bundle->image + index) );
+	GL_Bind( *((image_t**)bundle->image + (int)index) );
 }
 
 /*
@@ -2075,11 +2064,15 @@ void RB_EndSurface( void ) {
 
 	if ( tess.shader == tr.shadowShader ) {
 		RB_ShadowTessEnd();
+		tess.numIndexes = 0;
+		tess.numVertexes = 0;
 		return;
 	}
 
 	// for debugging of sort order issues, stop rendering after a given sort value
 	if ( r_debugSort->integer && r_debugSort->integer < tess.shader->sort ) {
+		tess.numIndexes = 0;
+		tess.numVertexes = 0;
 		return;
 	}
 
@@ -2134,7 +2127,7 @@ void RB_EndSurface( void ) {
 	}
 	// clear shader so we can tell we don't have any unclosed surfaces
 	tess.numIndexes = 0;
-
+	tess.numVertexes = 0;
 	GLimp_LogComment( "----------\n" );
 }
 
