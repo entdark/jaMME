@@ -487,7 +487,7 @@ void R_MME_InitStereo(void) {
 			workSize = 64;
 		else if (workSize > 512)
 			workSize = 512;
-		workSize *= 1024 * 1024;
+		workSize *= 1024 * 1024 / 2; //dividing by 2 because other half is used in stereo
 		workAlloc = (char *)calloc( workSize + 16, 1 );
 		if (!workAlloc) {
 			ri.Printf(PRINT_ALL, "Failed to allocate %d bytes for mme stereo work buffer\n", workSize );
