@@ -494,7 +494,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	static qboolean intermission = qfalse;
 	float stereoSep = CG_Cvar_Get( "r_stereoSeparation" );
 
-	int inwater;
+	int inwater, entityNum;
 	const char *cstr;
 	float mSensitivity = cg.zoomSensitivity;
 	float mPitchOverride = 0.0f;
@@ -918,9 +918,14 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		frameSpeed = 5;
 
 	trap_S_UpdatePitch( frameSpeed );
-	trap_S_Respatialize( cg.playerCent ? cg.playerCent->currentState.number : ENTITYNUM_NONE, cg.refdef.vieworg, cg.refdef.viewaxis, inwater);
-
-	CG_DrawActive( stereoView );
+	if (cg.playerCent && cg.predictedPlayerState.pm_type == PM_INTERMISSION) {
+		entityNum = cg.snap->ps.clientNum;
+	} else if (cg.playerCent) {
+		entityNum = cg.playerCent->currentState.number;
+	} else {
+		entityNum = ENTITYNUM_NONE;
+	}
+	trap_S_Respatialize( entityNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater);
 	
 	//Always!!! start with negative
 	if (captureFrame && stereoSep > 0.0f)
