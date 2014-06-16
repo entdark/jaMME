@@ -674,15 +674,14 @@ void demoDrawCrosshair( void ) {
 	w = h = cg_crosshairSize.value;
 	x = cg_crosshairX.integer;
 	y = cg_crosshairY.integer;
-	CG_AdjustFrom640( &x, &y, &w, &h );
 	ca = cg_drawCrosshair.integer;
 	if (ca < 0) {
 		ca = 0;
 	}
 	hShader = cgs.media.crosshairShader[ ca % NUM_CROSSHAIRS ];
-	trap_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (cg.refdef.width - w), 
-		y + cg.refdef.y + 0.5 * (cg.refdef.height - h), 
-		w, h, 0, 0, 1, 1, hShader );
+	trap_R_DrawStretchPic( x + (float)cg.refdef.x + 0.5f * ((float)SCREEN_WIDTH - w*cgs.widthRatioCoef), 
+		y + (float)cg.refdef.y + 0.5f * ((float)SCREEN_HEIGHT - h), 
+		w*cgs.widthRatioCoef, h, 0, 0, 1, 1, hShader );
 }
 
 void demoNowTrajectory( const trajectory_t *tr, vec3_t result ) {
@@ -725,7 +724,7 @@ void demoNowTrajectory( const trajectory_t *tr, vec3_t result ) {
 		if ( deltaTime > tr->trDuration || deltaTime <= 0  ) {
 			deltaTime = 0;
 		} else {//FIXME: maybe scale this somehow?  So that it starts out faster and stops faster?
-			deltaTime = tr->trDuration*0.001f*((float)cos( DEG2RAD(90.0f - (90.0f*(((cg.time-tr->trTime)+cg.timeFraction))/(float)tr->trDuration)) ));
+			deltaTime = tr->trDuration*0.001f*((float)cos( DEG2RAD(90.0f - (90.0f*(((float)(cg.time-tr->trTime)+cg.timeFraction))/(float)tr->trDuration)) ));
 		}
 		VectorMA( tr->trBase, deltaTime, tr->trDelta, result );
 		break;

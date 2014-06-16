@@ -964,8 +964,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		if ( mov_captureCamera.integer )
 			demoAddViewPos( fileName, demo.viewOrigin, demo.viewAngles, demo.viewFov );
 	} else {
-		if (demo.capture.active)
-			trap_Cvar_Set("cl_mme_capture", "0");
+		if (demo.editType && !cg.playerCent)
+			demoDrawCrosshair();
 		hudDraw();
 	}
 
