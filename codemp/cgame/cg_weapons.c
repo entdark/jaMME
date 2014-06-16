@@ -810,7 +810,6 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 	//[/TrueView]
 		vec3_t		origin;
 
-//		if ( cg.predictedPlayerState.eFlags & EF_FIRING ) {
 		if ( cg.playerCent->currentState.eFlags & EF_FIRING ) {
 			// special hack for lightning gun...
 			VectorCopy( cg.refdef.vieworg, origin );
