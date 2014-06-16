@@ -2041,7 +2041,8 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 				userinfo[MAX_INFO_STRING]={0},	buf[MAX_INFO_STRING]={0},		oldClientinfo[MAX_INFO_STRING]={0},
 				model[MAX_QPATH]={0},			forcePowers[MAX_QPATH]={0},		oldname[MAX_NETNAME]={0},
 				className[MAX_QPATH]={0},		color1[MAX_INFO_STRING]={0},	color2[MAX_INFO_STRING]={0};
-	qboolean	modelChanged = qfalse, female = qfalse;
+	qboolean	modelChanged = qfalse;
+	gender_t	gender = GENDER_MALE;
 
 	trap_GetUserinfo( clientNum, userinfo, sizeof( userinfo ) );
 
@@ -2252,8 +2253,12 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 
 	//Raz: Gender hints
 	s = Info_ValueForKey( userinfo, "sex" );
-	if ( !Q_stricmp( s, "female" ) )
-		female = qtrue;
+	if ( !Q_stricmp( s, "male" ) )
+		gender = GENDER_MALE;
+	else if ( !Q_stricmp( s, "female" ) )
+		gender = GENDER_FEMALE;
+	else
+		gender = GENDER_NEUTER;
 
 	// send over a subset of the userinfo keys so other clients can
 	// print scoreboards, display models, and play custom sounds
@@ -2261,7 +2266,9 @@ qboolean ClientUserinfoChanged( int clientNum ) {
 	Q_strcat( buf, sizeof( buf ), va( "n\\%s\\", client->pers.netname ) );
 	Q_strcat( buf, sizeof( buf ), va( "t\\%i\\", client->sess.sessionTeam ) );
 	Q_strcat( buf, sizeof( buf ), va( "model\\%s\\", model ) );
-	Q_strcat( buf, sizeof( buf ), va( "ds\\%c\\", female ? 'f' : 'm' ) );
+		 if ( gender == GENDER_MALE )	Q_strcat( buf, sizeof( buf ), va( "ds\\%c\\", 'm' ) );
+	else if ( gender == GENDER_FEMALE )	Q_strcat( buf, sizeof( buf ), va( "ds\\%c\\", 'f' ) );
+	else								Q_strcat( buf, sizeof( buf ), va( "ds\\%c\\", 'n' ) );
 	Q_strcat( buf, sizeof( buf ), va( "st\\%s\\", client->pers.saber1 ) );
 	Q_strcat( buf, sizeof( buf ), va( "st2\\%s\\", client->pers.saber2 ) );
 	Q_strcat( buf, sizeof( buf ), va( "c1\\%s\\", color1 ) );
