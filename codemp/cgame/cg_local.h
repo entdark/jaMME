@@ -1060,6 +1060,7 @@ Ghoul2 Insert End
 	qboolean			charging;
 
 	vec2_t				moveKeysPos;
+	int					fallingToDeath;
 } cg_t;
 
 #define MAX_TICS	14

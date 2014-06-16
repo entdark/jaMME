@@ -2903,7 +2903,6 @@ extern qboolean PM_InKnockDown( playerState_t *ps );
 int cg_siegeClassIndex = -2;
 
 extern void CG_SetPredictedThirdPerson(void);
-extern void CG_UpdateFallVector (void);
 extern void trap_S_UpdatePitch( float pitch );
 
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayback ) {
@@ -3137,6 +3136,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 		CG_AddTestModel();
 	}
 	cg.refdef.time = cg.time;
+	cg.refdef.timeFraction = 0.0f;
 	memcpy( cg.refdef.areamask, cg.snap->areamask, sizeof( cg.refdef.areamask ) );
 
 	// warning sounds when powerup is wearing off
@@ -3145,14 +3145,11 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 	// if there are any entities flagged as sound trackers and attached to other entities, update their sound pos
 	CG_UpdateSoundTrackers();
 
-	if (gCGHasFallVector)
-	{
+	if (gCGHasFallVector) {
 		vec3_t lookAng;
-
-		VectorSubtract(cg.snap->ps.origin, cg.refdef.vieworg, lookAng);
+		VectorSubtract(cg.playerCent->lerpOrigin, cg.refdef.vieworg, lookAng);
 		VectorNormalize(lookAng);
 		vectoangles(lookAng, lookAng);
-
 		VectorCopy(gCGFallVector, cg.refdef.vieworg);
 		AnglesToAxis(lookAng, cg.refdef.viewaxis);
 	}
@@ -3198,8 +3195,6 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 
 	// actually issue the rendering calls
 	CG_DrawActive( stereoView );
-
-	CG_UpdateFallVector();
 
 	CG_DrawAutoMap();
 

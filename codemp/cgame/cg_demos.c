@@ -483,43 +483,6 @@ extern qboolean cg_rangedFogging;
 
 extern int cg_siegeClassIndex;
 
-void CG_UpdateFallVector (void) {
-	if (!cg.playerPredicted || !cg.playerCent)
-		goto clearFallVector;
-
-	if (cg.snap->ps.fallingToDeath) {
-		float	fallTime; 
-		vec4_t	hcolor;
-
-		fallTime = (float)(cg.time - cg.snap->ps.fallingToDeath) + cg.timeFraction;
-
-		fallTime /= (float)(FALL_FADE_TIME/2.0f);
-
-		if (fallTime < 0)
-			fallTime = 0;
-		else if (fallTime > 1)
-			fallTime = 1;
-
-		hcolor[3] = fallTime;
-		hcolor[0] = 0;
-		hcolor[1] = 0;
-		hcolor[2] = 0;
-
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
-
-		if (!gCGHasFallVector) {
-			VectorCopy(cg.playerCent->lerpOrigin, gCGFallVector);
-			gCGHasFallVector = qtrue;
-		}
-	} else {
-		if (gCGHasFallVector) {
-clearFallVector:
-			gCGHasFallVector = qfalse;
-			VectorClear(gCGFallVector);
-		}
-	}
-}
-
 void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	int deltaTime;
 	qboolean hadSkip;
@@ -716,6 +679,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		cg.headEndTime = 0;
 		cg.headStartTime = 0;
 		cg.v_dmg_time = 0;
+		cg.fallingToDeath = 0;
 		trap_S_ClearLoopingSounds();
 	} else {
 		hadSkip = qfalse;
@@ -778,25 +742,29 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	CG_DemosUpdatePlayer( );
 	chaseUpdate( demo.play.time, demo.play.fraction );
 	cameraUpdate( demo.play.time, demo.play.fraction );
+	dofUpdate( demo.play.time, demo.play.fraction );
 #ifdef DEMO_ANIM
 	animUpdate( demo.play.time, demo.play.fraction );
 #endif
-
 	cg.clientFrame++;
+	// update cg.predictedPlayerState
 	CG_InterpolatePlayerState( qfalse );
 	if (CG_Piloting(cg.predictedPlayerState.m_iVehicleNum))
 		CG_InterpolateVehiclePlayerState( qfalse );
-	// generate and add the entity from the playerstate	
-//	CG_PredictPlayerState();
 	CG_CheckPlayerG2Weapons(&cg.predictedPlayerState, &cg_entities[cg.predictedPlayerState.clientNum]);
 	BG_PlayerStateToEntityState(&cg.predictedPlayerState, &cg_entities[cg.snap->ps.clientNum].currentState, qfalse);
-
 	cg_entities[cg.snap->ps.clientNum].currentValid = qtrue;
 	VectorCopy( cg_entities[cg.snap->ps.clientNum].currentState.pos.trBase, cg_entities[cg.snap->ps.clientNum].lerpOrigin );
 	VectorCopy( cg_entities[cg.snap->ps.clientNum].currentState.apos.trBase, cg_entities[cg.snap->ps.clientNum].lerpAngles );
 
 	inwater = demoSetupView();
 	CG_SetupFrustum();
+	
+	if (cg.playerPredicted)
+		cg.fallingToDeath = cg.snap->ps.fallingToDeath;
+	else if ((cg.playerCent && (cg.fallingToDeath + 5000) < cg.time
+		&& !(cg.playerCent->currentState.eFlags & EF_DEAD)) || !cg.playerCent)
+		cg.fallingToDeath = 0;
 
 	if (cg_linearFogOverride) {
 		trap_R_SetRangeFog(-cg_linearFogOverride);
@@ -926,15 +894,12 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	CG_UpdateSoundTrackers();
 
 	//do we need this?
-	if (gCGHasFallVector && cg.playerPredicted) {
+	if (gCGHasFallVector) {
 		vec3_t lookAng;
-		//broken fix
 		cg.renderingThirdPerson = qtrue;
-
 		VectorSubtract(cg.playerCent->lerpOrigin, cg.refdef.vieworg, lookAng);
 		VectorNormalize(lookAng);
 		vectoangles(lookAng, lookAng);
-
 		VectorCopy(gCGFallVector, cg.refdef.vieworg);
 		AnglesToAxis(lookAng, cg.refdef.viewaxis);
 	}
@@ -968,8 +933,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		vec4_t hcolor = {0, 0, 0, 0};
 		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 	}
-
-	CG_UpdateFallVector();
 
 	//those looping sounds in intermission are annoying
 	if (cg.predictedPlayerState.pm_type == PM_INTERMISSION && !intermission) {

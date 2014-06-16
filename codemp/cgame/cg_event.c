@@ -1649,9 +1649,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			break;
 		
 		if (!(mov_soundDisable.integer & SDISABLE_JUMP) && cg_jumpSounds.integer)
-		{
 			trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*jump1.wav" ) );
-		}
+
 		break;
 	case EV_ROLL:
 		DEBUGNAME("EV_ROLL");
@@ -2932,11 +2931,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			if (!(mov_soundDisable.integer & SDISABLE_TELESPAWN)) {
 				trap_S_StartSound(NULL, es->number, CHAN_AUTO, cgs.media.teleInSound);
 			}
-
+			
+			cg.fallingToDeath = 0;
+			
 			if (tr.fraction == 1)
-			{
 				break;
-			}
 			trap_FX_PlayEffectID(cgs.effects.mSpawn, pos, ang, -1, -1);
 		}
 		break;
@@ -2964,7 +2963,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 			if (tr.fraction == 1)
 				break;
-
 			trap_FX_PlayEffectID(cgs.effects.mSpawn, pos, ang, -1, -1);
 		}
 		break;
@@ -3537,6 +3535,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			trap_S_StartSound (NULL, es->clientNum, es->trickedentindex, cgs.gameSounds[ es->eventParm ] );
 		} else {
 			s = CG_ConfigString( CS_SOUNDS + es->eventParm );
+			if (!Q_stricmp(s, "*falling1.wav") && cg.playerCent
+				&& es->clientNum == cg.playerCent->currentState.number)
+				cg.fallingToDeath = cg.time;
 			trap_S_StartSound (NULL, es->clientNum, es->trickedentindex, CG_CustomSound( es->clientNum, s ) );
 		}
 		break;
