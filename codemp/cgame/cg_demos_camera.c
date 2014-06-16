@@ -694,7 +694,7 @@ void cameraMove(void) {
 		demo.camera.timeShift -= shift;
 		cameraPointShift( shift );
 	} else if ( demo.cmd.forwardmove > 0 ) {
-		if ( demo.camera.locked) {
+		if ( (demo.camera.flags & CAM_FOV) && !(demo.editType == editDof)) {
 			fov[0] -= demo.cmdDeltaAngles[YAW];
 			if (fov[0] < -180)
 				fov[0] = -180;
@@ -784,6 +784,10 @@ static qboolean cameraParseSmoothAngles(BG_XMLParse_t *parse,const char *line, v
 	demo.camera.smoothAngles = atoi( line );
 	return qtrue;
 }
+static qboolean cameraParseFlags(BG_XMLParse_t *parse,const char *line, void *data) {
+	demo.camera.flags = atoi( line );
+	return qtrue;
+}
 
 qboolean cameraParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data) {
 	static BG_XMLParseBlock_t cameraParseBlock[] = {
@@ -792,6 +796,7 @@ qboolean cameraParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fro
 		{"target",	0,					cameraParseTarget },
 		{"smoothPos",	0,				cameraParseSmoothPos },
 		{"smoothAngles",	0,			cameraParseSmoothAngles },
+		{"flags",	0,					cameraParseFlags },
 		{0, 0, 0}
 	};
 
@@ -811,6 +816,7 @@ void cameraSave( fileHandle_t fileHandle ) {
 	demoSaveLine( fileHandle, "\t<smoothAngles>%d</smoothAngles>\n", demo.camera.smoothAngles );
 	demoSaveLine( fileHandle, "\t<locked>%d</locked>\n", demo.camera.locked );
 	demoSaveLine( fileHandle, "\t<target>%d</target>\n", demo.camera.target );
+	demoSaveLine( fileHandle, "\t<flags>%d</flags>\n", demo.camera.flags );
 	while (point) {
 		demoSaveLine( fileHandle, "\t<point>\n");
 		demoSaveLine( fileHandle, "\t\t<time>%10d</time>\n", point->time );
