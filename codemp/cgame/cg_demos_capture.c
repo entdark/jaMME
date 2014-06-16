@@ -8,7 +8,7 @@ void demoSaveLine( fileHandle_t fileHandle, const char *fmt, ... ) {
 	int len;
 
 	va_start ( argptr, fmt );
-	len = _vsnprintf ( buf, sizeof(buf), fmt, argptr );
+	len = Q_vsnprintf ( buf, sizeof(buf), fmt, argptr );
 	va_end ( argptr );
 	trap_FS_Write( buf, len, fileHandle );
 }
@@ -280,6 +280,7 @@ static BG_XMLParseBlock_t loadBlock[] = {
 	{	"camera",	cameraParse,	0	},
 	{	"chase",	chaseParse,		0,	},
 	{	"line",		lineParse,		0,	},
+	{	"dof",		dofParse,		0	},
 	{	"capture",	captureParse,	0,	},
 	{	0,			0,				0,	},
 };
@@ -318,6 +319,7 @@ qboolean demoProjectSave( const char *baseName ) {
 	cameraSave( fileHandle );
 	chaseSave( fileHandle );
 	lineSave( fileHandle );
+	dofSave( fileHandle );
 	trap_FS_FCloseFile( fileHandle );
 	return qtrue;
 }

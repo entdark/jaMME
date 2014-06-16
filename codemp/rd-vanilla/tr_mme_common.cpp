@@ -336,3 +336,149 @@ void R_MME_BlurAccumShift( mmeBlurBlock_t *block  ) {
 		MME_AccumShiftMMX( block->accum, block->accum, block->count );
 	}
 }
+
+//Replace rad with _rad gogo includes
+/* Slightly stolen from blender */
+static void RE_jitterate1(float *jit1, float *jit2, int num, float _rad1) {
+	int i , j , k;
+	float vecx, vecy, dvecx, dvecy, x, y, len;
+
+	for (i = 2*num-2; i>=0 ; i-=2) {
+		dvecx = dvecy = 0.0;
+		x = jit1[i];
+		y = jit1[i+1];
+		for (j = 2*num-2; j>=0 ; j-=2) {
+			if (i != j){
+				vecx = jit1[j] - x - 1.0;
+				vecy = jit1[j+1] - y - 1.0;
+				for (k = 3; k>0 ; k--){
+					if( fabs(vecx)<_rad1 && fabs(vecy)<_rad1) {
+						len=  sqrt(vecx*vecx + vecy*vecy);
+						if(len>0 && len<_rad1) {
+							len= len/_rad1;
+							dvecx += vecx/len;
+							dvecy += vecy/len;
+						}
+					}
+					vecx += 1.0;
+
+					if( fabs(vecx)<_rad1 && fabs(vecy)<_rad1) {
+						len=  sqrt(vecx*vecx + vecy*vecy);
+						if(len>0 && len<_rad1) {
+							len= len/_rad1;
+							dvecx += vecx/len;
+							dvecy += vecy/len;
+						}
+					}
+					vecx += 1.0;
+
+					if( fabs(vecx)<_rad1 && fabs(vecy)<_rad1) {
+						len=  sqrt(vecx*vecx + vecy*vecy);
+						if(len>0 && len<_rad1) {
+							len= len/_rad1;
+							dvecx += vecx/len;
+							dvecy += vecy/len;
+						}
+					}
+					vecx -= 2.0;
+					vecy += 1.0;
+				}
+			}
+		}
+
+		x -= dvecx/18.0 ;
+		y -= dvecy/18.0;
+		x -= floor(x) ;
+		y -= floor(y);
+		jit2[i] = x;
+		jit2[i+1] = y;
+	}
+	memcpy(jit1,jit2,2 * num * sizeof(float));
+}
+
+static void RE_jitterate2(float *jit1, float *jit2, int num, float _rad2) {
+	int i, j;
+	float vecx, vecy, dvecx, dvecy, x, y;
+
+	for (i=2*num -2; i>= 0 ; i-=2){
+		dvecx = dvecy = 0.0;
+		x = jit1[i];
+		y = jit1[i+1];
+		for (j =2*num -2; j>= 0 ; j-=2){
+			if (i != j){
+				vecx = jit1[j] - x - 1.0;
+				vecy = jit1[j+1] - y - 1.0;
+
+				if( fabs(vecx)<_rad2) dvecx+= vecx*_rad2;
+				vecx += 1.0;
+				if( fabs(vecx)<_rad2) dvecx+= vecx*_rad2;
+				vecx += 1.0;
+				if( fabs(vecx)<_rad2) dvecx+= vecx*_rad2;
+
+				if( fabs(vecy)<_rad2) dvecy+= vecy*_rad2;
+				vecy += 1.0;
+				if( fabs(vecy)<_rad2) dvecy+= vecy*_rad2;
+				vecy += 1.0;
+				if( fabs(vecy)<_rad2) dvecy+= vecy*_rad2;
+
+			}
+		}
+
+		x -= dvecx/2 ;
+		y -= dvecy/2;
+		x -= floor(x) ;
+		y -= floor(y);
+		jit2[i] = x;
+		jit2[i+1] = y;
+	}
+	memcpy(jit1,jit2,2 * num * sizeof(float));
+}
+
+void R_MME_JitterTable(float *jitarr, int num) {
+	float jit2[12 + 256*2];
+	float x, _rad1, _rad2, _rad3;
+	int i;
+
+	if(num==0)
+		return;
+	if(num>256)
+		return;
+
+	_rad1=  1.0/sqrt((float)num);
+	_rad2= 1.0/((float)num);
+	_rad3= sqrt((float)num)/((float)num);
+
+	x= 0;
+	for(i=0; i<2*num; i+=2) {
+		jitarr[i]= x+ _rad1*(0.5-random());
+		jitarr[i+1]= ((float)i/2)/num +_rad1*(0.5-random());
+		x+= _rad3;
+		x -= floor(x);
+	}
+
+	for (i=0 ; i<24 ; i++) {
+		RE_jitterate1(jitarr, jit2, num, _rad1);
+		RE_jitterate1(jitarr, jit2, num, _rad1);
+		RE_jitterate2(jitarr, jit2, num, _rad2);
+	}
+	
+	/* finally, move jittertab to be centered around (0,0) */
+	for(i=0; i<2*num; i+=2) {
+		jitarr[i] -= 0.5;
+		jitarr[i+1] -= 0.5;
+	}
+	
+}
+
+#define FOCUS_CENTRE 128.0f //if focus is 128 or less than it starts blurring far obejcts very slowly
+
+float R_MME_FocusScale(float focus) {
+	return (focus < FOCUS_CENTRE) ? ((focus / FOCUS_CENTRE) * (1.0f + ((1.0f - (focus / FOCUS_CENTRE)) * (1.1f - 1.0f)))) : 1.0f; 
+}
+
+void R_MME_ClampDof(float *focus, float *radius) {
+	if (*radius <= 0.0f && *focus <= 0.0f) *radius = mme_dofRadius->value;
+	if (*radius < 0.0f) *radius = 0.0f;	
+	if (*focus <= 0.0f) *focus = mme_depthFocus->value;
+	if (*focus < 0.001f) *focus = 0.001f;
+}

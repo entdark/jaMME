@@ -1,3 +1,8 @@
+// Copyright (C) 2014 Scooper
+// Copyright (C) 2014 ent (enty, entdark, entd4rk)
+//
+// cg_demos_anim.c -- Creating player model's custom animation
+
 #include "cg_demos.h" 
 #include "ghoul2/G2.h"
 
@@ -464,10 +469,10 @@ void animDraw(int time, float timeFraction) {
 			VectorCopy(axis[2][i], axis2[2]);
 			AxisToAngles(axis2, ang[i]);
 		}
-		demo.anim.drawing = qtrue;
+		demo.anim.drawing = demo.drawFully = qtrue;
 		animSkeletonDraw(origins, ang);
 		demoDrawBox( origins[demo.anim.bone], container, colorWhite );
-		demo.anim.drawing = qfalse;
+		demo.anim.drawing = demo.drawFully = qfalse;
 	} else if (demo.anim.target >= 0 && !demo.anim.override[demo.anim.target]) {
 		centity_t *cent = demoTargetEntity( demo.anim.target );
 		if (cent) {

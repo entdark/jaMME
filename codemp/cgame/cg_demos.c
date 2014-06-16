@@ -83,6 +83,9 @@ static void CG_DemosUpdatePlayer( void ) {
 	case editChase:
 		demoMoveChase();
 		break;
+	case editDof:
+		dofMove();
+		break;
 #ifdef DEMO_ANIM
 	case editAnim:
 		demoMoveAnim();
@@ -200,11 +203,13 @@ static int demoSetupView( void) {
 	vec3_t forward;
 	qboolean zoomFix;	//to see disruptor zoom when we are chasing a player
 	int inwater = qfalse;
+	qboolean behindView = qfalse;
 
 	cg.trueView = qfalse;
 	cg.playerPredicted = qfalse;
 	cg.playerCent = 0;
 	demo.viewFocus = 0;
+	demo.viewRadius = 0;
 	demo.viewTarget = -1;
 
 	switch (demo.viewType) {
@@ -287,15 +292,43 @@ static int demoSetupView( void) {
 	VectorCopy( demo.viewOrigin, cg.refdef.vieworg );
 	VectorCopy( demo.viewAngles, cg.refdef.viewangles );
 	AnglesToAxis( demo.viewAngles, cg.refdef.viewaxis );
-
-	if ( demo.viewTarget >= 0 ) {
+	
+	/* find focus ditance to certain target but don't apply if dof is not locked, use for drawing */
+	if ( demo.dof.target >= 0 ) {
+		centity_t* targetCent = demoTargetEntity( demo.dof.target );
+		if ( targetCent ) {
+			vec3_t targetOrigin;
+			chaseEntityOrigin( targetCent, targetOrigin );
+			//Find distance betwene plane of camera and this target
+			demo.viewFocus = DotProduct( cg.refdef.viewaxis[0], targetOrigin ) - DotProduct( cg.refdef.viewaxis[0], cg.refdef.vieworg  );
+			demo.dof.focus = demo.viewFocusOld = demo.viewFocus;
+		} else {
+			demo.dof.focus = demo.viewFocus = demo.viewFocusOld;
+		}
+		if (demo.dof.focus < 0.001f) {
+			behindView = qtrue;
+		}
+	}
+	if ( demo.dof.locked ) {
+		if (!behindView) {
+			demo.viewFocus = demo.dof.focus;		
+			demo.viewRadius = demo.dof.radius;
+		} else {
+			demo.viewFocus = 0.002f;		// no matter what value, just not less or equal zero
+			demo.viewRadius = 0.0f;
+		}
+	} else if ( demo.viewTarget >= 0 ) {
 		centity_t* targetCent = demoTargetEntity( demo.viewTarget );
 		if ( targetCent ) {
 			vec3_t targetOrigin;
 			chaseEntityOrigin( targetCent, targetOrigin );
 			//Find distance betwene plane of camera and this target
 			demo.viewFocus = DotProduct( cg.refdef.viewaxis[0], targetOrigin ) - DotProduct( cg.refdef.viewaxis[0], cg.refdef.vieworg  );
+			demo.viewRadius = CG_Cvar_Get( "mme_dofRadius" );
 		}
+	} else if ( demo.dof.target >= 0 ) {
+		demo.viewFocus = 0;
+		demo.viewRadius = 0;
 	}
 
 	cg.refdef.width = cgs.glconfig.vidWidth*cg_viewsize.integer/100;
@@ -819,6 +852,9 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		case editChase:
 			chaseDraw( demo.play.time, demo.play.fraction );
 			break;
+		case editDof:
+			dofDraw( demo.play.time, demo.play.fraction );
+			break;
 #ifdef DEMO_ANIM
 		case editAnim:
 			animDraw( demo.play.time, demo.play.fraction );
@@ -849,9 +885,9 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 						} else {
 							color = colorYellow;
 						}
-						demo.anim.drawing = qtrue;
+						demo.anim.drawing = demo.drawFully = qtrue;
 						demoDrawBox( origins[i], container, color );
-						demo.anim.drawing = qfalse;
+						demo.anim.drawing = demo.drawFully = qfalse;
 					}
 				}
 			} else
@@ -1044,19 +1080,14 @@ static void demoEditCommand_f(void) {
 		}
 		demo.editType = editCamera;
 		CG_DemosAddLog("Editing camera");
+	} else if (!Q_stricmp(cmd, "dof")) {
+		demo.editType = editDof;
+		CG_DemosAddLog("Editing depth of field");
 	} else if (!Q_stricmp(cmd, "line")) {
-		if ( demo.cmd.upmove > 0 ) {
-			demoViewCommand_f();
-			return;
-		}
 		demo.editType = editLine;
 		CG_DemosAddLog("Editing timeline");
 #ifdef DEMO_ANIM
 	} else if (!Q_stricmp(cmd, "anim")) {
-		if ( demo.cmd.upmove > 0 ) {
-			demoViewCommand_f();
-			return;
-		}
 		demo.editType = editAnim;
 		CG_DemosAddLog("Editing animation");
 #endif
@@ -1080,6 +1111,9 @@ static void demoEditCommand_f(void) {
 			break;
 		case editLine:
 			demoLineCommand_f();
+			break;
+		case editDof:
+			demoDofCommand_f();
 			break;
 #ifdef DEMO_ANIM
 		case editAnim:
@@ -1206,6 +1240,10 @@ void demoPlaybackInit(void) {
 	demo.chase.locked = qfalse;
 	demo.chase.target = -1;
 
+	demo.dof.focus = 256.0f;
+	demo.dof.radius = 5.0f;
+	demo.dof.target = -1;
+
 #ifdef DEMO_ANIM
 	demo.anim.locked = qfalse;
 	demo.anim.target = -1;
@@ -1229,6 +1267,7 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("edit");
 	trap_AddCommand("view");
 	trap_AddCommand("chase");
+	trap_AddCommand("dof");
 #ifdef DEMO_ANIM
 	trap_AddCommand("anim");
 #endif
@@ -1341,6 +1380,8 @@ qboolean CG_DemosConsoleCommand( void ) {
 		demo.play.paused = !demo.play.paused;
 		if ( demo.play.paused )
 			demo.find = findNone;
+	} else if (!Q_stricmp(cmd, "dof")) {
+		demoDofCommand_f();
 	} else if (!Q_stricmp(cmd, "chase")) {
 		demoChaseCommand_f();
 #ifdef DEMO_ANIM

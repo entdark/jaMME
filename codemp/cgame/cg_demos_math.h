@@ -157,6 +157,8 @@ static ID_INLINE void AnglesNormalize180( vec3_t angles) {
 qboolean CylinderTraceImpact( const vec3_t start, const vec3_t forward, const vec3_t container, vec3_t result );
 qboolean BoxTraceImpact(const vec3_t start, const vec3_t forward, const vec3_t container, vec3_t result );
 
+void GetPerpendicularViewVector( const vec3_t point, const vec3_t p1, const vec3_t p2, vec3_t up );
+
 qboolean MatrixCompare(const mdxaBone_t m1, const mdxaBone_t m2);
 void AxisToMatrix(const vec3_t axis[3], mdxaBone_t *matrix);
 void MatrixCreate(const float *angle, mdxaBone_t *matrix);

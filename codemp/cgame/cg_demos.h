@@ -13,6 +13,7 @@ typedef enum {
 	editCamera,
 	editChase,
 	editLine,
+	editDof,
 	editAnim,
 //	editEffect,
 //	editScript,
@@ -63,6 +64,12 @@ typedef struct demoAnimPoint_s {
 	vec3_t			angles[MAX_BONES];
 	int				time;
 } demoAnimPoint_t;
+
+typedef struct demoDofPoint_s {
+	struct			demoDofPoint_s *next, *prev;
+	float			focus, radius;
+	int				time;
+} demoDofPoint_t;
 
 typedef struct {
 	char lines[LOGLINES][1024];
@@ -124,6 +131,15 @@ typedef struct demoMain_s {
 		angleInterpolate_t	smoothAngles;
 	} camera;
 	struct {
+		int			start, end;
+		int			target;
+		int			shiftWarn;
+		float		timeShift;
+		float		focus, radius;
+		qboolean	locked;
+		demoDofPoint_t *points;
+	} dof;
+	struct {
 		int			time;
 		int			oldTime;
 		int			lastTime;
@@ -138,7 +154,7 @@ typedef struct demoMain_s {
 	demoViewType_t	viewType;
 	vec_t			viewFov;
 	int				viewTarget;
-	float			viewFocus;
+	float			viewFocus, viewFocusOld, viewRadius;
 	demoEditType_t	editType;
 
 	vec3_t		cmdDeltaAngles;
@@ -158,6 +174,7 @@ typedef struct demoMain_s {
 	qboolean	seekEnabled;
 	qboolean	initDone;
 	qboolean	autoLoad;
+	qboolean	drawFully;
 	demoLog_t	log;
 } demoMain_t;
 
@@ -212,6 +229,14 @@ void chaseEntityOrigin( centity_t *cent, vec3_t origin );
 demoChasePoint_t *chasePointSynch(int time );
 qboolean chaseParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data);
 void chaseSave( fileHandle_t fileHandle );
+
+demoDofPoint_t *dofPointSynch( int time );
+void dofMove(void);
+void dofUpdate( int time, float timeFraction );
+void dofDraw( int time, float timeFraction );
+qboolean dofParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data);
+void dofSave( fileHandle_t fileHandle );
+void demoDofCommand_f(void);
 
 #ifdef DEMO_ANIM
 void demoMoveAnim(void);

@@ -793,8 +793,8 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	macEventTime = ri.Milliseconds()*ri.Cvar_VariableValue( "timescale" ) + MAC_EVENT_PUMP_MSEC;
 #endif
 
-	if (g_bRenderGlowingObjects)
-	{ //only shadow on initial passes
+	if (g_bRenderGlowingObjects) {
+	//only shadow on initial passes
 		didShadowPass = true;
 	}
 
@@ -813,16 +813,23 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	oldDlighted = qfalse;
 	oldSort = (uint64_t) -1;
 	depthRange = qfalse;
+	
+	// Clear for endsurface first run
+	tess.numIndexes = 0;
 
 	backEnd.pc.c_surfaces += numDrawSurfs;
 	if (!(backEnd.refdef.rdflags & RDF_NOWORLDMODEL)) {
 		backEnd.sceneZfar = backEnd.viewParms.zFar;
 	}
 
-	for (i = 0, drawSurf = drawSurfs ; i < numDrawSurfs ; i++, drawSurf++)
-	{
-		if ( drawSurf->sort == oldSort )
-		{
+	for (i = 0, drawSurf = drawSurfs ; i < numDrawSurfs && drawSurf ; i++, drawSurf++) {
+/*		if (!drawSurf->surface)
+			continue;
+		if (!*drawSurf->surface)
+			continue;
+		if (*drawSurf->surface < SF_BAD || *drawSurf->surface >= SF_NUM_SURFACE_TYPES)
+			continue;
+*/		if ( drawSurf->sort == oldSort ) {
 			// fast path, same as previous sort
 			rb_surfaceTable[ *drawSurf->surface ]( drawSurf->surface );
 			continue;
@@ -830,8 +837,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 		R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlighted );
 
 		// If we're rendering glowing objects, but this shader has no stages with glow, skip it!
-		if ( g_bRenderGlowingObjects && !shader->hasGlow )
-		{
+		if ( g_bRenderGlowingObjects && !shader->hasGlow ) {
 			shader = oldShader;
 			entityNum = oldEntityNum;
 			fogNum = oldFogNum;
@@ -846,12 +852,11 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 		// a "entityMergable" shader is a shader that can have surfaces from seperate
 		// entities merged into a single batch, like smoke and blood puff sprites
 		if (entityNum != REFENTITYNUM_WORLD &&
-			g_numPostRenders < MAX_POST_RENDERS)
-		{
+			g_numPostRenders < MAX_POST_RENDERS) {
 			if ( (backEnd.refdef.entities[entityNum].e.renderfx & RF_DISTORTION) ||
 				 (backEnd.refdef.entities[entityNum].e.renderfx & RF_FORCEPOST) ||
-				 (backEnd.refdef.entities[entityNum].e.renderfx & RF_FORCE_ENT_ALPHA) )
-			{ //must render last
+				 (backEnd.refdef.entities[entityNum].e.renderfx & RF_FORCE_ENT_ALPHA) ) {
+				//must render last
 				curEnt = &backEnd.refdef.entities[entityNum];
 				pRender = &g_postRenders[g_numPostRenders];
 
@@ -905,48 +910,9 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 				continue;
 			}
 		}
-		/*
-		else if (shader == tr.distortionShader &&
-			g_numPostRenders < MAX_POST_RENDERS)
-		{ //not an ent, just a surface that needs this effect
-			pRender = &g_postRenders[g_numPostRenders];
-
-			g_numPostRenders++;
-
-			depthRange = 0;
-			pRender->depthRange = depthRange;
-
-			//It is not necessary to update the old* values because
-			//we are not updating now with the current values.
-			depthRange = oldDepthRange;
-
-			//store off the ent num
-			pRender->entNum = entityNum;
-
-			//remember the other values necessary for rendering this surf
-			pRender->drawSurf = drawSurf;
-			pRender->dlighted = dlighted;
-			pRender->fogNum = fogNum;
-			pRender->shader = shader;
-
-			pRender->eValid = qfalse;
-
-			//assure the info is back to the last set state
-			shader = oldShader;
-			entityNum = oldEntityNum;
-			fogNum = oldFogNum;
-			dlighted = oldDlighted;
-
-			oldSort = -20; //invalidate this thing, cause we may want to postrender more surfs of the same sort
-
-			//continue without bothering to begin a draw surf
-			continue;
-		}
-		*/
 
 		if (shader != oldShader || fogNum != oldFogNum || dlighted != oldDlighted 
-			|| ( entityNum != oldEntityNum && !shader->entityMergable ) )
-		{
+			|| ( entityNum != oldEntityNum && !shader->entityMergable ) ) {
 			if (oldShader != NULL) {
 #ifdef __MACOS__	// crutch up the mac's limited buffer queue size
 				int		t;
@@ -959,8 +925,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 #endif
 				RB_EndSurface();
 
-				if (!didShadowPass && shader && shader->sort > SS_BANNER)
-				{
+				if (!didShadowPass && shader && shader->sort > SS_BANNER) {
 					RB_ShadowFinish();
 					didShadowPass = true;
 				}
@@ -1039,13 +1004,10 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 						qglDepthRange (0, 0);
 						break;
 				}
-
 				oldDepthRange = depthRange;
 			}
-
 			oldEntityNum = entityNum;
 		}
-
 		// add the triangles for this surface
 		rb_surfaceTable[ *drawSurf->surface ]( drawSurf->surface );
 	}
@@ -1327,7 +1289,10 @@ RB_SetGL2D
 ================
 */
 void	RB_SetGL2D (void) {
+	if ( tess.numIndexes | tess.numVertexes )
+		Com_Printf(" Going 2d with verts?" );
 	backEnd.projection2D = qtrue;
+	backEnd.currentEntity = &tr.worldEntity;
 
 	// set 2D virtual screen size
 	qglViewport( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
@@ -1407,7 +1372,9 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 		Com_Printf ("qglTexSubImage2D %i, %i: %i msec\n", cols, rows, end - start );
 	}
 
-	RB_SetGL2D();
+	if ( !backEnd.projection2D ) {
+		RB_SetGL2D();
+	}
 
 	qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
 
@@ -1602,14 +1569,11 @@ const void *RB_RotatePic2 ( const void *data )
 
 	shader = cmd->shader;
 
-	if ( shader->numUnfoggedPasses )
-	{
+	if ( shader->numUnfoggedPasses ) {
 		image = &shader->stages[0].bundle[0].image[0];
 
-		if ( image )
-	{
-			if ( !backEnd.projection2D )
-			{
+		if ( image ) {
+			if ( !backEnd.projection2D ) {
 				RB_SetGL2D();
 			}
 
@@ -1693,8 +1657,7 @@ const void	*RB_DrawSurfs( const void *data ) {
 	*/
 
 	// Render dynamic glowing/flaring objects.
-	if ( !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL) && g_bDynamicGlowSupported && r_DynamicGlow->integer )
-	{
+	if ( !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL) && g_bDynamicGlowSupported && r_DynamicGlow->integer ) {
 		// Copy the normal scene to texture.
 		qglDisable( GL_TEXTURE_2D );
 		qglEnable( GL_TEXTURE_RECTANGLE_EXT ); 
@@ -1993,11 +1956,6 @@ const void	*RB_WorldEffects( const void *data )
 	return (const void *)(cmd + 1);
 }
 
-const void	*RB_IncDataCapture( const void *data ) {
-	const captureCommand_t *cmd = (const captureCommand_t *)data;
-	return (const void *)(cmd + 1);
-}
-
 /*
 ====================
 RB_ExecuteRenderCommands
@@ -2041,7 +1999,7 @@ again:
 		case RC_SWAP_BUFFERS:
 			R_BloomScreen();
 			data = RB_SwapBuffers( data );
-			if ( (int)data == -1)
+			if ( (int)data == NULL)
 				goto again;
 			break;
 		case RC_VIDEOFRAME:

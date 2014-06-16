@@ -1297,7 +1297,6 @@ extern cvar_t	*mme_blurFrames;
 extern cvar_t	*mme_blurType;
 extern cvar_t	*mme_blurOverlap;
 extern cvar_t	*mme_blurGamma;
-extern cvar_t	*mme_dofFrames;
 extern cvar_t	*mme_cpuSSE2;
 extern cvar_t	*mme_pbo;
 extern cvar_t	*mme_workMegs;
@@ -1920,6 +1919,7 @@ typedef struct {
 	char	name[MAX_OSPATH];
 	float	fps;
 	float	focus;
+	float	radius;
 } captureCommand_t;
 
 typedef struct commandHeader_s {
@@ -2047,11 +2047,13 @@ qboolean R_MME_TakeShot( void );
 qboolean R_MME_TakeShotStereo( void );
 const void *R_MME_CaptureShotCmd( const void *data );
 const void *R_MME_CaptureShotCmdStereo( const void *data );
-void R_MME_Capture( const char *shotName, float fps, float focus );
-void R_MME_CaptureStereo( const char *shotName, float fps, float focus );
+void R_MME_Capture( const char *shotName, float fps, float focus, float radius );
+void R_MME_CaptureStereo( const char *shotName, float fps, float focus, float radius );
 void R_MME_BlurInfo( int* total, int* index );
 void R_MME_JitterView( float *pixels, float* eyes );
+void R_MME_JitterViewStereo( float *pixels, float* eyes );
 qboolean R_MME_JitterOrigin( float *x, float *y );
+qboolean R_MME_JitterOriginStereo( float *x, float *y );
 
 int R_MME_MultiPassNext( );
 int R_MME_MultiPassNextStereo( );

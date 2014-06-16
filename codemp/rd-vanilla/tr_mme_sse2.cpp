@@ -1,3 +1,5 @@
+//Copyright (C) 2009 Sjoerd van der Berg ( harekiet @ gmail.com )
+
 #include "tr_local.h"
 #include "tr_mme.h"
 

@@ -1,6 +1,5 @@
 // Copyright (C) 2009 Sjoerd van der Berg ( harekiet @ gmail.com )
 
-//#include "tr_local.h"
 #include "tr_mme.h"
 
 static char *workAlloc = 0;
@@ -17,7 +16,7 @@ static struct {
 static struct {
 	qboolean		take;
 	float			fps;
-	float			dofFocus;
+	float			dofFocus, dofRadius;
 	mmeShot_t		main, stencil, depth;
 	float			jitter[BLURMAX][2];
 } shotData;
@@ -92,139 +91,6 @@ static void R_MME_MakeBlurBlock( mmeBlurBlock_t *block, int size, mmeBlurControl
 	}
 }
 
-//Replace rad with _rad gogo includes
-/* Slightly stolen from blender */
-static void RE_jitterate1(float *jit1, float *jit2, int num, float _rad1) {
-	int i , j , k;
-	float vecx, vecy, dvecx, dvecy, x, y, len;
-
-	for (i = 2*num-2; i>=0 ; i-=2) {
-		dvecx = dvecy = 0.0;
-		x = jit1[i];
-		y = jit1[i+1];
-		for (j = 2*num-2; j>=0 ; j-=2) {
-			if (i != j){
-				vecx = jit1[j] - x - 1.0;
-				vecy = jit1[j+1] - y - 1.0;
-				for (k = 3; k>0 ; k--){
-					if( fabs(vecx)<_rad1 && fabs(vecy)<_rad1) {
-						len=  sqrt(vecx*vecx + vecy*vecy);
-						if(len>0 && len<_rad1) {
-							len= len/_rad1;
-							dvecx += vecx/len;
-							dvecy += vecy/len;
-						}
-					}
-					vecx += 1.0;
-
-					if( fabs(vecx)<_rad1 && fabs(vecy)<_rad1) {
-						len=  sqrt(vecx*vecx + vecy*vecy);
-						if(len>0 && len<_rad1) {
-							len= len/_rad1;
-							dvecx += vecx/len;
-							dvecy += vecy/len;
-						}
-					}
-					vecx += 1.0;
-
-					if( fabs(vecx)<_rad1 && fabs(vecy)<_rad1) {
-						len=  sqrt(vecx*vecx + vecy*vecy);
-						if(len>0 && len<_rad1) {
-							len= len/_rad1;
-							dvecx += vecx/len;
-							dvecy += vecy/len;
-						}
-					}
-					vecx -= 2.0;
-					vecy += 1.0;
-				}
-			}
-		}
-
-		x -= dvecx/18.0 ;
-		y -= dvecy/18.0;
-		x -= floor(x) ;
-		y -= floor(y);
-		jit2[i] = x;
-		jit2[i+1] = y;
-	}
-	memcpy(jit1,jit2,2 * num * sizeof(float));
-}
-
-static void RE_jitterate2(float *jit1, float *jit2, int num, float _rad2) {
-	int i, j;
-	float vecx, vecy, dvecx, dvecy, x, y;
-
-	for (i=2*num -2; i>= 0 ; i-=2){
-		dvecx = dvecy = 0.0;
-		x = jit1[i];
-		y = jit1[i+1];
-		for (j =2*num -2; j>= 0 ; j-=2){
-			if (i != j){
-				vecx = jit1[j] - x - 1.0;
-				vecy = jit1[j+1] - y - 1.0;
-
-				if( fabs(vecx)<_rad2) dvecx+= vecx*_rad2;
-				vecx += 1.0;
-				if( fabs(vecx)<_rad2) dvecx+= vecx*_rad2;
-				vecx += 1.0;
-				if( fabs(vecx)<_rad2) dvecx+= vecx*_rad2;
-
-				if( fabs(vecy)<_rad2) dvecy+= vecy*_rad2;
-				vecy += 1.0;
-				if( fabs(vecy)<_rad2) dvecy+= vecy*_rad2;
-				vecy += 1.0;
-				if( fabs(vecy)<_rad2) dvecy+= vecy*_rad2;
-
-			}
-		}
-
-		x -= dvecx/2 ;
-		y -= dvecy/2;
-		x -= floor(x) ;
-		y -= floor(y);
-		jit2[i] = x;
-		jit2[i+1] = y;
-	}
-	memcpy(jit1,jit2,2 * num * sizeof(float));
-}
-
-void R_MME_JitterTable(float *jitarr, int num) {
-	float jit2[12 + 256*2];
-	float x, _rad1, _rad2, _rad3;
-	int i;
-
-	if(num==0)
-		return;
-	if(num>256)
-		return;
-
-	_rad1=  1.0/sqrt((float)num);
-	_rad2= 1.0/((float)num);
-	_rad3= sqrt((float)num)/((float)num);
-
-	x= 0;
-	for(i=0; i<2*num; i+=2) {
-		jitarr[i]= x+ _rad1*(0.5-random());
-		jitarr[i+1]= ((float)i/2)/num +_rad1*(0.5-random());
-		x+= _rad3;
-		x -= floor(x);
-	}
-
-	for (i=0 ; i<24 ; i++) {
-		RE_jitterate1(jitarr, jit2, num, _rad1);
-		RE_jitterate1(jitarr, jit2, num, _rad1);
-		RE_jitterate2(jitarr, jit2, num, _rad2);
-	}
-	
-	/* finally, move jittertab to be centered around (0,0) */
-	for(i=0; i<2*num; i+=2) {
-		jitarr[i] -= 0.5;
-		jitarr[i+1] -= 0.5;
-	}
-	
-}
-
 static void R_MME_CheckCvars( void ) {
 	int pixelCount, blurTotal, passTotal;
 	mmeBlurControl_t* blurControl = &blurData.control;
@@ -242,6 +108,12 @@ static void R_MME_CheckCvars( void ) {
 		ri.Cvar_Set( "mme_blurOverlap", va( "%d", BLURMAX) );
 	} else if (mme_blurOverlap->integer < 0 ) {
 		ri.Cvar_Set( "mme_blurOverlap", "0");
+	}
+	
+	if (mme_dofFrames->integer > BLURMAX ) {
+		ri.Cvar_Set( "mme_dofFrames", va( "%d", BLURMAX) );
+	} else if (mme_dofFrames->integer < 0 ) {
+		ri.Cvar_Set( "mme_dofFrames", "0");
 	}
 
 	blurTotal = mme_blurFrames->integer + mme_blurOverlap->integer ;
@@ -295,10 +167,13 @@ qboolean R_MME_JitterOrigin( float *x, float *y ) {
 	}
 	if ( passControl->totalFrames ) {
 		int i = passControl->totalIndex;
-		*x = mme_dofRadius->value * passData.jitter[i][0];
-		*y = -mme_dofRadius->value * passData.jitter[i][1];
-//		*x = 0;
-//		*y = 0;
+		float scale;
+		float focus = shotData.dofFocus;
+		float radius = shotData.dofRadius;
+		R_MME_ClampDof(&focus, &radius);
+		scale = radius * R_MME_FocusScale(focus);
+		*x = scale * passData.jitter[i][0];
+		*y = -scale * passData.jitter[i][1];
 		return qtrue;
 	} 
 	return qfalse;
@@ -318,17 +193,12 @@ void R_MME_JitterView( float *pixels, float *eyes ) {
 	}
 	if ( passControl->totalFrames ) {
 		int i = passControl->totalIndex;
-		float scale;	//			= r_znear->value / shotData.dofFocus;
-		float focus;
-//		return;
-
-		focus = shotData.dofFocus;
-		if ( focus < 10 ) 
-			focus = mme_depthFocus->value;
-		if ( focus < 10 )
-			focus = 10;
+		float scale;
+		float focus = shotData.dofFocus;
+		float radius = shotData.dofRadius;
+		R_MME_ClampDof(&focus, &radius);
 		scale = r_znear->value / focus;
-		scale *= mme_dofRadius->value;
+		scale *= radius * R_MME_FocusScale(focus);;
 		eyes[0] = scale * passData.jitter[i][0];
 		eyes[1] = scale * passData.jitter[i][1];
 	}
@@ -354,9 +224,14 @@ int R_MME_MultiPassNext( ) {
 	GLimp_EndFrame();
 	R_MME_GetShot( outAlign );
 	R_MME_BlurAccumAdd( &passData.dof, outAlign );
+	
+	r_capturingDofOrStereo = qtrue;
 
 	ri.Hunk_FreeTempMemory( outAlloc );
 	if ( ++(control->totalIndex) < control->totalFrames ) {
+		int nextIndex = control->totalIndex;
+		if ( ++(nextIndex) >= control->totalFrames && r_stereoSeparation->value == 0.0f )
+			r_latestDofOrStereoFrame = qtrue;
 		return 1;
 	}
 	control->totalIndex = 0;
@@ -588,6 +463,7 @@ const void *R_MME_CaptureShotCmd( const void *data ) {
 	shotData.take = qtrue;
 	shotData.fps = cmd->fps;
 	shotData.dofFocus = cmd->focus;
+	shotData.dofRadius = cmd->radius;
 	if (strcmp( cmd->name, shotData.main.name) || mme_screenShotFormat->modified || mme_screenShotAlpha->modified ) {
 		/* Also reset the the other data */
 		blurData.control.totalIndex = 0;
@@ -637,7 +513,7 @@ const void *R_MME_CaptureShotCmd( const void *data ) {
 	return (const void *)(cmd + 1);	
 }
 
-void R_MME_Capture( const char *shotName, float fps, float focus ) {
+void R_MME_Capture( const char *shotName, float fps, float focus, float radius ) {
 	captureCommand_t *cmd;
 	
 	if ( !tr.registered || !fps ) {
@@ -647,9 +523,12 @@ void R_MME_Capture( const char *shotName, float fps, float focus ) {
 	if ( !cmd ) {
 		return;
 	}
+	if (mme_dofFrames->integer > 0)
+		r_capturingDofOrStereo = qtrue;
 	cmd->commandId = RC_CAPTURE;
 	cmd->fps = fps;
 	cmd->focus = focus;
+	cmd->radius = radius;
 	Q_strncpyz( cmd->name, shotName, sizeof( cmd->name ));
 }
 
@@ -667,6 +546,7 @@ void R_MME_Shutdown(void) {
 }
 
 void R_MME_Init(void) {
+	
 	// MME cvars
 	mme_aviFormat = ri.Cvar_Get ("mme_aviFormat", "0", CVAR_ARCHIVE);
 

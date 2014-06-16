@@ -290,6 +290,7 @@
     <ClCompile Include="cg_demos_anim.c" />
     <ClCompile Include="cg_demos_camera.c" />
     <ClCompile Include="cg_demos_capture.c" />
+    <ClCompile Include="cg_demos_dof.c" />
     <ClCompile Include="cg_demos_hud.c" />
     <ClCompile Include="cg_demos_line.c" />
     <ClCompile Include="cg_demos_math.c" />

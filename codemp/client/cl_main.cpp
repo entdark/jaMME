@@ -2141,7 +2141,7 @@ void CL_Frame ( int msec ) {
 				frameTime = 1;
 			}
 			//TODO use mme_depthFocus
-			re.Capture( shotName, fps, 1000 );
+			re.Capture( shotName, fps, 0, 0 );
 			frameTime += clc.aviDemoRemain;
 			msec = (int)frameTime;
 			clc.aviDemoRemain = frameTime - msec;

@@ -15,8 +15,7 @@ GetPerpendicularViewVector
   Used to find an "up" vector for drawing a sprite so that it always faces the view as best as possible
 =================
 */
-void GetPerpendicularViewVector( const vec3_t point, const vec3_t p1, const vec3_t p2, vec3_t up )
-{
+void GetPerpendicularViewVector( const vec3_t point, const vec3_t p1, const vec3_t p2, vec3_t up ) {
 	vec3_t	v1, v2;
 
 	VectorSubtract( point, p1, v1 );
@@ -608,7 +607,7 @@ void demoDrawRawLine(const vec3_t start, const vec3_t end, const float width, po
 
 	VectorScale( start, 0.5, middle ) ;
 	VectorMA( middle, 0.5, end, middle );
-	if ( VectorDistance( middle, cg.refdef.vieworg ) < 100 && !demo.anim.drawing )
+	if ( VectorDistance( middle, cg.refdef.vieworg ) < 100 && !demo.drawFully )
 		return;
 	GetPerpendicularViewVector( cg.refdef.vieworg, start, end, up );
 	VectorMA( start, width, up, verts[0].xyz);
