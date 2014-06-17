@@ -562,7 +562,7 @@ void CL_PlayDemo_f( void ) {
 
 	Cvar_Set( "mme_demoFileName", testName );
 
-	if ( haveConvert && !mme_demoPrecache->integer ) {
+	if ( haveConvert ) {
 		Com_sprintf (name, MAX_OSPATH, "mmedemos/%s.mme", testName );
 		if (FS_FileExists( name )) {
 			if (demoPlay( name ))
