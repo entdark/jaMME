@@ -2177,8 +2177,8 @@ void CG_ClientOverride_f(void) {
 		CG_Printf("model \"modelname/skin\", Change model\n" );
 		CG_Printf("n \"name\", Change name\n" );
 		CG_Printf("t \"0-3\", Change team number\n" );
-		CG_Printf("c1 \"0-9,w-zhexcode\", Change saber color1\n" );
-		CG_Printf("c2 \"0-9,w-zhexcode\", Change saber color2\n" );
+		CG_Printf("c1 \"0-9,u-zhexcode\", Change saber color1\n" );
+		CG_Printf("c2 \"0-9,u-zhexcode\", Change saber color2\n" );
 		CG_Printf("hide \"0,1\", hide player yes or no\n" );
 		CG_Printf("st \"hiltname\", Change saber hilt\n" );
 		CG_Printf("st2 \"hiltname\", Change saber hilt2\n" );
