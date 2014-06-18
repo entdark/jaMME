@@ -3089,13 +3089,14 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 		|| (cg.playerCent->currentState.weapon == WP_MELEE && cg_trueMelee.integer)
 		|| (cg.playerCent->currentState.weapon != WP_SABER && cg.playerCent->currentState.weapon != WP_MELEE && cg_trueGuns.integer);
 	cg.zoomMode = cg.snap->ps.zoomMode || cg.predictedPlayerState.zoomMode;
-	cg.fallingToDeath = cg.snap->ps.fallingToDeath;
 	CG_SetPredictedThirdPerson();
 
 	// build cg.refdef
 	inwater = CG_CalcViewValues();
 	CG_SetupFrustum();
-
+	
+	cg.fallingToDeath = cg.snap->ps.fallingToDeath;
+	
 	if (cg_linearFogOverride)
 	{
 		trap_R_SetRangeFog(-cg_linearFogOverride);
