@@ -766,13 +766,14 @@ static void demoPlaySynch( demoPlay_t *play, demoFrame_t *frame) {
 }
 
 
+static qboolean demoPrecaching = qfalse;
 static void demoPlayForwardFrame( demoPlay_t *play ) {
 	int			blockSize;
 	msg_t		msg;
 	demoFrame_t *copyFrame;
 
 	if (play->filePos + 4 > play->fileSize) {
-		if (mme_demoAutoQuit->integer) {
+		if (mme_demoAutoQuit->integer && !demoPrecaching) {
 			CL_Disconnect_f();
 			S_StopAllSounds();
 			VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
@@ -1132,7 +1133,7 @@ static void demoPrecacheClient(char *str) {
 
 static void demoPrecache( void ) {
 	demoPlay_t *play = demo.play.handle;
-	int latestSequence = 0, time = 0;
+	int latestSequence = 0, time = play->startTime;
 	demoPlaySetIndex(play, 0);
 	while (!play->lastFrame) {
 		demoPlaySynch( play, play->frame );
@@ -1148,7 +1149,6 @@ static void demoPrecache( void ) {
 					} else if ( num >= CS_PLAYERS && num < CS_PLAYERS+MAX_CLIENTS ) {
 						demoPrecacheClient(str);
 					}	
-					break;
 				}
 			}
 		}
@@ -1190,8 +1190,11 @@ qboolean demoPlay( const char *fileName ) {
 		Com_Memcpy( cl.gameState.stringOffsets, play->frame->string.offsets, sizeof( play->frame->string.offsets ));
 		Com_Memcpy( cl.gameState.stringData, play->frame->string.data, play->frame->string.used );
 		cl.gameState.dataCount = play->frame->string.used;
+		demoPrecaching = qfalse;
 		if (mme_demoPrecache->integer) {
+			demoPrecaching = qtrue;
 			demoPrecache();
+			demoPrecaching = qfalse;
 		}
 		CL_InitCGame();
 		cls.state = CA_ACTIVE;
