@@ -179,45 +179,6 @@ cvar_t	*r_modelpoolmegs;
 cvar_t	*r_backEndMegs;
 
 /*
-//commented cvars = they weren't used in pugmod, but were in q3mme
-//cvar_t	*mme_aviFormat;
-cvar_t	*mme_screenShotFormat;
-cvar_t	*mme_screenShotGamma;
-//cvar_t	*mme_screenShotAlpha;
-cvar_t	*mme_jpegQuality;
-cvar_t	*mme_jpegDownsampleChroma;
-cvar_t	*mme_jpegOptimizeHuffman;
-cvar_t	*mme_tgaCompression;
-cvar_t	*mme_pngCompression;
-cvar_t	*mme_skykey;
-cvar_t	*mme_worldShader;
-//cvar_t	*mme_pip;
-cvar_t	*mme_blurFrames;
-//cvar_t	*mme_blurFrames;
-cvar_t	*mme_blurType;
-cvar_t	*mme_blurOverlap;
-cvar_t	*mme_blurGamma;
-//cvar_t	*mme_blurJitter;
-//cvar_t	*mme_dofFrames;
-//cvar_t	*mme_dofRadius;
-//cvar_t	*mme_cpuSSE2;
-cvar_t	*mme_renderWidth;
-cvar_t	*mme_renderHeight;
-cvar_t	*mme_workMegs;
-cvar_t	*mme_depthFocus;
-cvar_t	*mme_depthRange;
-//cvar_t	*mme_saveOverwrite;
-cvar_t	*mme_saveShot;
-cvar_t	*mme_saveStencil;
-cvar_t	*mme_saveDepth;
-cvar_t	*mme_screenshotName;
-*/
-
-cvar_t	*mme_fps;
-cvar_t	*mme_name;
-cvar_t	*mme_focus;
-
-/*
 Ghoul2 Insert Start
 */
 #ifdef _DEBUG
@@ -1092,10 +1053,6 @@ Ghoul2 Insert End
 	r_screenshotJpegQuality				= ri.Cvar_Get( "r_screenshotJpegQuality",			"95",						CVAR_ARCHIVE );
 
 
-	mme_fps = ri.Cvar_Get ("mme_fps", "0", CVAR_INTERNAL);
-	mme_name = ri.Cvar_Get ("mme_name", "", CVAR_INTERNAL);
-	mme_focus = ri.Cvar_Get("mme_focus", "0", CVAR_INTERNAL);
-	
 	ri.Cvar_CheckRange( r_aviMotionJpegQuality, 10, 100, qtrue );
 	ri.Cvar_CheckRange( r_screenshotJpegQuality, 10, 100, qtrue );
 
