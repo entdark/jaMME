@@ -810,7 +810,7 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 	//[/TrueView]
 		vec3_t		origin;
 
-		if ( cg.playerCent->currentState.eFlags & EF_FIRING ) {
+		if ( cent->currentState.eFlags & EF_FIRING ) {
 			// special hack for lightning gun...
 			VectorCopy( cg.refdef.vieworg, origin );
 			VectorMA( origin, -8, cg.refdef.viewaxis[2], origin );
@@ -845,7 +845,16 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 
 	AnglesToAxis( angles, hand.axis );
 
-	// map torso animations to weapon animations
+	// get clientinfo for animation map
+	if (cent->currentState.eType == ET_NPC) {
+		if (!cent->npcClient) {
+			return;
+		}
+		ci = cent->npcClient;
+	} else {
+		ci = &cgs.clientinfo[ cent->currentState.clientNum ];
+	}
+		// map torso animations to weapon animations
 	if ( cg_debugGun.integer ) {
 		// development tool
 		hand.frame = hand.oldframe = cg_debugGun.integer;
@@ -855,20 +864,6 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 #ifndef SIL_IS_A_COOL_CAT
 		int startFrame, endFrame, flags, animSpeed;
 #endif
-		// get clientinfo for animation map
-		if (cent->currentState.eType == ET_NPC)
-		{
-			if (!cent->npcClient)
-			{
-				return;
-			}
-
-			ci = cent->npcClient;
-		}
-		else
-		{
-			ci = &cgs.clientinfo[ cent->currentState.clientNum ];
-		}
 		if (cent->ghoul2 == 0) return;
 #ifdef SIL_IS_A_COOL_CAT
 		trap_G2API_GetBoneFrame(cent->ghoul2, "lower_lumbar", cg.time, &currentFrame, cgs.gameModels, 0);
@@ -897,7 +892,7 @@ void CG_AddViewWeaponDirect( centity_t *cent ) {
 	hand.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON;// | RF_MINLIGHT;
 
 	// add everything onto the hand
-	CG_AddPlayerWeapon( &hand, cent->playerState, cent, cent->playerState->persistant[PERS_TEAM], angles, qfalse );
+	CG_AddPlayerWeapon( &hand, cent->playerState, cent, ci->team, angles, qfalse );
 }
 
 void CG_AddViewWeapon( playerState_t *ps ) {
