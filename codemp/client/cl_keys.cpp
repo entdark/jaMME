@@ -1572,6 +1572,7 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 	if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
 		if ( uivm ) {
 			VM_Call( uivm, UI_KEY_EVENT, key, down );
+			return;
 		} 
 	}
 	if ( cgvm && (Key_GetCatcher( ) & KEYCATCH_CGAME) ) {
