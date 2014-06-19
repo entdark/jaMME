@@ -295,6 +295,7 @@
     <ClCompile Include="cg_demos_line.c" />
     <ClCompile Include="cg_demos_math.c" />
     <ClCompile Include="cg_demos_move.c" />
+    <ClCompile Include="cg_demos_weather.c" />
     <ClCompile Include="cg_draw.c" />
     <ClCompile Include="cg_drawtools.c" />
     <ClCompile Include="cg_effects.c" />

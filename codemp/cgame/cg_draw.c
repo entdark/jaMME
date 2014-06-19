@@ -5369,7 +5369,7 @@ void CG_SaberClashFlare( void ) {
 
 	CG_DrawPic( x - ( v * 300 )*cgs.widthRatioCoef, y - ( v * 300 ),
 				v * 600*cgs.widthRatioCoef, v * 600,
-				trap_R_RegisterShader( "gfx/effects/saberFlare" ));
+				cgs.media.saberFlare);
 }
 
 void CG_DottedLine( float x1, float y1, float x2, float y2, float dotSize, int numDots, vec4_t color, float alpha )

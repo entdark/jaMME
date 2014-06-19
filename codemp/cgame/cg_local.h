@@ -1057,6 +1057,10 @@ Ghoul2 Insert End
 		qboolean		detected;
 		unsigned int	SSF;
 	} japlus;
+	struct {
+		vec3_t			sunorigin;
+		int				raintime;
+	} we;
 
 	int					chargeTime;
 	qboolean			charging;
@@ -1466,11 +1470,18 @@ typedef struct {
 	// For vehicles only now
 	sfxHandle_t	noAmmoSound;
 
+	// Force looping sounds
 	sfxHandle_t speedLoopSound;
 	sfxHandle_t protectLoopSound;
 	sfxHandle_t absorbLoopSound;
 	sfxHandle_t rageLoopSound;
 	sfxHandle_t seeLoopSound;
+
+	// Weather
+	qhandle_t	saberFlare; //and used for sun
+	sfxHandle_t heavyRain;
+	sfxHandle_t regularRain;
+	sfxHandle_t lightRain;
 } cgMedia_t;
 
 
@@ -1600,6 +1611,11 @@ typedef struct
 	fxHandle_t waterSplash;
 	fxHandle_t lavaSplash;
 	fxHandle_t acidSplash;
+
+	//WEATHER
+	fxHandle_t	saberFizz;
+	fxHandle_t	rain;
+
 } cgEffects_t;
 
 #define MAX_STATIC_MODELS 4000

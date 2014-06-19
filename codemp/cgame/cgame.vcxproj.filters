@@ -200,6 +200,9 @@
     <ClCompile Include="cg_demos_dof.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cg_demos_weather.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\game\anims.h">

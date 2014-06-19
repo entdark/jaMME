@@ -5825,14 +5825,13 @@ void CG_DoSaber( vec3_t origin, vec3_t dir, float length, float lengthMax, float
 	float lol;
 	//[/RGBSabers]
 
-	if ( length < 0.5f )
-	{
-		// if the thing is so short, just forget even adding me.
+	if ( length < 0.5f ) {
+	// if the thing is so short, just forget even adding me.
 		return;
 	}
 
-	if (cg.snap->ps.duelInProgress /*&& cent->currentState.number != cg.snap->ps.clientNum*/)
-	{ //I guess go ahead and glow your own client too in a duel
+	if (cg.snap->ps.duelInProgress) {
+	//I guess go ahead and glow your own client too in a duel
 		if (cnum != cg.snap->ps.duelIndex &&
 			cnum != cg.snap->ps.clientNum)
 		{ //everyone not involved in the duel is drawn very dark
@@ -5843,6 +5842,25 @@ void CG_DoSaber( vec3_t origin, vec3_t dir, float length, float lengthMax, float
 
 	// Find the midpoint of the saber for lighting purposes
 	VectorMA( origin, length * 0.5f, dir, mid );
+	
+	if ((int)length > 1 && mov_rain.integer > 0
+		&& cg.we.raintime <= cg.time && Q_irand(0,5000) <= (float)mov_rain.integer) {
+		int pos = Q_irand(0,length);
+		vec3_t fizz;
+		vec3_t endf;
+		trace_t tr;
+				
+		VectorMA( origin, pos, dir, fizz );
+		VectorCopy(fizz,endf);
+		endf[2] += 9999;
+		
+		CG_Trace( &tr, fizz, NULL, NULL, endf, 0, MASK_SOLID);
+		
+		if (tr.surfaceFlags & SURF_SKY) {
+			fizz[2] += 1;
+			trap_FX_PlayEffectID(cgs.effects.saberFizz, fizz, dir, -1, 1);
+		}		
+	}
 
 	switch( color ) {
 	case SABER_RED:

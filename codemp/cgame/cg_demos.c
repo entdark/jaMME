@@ -927,6 +927,9 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	}
 	trap_S_Respatialize( entityNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater);
 	
+	demoDrawSun();
+	demoDrawRain();
+
 	//Always!!! start with negative
 	if (captureFrame && stereoSep > 0.0f)
 		trap_Cvar_Set("r_stereoSeparation", va("%f", -stereoSep));
@@ -1173,6 +1176,7 @@ static void demoFindCommand_f(void) {
 }
 
 void demoPlaybackInit(void) {
+	vec3_t angles;	
 	char projectFile[MAX_OSPATH];
 	int i;
 
@@ -1230,6 +1234,11 @@ void demoPlaybackInit(void) {
 //		demo.anim.points[i] = NULL; //wrong zeroing, or not?
 	}
 #endif
+	
+	angles[YAW] = AngleNormalize360(1);
+	angles[PITCH] = AngleNormalize360(1);
+	angles[ROLL] = AngleNormalize360(1);	 	
+	VectorScale(angles, 9999, cg.we.sunorigin);
 
 	hudInitTables();
 	demoSynchMusic( -1, 0 );

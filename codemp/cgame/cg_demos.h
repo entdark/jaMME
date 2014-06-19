@@ -262,6 +262,10 @@ void hudToggleInput(void);
 void hudDraw(void);
 const char *demoTimeString( int time );
 
+//WEATHER
+void demoDrawRain(void);
+void demoDrawSun(void);
+
 #define CAM_ORIGIN	0x001
 #define CAM_ANGLES	0x002
 #define CAM_FOV		0x004
