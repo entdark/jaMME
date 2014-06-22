@@ -20,7 +20,7 @@ extern void CG_Draw2D( void );
 extern void CG_DrawAutoMap(void);
 extern void CG_DrawSkyBoxPortal(const char *cstr);
 extern qboolean PM_InKnockDown( playerState_t *ps );
-extern CGAME_INLINE qboolean CG_Piloting(int vehNum);
+extern qboolean CG_Piloting(int vehNum);
 extern void CG_InterpolatePlayerState( qboolean grabAngles );
 extern void CG_InterpolateVehiclePlayerState( qboolean grabAngles );
 
