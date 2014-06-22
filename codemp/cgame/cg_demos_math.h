@@ -171,7 +171,7 @@ float dsplineCalc(float x, vec3_t dx, vec3_t dy, float*deriv );
 void demoDrawCross( const vec3_t origin, const vec4_t color );
 void demoDrawBox( const vec3_t origin, const vec3_t container, const vec4_t color );
 void demoDrawLine( const vec3_t p0, const vec3_t p1, const vec4_t color);
-void demoDrawRawLine(const vec3_t start, const vec3_t end, float width, polyVert_t *verts );
+void demoDrawRawLine(const vec3_t start, const vec3_t end, const float width, polyVert_t *verts );
 void demoDrawSetupVerts( polyVert_t *verts, const vec4_t color );
 
 void demoRotatePoint(vec3_t point, const vec3_t matrix[3]);
