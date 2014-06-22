@@ -267,24 +267,20 @@ how many sample are required to fill it up.
 ===============
 */
 int SNDDMA_GetDMAPos( void ) {
-	MMTIME	mmtime;
-	int		s;
-	DWORD	dwWrite;
+	DWORD	dwRead, dwWrite;
 
 	if ( !dsound_init ) {
 		return 0;
 	}
 
-	mmtime.wType = TIME_SAMPLES;
-	pDSBuf->GetCurrentPosition(&mmtime.u.sample, &dwWrite);
+	pDSBuf->GetCurrentPosition(&dwRead, &dwWrite);
 
-	s = mmtime.u.sample;
 
-	s >>= sample16;
+	dwRead >>= sample16;
 
-	s &= (dma.samples-1);
+	dwRead &= (dma.samples-1);
 
-	return s;
+	return dwRead;
 }
 
 /*
