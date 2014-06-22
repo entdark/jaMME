@@ -688,10 +688,10 @@ void trap_FX_PlayEffectID( int id, vec3_t org, vec3_t fwd, int vol, int rad )
 			}
 	}
 
-	if (id == cgs.effects.itemCone && !(cg.frametime > 0
+/*	if (id == cgs.effects.itemCone && !(cg.frametime > 0
 		&& ((cg.frametime < 17 && fmod((float)cg.time, 17.0f) <= cg.frametime)
 		|| cg.frametime >= 17)))
-		return;
+		return;*/
 
 	Q_syscall( CG_FX_PLAY_EFFECT_ID, id, org, fwd, vol, rad );
 }
