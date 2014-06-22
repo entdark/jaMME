@@ -2995,6 +2995,9 @@ Ghoul2 Insert End
 	cg.itemSelect = -1;
 	cg.forceSelect = -1;
 	
+	srand(trap_Milliseconds());
+	cg.tip = rand();
+
 	// load a few needed things before we do any screen updates
 	cgs.media.charsetShader		= trap_R_RegisterShaderNoMip( "gfx/2d/charsgrid_med" );
 	cgs.media.whiteShader		= trap_R_RegisterShader( "white" );

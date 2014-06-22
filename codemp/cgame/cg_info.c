@@ -98,6 +98,43 @@ void CG_LoadingClient( int clientNum ) {
 }
 
 
+//	| beginning of string ......................................... max legth for 0.8 scale	|
+static const char *tips[] = {															//	|
+	"Hold CTRL and scroll mouse wheel to speed up scrolling in the console",			//	|
+	"Holding SHIFT and pressing A or D will let you jump in time for 4 seconds",		//	|
+	"To change values in the demo HUD type /hudToggle and click on yellow ones",		//	|
+	"Hold W and move mouse to change FOV in camera view",								//	|
+	"To unlock FOV switch to Camera and type /hudToggle, and check Fov checkbox",		//	|
+	"To capture in stereo 3D set any non-null value to r_stereoSeparation",				//	|
+	"Type /camera to display all camera commands",										//	|
+	"Type /chase to display all chase commands",										//	|
+	"Type /line to display all line commands",											//	|
+	"Type /capture to display all capture commands",									//	|
+	"Type /dof to display all dof commands",											//	|
+	"To fast forward to certain minute type /demoSeek time",							//	|
+	"To jump forward or back in seconds type /seek +time or /seek -time",				//	|
+	"To see activated absorb on everyone set 1 to mov_absorbVisibility",				//	|
+	"You can change colour of forces with\nmov_absorbColour, mov_protectColour or mov_rageColour",
+};
+
+static void CG_Tips(void) {
+	const int x = SCREEN_WIDTH / 2, y = SCREEN_HEIGHT, style = UI_CENTER|UI_BIGFONT|UI_DROPSHADOW;
+	const float scale = 0.8f;
+	int tip = cg.tip % (sizeof(tips)/sizeof(tips[0]));
+	char *nextString = strchr(tips[tip], '\n');
+	if (nextString) {
+		char currentString[512];
+		ptrdiff_t offset = nextString - tips[tip];
+		strncpy(currentString, tips[tip], offset);
+		currentString[offset] = 0;
+		UI_DrawScaledProportionalString(x, y - 64, currentString, style, colorCyan, scale);
+		nextString++;
+		UI_DrawScaledProportionalString(x, y - 48, nextString, style, colorCyan, scale);
+	} else {
+		UI_DrawScaledProportionalString(x, y - 48, tips[tip], style, colorCyan, scale);
+	}
+}
+
 /*
 ====================
 CG_DrawInformation
@@ -377,6 +414,7 @@ void CG_DrawInformation( void ) {
 	default:
 		break;
 	}
+	CG_Tips();
 }
 
 /*

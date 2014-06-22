@@ -1067,6 +1067,7 @@ Ghoul2 Insert End
 
 	vec2_t				moveKeysPos;
 	int					fallingToDeath;
+	int					tip;
 } cg_t;
 
 #define MAX_TICS	14
