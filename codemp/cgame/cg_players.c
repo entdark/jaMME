@@ -9275,7 +9275,7 @@ void SmoothTrueView(vec3_t eyeAngles) {
 	if (!cg.playerCent)
 		return;
 	legsAnim = cg.playerPredicted ? cg.predictedPlayerState.legsAnim : cg.playerCent->currentState.legsAnim;
-	torsoAnim = cg.playerPredicted ? cg.predictedPlayerState.legsAnim : cg.playerCent->currentState.torsoAnim;
+	torsoAnim = cg.playerPredicted ? cg.predictedPlayerState.torsoAnim : cg.playerCent->currentState.torsoAnim;
 
 	//Debug messages
 	//Com_Printf("eyeAngles: %f, %f, %f\n", eyeAngles[0], eyeAngles[1], eyeAngles[2]);
