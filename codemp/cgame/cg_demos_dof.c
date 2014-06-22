@@ -142,8 +142,6 @@ static int dofPointShift( int shift ) {
 }
 
 static void dofPointControl( demoDofPoint_t *point, int times[4], float focuses[4], float radiuses[4]) {
-	vec3_t tempAngles;
-
 	if (!point->next)
 		return;
 	
@@ -175,7 +173,7 @@ static void dofPointControl( demoDofPoint_t *point, int times[4], float focuses[
 }
 
 static void dofInterpolate( int time, float timeFraction, float *focus, float *radius ) {
-	float	lerp, focuses[4], radiuses[4], fr, rr;
+	float	lerp, focuses[4], radiuses[4];
 	int		times[4];
 	demoDofPoint_t *point = dofPointSynch( time );
 
@@ -299,7 +297,6 @@ void dofUpdate( int time, float timeFraction ) {
 }
 
 void dofDraw( int time, float timeFraction ) {
-	demoDofPoint_t *point;
 	centity_t *targetCent;
 	float focus, radius;
 	if (demo.dof.target >= 0 && demo.dof.focus < 0.001f)
@@ -323,7 +320,6 @@ void dofDraw( int time, float timeFraction ) {
 }
 
 void dofMove(void) {
-	vec3_t moveAngles;
 	float *focus, *radius;
 	demoDofPoint_t *point;
 

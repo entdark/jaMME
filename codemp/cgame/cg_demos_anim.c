@@ -439,7 +439,7 @@ static void animSkeletonDraw(const vec3_t origins[MAX_BONES], const vec3_t ang[M
 
 	for (i = 0; i < MAX_BONES; i++) {
 		float scale = i == demo.anim.bone ? 7.0f : 2.3f; //selected bone is bigger
-		vec3_t origin2, forward, right, up, ang2;
+		vec3_t origin2, forward, right, up;
 		AngleVectors(ang[i], forward, right, up);
 
 		VectorMA(origins[i], scale, forward, origin2);
