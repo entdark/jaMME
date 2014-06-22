@@ -12279,11 +12279,11 @@ skipCloaked:
 			legs.shaderRGBA[1] = legs.shaderRGBA[2] = 0;
 			legs.shaderRGBA[3] = 255;
 		} else {
-			vec3_t rageColor;
-			Q_parseColor(mov_rageColour.string, defaultColors, rageColor);
-			legs.shaderRGBA[0] = rageColor[0] * 255;
-			legs.shaderRGBA[1] = rageColor[1] * 255;
-			legs.shaderRGBA[2] = rageColor[2] * 255;
+			vec3_t color;
+			Q_parseColor(mov_rageColour.string, defaultColors, color);
+			legs.shaderRGBA[0] = color[0] * 255;
+			legs.shaderRGBA[1] = color[1] * 255;
+			legs.shaderRGBA[2] = color[2] * 255;
 			legs.shaderRGBA[3] = 255;
 		}
 
@@ -12363,11 +12363,11 @@ skipCloaked:
 			prot.shaderRGBA[2] = 0;
 			prot.shaderRGBA[3] = 254;
 		} else {
-			vec3_t protectColor;
-			Q_parseColor(mov_protectColour.string, defaultColors, protectColor);
-			prot.shaderRGBA[0] = protectColor[0] * 255;
-			prot.shaderRGBA[1] = protectColor[1] * 255;
-			prot.shaderRGBA[2] = protectColor[2] * 255;
+			vec3_t color;
+			Q_parseColor(mov_protectColour.string, defaultColors, color);
+			prot.shaderRGBA[0] = color[0] * 255;
+			prot.shaderRGBA[1] = color[1] * 255;
+			prot.shaderRGBA[2] = color[2] * 255;
 			prot.shaderRGBA[3] = 255;
 		}
 
@@ -12403,14 +12403,14 @@ skipCloaked:
 			legs.shaderRGBA[2] = 255;
 			legs.shaderRGBA[3] = 254;
 		} else {
-			vec3_t absorbColor;
-			Q_parseColor(mov_absorbColour.string, defaultColors, absorbColor);
-			legs.shaderRGBA[0] = absorbColor[0] * 255;
-			legs.shaderRGBA[1] = absorbColor[1] * 255;
-			legs.shaderRGBA[2] = absorbColor[2] * 255;
+			vec3_t color;
+			Q_parseColor(mov_absorbColour.string, defaultColors, color);
+			legs.shaderRGBA[0] = color[0] * 255;
+			legs.shaderRGBA[1] = color[1] * 255;
+			legs.shaderRGBA[2] = color[2] * 255;
 			legs.shaderRGBA[3] = 255;
 		}
-
+		 
 		legs.renderfx &= ~RF_RGB_TINT;
 		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
 		if (mov_absorbShader.integer) {
