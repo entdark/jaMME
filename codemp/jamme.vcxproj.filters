@@ -774,9 +774,6 @@
     <ClInclude Include="renderer\tr_public.h">
       <Filter>Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="cgame\tr_types.h">
-      <Filter>Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="zlib\trees.h">
       <Filter>Zlib</Filter>
     </ClInclude>

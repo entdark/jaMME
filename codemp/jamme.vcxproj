@@ -346,7 +346,6 @@
     <ClInclude Include="zlib\zutil.h" />
     <ClInclude Include="renderer\tr_public.h" />
     <ClInclude Include="renderer\mdx_format.h" />
-    <ClInclude Include="cgame\tr_types.h" />
     <ClInclude Include="botlib\aasfile.h" />
     <ClInclude Include="botlib\be_aas_bsp.h" />
     <ClInclude Include="botlib\be_aas_cluster.h" />
