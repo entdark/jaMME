@@ -7686,32 +7686,32 @@ static void CG_DrawInWaterTints (void) {
 	if ((cg.refdef.viewContents&CONTENTS_LAVA)) {
 	//tint screen red
 		vec4_t hcolor;
-		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
+		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2.0f;
 		hcolor[3] = 0.5 + (0.15f*sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
 		hcolor[0] = 0.7f;
-		hcolor[1] = 0;
-		hcolor[2] = 0;
-		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
+		hcolor[1] = 0.0f;
+		hcolor[2] = 0.0f;
+		CG_FillRect(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 	} else if ((cg.refdef.viewContents&CONTENTS_SLIME)) {
 	//tint screen green
 		vec4_t hcolor;
-		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
+		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2.0f;
 		hcolor[3] = 0.4 + (0.1f*sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
-		hcolor[0] = 0;
+		hcolor[0] = 0.0f;
 		hcolor[1] = 0.7f;
-		hcolor[2] = 0;
-		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
+		hcolor[2] = 0.0f;
+		CG_FillRect(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 	} else if ((cg.refdef.viewContents&CONTENTS_WATER)) {
 	//tint screen light blue -- FIXME: don't do this if CONTENTS_FOG? (in case someone *does* make a water shader with fog in it?)
 		vec4_t hcolor;
-		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2;
+		float phase = cg.time / 1000.0f * WAVE_FREQUENCY * M_PI * 2.0f;
 		hcolor[3] = 0.3f + (0.05f*(float)sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
-		hcolor[0] = 0;
+		hcolor[0] = 0.0f;
 		hcolor[1] = 0.2f;
 		hcolor[2] = 0.8f;
 		//better underwater colour
 //		hcolor[3] = 0.2f + (0.05f*(float)sin(phase + (cg.timeFraction / 1000.0 * WAVE_FREQUENCY * M_PI * 2)));
-//		hcolor[0] = 0.1;
+//		hcolor[0] = 0.1f;
 //		hcolor[1] = 0.4f;
 //		hcolor[2] = 0.7f;
 		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
@@ -7740,37 +7740,37 @@ static void CG_Draw2DScreenTints( void ) {
 			if (!cgRageTime)
 				cgRageTime = cg.time;			
 			rageTime = (cg.time - cgRageTime) + cg.timeFraction;			
-			rageTime /= 9000;
+			rageTime /= 9000.0f;
 			
-			if (rageTime < 0)
-				rageTime = 0;
-			else if (rageTime > 0.15)
+			if (rageTime < 0.0f)
+				rageTime = 0.0f;
+			else if (rageTime > 0.15f)
 				rageTime = 0.15f;
 			
 			if (mov_rageColour.string[0] == '0') {
 				hcolor[0] = 0.7f;
-				hcolor[1] = 0;
-				hcolor[2] = 0;
+				hcolor[1] = 0.0f;
+				hcolor[2] = 0.0f;
 			} else {
 				Q_parseColor(mov_rageColour.string, defaultColors, hcolor);
 			}
 			hcolor[3] = rageTime;
 			
 			if (!cg.renderingThirdPerson)
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			
 			cgRageFadeTime = 0;
-			cgRageFadeVal = 0;
+			cgRageFadeVal = 0.0f;
 		} else if (cgRageTime) {
 			if (!cgRageFadeTime) {
 				cgRageFadeTime = cg.time;
 				cgRageFadeVal = 0.15f;
 			}			
 			rageTime = cgRageFadeVal;			
-			cgRageFadeVal -= ((cg.time - cgRageFadeTime) + cg.timeFraction)*0.000005f;
+			cgRageFadeVal -= ((cg.time - cgRageFadeTime) + cg.timeFraction) * 0.000005f;
 			
-			if (rageTime < 0)
-				rageTime = 0;
+			if (rageTime < 0.0f)
+				rageTime = 0.0f;
 			else if (rageTime > 0.15f)
 				rageTime = 0.15f;
 			
@@ -7781,7 +7781,7 @@ static void CG_Draw2DScreenTints( void ) {
 				}
 				
 				if (mov_rageColour.string[0] == '0') {
-					hcolor[0] = rageTime*4;
+					hcolor[0] = rageTime * 4.0f;
 					if (hcolor[0] < 0.2f) {
 						hcolor[0] = 0.2f;
 					}
@@ -7789,9 +7789,9 @@ static void CG_Draw2DScreenTints( void ) {
 					hcolor[2] = 0.2f;
 				} else {
 					Q_parseColor(mov_rageColour.string, defaultColors, hcolor);
-					hcolor[0] *= rageTime*6;
-					hcolor[1] *= rageTime*6;
-					hcolor[2] *= rageTime*6;
+					hcolor[0] *= rageTime * 6.0f;
+					hcolor[1] *= rageTime * 6.0f;
+					hcolor[2] *= rageTime * 6.0f;
 					if (hcolor[0] < 0.1f) {
 						hcolor[0] = 0.1f;
 					}
@@ -7815,20 +7815,14 @@ static void CG_Draw2DScreenTints( void ) {
 			}
 			
 			if (!cg.renderingThirdPerson && rageTime) {
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			} else {
 				if (cg.playerPredicted && cg.snap->ps.fd.forceRageRecoveryTime > cg.time) {
-					if (mov_rageColour.string[0] == '0') {
-						hcolor[0] = 0.2f;
-						hcolor[1] = 0.2f;
-						hcolor[2] = 0.2f;
-					} else {
-						hcolor[0] = 0.1f;
-						hcolor[1] = 0.1f;
-						hcolor[2] = 0.1f;
-					}
-					hcolor[3] = 0.15f;
-					CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
+					hcolor[0] = 0.2f;
+					hcolor[1] = 0.2f;
+					hcolor[2] = 0.2f;
+					hcolor[3] = 0.15;
+					CG_FillRect(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 				}
 				cgRageTime = 0;
 			}
@@ -7836,7 +7830,7 @@ static void CG_Draw2DScreenTints( void ) {
 			if (!cgRageRecTime)
 				cgRageRecTime = cg.time;			
 			rageRecTime = (cg.time - cgRageRecTime) + cg.timeFraction;			
-			rageRecTime /= 9000;
+			rageRecTime /= 9000.0f;
 			
 			if (rageRecTime < 0.15f)
 				rageRecTime = 0.15f;//0;
@@ -7849,20 +7843,20 @@ static void CG_Draw2DScreenTints( void ) {
 			hcolor[2] = 0.2f;
 			
 			if (!cg.renderingThirdPerson)
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			
 			cgRageRecFadeTime = 0;
-			cgRageRecFadeVal = 0;
+			cgRageRecFadeVal = 0.0f;
 		} else if (cg.playerPredicted && cgRageRecTime) {
 			if (!cgRageRecFadeTime) {
 				cgRageRecFadeTime = cg.time;
 				cgRageRecFadeVal = 0.15f;
 			}			
 			rageRecTime = cgRageRecFadeVal;			
-			cgRageRecFadeVal -= ((cg.time - cgRageRecFadeTime) + cg.timeFraction)*0.000005f;
+			cgRageRecFadeVal -= ((cg.time - cgRageRecFadeTime) + cg.timeFraction) * 0.000005f;
 			
-			if (rageRecTime < 0)
-				rageRecTime = 0;
+			if (rageRecTime < 0.0f)
+				rageRecTime = 0.0f;
 			else if (rageRecTime > 0.15f)
 				rageRecTime = 0.15f;
 			
@@ -7872,7 +7866,7 @@ static void CG_Draw2DScreenTints( void ) {
 			hcolor[2] = 0.2f;
 			
 			if (!cg.renderingThirdPerson && rageRecTime)
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			else
 				cgRageRecTime = 0;
 		}
@@ -7881,51 +7875,51 @@ static void CG_Draw2DScreenTints( void ) {
 			if (!cgAbsorbTime)
 				cgAbsorbTime = cg.time;			
 			absorbTime = (cg.time - cgAbsorbTime) + cg.timeFraction;			
-			absorbTime /= 9000;
+			absorbTime /= 9000.0f;
 			
-			if (absorbTime < 0)
-				absorbTime = 0;
+			if (absorbTime < 0.0f)
+				absorbTime = 0.0f;
 			else if (absorbTime > 0.15f)
 				absorbTime = 0.15f;
 			
 			if (mov_absorbColour.string[0] == '0') {
-				hcolor[0] = 0;
-				hcolor[1] = 0;
+				hcolor[0] = 0.0f;
+				hcolor[1] = 0.0f;
 				hcolor[2] = 0.7f;
 			} else {
 				Q_parseColor(mov_absorbColour.string, defaultColors, hcolor);
 			}
-			hcolor[3] = absorbTime/2;
+			hcolor[3] = absorbTime / 2.0f;
 			
 			if (!cg.renderingThirdPerson)
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			
 			cgAbsorbFadeTime = 0;
-			cgAbsorbFadeVal = 0;
+			cgAbsorbFadeVal = 0.0f;
 		} else if (cgAbsorbTime) {
 			if (!cgAbsorbFadeTime) {
 				cgAbsorbFadeTime = cg.time;
 				cgAbsorbFadeVal = 0.15f;
 			}			
 			absorbTime = cgAbsorbFadeVal;			
-			cgAbsorbFadeVal -= ((cg.time - cgAbsorbFadeTime) + cg.timeFraction)*0.000005f;
+			cgAbsorbFadeVal -= ((cg.time - cgAbsorbFadeTime) + cg.timeFraction) * 0.000005f;
 			
-			if (absorbTime < 0)
-				absorbTime = 0;
+			if (absorbTime < 0.0f)
+				absorbTime = 0.0f;
 			else if (absorbTime > 0.15f)
 				absorbTime = 0.15f;
 			
 			if (mov_absorbColour.string[0] == '0') {
-				hcolor[0] = 0;
-				hcolor[1] = 0;
+				hcolor[0] = 0.0f;
+				hcolor[1] = 0.0f;
 				hcolor[2] = 0.7f;
 			} else {
 				Q_parseColor(mov_absorbColour.string, defaultColors, hcolor);
 			}
-			hcolor[3] = absorbTime/2;
+			hcolor[3] = absorbTime / 2.0f;
 			
 			if (!cg.renderingThirdPerson && absorbTime)
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			else
 				cgAbsorbTime = 0;
 		}
@@ -7935,51 +7929,51 @@ static void CG_Draw2DScreenTints( void ) {
 				cgProtectTime = cg.time;
 			}			
 			protectTime = (cg.time - cgProtectTime) + cg.timeFraction;			
-			protectTime /= 9000;
+			protectTime /= 9000.0f;
 			
-			if (protectTime < 0)
-				protectTime = 0;
+			if (protectTime < 0.0f)
+				protectTime = 0.0f;
 			else if (protectTime > 0.15f)
 				protectTime = 0.15f;
 			
 			if (mov_protectColour.string[0] == '0') {
-				hcolor[0] = 0;
+				hcolor[0] = 0.0f;
 				hcolor[1] = 0.7f;
-				hcolor[2] = 0;
+				hcolor[2] = 0.0f;
 			} else {
 				Q_parseColor(mov_protectColour.string, defaultColors, hcolor);
 			}
-			hcolor[3] = protectTime/2;
+			hcolor[3] = protectTime / 2.0f;
 			
 			if (!cg.renderingThirdPerson)
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			
 			cgProtectFadeTime = 0;
-			cgProtectFadeVal = 0;
+			cgProtectFadeVal = 0.0f;
 		} else if (cgProtectTime) {
 			if (!cgProtectFadeTime) {
 				cgProtectFadeTime = cg.time;
 				cgProtectFadeVal = 0.15f;
 			}			
 			protectTime = cgProtectFadeVal;			
-			cgProtectFadeVal -= ((cg.time - cgProtectFadeTime) + cg.timeFraction)*0.000005f;
+			cgProtectFadeVal -= ((cg.time - cgProtectFadeTime) + cg.timeFraction) * 0.000005f;
 			
-			if (protectTime < 0)
-				protectTime = 0;
+			if (protectTime < 0.0f)
+				protectTime = 0.0f;
 			else if (protectTime > 0.15f)
 				protectTime = 0.15f;
 			
 			if (mov_protectColour.string[0] == '0') {
-				hcolor[0] = 0;
+				hcolor[0] = 0.0f;
 				hcolor[1] = 0.7f;
-				hcolor[2] = 0;
+				hcolor[2] = 0.0f;
 			} else {
 				Q_parseColor(mov_protectColour.string, defaultColors, hcolor);
 			}
-			hcolor[3] = protectTime/2;
+			hcolor[3] = protectTime / 2.0f;
 			
 			if (!cg.renderingThirdPerson && protectTime)
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			else
 				cgProtectTime = 0;
 		}
@@ -7989,43 +7983,43 @@ static void CG_Draw2DScreenTints( void ) {
 			if (!cgYsalTime)
 				cgYsalTime = cg.time;			
 			ysalTime = (cg.time - cgYsalTime) + cg.timeFraction;			
-			ysalTime /= 9000;
+			ysalTime /= 9000.0f;
 			
-			if (ysalTime < 0)
-				ysalTime = 0;
+			if (ysalTime < 0.0f)
+				ysalTime = 0.0f;
 			else if (ysalTime > 0.15f)
 				ysalTime = 0.15f;
 			
-			hcolor[3] = ysalTime/2;
+			hcolor[3] = ysalTime / 2.0f;
 			hcolor[0] = 0.7f;
 			hcolor[1] = 0.7f;
-			hcolor[2] = 0;
+			hcolor[2] = 0.0f;
 			
 			if (!cg.renderingThirdPerson)
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			
 			cgYsalFadeTime = 0;
-			cgYsalFadeVal = 0;
+			cgYsalFadeVal = 0.0f;
 		} else if (cgYsalTime) {
 			if (!cgYsalFadeTime) {
 				cgYsalFadeTime = cg.time;
 				cgYsalFadeVal = 0.15f;
 			}			
 			ysalTime = cgYsalFadeVal;			
-			cgYsalFadeVal -= ((cg.time - cgYsalFadeTime) + cg.timeFraction)*0.000005f;
+			cgYsalFadeVal -= ((cg.time - cgYsalFadeTime) + cg.timeFraction) * 0.000005f;
 			
-			if (ysalTime < 0)
-				ysalTime = 0;
+			if (ysalTime < 0.0f)
+				ysalTime = 0.0f;
 			else if (ysalTime > 0.15f)
 				ysalTime = 0.15f;
 			
-			hcolor[3] = ysalTime/2;
+			hcolor[3] = ysalTime / 2.0f;
 			hcolor[0] = 0.7f;
 			hcolor[1] = 0.7f;
-			hcolor[2] = 0;
+			hcolor[2] = 0.0f;
 			
 			if (!cg.renderingThirdPerson && ysalTime)
-				CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
+				CG_FillRect(0.0f, 0.0f, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 			else
 				cgYsalTime = 0;
 		}
