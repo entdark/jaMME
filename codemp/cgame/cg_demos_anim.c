@@ -220,7 +220,7 @@ static void animPointControl(demoAnimPoint_t *point, Quat_t quats[4], int b) {
 qboolean demoAnimBone(int bone) {
 	centity_t	*cent = &cg_entities[demo.anim.target];	
 	if (!(cent && cent->currentValid))
-		return;
+		return qfalse;
 	//check if it exists and if so then select this bone
 	if (trap_G2API_AddBolt(cg_entities[demo.anim.target].ghoul2, 0, boneList[bone]) == -1)
 		return qfalse;
