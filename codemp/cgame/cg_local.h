@@ -1053,21 +1053,19 @@ Ghoul2 Insert End
 	float				eventCoeff;
 	float				eventOldCoeff;
 	
-	struct			{
+	struct {
 		qboolean		detected;
 		unsigned int	SSF;
 	} japlus;
-	struct {
-		vec3_t			sunorigin;
-		int				raintime;
-	} we;
-
+	
 	int					chargeTime;
 	qboolean			charging;
 
 	vec2_t				moveKeysPos;
 	int					fallingToDeath;
 	int					tip;
+	
+	int					rainTime, rainNumber;
 } cg_t;
 
 #define MAX_TICS	14

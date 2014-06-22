@@ -2916,7 +2916,6 @@ int cg_siegeClassIndex = -2;
 
 extern void CG_SetPredictedThirdPerson(void);
 extern void trap_S_UpdatePitch( float pitch );
-
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayback ) {
 	int		inwater;
 	const char *cstr;
@@ -3180,7 +3179,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 	trap_S_UpdatePitch( 1.0f );
 	// update audio positions
 	trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater );
-
+	
 	// make sure the lagometerSample and frame timing isn't done twice when in stereo
 	if ( stereoView != STEREO_RIGHT ) {
 		cg.frametime = cg.time - cg.oldTime;

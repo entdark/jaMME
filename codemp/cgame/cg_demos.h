@@ -150,6 +150,16 @@ typedef struct demoMain_s {
 	struct {
 		float speed, acceleration, friction;
 	} move;
+	struct {
+		vec3_t		angles;
+		float		size, precision;
+		qboolean	active;
+	} sun;
+	struct {
+		int			time, number;
+		float		range;
+		qboolean	active;
+	} rain;
 	vec3_t			viewOrigin, viewAngles;
 	demoViewType_t	viewType;
 	vec_t			viewFov;
@@ -265,6 +275,10 @@ const char *demoTimeString( int time );
 //WEATHER
 void demoDrawRain(void);
 void demoDrawSun(void);
+qboolean weatherParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data);
+void weatherSave( fileHandle_t fileHandle );
+void demoSunCommand_f(void);
+void demoRainCommand_f(void);
 
 #define CAM_ORIGIN	0x001
 #define CAM_ANGLES	0x002

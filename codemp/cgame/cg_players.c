@@ -5843,8 +5843,7 @@ void CG_DoSaber( vec3_t origin, vec3_t dir, float length, float lengthMax, float
 	// Find the midpoint of the saber for lighting purposes
 	VectorMA( origin, length * 0.5f, dir, mid );
 	
-	if ((int)length > 1 && mov_rain.integer > 0
-		&& cg.we.raintime <= cg.time && Q_irand(0,5000) <= (float)mov_rain.integer) {
+	if ((int)length > 1 && cg.rainNumber > 0 && cg.rainTime <= cg.time && Q_irand(0,5000) <= cg.rainNumber) {
 		int pos = Q_irand(0,length);
 		vec3_t fizz;
 		vec3_t endf;
@@ -6612,8 +6611,7 @@ void CG_SaberCompWork(vec3_t start, vec3_t end, centity_t *owner, int saberNum, 
 
 qboolean BG_SuperBreakWinAnim( int anim );
 
-void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, int renderfx, int modelIndex, int saberNum, int bladeNum, vec3_t origin, vec3_t angles, qboolean fromSaber, qboolean dontDraw)
-{
+void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, int renderfx, int modelIndex, int saberNum, int bladeNum, vec3_t origin, vec3_t angles, qboolean fromSaber, qboolean dontDraw) {
 	vec3_t	org_, end, v,
 			axis_[3] = {0,0,0, 0,0,0, 0,0,0};	// shut the compiler up
 	trace_t	trace;
