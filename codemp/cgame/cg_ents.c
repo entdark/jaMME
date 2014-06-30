@@ -3180,7 +3180,9 @@ CG_CalcEntityLerpPositions
 */
 void CG_CalcEntityLerpPositions( centity_t *cent ) {
 	qboolean goAway = qfalse;
-
+	if (!cent->currentState.apos.trTime) {
+		cent->currentState.apos.trTime = cg.time - cg.time % 360;
+	}
 	// if this player does not want to see extrapolated players
 	if ( !cg_smoothClients.integer ) {
 		// make sure the clients use TR_INTERPOLATE
