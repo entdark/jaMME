@@ -1545,17 +1545,23 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 			bNextTextWouldOverflow = ( iMaxPixelWidth != -1 && ((x-ox)>iMaxPixelWidth) ) ? qtrue : qfalse;	// yeuch
 			break;
 		case '_':	// has a special word-break usage if in Thai (and followed by a thai char), and should not be displayed, else treat as normal
-			if (GetLanguageEnum()== eThai && ((unsigned char *)psText)[0] >= TIS_GLYPHS_START)
-			{
+			if (GetLanguageEnum()== eThai && ((unsigned char *)psText)[0] >= TIS_GLYPHS_START) {
 				break;
 			}
 			// else drop through and display as normal...
 		case '^':
-			if (uiLetter != '_')	// necessary because of fallthrough above
-			{
-				if (*psText >= '0' &&
-					*psText <= '9')
-				{
+			if (uiLetter != '_') {	// necessary because of fallthrough above
+				if (tr.uag.newColors && ((*psText >= '0' && *psText <= '9') || (*psText >= 'A' && *psText <= 'Z'))) {
+					colour = ColorIndexUAG(*psText++);
+					if (!gbInShadow)
+					{
+						vec4_t color;
+						Com_Memcpy( color, g_color_table_uag[colour], sizeof( color ) );
+						color[3] = rgba[3];
+						RE_SetColor( color );
+					}
+					break;
+				} else if (*psText >= '0' && *psText <= '9') {
 					colour = ColorIndex(*psText++);
 					if (!gbInShadow)
 					{

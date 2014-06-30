@@ -660,6 +660,17 @@ static void CG_Set2DRatio(void) {
 		cgs.widthRatioCoef = 1.0f;
 }
 
+extern void trap_MME_NewUAGColors( qboolean newUAGColors );
+static void CG_SetNewUAGColours(void) {
+	if (cg_UAGColours.integer == 2)
+		cg.uag.newColors = qtrue;
+	else if (cg_UAGColours.integer)
+		cg.uag.newColors = cg.uag.detected;
+	else
+		cg.uag.newColors = qfalse;
+	trap_MME_NewUAGColors(cg.uag.newColors);
+}
+
 static void CG_SetMovementKeysPos( void ) {
 	if ( sscanf( cg_drawMovementKeysPos.string, "%f %f", &cg.moveKeysPos[0], &cg.moveKeysPos[1] ) != 2 ) {
 		cg.moveKeysPos[0] = (SCREEN_WIDTH / 2);
@@ -3110,6 +3121,8 @@ Ghoul2 Insert End
 	cgs.levelStartTime = atoi( s );
 
 	CG_ParseServerinfo();
+
+	CG_SetNewUAGColours();
 
 	// load the new map
 //	CG_LoadingString( "collision map" );

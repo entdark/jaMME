@@ -396,7 +396,11 @@ void CL_ConsolePrint( const char *txt) {
 	color = ColorIndex(COLOR_WHITE);
 
 	while ( (c = (unsigned char) *txt) != 0 ) {
-		if ( Q_IsColorString( (unsigned char*) txt ) ) {
+		if ( cls.uag.newColors && Q_IsColorStringUAG( (unsigned char*) txt ) ) {
+			color = ColorIndexUAG( *(txt+1) );
+			txt += 2;
+			continue;
+		} else if ( Q_IsColorString( (unsigned char*) txt ) ) {
 			color = ColorIndex( *(txt+1) );
 			txt += 2;
 			continue;
@@ -566,7 +570,10 @@ void Con_DrawNotify (void)
 				if ( ( text[x] & 0xff ) == ' ' ) {
 					continue;
 				}
-				if ( ( (text[x]>>8)&7 ) != currentColor ) {
+				if ( cls.uag.newColors && ( (text[x]>>8)%43 ) != currentColor ) {
+					currentColor = (text[x]>>8)%43;
+					re.SetColor( g_color_table_uag[currentColor] );
+				} else if ( !cls.uag.newColors && ( (text[x]>>8)&7 ) != currentColor ) {
 					currentColor = (text[x]>>8)&7;
 					re.SetColor( g_color_table[currentColor] );
 				}
@@ -761,7 +768,10 @@ void Con_DrawSolidConsole( float frac ) {
 					continue;
 				}
 
-				if ( ( (text[x]>>8)&7 ) != currentColor ) {
+				if ( cls.uag.newColors && ( (text[x]>>8)%43 ) != currentColor ) {
+					currentColor = (text[x]>>8)%43;
+					re.SetColor( g_color_table_uag[currentColor] );
+				} else if ( !cls.uag.newColors && ( (text[x]>>8)&7 ) != currentColor ) {
 					currentColor = (text[x]>>8)&7;
 					re.SetColor( g_color_table[currentColor] );
 				}

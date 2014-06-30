@@ -231,6 +231,7 @@ typedef struct {
 	void				(*CaptureStereo)						( const char *baseName, float fps, float focus, float radius );
 	void				(*BlurInfo)								( int* total, int* index );
 	void				(*DemoRandomSeed)						( int time, float timeFraction );
+	void				(*NewUAGColors)							( qboolean newUAGColors );
 } refexport_t;
 
 //

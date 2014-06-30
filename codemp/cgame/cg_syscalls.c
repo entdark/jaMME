@@ -1257,6 +1257,9 @@ int trap_MME_SeekTime( int seekTime ) {
 void trap_MME_Music( const char *musicName, float time, float length ) {
 	Q_syscall( CG_MME_MUSIC, musicName, PASSFLOAT(time), PASSFLOAT(length) );
 }
+void trap_MME_NewUAGColors( qboolean newUAGColors ) {
+	Q_syscall( CG_MME_NEWUAGCOLORS, newUAGColors );
+}
 void trap_R_RandomSeed( int time, float timeFraction ) {
 	Q_syscall( CG_R_RANDOMSEED, time, PASSFLOAT(timeFraction) );
 }

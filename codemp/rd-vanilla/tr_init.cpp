@@ -1279,6 +1279,8 @@ void RE_Shutdown( qboolean destroyWindow ) {
 	}
 
 	tr.registered = qfalse;
+
+	tr.uag.newColors = qfalse;
 }
 
 /*
@@ -1322,6 +1324,10 @@ void RE_SetLightStyle(int style, int color)
 
 static void R_DemoRandomSeed(int time, float timeFraction) {
 	srand(time + timeFraction);
+}
+
+static void R_NewUAGColors(qboolean newUAGColors) {
+	tr.uag.newColors = newUAGColors;
 }
 
 static void SetRangedFog( float range ) { tr.rangedFog = range; }
@@ -1564,6 +1570,7 @@ Q_EXPORT refexport_t* QDECL GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.CaptureStereo = R_MME_CaptureStereo;
 	re.BlurInfo = R_MME_BlurInfo;
 	re.DemoRandomSeed = R_DemoRandomSeed;
+	re.NewUAGColors = R_NewUAGColors;
 
 	return &re;
 }

@@ -313,6 +313,10 @@ typedef struct {
 	qhandle_t	recordingShader;
 
 	float		ratioFix;
+
+	struct {
+		qboolean		newColors;
+	} uag;
 } clientStatic_t;
 
 #define	CON_TEXTSIZE	0x30000 //was 32768

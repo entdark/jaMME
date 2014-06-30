@@ -1217,6 +1217,28 @@ const char *Q_stristr( const char *s, const char *find)
   return s;
 }
 
+int Q_PrintStrlenUAG( const char *string ) {
+	int			len;
+	const char	*p;
+
+	if( !string ) {
+		return 0;
+	}
+
+	len = 0;
+	p = string;
+	while( *p ) {
+		if( Q_IsColorStringUAG( p ) ) {
+			p += 2;
+			continue;
+		}
+		p++;
+		len++;
+	}
+
+	return len;
+}
+
 int Q_PrintStrlen( const char *string ) {
 	int			len;
 	const char	*p;
@@ -1239,6 +1261,27 @@ int Q_PrintStrlen( const char *string ) {
 	return len;
 }
 
+
+char *Q_CleanStrUAG( char *string ) {
+	char*	d;
+	char*	s;
+	int		c;
+
+	s = string;
+	d = string;
+	while ((c = *s) != 0 ) {
+		if ( Q_IsColorStringUAG( s ) ) {
+			s++;
+		}		
+		else if ( c >= 0x20 && c <= 0x7E ) {
+			*d++ = c;
+		}
+		s++;
+	}
+	*d = '\0';
+
+	return string;
+}
 
 char *Q_CleanStr( char *string ) {
 	char*	d;
@@ -1270,6 +1313,41 @@ Strips coloured strings in-place using multiple passes: "fgs^^56fds" -> "fgs^6fd
 (Also strips ^8 and ^9)
 ==================
 */
+void Q_StripColorUAG(char *text)
+{
+	qboolean doPass = qtrue;
+	char *read;
+	char *write;
+
+	while ( doPass )
+	{
+		doPass = qfalse;
+		read = write = text;
+		while ( *read )
+		{
+			if ( Q_IsColorStringExt(read) )
+			{
+				doPass = qtrue;
+				read += 2;
+			}
+			else
+			{
+				// Avoid writing the same data over itself
+				if (write != read)
+				{
+					*write = *read;
+				}
+				write++;
+				read++;
+			}
+		}
+		if ( write < read )
+		{
+			// Add trailing NUL byte if string has shortened
+			*write = '\0';
+		}
+	}
+}
 void Q_StripColor(char *text)
 {
 	qboolean doPass = qtrue;
@@ -1313,6 +1391,28 @@ Q_StripColorNew
 Strips coloured strings in-place: "fgs^^^223fds" -> "fgs^^23fds"
 ==================
 */
+void Q_StripColorNewUAG(char *text) {
+	char *read;
+	char *write;
+
+	read = write = text;
+	while ( *read ) {
+		if ( Q_IsColorStringUAG(read) ) {
+			read += 2;
+		} else {
+			// Avoid writing the same data over itself
+			if (write != read) {
+				*write = *read;
+			}
+			write++;
+			read++;
+		}
+	}
+	if ( write < read ) {
+		// Add trailing NUL byte if string has shortened
+		*write = '\0';
+	}
+}
 void Q_StripColorNew(char *text) {
 	char *read;
 	char *write;

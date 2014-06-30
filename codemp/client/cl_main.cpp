@@ -829,6 +829,8 @@ void CL_Disconnect( qboolean showMainMenu ) {
 	Com_Memset( &clc, 0, sizeof( clc ) );
 
 	cls.state = CA_DISCONNECTED;
+	
+	cls.uag.newColors = qfalse;
 
 	// allow cheats locally
 	Cvar_Set( "sv_cheats", "1" );

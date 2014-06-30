@@ -205,7 +205,8 @@ XCVAR_DEF( fx_disruptCoreColor,					"xff4400",				NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( fx_disruptSpiralColor,				"xff2200",				NULL,					CVAR_ARCHIVE )
 //for ja+ & ja++
 XCVAR_DEF( cg_grappleFix,						"0",					NULL,					CVAR_ARCHIVE )
-XCVAR_DEF( cg_japlusFix,						"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_japlusFix,						"1",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_UAGColours,						"1",					CG_SetNewUAGColours,	CVAR_ARCHIVE )
 //from ja++ for all
 XCVAR_DEF( cg_drawMovementKeys,					"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_drawMovementKeysPos,				"320 240",				CG_SetMovementKeysPos,	CVAR_ARCHIVE )

@@ -1057,6 +1057,10 @@ Ghoul2 Insert End
 		qboolean		detected;
 		unsigned int	SSF;
 	} japlus;
+	struct {
+		qboolean		detected;
+		qboolean		newColors;
+	} uag;
 	
 	int					chargeTime;
 	qboolean			charging;

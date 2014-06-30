@@ -1111,6 +1111,10 @@ typedef struct {
 #ifdef _WIN32
 	WinVars_t *wv;
 #endif
+
+	struct {
+		qboolean		newColors;
+	} uag;
 } trGlobals_t;
 
 
