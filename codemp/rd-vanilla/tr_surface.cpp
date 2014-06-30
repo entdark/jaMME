@@ -943,9 +943,9 @@ static void DoBoltSeg( vec3_t start, vec3_t end, vec3_t right, float radius )
 		}
 
 		// create our level of deviation for this point
-		VectorScale( fwd, crandom() * 3.0f, temp );				// move less in fwd direction, chaos also does not affect this
-		VectorMA( temp, crandom() * 7.0f * e->axis[0][0], rt, temp );	// move more in direction perpendicular to line, angles is really the chaos
-		VectorMA( temp, crandom() * 7.0f * e->axis[0][0], up, temp );	// move more in direction perpendicular to line
+		VectorScale( fwd, Q_crandom(&e->frame) * 3.0f, temp );				// move less in fwd direction, chaos also does not affect this
+		VectorMA( temp, Q_crandom(&e->frame) * 7.0f * e->axis[0][0], rt, temp );	// move more in direction perpendicular to line, angles is really the chaos
+		VectorMA( temp, Q_crandom(&e->frame) * 7.0f * e->axis[0][0], up, temp );	// move more in direction perpendicular to line
 
 		// track our total level of offset from the ideal line
 		VectorAdd( off, temp, off );
@@ -968,7 +968,7 @@ static void DoBoltSeg( vec3_t start, vec3_t end, vec3_t right, float radius )
         ApplyShape( cur, old, right, newRadius, oldRadius, LIGHTNING_RECURSION_LEVEL );
   
 		// randomly split off to create little tendrils, but don't do it too close to the end and especially if we are not even of the forked variety
-        if ( ( e->renderfx & RF_FORKED ) && f_count > 0 && crandom() > 0.94f && radius * (1.0f - perc) > 0.2f )
+        if ( ( e->renderfx & RF_FORKED ) && f_count > 0 && Q_crandom(&e->frame) > 0.94f && radius * (1.0f - perc) > 0.2f )
 		{
 			vec3_t newDest;
 
@@ -981,7 +981,7 @@ static void DoBoltSeg( vec3_t start, vec3_t end, vec3_t right, float radius )
 			// And then add some crazy offset
 			for ( int t = 0; t < 3; t++ )
 			{
-				newDest[t] += crandom() * 80;
+				newDest[t] += Q_crandom(&e->frame) * 80;
 			}
 
 			// we could branch off using OLD and NEWDEST, but that would allow multiple forks...whereas, we just want simpler brancing
