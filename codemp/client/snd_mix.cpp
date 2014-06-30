@@ -106,12 +106,7 @@ const mixSound_t *S_MixGetSound( sfxHandle_t sfxHandle ) {
 	sfxEntry_t *entry;
 	mixSound_t *sound;
 	openSound_t *openSound;
-
-#ifdef FINAL_BUILD
-	doNotYell = qtrue;
-#else
-	doNotYell = qfalse;
-#endif
+	char *isMP3;
 
 	sound = mixSounds[sfxHandle];
 	if ( sound ) {
@@ -141,7 +136,8 @@ const mixSound_t *S_MixGetSound( sfxHandle_t sfxHandle ) {
 	sound->handle = sfxHandle;
 	sound->lastUsed = com_frameTime;
 	sound->samples = S_SoundRead( openSound, qfalse, openSound->totalSamples, sound->data );
-	if (sound->samples != openSound->totalSamples && !doNotYell) {
+	isMP3 = strchr(entry->name, '.mp3'); // MP3s aren't being opened fully sometimes, could spam the console
+	if (sound->samples != openSound->totalSamples && !isMP3) {
 		Com_Printf( "Mixer:Failed to load %s fully\n", entry->name );
 	}
 	sound->samples <<= MIX_SHIFT;

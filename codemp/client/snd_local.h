@@ -143,7 +143,7 @@ extern qboolean	s_underWater;
 
 qboolean S_FileExists(char *fileName);
 
-openSound_t *S_SoundOpen( const char *constFileName );
+openSound_t *S_SoundOpen( const char *fileName );
 int S_SoundRead( openSound_t *open, qboolean stereo, int size, short *data );
 int S_SoundSeek( openSound_t *open, int samples );
 void S_SoundClose( openSound_t *open );

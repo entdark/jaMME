@@ -55,5 +55,3 @@ void S_MMEUpdate( float scale );
 void S_MMEMusic( const char *musicName, float time, float length );
 
 void S_UpdatePitch(float pitch);
-
-extern qboolean doNotYell;

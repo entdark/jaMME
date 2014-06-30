@@ -35,18 +35,19 @@ extern	cvar_t* s_language;
 qboolean S_FileExists(char *fileName) {
 	char *voice = strstr(fileName,"chars");
 	fileHandle_t f;
-	if (voice) {
-		if (s_language && stricmp("DEUTSCH",s_language->string)==0) {				
+	if (voice && s_language) {
+		if (stricmp("DEUTSCH",s_language->string)==0) {				
 			strncpy(voice,"chr_d",5);	// same number of letters as "chars"
-		} else if (s_language && stricmp("FRANCAIS",s_language->string)==0) {				
+		} else if (stricmp("FRANCAIS",s_language->string)==0) {				
 			strncpy(voice,"chr_f",5);	// same number of letters as "chars"
-		} else if (s_language && stricmp("ESPANOL",s_language->string)==0) {				
+		} else if (stricmp("ESPANOL",s_language->string)==0) {				
 			strncpy(voice,"chr_e",5);	// same number of letters as "chars"
 		} else {
 			voice = NULL;	// use this ptr as a flag as to whether or not we substituted with a foreign version
 		}
 	}
 	COM_StripExtension(fileName, fileName, MAX_QPATH);
+tryDefaultLanguage:
 	S_SoundChangeExt(fileName, ".wav"); //append
 	FS_FOpenFileRead(fileName, &f, qtrue);
 	if (!f) {
@@ -54,59 +55,17 @@ qboolean S_FileExists(char *fileName) {
 		S_SoundChangeExt(fileName, ".mp3");
 		FS_FOpenFileRead(fileName, &f, qtrue);
 #endif
-		if (!f) {
-			if (voice) {
-				strncpy(voice,"chars",5);
-				S_SoundChangeExt(fileName, ".wav");
-				FS_FOpenFileRead(fileName, &f, qtrue);
-				if (!f) {
-#ifdef HAVE_LIBMAD
-					S_SoundChangeExt(fileName, ".mp3");
-					FS_FOpenFileRead(fileName, &f, qtrue);
-#endif
-				}
-			}
-			if (!f) {
-				return qfalse;
-			}
+		/* switch back to english (default) and try again */
+		if (!f && voice) {
+			strncpy(voice, "chars", 5);
+			voice = NULL;
+			goto tryDefaultLanguage;
 		}
+		if (!f)
+			return qfalse;
 	}
 	FS_FCloseFile(f);
 	return qtrue;
-}
-
-static qboolean S_SwitchLang(char *fileName) {
-	int iNameStrlen = strlen(fileName);
-	char *voice = strstr(fileName,"chars");
-	if (voice) {
-		if (s_language && stricmp("DEUTSCH",s_language->string)==0) {				
-			strncpy(voice,"chr_d",5);	// same number of letters as "chars"
-		} else if (s_language && stricmp("FRANCAIS",s_language->string)==0) {				
-			strncpy(voice,"chr_f",5);	// same number of letters as "chars"
-		} else if (s_language && stricmp("ESPANOL",s_language->string)==0) {				
-			strncpy(voice,"chr_e",5);	// same number of letters as "chars"
-		}
-		return qfalse;
-	} else {
-		voice = strstr(fileName,"chr_d");
-		if (voice) {
-			strncpy(voice,"chars",5);
-			return qtrue;
-		} else {
-			voice = strstr(fileName,"chr_f");
-			if (voice) {
-				strncpy(voice,"chars",5);
-				return qtrue;
-			} else {
-				voice = strstr(fileName,"chr_f");
-				if (voice) {
-					strncpy(voice,"chars",5);
-					return qtrue;
-				}
-			}
-		}
-		return qfalse; //has to reach that only if it's not "chars" related sound, 1 - replaced sound
-	}
 }
 
 #define	WAV_FORMAT_PCM		1
@@ -329,8 +288,7 @@ static openSound_t * S_WavOpen( const char *fileName ) {
 	// load it in
 	open = S_StreamOpen( fileName, sizeof( wavOpen_t ));
 	if (!open) {
-		if (!doNotYell)
-			Com_Printf("WavOpen:File %s failed to open\n", fileName);
+		Com_Printf("WavOpen:File %s failed to open\n", fileName);
 		return 0;
 	}
 	open->read = S_WavRead;
@@ -590,8 +548,7 @@ static openSound_t *S_MP3Open( const char *fileName ) {
 
 	open = S_StreamOpen( fileName, sizeof( mp3Open_t ) );
 	if (!open) {
-		if (!doNotYell)
-			Com_Printf("MP3Open:File %s failed to open\n", fileName);
+		Com_Printf("MP3Open:File %s failed to open\n", fileName);
 		return 0;
 	}
 	mp3 = (mp3Open_t *)open->data;
@@ -643,99 +600,28 @@ static openSound_t *S_MP3Open( const char *fileName ) {
 
 #endif
 
-openSound_t *S_SoundOpen(const char *constFileName) {
+openSound_t *S_SoundOpen( const char *fileName ) {
 	const char *fileExt;
-	char temp[MAX_QPATH];
-	char *fileName;
-	openSound_t *open;
-	qboolean wasHere = qfalse;
-
-#ifdef FINAL_BUILD
-	doNotYell = qtrue;
-#else
-	doNotYell = qfalse;
-#endif
-
-	Q_strncpyz(temp, constFileName, sizeof(temp));
-	fileName = temp;
 
 	if (!fileName || !fileName[0]) {
-		Com_Printf("SoundOpen:Filename is empty\n");
+		Com_Printf("SoundOpen:Filename is empty\n" );
 		return 0;
-	}
-
-	// do we still need language switcher
-	// and sound/mp_generic_female/sound -> sound/chars/mp_generic_female/misc/sound (or male) converter?
-
-	/* switch language: /chars/ -> /chr_f/, /chr_d/, /chr_e/ */
-	if (Q_stricmp(s_language->string, "english"))
-		S_SwitchLang(fileName);
-
-	/* sound/mp_generic_female/sound -> sound/chars/mp_generic_female/misc/sound */
-	char *match = strstr(fileName, "sound/mp_generic_female");
-	if (match) {
-		char out[MAX_QPATH];
-		Q_strncpyz(out, fileName, MAX_QPATH);
-		char *pos = strstr(match, "le/");
-		pos = strchr(pos, '/');
-		Q_strncpyz(out, "sound/chars/mp_generic_female/misc", MAX_QPATH);
-		Q_strcat(out, sizeof(out), pos);
-		fileName = out;
-	} else {
-	/* or sound/mp_generic_male/sound -> sound/chars/mp_generic_male/misc/sound */
-		match = strstr(fileName, "sound/mp_generic_male");
-		if (match) {
-			char out[MAX_QPATH];
-			Q_strncpyz(out, fileName, MAX_QPATH);
-			char *pos = strstr(match, "le/");
-			pos = strchr(pos, '/');
-			Q_strncpyz(out, "sound/chars/mp_generic_male/misc", MAX_QPATH);
-			Q_strcat(out, sizeof(out), pos);
-			fileName = out;
-		}
-	}
-
-	fileExt = Q_strrchr(fileName, '.');
+	}	
+	fileExt = Q_strrchr( fileName, '.' );
 	if (!fileExt) {
-		strcat(fileName, ".wav");
-	} else if (!Q_stricmp(fileExt, ".mp3")) { //we want to start seeking .wav at first
-		S_SoundChangeExt(fileName, ".wav");
-	} else if (Q_stricmp(fileExt, ".wav")
+		Com_Printf("SoundOpen:File %s has no extension\n", fileName );
+		return 0;
+	}	
+	if (!Q_stricmp( fileExt, ".wav")) {
+		return S_WavOpen( fileName );
 #ifdef HAVE_LIBMAD
-		&& Q_stricmp(fileExt, ".mp3")
+	} else if (!Q_stricmp( fileExt, ".mp3")) {
+		return S_MP3Open( fileName );
 #endif
-		) {
+	} else {
 		Com_Printf("SoundOpen:File %s has unknown extension %s\n", fileName, fileExt );
 		return 0;
 	}
-
-tryAgainThisSound:
-	open = S_WavOpen(fileName);
-	if (open) {
-		return open;
-	} else {
-#ifdef HAVE_LIBMAD
-		S_SoundChangeExt(fileName, ".mp3");
-		open = S_MP3Open(fileName);
-		if (open) {
-			return open;
-		} else
-#endif
-		if (Q_stricmp(s_language->string, "english") && !wasHere) {
-			if (S_SwitchLang(fileName)) {
-				wasHere = qtrue;
-				if (!doNotYell)
-					Com_Printf("SoundOpen:File %s doesn't exist in %s, retrying with english\n", fileName, s_language->string );
-#ifdef HAVE_LIBMAD
-				//set back to wav
-				S_SoundChangeExt(fileName, ".wav");
-#endif
-				goto tryAgainThisSound;
-			}
-		}
-	}
-	Com_Printf("S_SoundOpen:File %s failed to open\n", constFileName);
-	return 0;
 }
 
 int S_SoundRead( openSound_t *open, qboolean stereo, int samples, short *data ){
