@@ -724,9 +724,9 @@ void demoNowTrajectory( const trajectory_t *tr, vec3_t result ) {
 		break;
 	case TR_NONLINEAR_STOP: //probably ported wrong
 		if ( cg.time > tr->trTime + tr->trDuration ) {
-			deltaTime = tr->trDuration * 0.001;
+			deltaTime = (float)tr->trDuration;
 		} else {
-			deltaTime = ( cg.time - tr->trTime ) * 0.001 + cg.timeFraction * 0.001;
+			deltaTime = ( cg.time - tr->trTime ) + cg.timeFraction;
 		}
 		//new slow-down at end
 		if ( deltaTime > tr->trDuration || deltaTime <= 0  ) {
