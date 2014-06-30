@@ -6,7 +6,7 @@
 
 #define LOGLINES 8
 
-#define DEMO_ANIM
+//#define DEMO_ANIM
 
 typedef enum {
 	editNone,
@@ -222,7 +222,7 @@ void demoCaptureCommand_f( void );
 void demoLoadCommand_f( void );
 void demoSaveCommand_f( void );
 
-#define PUGMOD_CONVERTER //none needs that except me :P
+//#define PUGMOD_CONVERTER //none needs that except me :P
 
 #ifdef PUGMOD_CONVERTER
 extern int demoStartTime;

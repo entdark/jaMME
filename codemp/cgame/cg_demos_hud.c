@@ -82,9 +82,11 @@ typedef enum {
 	hudDofRadius,
 	hudDofTarget,
 
+#ifdef DEMO_ANIM
 	hudAnimTarget, 
 	hudAnimBone,
 	hudAnimPitch, hudAnimYaw, hudAnimRoll,
+#endif
 
 //	hudScriptInit,
 //	hudScriptRun,
@@ -100,7 +102,9 @@ typedef enum {
 #define MASK_LINE				0x00040
 #define MASK_CHASE				0x00080
 #define MASK_DOF				0x00400
+#ifdef DEMO_ANIM
 #define MASK_ANIM				0x00800
+#endif
 
 #define MASK_HUD				0x1
 #define MASK_POINT				0x2
@@ -120,7 +124,9 @@ typedef enum {
 
 #define MASK_DOF_EDIT			( MASK_DOF | MASK_EDIT )
 
+#ifdef DEMO_ANIM
 #define MASK_ANIM_EDIT			( MASK_ANIM | MASK_EDIT )
+#endif
 
 static struct {
 	int cursorX, cursorY;
@@ -211,12 +217,14 @@ static void hudMakeTarget( int targetNum, char *dst, int dstSize) {
 	}
 }
 
+#ifdef DEMO_ANIM
 static void hudMakeBone( int boneNum, char *dst, int dstSize) {
 	if ( boneNum >= 0 )
 		Com_sprintf(dst, dstSize, "%d %s", boneNum, boneList[boneNum] );
 	else
 		Com_sprintf(dst, dstSize, "%d %s", boneNum, "invalid bone");
 }
+#endif
 
 const char *demoTimeString( int time ) {
 	static char retBuf[32];
@@ -345,10 +353,12 @@ static float *hudGetFloat( hudItem_t *item ) {
 		return hud.dof.focus;
 	case hudDofRadius:
 		return hud.dof.radius;
+#ifdef DEMO_ANIM
 	case hudAnimPitch:
 	case hudAnimYaw:
 	case hudAnimRoll:
 		return hud.anim.angles + item->handler - hudAnimPitch;
+#endif
 /*	case hudEffectPosX:
 	case hudEffectPosY:
 	case hudEffectPosZ:
@@ -395,9 +405,11 @@ static void hudGetHandler( hudItem_t *item, char *buf, int bufSize ) {
 		case editDof:
 			Com_sprintf( buf, bufSize, "Dof%s", demo.dof.locked ? " locked" : "" );
 			break;
+#ifdef DEMO_ANIM
 		case editAnim:
 			Com_sprintf( buf, bufSize, "Anim%s", demo.anim.locked ? " locked" : "" );
 			break;
+#endif
 /*		case editScript:
 			Com_sprintf( buf, bufSize, "Script%s", demo.script.locked ? " locked" : "" );
 			break;
@@ -480,6 +492,7 @@ static void hudGetHandler( hudItem_t *item, char *buf, int bufSize ) {
 	case hudChaseTarget:
 		hudMakeTarget( demo.chase.target, buf, bufSize );
 		return;
+#ifdef DEMO_ANIM
 	case hudAnimTarget:
 		hudMakeTarget( demo.anim.target, buf, bufSize );
 		Com_sprintf( buf, bufSize, "%s^7%s", buf, (demo.anim.target >= 0 && demo.anim.override[demo.anim.target]) ? " locked" : "" );
@@ -487,6 +500,7 @@ static void hudGetHandler( hudItem_t *item, char *buf, int bufSize ) {
 	case hudAnimBone:
 		hudMakeBone( demo.anim.bone, buf, bufSize );
 		return;
+#endif
 	case hudLineTime:
 		Com_sprintf( buf, bufSize, "%s", demoTimeString( demo.line.time ));
 		return;
@@ -853,6 +867,7 @@ void hudDraw( void ) {
 			hud.showMask |= MASK_EDIT;
 		}
 		break;
+#ifdef DEMO_ANIM
 	case editAnim:
 		hud.showMask = MASK_ANIM;
 		if ( demo.anim.locked ) {
@@ -869,6 +884,7 @@ void hudDraw( void ) {
 			hud.showMask |= MASK_EDIT;
 		}
 		break;
+#endif
 	default:
 		hud.showMask = 0;
 		break;
@@ -1066,12 +1082,14 @@ void hudInitTables(void) {
 	hudAddFloat(   0,  5, MASK_DOF_EDIT, "Radius:",  hudDofRadius );
 	hudAddHandler( 0,  6, MASK_DOF_EDIT, "Target:", hudDofTarget );
 
+#ifdef DEMO_ANIM
 	// Animation items
 	hudAddFloat(   0,  4, MASK_ANIM_EDIT, "Pitc:",  hudAnimPitch );
 	hudAddFloat(   0,  5, MASK_ANIM_EDIT, "Yaw :",  hudAnimYaw );
 	hudAddFloat(   0,  6, MASK_ANIM_EDIT, "Roll:",  hudAnimRoll );
 	hudAddHandler( 0,  7, MASK_ANIM, "Target:", hudAnimTarget );
 	hudAddHandler( 0,  8, MASK_ANIM, "Bone:", hudAnimBone );
+#endif
 
 }
 

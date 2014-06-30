@@ -619,7 +619,11 @@ void demoDrawRawLine(const vec3_t start, const vec3_t end, const float width, po
 
 void demoDrawLine( const vec3_t p0, const vec3_t p1, const vec4_t color) {
 	polyVert_t verts[4];
+#ifdef DEMO_ANIM
 	const float scale = demo.anim.drawing ? 0.1f : 1.0f;
+#else
+	const float scale = 1.0f;
+#endif
 
 	demoDrawSetupVerts( verts, color );
 	demoDrawRawLine( p0, p1, scale, verts );
@@ -645,7 +649,11 @@ void demoDrawBox( const vec3_t origin, const vec3_t container, const vec4_t colo
 	unsigned int i;
 	vec3_t boxCorners[8];
 	polyVert_t verts[4];
+#ifdef DEMO_ANIM
 	const float scale = demo.anim.drawing ? 0.1f : 1.0f;
+#else
+	const float scale = 1.0f;
+#endif
 
 	demoDrawSetupVerts( verts, color );
 	/* Create the box corners */
