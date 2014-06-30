@@ -230,12 +230,13 @@ void weatherSave( fileHandle_t fileHandle ) {
 
 void demoSunCommand_f(void) {
 	const char *cmd = CG_Argv(1);
-	if (!Q_stricmp(cmd, "on") || !Q_stricmp(cmd, "activate") || !Q_stricmp(cmd, "a")) {
+	if (!Q_stricmp(cmd, "on") || !Q_stricmp(cmd, "enable") || !Q_stricmp(cmd, "e")
+		|| !Q_stricmp(cmd, "activate") || !Q_stricmp(cmd, "a")) {
 		demo.sun.active = !demo.sun.active;
 		if (demo.sun.active) 
-			CG_DemosAddLog("Sun activated");
+			CG_DemosAddLog("Sun enabled");
 		else 
-			CG_DemosAddLog("Sun deactivated");
+			CG_DemosAddLog("Sun disabled");
 	} else if (!Q_stricmp(cmd, "size") || !Q_stricmp(cmd, "scale") || !Q_stricmp(cmd, "s")) {
 		if (trap_Argc() > 2) {
 			demo.sun.size = atof(CG_Argv(2));
@@ -262,7 +263,7 @@ void demoSunCommand_f(void) {
 		CG_DemosAddLog( "Sun pitch %.1f degrees", AngleNormalize360(-demo.sun.angles[PITCH]) );
 	} else {
 		Com_Printf("sun usage:\n" );
-		Com_Printf("sun on/activate/a, activate/deactivate sun effect\n" );
+		Com_Printf("sun on/enable/e/activate/a, enable/disable sun effect\n" );
 		Com_Printf("sun size/scale/s 0, change sun size\n");
 		Com_Printf("sun precision/pr 0, how smoothly sun fades near borders\n");
 		Com_Printf("sun yaw/y 0, left/right sun rotation\n" );
@@ -273,12 +274,13 @@ void demoSunCommand_f(void) {
 
 void demoRainCommand_f(void) {
 	const char *cmd = CG_Argv(1);
-	if (!Q_stricmp(cmd, "on") || !Q_stricmp(cmd, "activate") || !Q_stricmp(cmd, "a")) {
+	if (!Q_stricmp(cmd, "on") || !Q_stricmp(cmd, "enable") || !Q_stricmp(cmd, "e")
+		|| !Q_stricmp(cmd, "activate") || !Q_stricmp(cmd, "a")) {
 		demo.rain.active = !demo.rain.active;
 		if (demo.rain.active) 
-			CG_DemosAddLog("Rain activated");
+			CG_DemosAddLog("Rain enabled");
 		else 
-			CG_DemosAddLog("Rain deactivated");
+			CG_DemosAddLog("Rain disabled");
 	} else if (!Q_stricmp(cmd, "number") || !Q_stricmp(cmd, "amount")
 		|| !Q_stricmp(cmd, "quantity") || !Q_stricmp(cmd, "num") || !Q_stricmp(cmd, "n")) {
 		if (trap_Argc() > 2) {
@@ -301,7 +303,7 @@ void demoRainCommand_f(void) {
 		CG_DemosAddLog( "Rain range %.1f", demo.rain.range );
 	} else {
 		Com_Printf("rain usage:\n" );
-		Com_Printf("rain on/activate/a, activate/deactivate rain effect\n" );
+		Com_Printf("rain on/activate/a/enable/e, enable/disable rain effect\n" );
 		Com_Printf("rain number/amount/quantity/num/n 0, number of rain drops\n");
 		Com_Printf("rain range/r/distance/d 0, how far rain can appear\n");
 		return;
