@@ -850,7 +850,7 @@ void GfxInfo_f( void )
 	Com_Printf ("texture compression method: %s\n", tc_table[glConfig.textureCompression] );
 	Com_Printf ("anisotropic filtering: %s  ", enablestrings[(r_ext_texture_filter_anisotropic->integer != 0) && glConfig.maxTextureFilterAnisotropy] );
 		Com_Printf ("(%f of %f)\n", r_ext_texture_filter_anisotropic->value, glConfig.maxTextureFilterAnisotropy );
-	Com_Printf ("Dynamic Glow: %s\n", enablestrings[r_DynamicGlow->integer] );
+	Com_Printf ("Dynamic Glow: %s\n", enablestrings[r_DynamicGlow->integer != 0] );
 	if (g_bTextureRectangleHack) Com_Printf ("Dynamic Glow ATI BAD DRIVER HACK %s\n", enablestrings[g_bTextureRectangleHack] );
 
 	if ( r_finish->integer ) {
