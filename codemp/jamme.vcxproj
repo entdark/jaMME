@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
+    <_ResolveReferenceDependencies>true</_ResolveReferenceDependencies>
     <ProjectName>jamme</ProjectName>
     <ProjectGuid>{05674553-F8C6-4B42-840C-C6064BBB187F}</ProjectGuid>
   </PropertyGroup>
@@ -112,6 +113,7 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <Link>
       <AdditionalOptions>/MACHINE:I386 /FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
@@ -126,6 +128,7 @@
       <StackReserveSize>8388608</StackReserveSize>
       <AdditionalLibraryDirectories>libs/win32</AdditionalLibraryDirectories>
       <Profile>true</Profile>
+      <ImageHasSafeExceptionHandlers />
     </Link>
     <Midl>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
