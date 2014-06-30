@@ -11537,8 +11537,7 @@ stillDoSaber:
 				}
 			}*/
 
-			if (saberEnt && saberEnt->ghoul2 /*&& cent->bolt4 == 2*/)
-			{
+			if (saberEnt && saberEnt->ghoul2 /*&& cent->bolt4 == 2*/) {
 				vec3_t bladeAngles;
 				vec3_t tAng;
 				vec3_t efOrg;
@@ -11547,28 +11546,19 @@ stillDoSaber:
 				int l = 0;
 				addspriteArgStruct_t fxSArgs;
 
-				if (!cent->bolt2)
-				{
+				if (!cent->bolt2) {
 					cent->bolt2 = cg.time;
 				}
 
-				if (cent->bolt3 != 90)
-				{
-					if (cent->bolt3 < 90)
-					{
+				if (cent->bolt3 != 90 && cg.frametime) {
+					if (cent->bolt3 < 90) {
 						cent->bolt3 += ((cg.time - cent->bolt2) + cg.timeFraction) * 0.5f;
-
-						if (cent->bolt3 > 90)
-						{
+						if (cent->bolt3 > 90) {
 							cent->bolt3 = 90;
 						}
-					}
-					else if (cent->bolt3 > 90)
-					{
+					} else if (cent->bolt3 > 90) {
 						cent->bolt3 -= ((cg.time - cent->bolt2) + cg.timeFraction) * 0.5f;
-
-						if (cent->bolt3 < 90)
-						{
+						if (cent->bolt3 < 90) {
 							cent->bolt3 = 90;
 						}
 					}
