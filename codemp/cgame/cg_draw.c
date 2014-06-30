@@ -4264,7 +4264,8 @@ CG_DrawLagometer
 ==============
 */
 static void CG_DrawLagometer( void ) {
-	int		a, x, y, i;
+	int		a, i;
+	float	x, y;
 	float	v;
 	float	ax, ay, aw, ah, mid, range;
 	int		color;
@@ -4278,19 +4279,19 @@ static void CG_DrawLagometer( void ) {
 	//
 	// draw the graph
 	//
-	x = SCREEN_WIDTH - 48*cgs.widthRatioCoef;
-	y = SCREEN_HEIGHT - 165;
+	x = (float)SCREEN_WIDTH - 48.0f*cgs.widthRatioCoef;
+	y = (float)SCREEN_HEIGHT - 165.0f;
 
 	trap_R_SetColor( NULL );
 	CG_DrawPic( x, y, 48*cgs.widthRatioCoef, 48, cgs.media.lagometerShader );
 
-	ax = x;
+	ax = x-0.5f*cgs.widthRatioCoef;
 	ay = y;
-	aw = 96;
-	ah = 48;
+	aw = 48.0f*2.0f;
+	ah = 48.0f;
 
 	color = -1;
-	range = ah / 3;
+	range = ah / 3.0f;
 	mid = ay + range;
 
 	vscale = range / MAX_LAGOMETER_RANGE;
@@ -4360,7 +4361,7 @@ static void CG_DrawLagometer( void ) {
 
 	trap_R_SetColor( NULL );
 
-	if ( cg_noPredict.integer || g_synchronousClients.integer ) {
+	if ( !cg.demoPlayback && (cg_noPredict.integer || g_synchronousClients.integer) ) {
 		CG_DrawBigString( ax, ay, "snc", 1.0 );
 	}
 
