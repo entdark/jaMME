@@ -5687,13 +5687,13 @@ static qboolean CG_IsDurationPower(int power) {
 //--------------------------------------------------------------
 static void CG_DrawActivePowers(void) {
 //--------------------------------------------------------------
-	int icon_size = 40;
+	float icon_size = 40.0f;
 	int i = 0;
-	int startx = icon_size*2+16;
-	int starty = SCREEN_HEIGHT - icon_size*2;
+	float startx = (icon_size*2.0f+32.0f)*cgs.widthRatioCoef;
+	float starty = (float)SCREEN_HEIGHT - icon_size*2.0f;
 
-	int endx = icon_size;
-	int endy = icon_size;
+	float endx = icon_size*cgs.widthRatioCoef;
+	float endy = icon_size;
 
 	//don't display over zoom mask
 	if (cg.zoomMode) {
@@ -5708,10 +5708,10 @@ static void CG_DrawActivePowers(void) {
 	while (i < NUM_FORCE_POWERS) {
 		if ((cg.playerCent->currentState.forcePowersActive & (1 << forcePowerSorted[i])) &&
 			CG_IsDurationPower(forcePowerSorted[i])) {
-			CG_DrawPic( startx, starty, endx*cgs.widthRatioCoef, endy, cgs.media.forcePowerIcons[forcePowerSorted[i]]);
+			CG_DrawPic( startx, starty, endx, endy, cgs.media.forcePowerIcons[forcePowerSorted[i]]);
 			startx += (icon_size+2)*cgs.widthRatioCoef; //+2 for spacing
-			if ((startx+icon_size*cgs.widthRatioCoef) >= SCREEN_WIDTH-80) {
-				startx = icon_size*2+16;
+			if ((startx+endx) >= (float)SCREEN_WIDTH-80.0f) {
+				startx = (icon_size*2.0f+16.0f)*cgs.widthRatioCoef;
 				starty += (icon_size+2);
 			}
 		}
@@ -5719,7 +5719,7 @@ static void CG_DrawActivePowers(void) {
 	}
 	//additionally, draw an icon force force rage recovery
 	if (cg.playerPredicted && cg.snap->ps.fd.forceRageRecoveryTime > cg.time)
-		CG_DrawPic( startx, starty, endx*cgs.widthRatioCoef, endy, cgs.media.rageRecShader);
+		CG_DrawPic( startx, starty, endx, endy, cgs.media.rageRecShader);
 }
 
 //--------------------------------------------------------------
