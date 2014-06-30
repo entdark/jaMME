@@ -3121,8 +3121,13 @@ void CG_AdjustPositionForMover( const vec3_t in, int moverNum, int fromTime, int
 	BG_EvaluateTrajectory( &cent->currentState.pos, fromTime, oldOrigin );
 	BG_EvaluateTrajectory( &cent->currentState.apos, fromTime, oldAngles );
 
-	BG_EvaluateTrajectory( &cent->currentState.pos, toTime, origin );
-	BG_EvaluateTrajectory( &cent->currentState.apos, toTime, angles );
+	if (toTime == cg.time) {
+		demoNowTrajectory( &cent->currentState.pos, origin );
+		demoNowTrajectory( &cent->currentState.apos, angles );
+	} else {
+		BG_EvaluateTrajectory( &cent->currentState.pos, toTime, origin );
+		BG_EvaluateTrajectory( &cent->currentState.apos, toTime, angles );
+	}
 
 	VectorSubtract( origin, oldOrigin, deltaOrigin );
 	VectorSubtract( angles, oldAngles, deltaAngles );
