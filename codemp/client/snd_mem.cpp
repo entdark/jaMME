@@ -13,24 +13,6 @@
 
 #define HAVE_LIBMAD
 
-/*
-===============================================================================
-
-WAV loading
-
-===============================================================================
-*/
-
-//ZTM's super replacer
-static void S_SoundChangeExt(char *fileName, const char *ext) {
-	char *p = strchr(fileName, '.');			/* find first '.' */
-	if (p != NULL) {							/* found '.' */
-		Q_strncpyz(p, ext, strlen(ext) + 1);	/* change ext */
-	} else {									/* should never happen */
-		strcat(fileName, ext);					/* has no ext, so just add it */
-	}
-}
-
 extern	cvar_t* s_language;
 qboolean S_FileExists(char *fileName) {
 	char *voice = strstr(fileName,"chars");
@@ -46,13 +28,14 @@ qboolean S_FileExists(char *fileName) {
 			voice = NULL;	// use this ptr as a flag as to whether or not we substituted with a foreign version
 		}
 	}
-	COM_StripExtension(fileName, fileName, MAX_QPATH);
 tryDefaultLanguage:
-	S_SoundChangeExt(fileName, ".wav"); //append
+	COM_StripExtension(fileName, fileName, MAX_QPATH);
+	COM_DefaultExtension(fileName, MAX_QPATH, ".wav");
 	FS_FOpenFileRead(fileName, &f, qtrue);
 	if (!f) {
 #ifdef HAVE_LIBMAD
-		S_SoundChangeExt(fileName, ".mp3");
+		COM_StripExtension(fileName, fileName, MAX_QPATH);
+		COM_DefaultExtension(fileName, MAX_QPATH, ".mp3");
 		FS_FOpenFileRead(fileName, &f, qtrue);
 #endif
 		/* switch back to english (default) and try again */
@@ -67,6 +50,14 @@ tryDefaultLanguage:
 	FS_FCloseFile(f);
 	return qtrue;
 }
+
+/*
+===============================================================================
+
+WAV loading
+
+===============================================================================
+*/
 
 #define	WAV_FORMAT_PCM		1
 

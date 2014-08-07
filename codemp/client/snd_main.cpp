@@ -239,17 +239,17 @@ sfxHandle_t	S_RegisterSound( const char *name) {
 		return 0;
 	}
 
-	hashIndex = 0;
-	for ( len = 0; name[0] && len < (sizeof( fileName ) - 1); name ++, len++ ) {
-		char c = tolower( name [0] );
-		hashIndex = (hashIndex << 5 ) ^ (hashIndex >> 27) ^ c;
-		fileName[len] = c;
-	}
 	fileExt = strchr(name, '.');
 	lenExt = 0;
 	if (!fileExt) {
 		fileExt = ".mp3";
 		lenExt = 4;
+	}
+	hashIndex = 0;
+	for ( len = 0; name[0] && len < (sizeof( fileName ) - 1); name ++, len++ ) {
+		char c = tolower( name [0] );
+		hashIndex = (hashIndex << 5 ) ^ (hashIndex >> 27) ^ c;
+		fileName[len] = c;
 	}
 	for ( ; fileExt[0] && len < (sizeof( fileName ) - 1) && lenExt > 0; lenExt--, fileExt++, len++ ) {
 		char c = tolower( fileExt [0] );
