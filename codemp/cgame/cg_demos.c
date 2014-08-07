@@ -491,10 +491,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 
 	int inwater, entityNum;
 	const char *cstr;
-	float mSensitivity = cg.zoomSensitivity;
-	float mPitchOverride = 0.0f;
-	float mYawOverride = 0.0f;
-	static centity_t *veh = NULL;
 
 	if (!demo.initDone) {
 		if ( !cg.snap ) {
@@ -716,27 +712,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	if ( !cg.snap ) {
 		CG_DrawInformation();
 		return;
-	}
-
-	if (cg.snap && cg.snap->ps.saberLockTime > cg.time) {
-		mSensitivity = 0.01f;
-	}
-	else if (cg.predictedPlayerState.weapon == WP_EMPLACED_GUN) { //lower sens for emplaced guns and vehicles
-		mSensitivity = 0.2f;
-	}
-	if (cg.predictedPlayerState.m_iVehicleNum) {
-		veh = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
-	}
-	if (veh &&
-		veh->currentState.eType == ET_NPC &&
-		veh->currentState.NPC_class == CLASS_VEHICLE &&
-		veh->m_pVehicle &&
-		veh->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER &&
-		bg_fighterAltControl.integer) {
-		trap_SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qtrue );
-		veh = NULL; //this is done because I don't want an extra assign each frame because I am so perfect and super efficient.
-	} else {
-		trap_SetUserCmdValue( cg.weaponSelect, mSensitivity, mPitchOverride, mYawOverride, 0.0f, cg.forceSelect, cg.itemSelect, qfalse );
 	}
 
 	CG_PreparePacketEntities( );
@@ -1289,6 +1264,8 @@ void demoPlaybackInit(void) {
 	demo.media.mouseCursor = trap_R_RegisterShaderNoMip( "mme_cursor" );
 	demo.media.switchOn = trap_R_RegisterShaderNoMip( "mme_message_on" );
 	demo.media.switchOff = trap_R_RegisterShaderNoMip( "mme_message_off" );
+
+	trap_SetUserCmdValue( 0, 1.0f, 0.0f, 0.0f, 0.0f, 0, 0, qfalse );
 
 	trap_SendConsoleCommand("exec mmedemos.cfg\n");
 //	trap_Cvar_Set( "mov_captureName", "" );
