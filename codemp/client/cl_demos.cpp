@@ -21,6 +21,7 @@ static byte				demoBuffer[128*1024];
 static entityState_t	demoNullEntityState;
 static playerState_t	demoNullPlayerState;
 static qboolean			demoFirstPack;
+static qboolean			demoPrecaching = qfalse;
 
 static const char *demoHeader = JK_VERSION " Demo";
 
@@ -445,8 +446,8 @@ void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothe
 				levelCount++;
 				newHandle = FS_FOpenFileWrite( newName );
 				if (!newHandle) {
-					FS_FCloseFile( oldHandle );
 					Com_Printf("Failed to open %s for target conversion target.\n", newName);
+					goto conversionerror;
 					return;
 				} else {
 					FS_Write ( demoHeader, strlen( demoHeader ), newHandle );
@@ -765,8 +766,6 @@ static void demoPlaySynch( demoPlay_t *play, demoFrame_t *frame) {
 //	Com_Printf("Added %d commands, length %d\n", play->commandCount - startCount, totalLen );
 }
 
-
-static qboolean demoPrecaching = qfalse;
 static void demoPlayForwardFrame( demoPlay_t *play ) {
 	int			blockSize;
 	msg_t		msg;
@@ -1008,14 +1007,11 @@ qboolean demoGetSnapshot( int snapNumber, snapshot_t *snap ) {
 
 	snap->numEntities = 0;
 	for (i=0;i<MAX_GENTITIES-1 && snap->numEntities < MAX_ENTITIES_IN_SNAPSHOT;i++) {
-//		entityState_t *newEntity;
 		if (frame->entities[i].number != i)
 			continue;
 		/* Skip your own entity if there ever comes server side recording */
 		if (frame->entities[i].number == snap->ps.clientNum)
 			continue;
-//		newEntity = &snap->entities[snap->numEntities++];
-//		*newEntity = frame->entities[i];
 		memcpy(&snap->entities[snap->numEntities++], &frame->entities[i], sizeof(entityState_t));
 	}
 	snap->snapFlags = 0;
