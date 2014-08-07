@@ -653,11 +653,16 @@ weaponInfo_t		cg_weapons[MAX_WEAPONS];
 itemInfo_t			cg_items[MAX_ITEMS];
 
 
+extern void trap_MME_FontRatioFix( float ratio );
 static void CG_Set2DRatio(void) {
 	if (mov_ratioFix.integer)
 		cgs.widthRatioCoef = (float)(SCREEN_WIDTH * cgs.glconfig.vidHeight) / (float)(SCREEN_HEIGHT * cgs.glconfig.vidWidth);
 	else
 		cgs.widthRatioCoef = 1.0f;
+	if (mov_ratioFix.integer == 2)
+		trap_MME_FontRatioFix(1.0f);
+	else
+		trap_MME_FontRatioFix(cgs.widthRatioCoef);
 }
 
 extern void trap_MME_NewUAGColors( qboolean newUAGColors );
@@ -3088,8 +3093,6 @@ Ghoul2 Insert End
 	cgs.media.bdecal_burn1 = trap_R_RegisterShader("gfx/damage/bodybigburnmark1");
 	cgs.media.mSaberDamageGlow = trap_R_RegisterShader("gfx/effects/saberDamageGlow");
 
-	CG_RegisterCvars();
-
 	CG_InitConsoleCommands();
 
 	//Raz: initialise third person setting
@@ -3105,6 +3108,8 @@ Ghoul2 Insert End
 	trap_GetGlconfig( &cgs.glconfig );
 	cgs.screenXScale = cgs.glconfig.vidWidth / (float)SCREEN_WIDTH;
 	cgs.screenYScale = cgs.glconfig.vidHeight / (float)SCREEN_HEIGHT;
+	
+	CG_RegisterCvars();
 
 	// get the gamestate from the client system
 	trap_GetGameState( &cgs.gameState );

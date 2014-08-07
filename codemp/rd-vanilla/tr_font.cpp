@@ -1318,58 +1318,50 @@ CFontInfo *GetFont(int index)
 }
 
 
-int RE_Font_StrLenPixels(const char *psText, const int iFontHandle, const float fScale)
-{			
-	int			iMaxWidth = 0;
-	int			iThisWidth= 0;
-	CFontInfo	*curfont;
+static float fontRatioFix = 1.0f;
+void RE_FontRatioFix(float ratio) {
+	if (ratio <= 0.0f)
+		fontRatioFix = 1.0f;
+	else
+		fontRatioFix = ratio;
+}
+
+int RE_Font_StrLenPixels(const char *psText, const int iFontHandle, const float fScale) {			
+	float iMaxWidth = 0.0f, iThisWidth= 0.0f;
+	CFontInfo *curfont;
 
 	curfont = GetFont(iFontHandle);
-	if(!curfont)
-	{
+	if(!curfont) {
 		return(0);
 	}
-
 	float fScaleA = fScale;
-	if (Language_IsAsian() && fScale > 0.7f )
-	{
+	if (Language_IsAsian() && fScale > 0.7f ) {
 		fScaleA = fScale * 0.75f;
 	}
 
-	while(*psText)
-	{
+	while(*psText) {
 		int iAdvanceCount;
 		unsigned int uiLetter = AnyLanguage_ReadCharFromString( psText, &iAdvanceCount, NULL );
 		psText += iAdvanceCount;
-
-		if (uiLetter == '^' )
-		{
-			if (*psText >= '0' &&
-				*psText <= '9')
-			{
+		if (uiLetter == '^' ) {
+			if (*psText >= '0' && *psText <= '9') {
 				uiLetter = AnyLanguage_ReadCharFromString( psText, &iAdvanceCount, NULL );
 				psText += iAdvanceCount;
 				continue;
 			}
 		}
-
-		if (uiLetter == 0x0A)
-		{
-			iThisWidth = 0;
-		}
-		else
-		{
-			int iPixelAdvance = curfont->GetLetterHorizAdvance( uiLetter );
-	
-			float fValue = iPixelAdvance * ((uiLetter > g_iNonScaledCharRange) ? fScaleA : fScale);
-			iThisWidth += curfont->mbRoundCalcs ? Round( fValue ) : fValue;
-			if (iThisWidth > iMaxWidth)
-			{
+		if (uiLetter == 0x0A) {
+			iThisWidth = 0.0f;
+		} else {
+			int iPixelAdvance = curfont->GetLetterHorizAdvance( uiLetter );	
+			float fValue = iPixelAdvance * ((uiLetter > g_iNonScaledCharRange) ? fScaleA : fScale) * fontRatioFix;
+			iThisWidth += fValue;
+			if (iThisWidth > iMaxWidth) {
 				iMaxWidth = iThisWidth;
 			}
 		}
 	}
-
+	
 	return iMaxWidth;
 }
 
@@ -1412,13 +1404,10 @@ int RE_Font_StrLenChars(const char *psText)
 	return iCharCount;
 }
 
-int RE_Font_HeightPixels(const int iFontHandle, const float fScale)
-{			
-	CFontInfo	*curfont;
-
+int RE_Font_HeightPixels(const int iFontHandle, const float fScale) {			
+	CFontInfo *curfont;
 	curfont = GetFont(iFontHandle);
-	if(curfont)
-	{
+	if (curfont) {
 		float fValue = curfont->GetPointSize() * fScale;
 		return curfont->mbRoundCalcs ? Round(fValue) : fValue;
 	}
@@ -1427,10 +1416,11 @@ int RE_Font_HeightPixels(const int iFontHandle, const float fScale)
 
 // iMaxPixelWidth is -1 for "all of string", else pixel display count...
 //
-void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, const int iFontHandle, int iMaxPixelWidth, const float fScale)
+void RE_Font_DrawString(float ox, float oy, const char *psText, const float *rgba, const int iFontHandle, int iMaxPixelWidth, const float fScale)
 {
 	static qboolean gbInShadow = qfalse;	// MUST default to this
-	int					x, y, colour, offset;
+	float				x, y, offset;
+	int					colour;
 	const glyphInfo_t	*pLetter;
 	qhandle_t			hShader;
 
@@ -1487,8 +1477,7 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 //		psText = "za³o¿ony w 1364 roku, jest najstarsz¹ polsk¹ uczelni¹ i nale¿y...";
 //		psText = "za³o¿ony nale¿y";
 //	}
-
-
+	
 	CFontInfo *curfont = GetFont(iFontHandle);
 	if(!curfont || !psText)
 	{
@@ -1506,19 +1495,19 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 	// Draw a dropshadow if required
 	if(iFontHandle & STYLE_DROPSHADOW)
 	{
-		offset = Round(curfont->GetPointSize() * fScale * 0.075f);
+		offset = curfont->GetPointSize() * fScale * 0.075f;
 
 		static const vec4_t v4DKGREY2 = {0.15f, 0.15f, 0.15f, 1};
 
 		gbInShadow = qtrue;
-		RE_Font_DrawString(ox + offset, oy + offset, psText, v4DKGREY2, iFontHandle & SET_MASK, iMaxPixelWidth, fScale);
+		RE_Font_DrawString(ox + offset * fontRatioFix, oy + offset, psText, v4DKGREY2, iFontHandle & SET_MASK, iMaxPixelWidth, fScale);
 		gbInShadow = qfalse;
 	}
 		
 	RE_SetColor( rgba );
 
 	x = ox;
-	oy += Round((curfont->GetHeight() - (curfont->GetDescender() >> 1)) * fScale);
+	oy += (curfont->GetHeight() - (curfont->GetDescender() >> 1)) * fScale;
 
 	qboolean bNextTextWouldOverflow = qfalse;
 	while (*psText && !bNextTextWouldOverflow)
@@ -1531,7 +1520,7 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 		{
 		case 10:						//linefeed
 			x = ox;
-			oy += Round(curfont->GetPointSize() * fScale);
+			oy += curfont->GetPointSize() * fScale;
 			if (Language_IsAsian())
 			{
 				oy += 4;	// this only comes into effect when playing in asian for "A long time ago in a galaxy" etc, all other text is line-broken in feeder functions
@@ -1541,7 +1530,7 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 			break;
 		case 32:						// Space
 			pLetter = curfont->GetLetter(' ');			
-			x += Round(pLetter->horizAdvance * fScale);
+			x += pLetter->horizAdvance * fScale * fontRatioFix;
 			bNextTextWouldOverflow = ( iMaxPixelWidth != -1 && ((x-ox)>iMaxPixelWidth) ) ? qtrue : qfalse;	// yeuch
 			break;
 		case '_':	// has a special word-break usage if in Thai (and followed by a thai char), and should not be displayed, else treat as normal
@@ -1590,22 +1579,23 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 				x -= Round(7 * fThisScale);
 			}
 
-			int iAdvancePixels = Round(pLetter->horizAdvance * fThisScale);
+			float iAdvancePixels = pLetter->horizAdvance * fThisScale * fontRatioFix;
 			bNextTextWouldOverflow = ( iMaxPixelWidth != -1 && (((x+iAdvancePixels)-ox)>iMaxPixelWidth) ) ? qtrue : qfalse;	// yeuch
 			if (!bNextTextWouldOverflow)
 			{
 				// this 'mbRoundCalcs' stuff is crap, but the only way to make the font code work. Sigh...
 				//				
-				y = oy - (curfont->mbRoundCalcs ? Round(pLetter->baseline * fThisScale) : pLetter->baseline * fThisScale);
+				y = oy - pLetter->baseline * fThisScale;
 				if (curfont->m_fAltSBCSFontScaleFactor != -1)
 				{
 					y+=3;	// I'm sick and tired of going round in circles trying to do this legally, so bollocks to it
 				}
 
-				RE_StretchPic ( x + Round(pLetter->horizOffset * fScale), // float x
-								(uiLetter > g_iNonScaledCharRange) ? y - iAsianYAdjust : y,	// float y
-								curfont->mbRoundCalcs ? Round(pLetter->width * fThisScale) : pLetter->width * fThisScale,	// float w
-								curfont->mbRoundCalcs ? Round(pLetter->height * fThisScale) : pLetter->height * fThisScale, // float h
+				RE_StretchPic ( //x + Round(pLetter->horizOffset * fScale), // float x
+								x + pLetter->horizOffset * fScale, // float x
+								(uiLetter > g_iNonScaledCharRange) ? y - (float)iAsianYAdjust : y,	// float y
+								pLetter->width * fThisScale * fontRatioFix,	// float w
+								pLetter->height * fThisScale, // float h
 								pLetter->s,						// float s1
 								pLetter->t,						// float t1
 								pLetter->s2,					// float s2
@@ -1619,6 +1609,7 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 			break;
 		}		
 	}
+	
 	//let it remember the old color //RE_SetColor(NULL);;
 }
 

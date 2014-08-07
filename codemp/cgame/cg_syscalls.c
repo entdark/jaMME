@@ -310,9 +310,9 @@ int trap_R_Font_HeightPixels(const int iFontIndex, const float scale)
 	return Q_syscall( CG_R_FONT_STRHEIGHTPIXELS, iFontIndex, PASSFLOAT(scale));
 }
 
-void trap_R_Font_DrawString(int ox, int oy, const char *text, const float *rgba, const int setIndex, int iCharLimit, const float scale)
+void trap_R_Font_DrawString(float ox, float oy, const char *text, const float *rgba, const int setIndex, int iCharLimit, const float scale)
 {
-	Q_syscall( CG_R_FONT_DRAWSTRING, ox, oy, text, rgba, setIndex, iCharLimit, PASSFLOAT(scale));
+	Q_syscall( CG_R_FONT_DRAWSTRING, PASSFLOAT(ox), PASSFLOAT(oy), text, rgba, setIndex, iCharLimit, PASSFLOAT(scale));
 }
 
 qboolean trap_Language_IsAsian(void)
@@ -1259,6 +1259,9 @@ void trap_MME_Music( const char *musicName, float time, float length ) {
 }
 void trap_MME_NewUAGColors( qboolean newUAGColors ) {
 	Q_syscall( CG_MME_NEWUAGCOLORS, newUAGColors );
+}
+void trap_MME_FontRatioFix( float ratio ) {
+	Q_syscall( CG_MME_FONTRATIOFIX, PASSFLOAT(ratio) );
 }
 void trap_R_RandomSeed( int time, float timeFraction ) {
 	Q_syscall( CG_R_RANDOMSEED, time, PASSFLOAT(timeFraction) );

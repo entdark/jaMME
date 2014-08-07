@@ -975,7 +975,7 @@ void _UI_Refresh( int realtime )
 	// draw cursor
 	UI_SetColor( NULL );
 	if (Menu_Count() > 0 && (trap_Key_GetCatcher() & KEYCATCH_UI)) {
-		UI_DrawHandlePic( (float)uiInfo.uiDC.cursorx, (float)uiInfo.uiDC.cursory, 40.0f, 40.0f, uiInfo.uiDC.Assets.cursor);
+		UI_DrawHandlePic( (float)uiInfo.uiDC.cursorx, (float)uiInfo.uiDC.cursory, 40.0f*uiInfo.uiDC.widthRatioCoef, 40.0f, uiInfo.uiDC.Assets.cursor);
 		//UI_DrawHandlePic( uiInfo.uiDC.cursorx, uiInfo.uiDC.cursory, 48, 48, uiInfo.uiDC.Assets.cursor);
 	}
 
@@ -4766,18 +4766,15 @@ vmCvar_t	ui_autodemo_folder;
 static char uiCurrentDemoFolder[256] = "";
 
 void UI_SetDemoListPosition(menuDef_t *menu, int startPos, int cursorPos){
-	itemDef_t *item = NULL;
-	int i;
-
-
 	if (menu){
+		itemDef_t *item = NULL;
+		int i;
 		for (i = 0; i < menu->itemCount; i++) {
 			if (!strcmp(menu->items[i]->window.name,"demolist")) {
 				item = menu->items[i];
 				break;
 			}
 		}
-
 		// Ignore if disabled
 		if (item && !item->disabled) {
 			listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
@@ -4786,7 +4783,6 @@ void UI_SetDemoListPosition(menuDef_t *menu, int startPos, int cursorPos){
 			uiInfo.demoIndex = cursorPos;
 		} 
 	}
-
 }
 
 //muj pokus o upravu
@@ -5959,31 +5955,27 @@ void UI_RunDemo(){
 
 		UI_SetDemoListPosition(menu, 0, 0);
 
-	} else	{
+	} else {
 		//demo file, run it, but save list parameters so we can reopen demo window
 		int startPos = uiInfo.demoIndex;
-		menuDef_t *menu = NULL;
-		itemDef_t *item = NULL;
-		int i;
-
-		menu = Menus_FindByName("demo");
+		menuDef_t *menu = Menus_FindByName("demo");
 
 		//extracting startPos of list
 		if (menu){ //we do this shit only to find out startPos....
+			itemDef_t *item = NULL;
+			int i;
 			for (i = 0; i < menu->itemCount; i++) {
 				if (!strcmp(menu->items[i]->window.name,"demolist")) {
 					item = menu->items[i];
 					break;
 				}
 			}
-
 			// Ignore if disabled
 			if (item && !item->disabled) {
 				listBoxDef_t *listPtr = (listBoxDef_t*)item->typeData;
 				startPos = listPtr->startPos;
 			}
 		}
-
 		trap_Cvar_Set( "ui_autodemo", "1" );
 		trap_Cvar_Set( "ui_autodemo_cursorPos", va("%i",uiInfo.demoIndex) );
 		trap_Cvar_Set( "ui_autodemo_startPos", va("%i",startPos) );
@@ -10241,12 +10233,13 @@ void _UI_Init( qboolean inGameLoad ) {
 
 	UI_UpdateForcePowers();
 
-	UI_RegisterCvars();
 	UI_InitMemory();
 
 	// cache redundant calulations
 	trap_GetGlconfig( &uiInfo.uiDC.glconfig );
-
+	
+	UI_RegisterCvars();
+	
 	// for 640x480 virtualized screen
 	uiInfo.uiDC.yscale = uiInfo.uiDC.glconfig.vidHeight * (1.0/480.0);
 	uiInfo.uiDC.xscale = uiInfo.uiDC.glconfig.vidWidth * (1.0/640.0);
@@ -10954,6 +10947,19 @@ vmCvar_t	se_language;
 
 vmCvar_t	ui_bypassMainMenuLoad;
 
+extern void trap_MME_FontRatioFix( float ratio );
+static vmCvar_t mov_ratioFix;
+static void CG_Set2DRatio(void) {
+	if (mov_ratioFix.integer)
+		uiInfo.uiDC.widthRatioCoef = (float)(SCREEN_WIDTH * uiInfo.uiDC.glconfig.vidHeight) / (float)(SCREEN_HEIGHT * uiInfo.uiDC.glconfig.vidWidth);
+	else
+		uiInfo.uiDC.widthRatioCoef = 1.0f;
+	if (mov_ratioFix.integer == 2)
+		trap_MME_FontRatioFix(1.0f);
+	else
+		trap_MME_FontRatioFix(uiInfo.uiDC.widthRatioCoef);
+}
+
 // bk001129 - made static to avoid aliasing
 static cvarTable_t		cvarTable[] = {
 	{ &ui_ffa_fraglimit, "ui_ffa_fraglimit", "20", CVAR_ARCHIVE|CVAR_INTERNAL },
@@ -11074,6 +11080,8 @@ static cvarTable_t		cvarTable[] = {
 	{ &ui_autodemo_startPos, "ui_autodemo_startPos", "0", CVAR_ROM|CVAR_INTERNAL },
 	{ &ui_autodemo_cursorPos, "ui_autodemo_cursorPos", "0", CVAR_ROM|CVAR_INTERNAL },
 	{ &ui_autodemo_folder, "ui_autodemo_folder", "", CVAR_ROM|CVAR_INTERNAL },
+
+	{ &mov_ratioFix, "mov_ratioFix", "1", CVAR_ARCHIVE },
 };
 
 // bk001129 - made static to avoid aliasing
@@ -11091,6 +11099,10 @@ void UI_RegisterCvars( void ) {
 
 	for ( i = 0, cv = cvarTable ; i < cvarTableSize ; i++, cv++ ) {
 		trap_Cvar_Register( cv->vmCvar, cv->cvarName, cv->defaultString, cv->cvarFlags );
+		if ( !Q_stricmp(cv->cvarName, "mov_ratioFix") ) {
+			trap_Cvar_Update( cv->vmCvar );
+			CG_Set2DRatio();
+		}
 	}
 }
 
@@ -11102,9 +11114,14 @@ UI_UpdateCvars
 void UI_UpdateCvars( void ) {
 	int			i;
 	cvarTable_t	*cv;
+	vmCvar_t mov_ratioFix;
 
 	for ( i = 0, cv = cvarTable ; i < cvarTableSize ; i++, cv++ ) {
+		int modCount = cv->vmCvar->modificationCount;
 		trap_Cvar_Update( cv->vmCvar );
+		if ( cv->vmCvar->modificationCount > modCount && !Q_stricmp(cv->cvarName, "mov_ratioFix") ) {
+			CG_Set2DRatio();
+		}
 	}
 }
 

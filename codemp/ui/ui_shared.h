@@ -406,7 +406,7 @@ typedef struct {
 	int		(*Font_StrLenPixels) (const char *text, const int iFontIndex, const float scale);
 	int		(*Font_StrLenChars) (const char *text);
 	int		(*Font_HeightPixels)(const int iFontIndex, const float scale);
-	void	(*Font_DrawString)(int ox, int oy, const char *text, const float *rgba, const int setIndex, int iCharLimit, const float scale);
+	void	(*Font_DrawString)(float ox, float oy, const char *text, const float *rgba, const int setIndex, int iCharLimit, const float scale);
 	qboolean (*Language_IsAsian)(void);
 	qboolean (*Language_UsesSpaces)(void);
 	unsigned int (*AnyLanguage_ReadCharFromString)( const char *psText, int *piAdvanceCount, qboolean *pbIsTrailingPunctuation/* = NULL*/ );
@@ -460,6 +460,8 @@ typedef struct {
   qhandle_t gradientImage;
   qhandle_t cursor;
 	float FPS;
+	
+	float widthRatioCoef;	//to make 2Ds be not stretched
 
 } displayContextDef_t;
 
@@ -533,7 +535,7 @@ void		trap_PC_RemoveAllGlobalDefines	( void );
 int			trap_R_Font_StrLenPixels(const char *text, const int iFontIndex, const float scale);
 int			trap_R_Font_StrLenChars(const char *text);
 int			trap_R_Font_HeightPixels(const int iFontIndex, const float scale);
-void		trap_R_Font_DrawString(int ox, int oy, const char *text, const float *rgba, const int setIndex, int iCharLimit, const float scale);
+void		trap_R_Font_DrawString(float ox, float oy, const char *text, const float *rgba, const int setIndex, int iCharLimit, const float scale);
 qboolean	trap_Language_IsAsian(void);
 qboolean	trap_Language_UsesSpaces(void);
 unsigned int trap_AnyLanguage_ReadCharFromString( const char *psText, int *piAdvanceCount, qboolean *pbIsTrailingPunctuation );

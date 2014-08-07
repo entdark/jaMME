@@ -129,9 +129,9 @@ int trap_R_Font_HeightPixels(const int iFontIndex, const float scale)
 	return Q_syscall( UI_R_FONT_STRHEIGHTPIXELS, iFontIndex, PASSFLOAT(scale));
 }
 
-void trap_R_Font_DrawString(int ox, int oy, const char *text, const float *rgba, const int setIndex, int iCharLimit, const float scale)
+void trap_R_Font_DrawString(float ox, float oy, const char *text, const float *rgba, const int setIndex, int iCharLimit, const float scale)
 {
-	Q_syscall( UI_R_FONT_DRAWSTRING, ox, oy, text, rgba, setIndex, iCharLimit, PASSFLOAT(scale));
+	Q_syscall( UI_R_FONT_DRAWSTRING, PASSFLOAT(ox), PASSFLOAT(oy), text, rgba, setIndex, iCharLimit, PASSFLOAT(scale));
 }
 
 qboolean trap_Language_IsAsian(void)
@@ -651,3 +651,9 @@ qboolean trap_G2API_AttachG2Model(void *ghoul2From, int modelIndexFrom, void *gh
 Ghoul2 Insert End
 */
 
+
+/* New MME Syscalls */
+
+void trap_MME_FontRatioFix( float ratio ) {
+	Q_syscall( UI_MME_FONTRATIOFIX, PASSFLOAT(ratio) );
+}

@@ -1223,26 +1223,27 @@ void CG_DrawHUD(centity_t	*cent)
 				if (cg.snap->ps.fd.saberDrawAnimLevel == SS_DUAL)
 				{
 					Com_sprintf(ammoString, sizeof(ammoString), "AKIMBO");
-					weapX += 16;
+					weapX += 25;
 				}
 				else if (cg.snap->ps.fd.saberDrawAnimLevel == SS_STAFF)
 				{
 					Com_sprintf(ammoString, sizeof(ammoString), "STAFF");
-					weapX += 16;
+					weapX += 25;
 				}
 				else if (cg.snap->ps.fd.saberDrawAnimLevel == FORCE_LEVEL_3)
 				{
 					Com_sprintf(ammoString, sizeof(ammoString), "STRONG");
-					weapX += 16;
+					weapX += 25;
 				}
 				else if (cg.snap->ps.fd.saberDrawAnimLevel == FORCE_LEVEL_2)
 				{
 					Com_sprintf(ammoString, sizeof(ammoString), "MEDIUM");
-					weapX += 16;
+					weapX += 25;
 				}
 				else
 				{
 					Com_sprintf(ammoString, sizeof(ammoString), "FAST");
+					weapX += 20;
 				}
 			}
 			else if (weaponData[cent->currentState.weapon].energyPerShot == 0 && weaponData[cent->currentState.weapon].altEnergyPerShot == 0)
@@ -1254,10 +1255,10 @@ void CG_DrawHUD(centity_t	*cent)
 				Com_sprintf(ammoString, sizeof(ammoString), "%i", cg.snap->ps.ammo[weaponData[cent->currentState.weapon].ammoIndex]);
 			}
 		
-			UI_DrawProportionalString( SCREEN_WIDTH-(weapX+16+32), y+40, va( "%s", ammoString ),
+			UI_DrawProportionalString( SCREEN_WIDTH-(weapX+16+32)*cgs.widthRatioCoef, y+40, va( "%s", ammoString ),
 				UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_HUD_ORANGE] );
 
-			UI_DrawProportionalString( SCREEN_WIDTH-(x+18+14+32), y+40+14, va( "%i", cg.snap->ps.fd.forcePower),
+			UI_DrawProportionalString( SCREEN_WIDTH-(x+18+14+32)*cgs.widthRatioCoef, y+40+14, va( "%i", cg.snap->ps.fd.forcePower),
 				UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_ICON_BLUE] );
 		}
 
@@ -2934,7 +2935,7 @@ static float CG_DrawMiniScoreboard ( float y )
 		Q_strcat ( temp, MAX_QPATH, va(" %s: ", CG_GetStringEdString("MP_INGAME", "BLUE")) );
 		Q_strcat ( temp, MAX_QPATH, cgs.scores2==SCORE_NOT_PRESENT?"-":(va("%i",cgs.scores2)) );
 
-		CG_Text_Paint( 630 - CG_Text_Width ( temp, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, temp, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM );
+		CG_Text_Paint( SCREEN_WIDTH - (SCREEN_WIDTH - 630)*cgs.widthRatioCoef - CG_Text_Width ( temp, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, temp, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM );
 		y += 15;
 	}
 	else
@@ -2992,7 +2993,7 @@ static float CG_DrawEnemyInfo ( float y ) {
 
 			y += size;
 
-			CG_Text_Paint( SCREEN_WIDTH - 10 - CG_Text_Width ( title, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, title, 0, 0, 0, FONT_MEDIUM );
+			CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( title, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, title, 0, 0, 0, FONT_MEDIUM );
 
 			return y + BIGCHAR_HEIGHT + 2;
 		}
@@ -3038,28 +3039,28 @@ static float CG_DrawEnemyInfo ( float y ) {
 
 	y += size;
 
-//	CG_Text_Paint( SCREEN_WIDTH - 10 - CG_Text_Width ( ci->name, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, ci->name, 0, 0, 0, FONT_MEDIUM );
-	CG_Text_Paint( SCREEN_WIDTH - 10 - CG_Text_Width ( ci->name, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, ci->name, 0, 0, 0, FONT_SMALL2 );
+//	CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( ci->name, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, ci->name, 0, 0, 0, FONT_MEDIUM );
+	CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( ci->name, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, ci->name, 0, 0, 0, FONT_SMALL2 );
 
 	y += 15;
-//	CG_Text_Paint( SCREEN_WIDTH - 10 - CG_Text_Width ( title, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, title, 0, 0, 0, FONT_MEDIUM );
-	CG_Text_Paint( SCREEN_WIDTH - 10 - CG_Text_Width ( title, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, title, 0, 0, 0, FONT_SMALL2 );
+//	CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( title, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, title, 0, 0, 0, FONT_MEDIUM );
+	CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( title, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, title, 0, 0, 0, FONT_SMALL2 );
 
 	if ( (cgs.gametype == GT_DUEL || cgs.gametype == GT_POWERDUEL) && cgs.clientinfo[cg.playerCent->currentState.number].team != TEAM_SPECTATOR) {
 		//also print their score
 		char text[1024];
 		y += 23;//15;
 		Com_sprintf(text, sizeof(text), "%i/%i", cgs.clientinfo[clientNum].score, cgs.fraglimit );
-		CG_Text_Paint( SCREEN_WIDTH - 10 - CG_Text_Width ( text, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, text, 0, 0, 0, FONT_MEDIUM );
+		CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( text, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, text, 0, 0, 0, FONT_MEDIUM );
 	}
 
 // nmckenzie: DUEL_HEALTH - fixme - need checks and such here.  And this is coded to duelist 1 right now, which is wrongly.
 	if ( cgs.showDuelHealths >= 2) {
 		y += 15;
 		if ( cgs.duelist1 == clientNum )
-			CG_DrawDuelistHealth ( SCREEN_WIDTH - size - 5 + xOffset, y, 64, 8, 1 );
+			CG_DrawDuelistHealth ( SCREEN_WIDTH - (size + 5 - xOffset)*cgs.widthRatioCoef, y, 64*cgs.widthRatioCoef, 8, 1 );
 		else if ( cgs.duelist2 == clientNum )
-			CG_DrawDuelistHealth ( SCREEN_WIDTH - size - 5 + xOffset, y, 64, 8, 2 );
+			CG_DrawDuelistHealth ( SCREEN_WIDTH - (size + 5 - xOffset)*cgs.widthRatioCoef, y, 64*cgs.widthRatioCoef, 8, 2 );
 	}
 
 	return y + BIGCHAR_HEIGHT + 2;
@@ -4108,19 +4109,19 @@ static void CG_DrawReward( void ) {
 
 	if ( cg.rewardCount[0] >= 10 ) {
 		y = 56;
-		x = 320 - (ICON_SIZE-4)*cgs.widthRatioCoef/2;
+		x = 320 - (ICON_SIZE/2)*cgs.widthRatioCoef;
 		CG_DrawPic( x, y, (ICON_SIZE-4)*cgs.widthRatioCoef, ICON_SIZE-4, cg.rewardShader[0] );
 		Com_sprintf(buf, sizeof(buf), "%d", cg.rewardCount[0]);
-		x = ( SCREEN_WIDTH - SMALLCHAR_WIDTH * CG_DrawStrlen( buf ) ) / 2;
+		x = ( SCREEN_WIDTH - SMALLCHAR_WIDTH * CG_DrawStrlen( buf )*cgs.widthRatioCoef ) / 2;
 		CG_DrawStringExt( x, y+ICON_SIZE, buf, color, qfalse, qtrue,
-								SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT, 0 );
+								SMALLCHAR_WIDTH*cgs.widthRatioCoef, SMALLCHAR_HEIGHT, 0 );
 	}
 	else {
 
 		count = cg.rewardCount[0];
 
 		y = 56;
-		x = 320 + 2 - count * (ICON_SIZE/2)*cgs.widthRatioCoef;
+		x = 320 - count * (ICON_SIZE/2)*cgs.widthRatioCoef;
 		for ( i = 0 ; i < count ; i++ ) {
 			CG_DrawPic( x, y, (ICON_SIZE-4)*cgs.widthRatioCoef, ICON_SIZE-4, cg.rewardShader[0] );
 			x += ICON_SIZE*cgs.widthRatioCoef;
@@ -4519,7 +4520,7 @@ static void CG_DrawCenterString( void ) {
 			linebuffer[l] = 0;
 
 			//[BugFix19]
-			if(!BG_IsWhiteSpace(start[l]) && !BG_IsWhiteSpace(linebuffer[l-1]) )
+			if(!BG_IsWhiteSpace(start[l]) && ((l > 0 && !BG_IsWhiteSpace(linebuffer[l-1])) || l == 0) )
 			{//we might have cut a word off, attempt to find a spot where we won't cut words off at.
 				int savedL = l;
 				int counter = l-2;
@@ -4590,7 +4591,7 @@ static void CG_DrawCenterString( void ) {
 			start++;
 		}
 	}
-
+	
 	trap_R_SetColor( NULL );
 }
 
@@ -7381,9 +7382,9 @@ static void CG_DrawSiegeTimer(int timeRemaining, qboolean isMyTeam)
 	{
 		trap_R_SetColor( item->window.foreColor );
 		CG_DrawPic( 
-			item->window.rect.x, 
+			SCREEN_WIDTH - (SCREEN_WIDTH - item->window.rect.x)*cgs.widthRatioCoef, 
 			item->window.rect.y, 
-			item->window.rect.w, 
+			item->window.rect.w*cgs.widthRatioCoef, 
 			item->window.rect.h, 
 			item->window.background );
 	}
@@ -7416,7 +7417,7 @@ static void CG_DrawSiegeTimer(int timeRemaining, qboolean isMyTeam)
 	if (item)
 	{
 		UI_DrawProportionalString( 
-			item->window.rect.x, 
+			SCREEN_WIDTH - (SCREEN_WIDTH - item->window.rect.x)*cgs.widthRatioCoef, 
 			item->window.rect.y, 
 			timeStr,
 			UI_SMALLFONT|UI_DROPSHADOW, 
@@ -7445,9 +7446,9 @@ static void CG_DrawSiegeDeathTimer( int timeRemaining )
 	{
 		trap_R_SetColor( item->window.foreColor );
 		CG_DrawPic( 
-			item->window.rect.x, 
+			SCREEN_WIDTH - (SCREEN_WIDTH - item->window.rect.x)*cgs.widthRatioCoef, 
 			item->window.rect.y, 
-			item->window.rect.w, 
+			item->window.rect.w*cgs.widthRatioCoef, 
 			item->window.rect.h, 
 			item->window.background );
 	}
@@ -7473,7 +7474,7 @@ static void CG_DrawSiegeDeathTimer( int timeRemaining )
 	if (item)
 	{
 		UI_DrawProportionalString( 
-			item->window.rect.x, 
+			SCREEN_WIDTH - (SCREEN_WIDTH - item->window.rect.x)*cgs.widthRatioCoef, 
 			item->window.rect.y, 
 			timeStr,
 			UI_SMALLFONT|UI_DROPSHADOW, 
@@ -7652,12 +7653,6 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void) {
 		if (cg.chatItems[i].time >= cg.time) {
 			int check = numToDraw;
 			int insertionPoint = numToDraw;
-
-			if (cg.chatItems[i].time > cg_chatBox.integer + cg.time) {
-				cg.chatItems[i].time = cg.time;
-				return;
-			}
-
 			while (check >= 0) {
 				if (drawThese[check] && cg.chatItems[i].time < drawThese[check]->time) {
 				//insert here

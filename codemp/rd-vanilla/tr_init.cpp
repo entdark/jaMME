@@ -1572,6 +1572,8 @@ Q_EXPORT refexport_t* QDECL GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.DemoRandomSeed = R_DemoRandomSeed;
 	re.NewUAGColors = R_NewUAGColors;
 
+	re.FontRatioFix = RE_FontRatioFix;
+
 	return &re;
 }
 

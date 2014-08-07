@@ -846,7 +846,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_R_FONT_STRHEIGHTPIXELS:
 		return re.Font_HeightPixels( args[1], VMF(2) );
 	case CG_R_FONT_DRAWSTRING:
-		re.Font_DrawString( args[1], args[2], (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );
+		re.Font_DrawString( VMF(1), VMF(2), (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );
 		return 0;
 	case CG_LANGUAGE_ISASIAN:
 		return re.Language_IsAsian();
@@ -1726,6 +1726,9 @@ Ghoul2 Insert End
 	case CG_MME_NEWUAGCOLORS:
 		cls.uag.newColors = (qboolean)args[1];
 		re.NewUAGColors(cls.uag.newColors);
+        return 0; 	
+	case CG_MME_FONTRATIOFIX:
+		re.FontRatioFix(VMF(1));
         return 0; 	
 	case CG_R_RANDOMSEED:
 		re.DemoRandomSeed( args[1], VMF(2) );

@@ -2245,7 +2245,7 @@ qhandle_t	trap_R_RegisterFont( const char *name );
 int			trap_R_Font_StrLenPixels(const char *text, const int iFontIndex, const float scale);
 int			trap_R_Font_StrLenChars(const char *text);
 int			trap_R_Font_HeightPixels(const int iFontIndex, const float scale);
-void		trap_R_Font_DrawString(int ox, int oy, const char *text, const float *rgba, const int setIndex, int iCharLimit, const float scale);
+void		trap_R_Font_DrawString(float ox, float oy, const char *text, const float *rgba, const int setIndex, int iCharLimit, const float scale);
 qboolean	trap_Language_IsAsian(void);
 qboolean	trap_Language_UsesSpaces(void);
 unsigned	trap_AnyLanguage_ReadCharFromString( const char *psText, int *piAdvanceCount, qboolean *pbIsTrailingPunctuation/* = NULL*/ );

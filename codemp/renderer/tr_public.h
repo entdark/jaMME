@@ -87,7 +87,7 @@ typedef struct {
 	int					(*Font_StrLenPixels)					( const char *text, const int iFontIndex, const float scale );
 	int					(*Font_StrLenChars)						( const char *text );
 	int					(*Font_HeightPixels)					( const int iFontIndex, const float scale );
-	void				(*Font_DrawString)						( int ox, int oy, const char *text, const float *rgba, const int setIndex, int iCharLimit, const float scale );
+	void				(*Font_DrawString)						( float ox, float oy, const char *text, const float *rgba, const int setIndex, int iCharLimit, const float scale );
 	qboolean			(*Language_IsAsian)						( void );
 	qboolean			(*Language_UsesSpaces)					( void );
 	unsigned int		(*AnyLanguage_ReadCharFromString)		( const char *psText, int *piAdvanceCount, qboolean *pbIsTrailingPunctuation/* = NULL*/ );
@@ -232,6 +232,7 @@ typedef struct {
 	void				(*BlurInfo)								( int* total, int* index );
 	void				(*DemoRandomSeed)						( int time, float timeFraction );
 	void				(*NewUAGColors)							( qboolean newUAGColors );
+	void				(*FontRatioFix)							( float ratio );
 } refexport_t;
 
 //
