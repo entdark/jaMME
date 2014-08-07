@@ -1457,8 +1457,8 @@ void G2_TransformBone (int child,CBoneCache &BC)
 	int				angleOverride = 0;
 	int				incomingTime = BC.incomingTime;
 
-//	if (abs(BC.incomingTime - tr.refdef.time) <= 1)
-//		incomingTime = tr.refdef.time;
+	if (abs(BC.incomingTime - tr.refdef.time) <= 1)
+		incomingTime = tr.refdef.time;
 
 #if DEBUG_G2_TIMING
 	bool printTiming=false;
