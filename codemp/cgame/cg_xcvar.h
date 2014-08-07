@@ -198,7 +198,7 @@ XCVAR_DEF( mov_musicFile,						"",						NULL,					CVAR_TEMP )
 XCVAR_DEF( mov_musicStart,						"0",					NULL,					CVAR_TEMP )
 XCVAR_DEF( fx_Vibrate,							"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( fx_vfps,								"340",					NULL,					CVAR_ARCHIVE )	//teh's fix for laggy effects
-XCVAR_DEF( fx_disruptTime,						"150",					NULL,					CVAR_ARCHIVE )	//from smod
+XCVAR_DEF( fx_disruptTime,						"-1",					NULL,					CVAR_ARCHIVE )	//from smod
 XCVAR_DEF( fx_disruptTeamColour,				"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( fx_disruptSpiral,					"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( fx_disruptCoreColor,					"xff4400",				NULL,					CVAR_ARCHIVE )
