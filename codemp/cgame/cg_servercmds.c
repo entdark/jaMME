@@ -900,7 +900,7 @@ static void CG_ConfigStringModified( void ) {
 		Q_strncpyz( cgs.teamVoteString[num-CS_TEAMVOTE_STRING], str, sizeof( cgs.teamVoteString ) );
 	} else if ( num == CS_INTERMISSION ) {
 		cg.intermissionStarted = atoi( str );
-	} else if ( num >= CS_MODELS && num < CS_MODELS+MAX_MODELS ) {
+	} else if ( num >= CS_MODELS && num < CS_MODELS+MAX_MODELS && str[0] ) {
 		char modelName[MAX_QPATH];
 		strcpy(modelName, str);
 		if (strstr(modelName, ".glm") || modelName[0] == '$')
