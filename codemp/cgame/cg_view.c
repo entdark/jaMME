@@ -1472,9 +1472,8 @@ CG_DamageBlendBlob
 ===============
 */
 void CG_DamageBlendBlob( void ) {
-	float		t;
-	int			maxTime;
-	refEntity_t		ent;
+	float t, maxTime;
+	refEntity_t ent;
 
 	if ( !cg.damageValue ) {
 		return;
@@ -1493,34 +1492,32 @@ void CG_DamageBlendBlob( void ) {
 	ent.reType = RT_SPRITE;
 	ent.renderfx = RF_FIRST_PERSON;
 
-	VectorMA( cg.refdef.vieworg, 8, cg.refdef.viewaxis[0], ent.origin );
-	VectorMA( ent.origin, cg.damageX * -8, cg.refdef.viewaxis[1], ent.origin );
-	VectorMA( ent.origin, cg.damageY * 8, cg.refdef.viewaxis[2], ent.origin );
+	VectorMA( cg.refdef.vieworg, 8.0f, cg.refdef.viewaxis[0], ent.origin );
+	VectorMA( ent.origin, cg.damageX * -8.0f, cg.refdef.viewaxis[1], ent.origin );
+	VectorMA( ent.origin, cg.damageY * 8.0f, cg.refdef.viewaxis[2], ent.origin );
 
-	ent.radius = cg.damageValue * 3 * ( 1.0f - (t / maxTime) );
+	ent.radius = cg.damageValue * 3.0f * ( 1.0f - (t / maxTime) );
 
-	if (cg.snap->ps.damageType == 0)
-	{ //pure health
+	if (cg.snap->ps.damageType == 0) {
+	//pure health
 		ent.customShader = cgs.media.viewPainShader;
-		ent.shaderRGBA[0] = 180 * ( 1.0f - (t / maxTime) );
-		ent.shaderRGBA[1] = 50 * ( 1.0f - (t / maxTime) );
-		ent.shaderRGBA[2] = 50 * ( 1.0f - (t / maxTime) );
+		ent.shaderRGBA[0] = 180.0f * ( 1.0f - (t / maxTime) );
+		ent.shaderRGBA[1] = 50.0f * ( 1.0f - (t / maxTime) );
+		ent.shaderRGBA[2] = 50.0f * ( 1.0f - (t / maxTime) );
 		ent.shaderRGBA[3] = 255;
-	}
-	else if (cg.snap->ps.damageType == 1)
-	{ //pure shields
+	} else if (cg.snap->ps.damageType == 1) {
+	//pure shields
 		ent.customShader = cgs.media.viewPainShader_Shields;
-		ent.shaderRGBA[0] = 50 * ( 1.0f - (t / maxTime) );
-		ent.shaderRGBA[1] = 180 * ( 1.0f - (t / maxTime) );
-		ent.shaderRGBA[2] = 50 * ( 1.0f - (t / maxTime) );
+		ent.shaderRGBA[0] = 50.0f * ( 1.0f - (t / maxTime) );
+		ent.shaderRGBA[1] = 180.0f * ( 1.0f - (t / maxTime) );
+		ent.shaderRGBA[2] = 50.0f * ( 1.0f - (t / maxTime) );
 		ent.shaderRGBA[3] = 255;
-	}
-	else
-	{ //shields and health
+	} else {
+	//shields and health
 		ent.customShader = cgs.media.viewPainShader_ShieldsAndHealth;
-		ent.shaderRGBA[0] = 180 * ( 1.0 - ((float)t / maxTime) );
-		ent.shaderRGBA[1] = 180 * ( 1.0 - ((float)t / maxTime) );
-		ent.shaderRGBA[2] = 50 * ( 1.0 - ((float)t / maxTime) );
+		ent.shaderRGBA[0] = 180.0f * ( 1.0f - (t / maxTime) );
+		ent.shaderRGBA[1] = 180.0f * ( 1.0f - (t / maxTime) );
+		ent.shaderRGBA[2] = 50.0f * ( 1.0f - (t / maxTime) );
 		ent.shaderRGBA[3] = 255;
 	}
 	trap_R_AddRefEntityToScene( &ent );
