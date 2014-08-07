@@ -125,18 +125,14 @@ static void VibrateView( const float range, const int eventTime, const float fxT
 }
 
 static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
-	float range, oldRange;
-	int currentTime = cg.time;
+	float range = 1.0f - (cg.eventRadius / RADIUS_LIMIT);
+	float oldRange = 1.0f - (cg.eventOldRadius / RADIUS_LIMIT);
 
-	range = 1 - (cg.eventRadius / RADIUS_LIMIT);
-	oldRange = 1 - (cg.eventOldRadius / RADIUS_LIMIT);
-
-	if (cg.eventOldTime > currentTime) {
+	if (cg.eventOldTime > cg.time) {
 		cg.eventRadius = cg.eventOldRadius = 0;
 		cg.eventTime = cg.eventOldTime = 0;
 		cg.eventCoeff = cg.eventOldCoeff = 0;
 	}
-
 	if (cg.eventRadius > cg.eventOldRadius
 		&& cg.eventOldRadius != 0
 		&& (cg.eventOldTime + EFFECT_LENGTH) > cg.eventTime
@@ -145,11 +141,10 @@ static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
 		cg.eventTime = cg.eventOldTime;
 		cg.eventCoeff = cg.eventOldCoeff;
 	}
-
-	if ((currentTime >= cg.eventTime) && (currentTime <= (cg.eventTime + EFFECT_LENGTH))) {
-		float fxTime = currentTime - cg.eventTime;
-		range = 1 - (cg.eventRadius / RADIUS_LIMIT);
-		VibrateView(range, cg.eventTime, fxTime + cg.timeFraction, cg.eventCoeff, scale, origin, angles);
+	if ((cg.time >= cg.eventTime) && (cg.time < (cg.eventTime + EFFECT_LENGTH))) {
+		float fxTime = (cg.time - cg.eventTime) + cg.timeFraction;
+		range = 1.0f - (cg.eventRadius / RADIUS_LIMIT);
+		VibrateView(range, cg.eventTime, fxTime, cg.eventCoeff, scale, origin, angles);
 		cg.eventOldRadius = cg.eventRadius;
 		cg.eventOldTime = cg.eventTime;
 		cg.eventOldCoeff = cg.eventCoeff;
