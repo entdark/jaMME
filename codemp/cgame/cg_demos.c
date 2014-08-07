@@ -791,7 +791,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		// warning sounds when powerup is wearing off
 		CG_PowerupTimerSounds();
 		CG_AddViewWeapon( &cg.predictedPlayerState  );
-	} else if ( cg.playerCent && cg.playerCent->currentState.number < MAX_CLIENTS )  {
+	} else if ( !(cg.predictedPlayerState.pm_type == PM_INTERMISSION) &&
+		cg.playerCent && cg.playerCent->currentState.number < MAX_CLIENTS )  {
 		CG_AddViewWeaponDirect( cg.playerCent );
 	}
 	trap_S_UpdateEntityPosition(ENTITYNUM_NONE, cg.refdef.vieworg);
