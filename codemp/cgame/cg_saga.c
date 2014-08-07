@@ -174,7 +174,7 @@ void CG_InitSiegeMode(void)
 		i--;
 	}
 
-	if (!i)
+	if (i <= 0)
 	{
 		goto failure;
 	}

@@ -153,15 +153,12 @@ void CG_DamageFeedback( int yawByte, int pitchByte, int damage ) {
 	// clamp the position
 	if ( cg.damageX > 1.0 ) {
 		cg.damageX = 1.0;
-	}
-	if ( cg.damageX < - 1.0 ) {
+	} else if ( cg.damageX < - 1.0 ) {
 		cg.damageX = -1.0;
 	}
-
 	if ( cg.damageY > 1.0 ) {
 		cg.damageY = 1.0;
-	}
-	if ( cg.damageY < - 1.0 ) {
+	} else if ( cg.damageY < - 1.0 ) {
 		cg.damageY = -1.0;
 	}
 
