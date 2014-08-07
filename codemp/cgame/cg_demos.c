@@ -1233,6 +1233,7 @@ void demoPlaybackInit(void) {
 	demo.rain.active = qfalse;
 	demo.rain.number = 100;
 	demo.rain.range = 1000.0f;
+	demo.rain.back = qfalse;
 
 	hudInitTables();
 	demoSynchMusic( -1, 0 );
