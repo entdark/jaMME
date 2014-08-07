@@ -204,7 +204,7 @@ void Con_Dump_f (void)
 #endif
 		FS_Write(buffer, strlen(buffer), f);
 	}
-
+	Hunk_FreeTempMemory( buffer );
 	FS_FCloseFile( f );
 }
 
@@ -500,8 +500,7 @@ Con_DrawNotify
 Draws the last few lines of output transparently over the game top
 ================
 */
-void Con_DrawNotify (void)
-{
+void Con_DrawNotify (void) {
 	int		x, v;
 	short	*text;
 	int		i;
@@ -514,8 +513,7 @@ void Con_DrawNotify (void)
 	re.SetColor( g_color_table[currentColor] );
 
 	v = 0;
-	for (i= con.current-NUM_CON_TIMES+1 ; i<=con.current ; i++)
-	{
+	for (i= con.current-NUM_CON_TIMES+1 ; i<=con.current ; i++) {
 		if (i < 0)
 			continue;
 		time = con.times[i % NUM_CON_TIMES];
