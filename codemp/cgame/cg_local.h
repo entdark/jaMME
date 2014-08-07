@@ -1065,6 +1065,9 @@ Ghoul2 Insert End
 	int					chargeTime;
 	qboolean			charging;
 
+	int					weapFrame;
+	int					weapFrameTime;
+
 	vec2_t				moveKeysPos;
 	int					fallingToDeath;
 	int					tip;

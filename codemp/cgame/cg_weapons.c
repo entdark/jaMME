@@ -121,12 +121,6 @@ VIEW WEAPON
 
 #define WEAPON_FORCE_BUSY_HOLSTER
 
-#ifdef WEAPON_FORCE_BUSY_HOLSTER
-//rww - this was done as a last resort. Forgive me.
-static int cgWeapFrame = 0;
-static int cgWeapFrameTime = 0;
-#endif
-
 /*
 =================
 CG_MapTorsoToWeaponFrame
@@ -136,33 +130,33 @@ CG_MapTorsoToWeaponFrame
 static int CG_MapTorsoToWeaponFrame( clientInfo_t *ci, int frame, int animNum ) {
 	animation_t *animations = bgHumanoidAnimations;
 #ifdef WEAPON_FORCE_BUSY_HOLSTER
-	if (cg.snap->ps.forceHandExtend != HANDEXTEND_NONE || cgWeapFrameTime > cg.time)
+	if (cg.snap->ps.forceHandExtend != HANDEXTEND_NONE || cg.weapFrameTime > cg.time)
 	{ //the reason for the after delay is so that it doesn't snap the weapon frame to the "idle" (0) frame
 		//for a very quick moment
-		if (cgWeapFrame < 6)
+		if (cg.weapFrame < 6)
 		{
-			cgWeapFrame = 6;
-			cgWeapFrameTime = cg.time + 10;
+			cg.weapFrame = 6;
+			cg.weapFrameTime = cg.time + 10;
 		}
 
-		if (cgWeapFrameTime < cg.time && cgWeapFrame < 10)
+		if (cg.weapFrameTime < cg.time && cg.weapFrame < 10)
 		{
-			cgWeapFrame++;
-			cgWeapFrameTime = cg.time + 10;
+			cg.weapFrame++;
+			cg.weapFrameTime = cg.time + 10;
 		}
 
 		if (cg.snap->ps.forceHandExtend != HANDEXTEND_NONE &&
-			cgWeapFrame == 10)
+			cg.weapFrame == 10)
 		{
-			cgWeapFrameTime = cg.time + 100;
+			cg.weapFrameTime = cg.time + 100;
 		}
 
-		return cgWeapFrame;
+		return cg.weapFrame;
 	}
 	else
 	{
-		cgWeapFrame = 0;
-		cgWeapFrameTime = 0;
+		cg.weapFrame = 0;
+		cg.weapFrameTime = 0;
 	}
 #endif
 
