@@ -276,7 +276,6 @@
     <ClCompile Include="tr_marks.cpp" />
     <ClCompile Include="tr_mesh.cpp" />
     <ClCompile Include="tr_mme.cpp" />
-    <ClCompile Include="tr_mmeOld.cpp" />
     <ClCompile Include="tr_mme_stereo.cpp" />
     <ClCompile Include="tr_mme_avi.cpp" />
     <ClCompile Include="tr_mme_common.cpp" />
@@ -332,7 +331,6 @@
     <ClInclude Include="tr_landscape.h" />
     <ClInclude Include="tr_local.h" />
     <ClInclude Include="tr_mme.h" />
-    <ClInclude Include="tr_mmeOld.h" />
     <ClInclude Include="tr_quicksprite.h" />
     <ClInclude Include="tr_WorldEffects.h" />
     <ClInclude Include="wglext.h" />
