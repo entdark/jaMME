@@ -739,7 +739,12 @@ void trap_FX_PlayEntityEffectID( int id, vec3_t org,
 			return;
 		}
 
-		if (!(cg.frametime > 0
+		if (id != cgs.effects.mForceConfustionOld) {
+			if (!(cg.frametime > 0
+				&& ((cg.frametime < 7 && fmod((double)cg.time, 7.0) <= (double)cg.frametime)
+				|| cg.frametime >= 7)))
+				return;
+		} else if (!(cg.frametime > 0
 			&& ((cg.frametime < 17 && fmod((float)cg.time, 17.0f) <= cg.frametime)
 			|| cg.frametime >= 17)))
 			return;
