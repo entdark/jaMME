@@ -411,6 +411,7 @@ void animUpdate(int time, float timeFraction) {
 			animSetAngles(angles, i);
 		}
 	}
+	free(angles);
 }
 
 void animBoneVectors(vec3_t vec[MAX_BONES], int flags, int client) {
