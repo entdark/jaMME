@@ -457,7 +457,7 @@ const void *R_MME_CaptureShotCmdStereo( const void *data ) {
 void R_MME_CaptureStereo( const char *shotName, float fps, float focus, float radius ) {
 	captureCommand_t *cmd;
 	
-	if ( !tr.registered || !fps ) {
+	if ( !tr.registered || !fps || r_stereoSeparation->value == 0.0f ) {
 		return;
 	}
 	cmd = (captureCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );
