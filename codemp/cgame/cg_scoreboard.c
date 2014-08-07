@@ -599,7 +599,7 @@ qboolean CG_DrawOldScoreboard( void ) {
 		char sWL[100];
 		trap_SP_GetStringTextString("MP_INGAME_W_L", sWL,	sizeof(sWL));
 
-		CG_Text_Paint ( SB_SCORE_X, y, mySBScale, colorWhite, sWL, 0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_SMALL );
+		CG_Text_Paint ( SB_SCORE_X - CG_Text_Width(sWL, mySBScale, FONT_SMALL) / 2.0f, y, mySBScale, colorWhite, sWL, 0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_SMALL );
 	}
 	else
 	{
