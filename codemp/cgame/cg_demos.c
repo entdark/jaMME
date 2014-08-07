@@ -30,7 +30,7 @@ extern int trap_MME_SeekTime( int seekTime );
 extern void trap_MME_Music( const char *musicName, float time, float length );
 extern void trap_R_RandomSeed( int time, float timeFraction );
 extern void trap_FX_RandomSeed( int time, float timeFraction );
-extern void trap_S_UpdatePitch( float pitch );
+extern void trap_S_UpdateScale( float scale );
 extern void trap_CIN_AdjustTime( int time );
 int lastMusicStart;
 
@@ -927,7 +927,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	if (frameSpeed > 5)
 		frameSpeed = 5;
 
-	trap_S_UpdatePitch( frameSpeed );
+	trap_S_UpdateScale( frameSpeed );
 	if (cg.playerCent && cg.predictedPlayerState.pm_type == PM_INTERMISSION) {
 		entityNum = cg.snap->ps.clientNum;
 	} else if (cg.playerCent) {

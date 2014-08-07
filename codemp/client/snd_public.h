@@ -54,4 +54,4 @@ qboolean S_MMEAviExport(byte *out, int *size);
 void S_MMEUpdate( float scale );
 void S_MMEMusic( const char *musicName, float time, float length );
 
-void S_UpdatePitch(float pitch);
+void S_UpdateScale(float scale);

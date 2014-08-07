@@ -2915,7 +2915,7 @@ extern qboolean PM_InKnockDown( playerState_t *ps );
 int cg_siegeClassIndex = -2;
 
 extern void CG_SetPredictedThirdPerson(void);
-extern void trap_S_UpdatePitch( float pitch );
+extern void trap_S_UpdateScale( float scale );
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayback ) {
 	int		inwater;
 	const char *cstr;
@@ -3176,7 +3176,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 
 	trap_S_UpdateEntityPosition(ENTITYNUM_NONE, cg.refdef.vieworg);
 
-	trap_S_UpdatePitch( 1.0f );
+	trap_S_UpdateScale( 1.0f );
 	// update audio positions
 	trap_S_Respatialize( cg.snap->ps.clientNum, cg.refdef.vieworg, cg.refdef.viewaxis, inwater );
 	

@@ -1733,8 +1733,8 @@ Ghoul2 Insert End
 	case CG_FX_RANDOMSEED:
 		FX_DemoRandomSeed( args[1], VMF(2) );
         return 0;
-	case CG_S_UPDATE_PITCH:
-		S_UpdatePitch(VMF(1));
+	case CG_S_UPDATE_SCALE:
+		S_UpdateScale(VMF(1));
 		return 0;
 	case CG_CIN_ADJUST_TIME:
 		CIN_AdjustTime(args[1]);

@@ -655,12 +655,12 @@ void S_StopBackgroundTrack( void ) {
 		s_background.playing = qfalse;
 }
 
-void S_UpdatePitch(float pitch) {
+void S_UpdateScale(float scale) {
 	if (s_timescale->integer) {
 		if (s_forceScale->value > 0) {
 			s_playScale = s_forceScale->value;
 		} else {
-			s_playScale = pitch;
+			s_playScale = scale;
 		}
 		if (s_playScale > 5)
 			s_playScale = 5;
