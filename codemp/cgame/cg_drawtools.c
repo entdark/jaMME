@@ -271,7 +271,7 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 		while ( *s ) {
 			if ( cg.uag.newColors && Q_IsColorStringUAG( s ) ) {
 				if ( !forceColor ) {
-					memcpy( color, g_color_table[ColorIndexUAG(*(s+1))], sizeof( color ) );
+					memcpy( color, g_color_table_uag[ColorIndexUAG(*(s+1))], sizeof( color ) );
 					color[3] = setColor[3];
 					trap_R_SetColor( color );
 				}
