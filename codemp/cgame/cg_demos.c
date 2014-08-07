@@ -645,7 +645,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	frameSpeed *= demo.play.speed;
 
 	cg.frametime = (cg.time - cg.oldTime) + (cg.timeFraction - cg.oldTimeFraction);
-	if (cg.frametime < 0/* || cg.frametime > 100*/) { //why to reset when over 100?
+	if (cg.frametime < 0) {
+		int i;
 		cg.frametime = 0;
 		hadSkip = qtrue;
 		cg.oldTime = cg.time;
@@ -675,6 +676,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		cgScreenEffects.shake_duration = 0;
 		demo.rain.time = 0;
 		trap_S_ClearLoopingSounds();
+	} else if (cg.frametime > 100) {
+		hadSkip = qtrue;
 	} else {
 		hadSkip = qfalse;
 	}
