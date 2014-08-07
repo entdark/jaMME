@@ -235,7 +235,7 @@ static void S_MixLipSync(const mixSound_t *sound, const mixChannel_t *ch) {
 		index += indexAdd;
 	}
 
-	lipForce = (float)((float)sampleToCompare / 32768.0f) * s_lip_threshold_4->value;
+	lipForce = ((float)sampleToCompare / 32768.0f) * s_lip_threshold_4->value;
 	if (lipForce < s_lip_threshold_1->value)
 		wavVol = -1;
 	else if (lipForce < s_lip_threshold_2->value)
@@ -379,7 +379,7 @@ static int S_MixDopplerOriginal( int speed, const vec3_t origin, const vec3_t ve
 	float	lena, lenb, scale;
 
 	lena = DistanceSquared( s_listenOrigin, origin);
-	VectorAdd( origin, velocity, out);
+	VectorMA( origin, s_dopplerFactor->value, velocity, out);
 	lenb = DistanceSquared( s_listenOrigin, out);
 	scale = lenb/(lena*100);
 	if (scale > MAX_DOPPLER_SCALE) {
