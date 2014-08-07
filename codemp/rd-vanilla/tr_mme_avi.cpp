@@ -457,6 +457,8 @@ static qboolean aviValid( const mmeAviFile_t *aviFile, const char *name, mmeShot
 		return qfalse;
 	if (aviFile->type != type)
 		return qfalse;
+	if (Q_stricmp(aviFile->name, name))
+		return qfalse;
 	if (aviFile->written >= AVI_MAX_SIZE)
 		return qfalse;
 	if (mme_aviFormat->integer != aviFile->format)
