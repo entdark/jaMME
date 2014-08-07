@@ -85,8 +85,8 @@ static void lineInterpolate( int playTime, float playTimeFraction, int *demoTime
 	vec3_t dx, dy;
 	demoLinePoint_t *point = linePointSynch( playTime );
 	if (!point || !point->next) {
-		int calcTimeLow, calcTimeHigh;
-		int speed = (1 << SPEED_SHIFT) * demo.line.speed;
+		int64_t calcTimeLow, calcTimeHigh;
+		int64_t speed = (1 << SPEED_SHIFT) * demo.line.speed;
 		if (point) 
 			playTime -= point->time;
 		calcTimeHigh = (playTime >> 16) * speed;
@@ -121,11 +121,10 @@ static void lineInterpolate( int playTime, float playTimeFraction, int *demoTime
 	*demoTimeFraction -= *demoTime;
 	*demoTime += point->demoTime;
 }
-
 void lineAt(int playTime, float playTimeFraction, int *demoTime, float *demoTimeFraction, float *demoSpeed ) {
 	if (!demo.line.locked) {
-		int calcTimeLow, calcTimeHigh;
-		int speed = (1 << SPEED_SHIFT) * demo.line.speed;
+		int64_t calcTimeLow, calcTimeHigh;
+		int64_t speed = (1 << SPEED_SHIFT) * demo.line.speed;
 
 		calcTimeHigh = (playTime >> 16) * speed;
 		calcTimeLow = (playTime & 0xffff) * speed;
@@ -362,7 +361,7 @@ void demoLineCommand_f(void) {
 	} else if (!Q_stricmp(cmd, "sync")) {
 		demo.line.offset = demo.play.time;
 		demo.line.offset -= demo.line.offset * demo.line.speed;
-		CG_DemosAddLog("Timeline synched", demo.line.speed);
+		CG_DemosAddLog("Timeline synched");
 	} else if (!Q_stricmp(cmd, "speed")) {
 		cmd = CG_Argv(2);
 		if (cmd[0]) 
