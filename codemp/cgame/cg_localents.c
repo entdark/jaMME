@@ -688,7 +688,7 @@ void CG_AddScorePlum( localEntity_t *le ) {
 	// so it doesn't add too much overdraw
 	VectorSubtract( origin, cg.refdef.vieworg, delta );
 	len = VectorLength( delta );
-	if ( len < 20*20 ) {
+	if ( len < 7*7 ) {
 //		CG_FreeLocalEntity( le );
 		return;
 	}

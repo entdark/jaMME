@@ -1121,8 +1121,15 @@ static void CG_RegisterSounds( void ) {
 	cgs.media.blackBlurShader			= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/blacktrail" );
 	if (!cgs.media.blackBlurShader)
 		cgs.media.blackBlurShader		= trap_R_RegisterShaderNoMip( "gfx/effects/sabers/blacksaberBlur" );
-	//[/RGBSabers]
-
+	//[/RGBSabers]	
+	
+	//[SFXSabers]
+	cgs.media.sfxSaberBladeShader		= trap_R_RegisterShaderNoMip( "gfx/sfx_sabers/saber_blade" );
+	cgs.media.sfxSaberBlade2Shader		= trap_R_RegisterShaderNoMip( "gfx/sfx_sabers/saber_blade_rgb" );
+	cgs.media.sfxSaberEndShader			= trap_R_RegisterShaderNoMip( "gfx/sfx_sabers/saber_end" );
+	cgs.media.sfxSaberEnd2Shader		= trap_R_RegisterShaderNoMip( "gfx/sfx_sabers/saber_end_rgb" );
+	cgs.media.sfxSaberTrailShader		= trap_R_RegisterShaderNoMip( "gfx/sfx_sabers/saber_trail" );
+	//[/SFXSabers]
 
 	cgs.media.saberBlurShader			= trap_R_RegisterShader( "gfx/effects/sabers/saberBlur" );
 	cgs.media.swordTrailShader			= trap_R_RegisterShader( "gfx/effects/sabers/swordTrail" );

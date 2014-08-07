@@ -1223,6 +1223,13 @@ typedef struct {
 	qhandle_t	blackBlurShader;
 	//[/RGBSabers]
 
+	//[SFXSabers]
+	qhandle_t	sfxSaberBladeShader;
+	qhandle_t	sfxSaberBlade2Shader;
+	qhandle_t	sfxSaberEndShader;
+	qhandle_t	sfxSaberEnd2Shader;
+	qhandle_t	sfxSaberTrailShader;
+	//[/SFXSabers]
 
 	qhandle_t	saberBlurShader;
 	qhandle_t	swordTrailShader;
@@ -2602,6 +2609,7 @@ void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end );
 #define NEWFX_REPEATER_ALT	0x0004
 #define NEWFX_SIMPLEFLAG	0x0008
 #define NEWFX_TRANSFLAG		0x0010
+#define NEWFX_SFXSABERS		0X0020
 
 #define movMaskClient		0x001
 #define movMaskPlayers		0x002
