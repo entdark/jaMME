@@ -647,7 +647,7 @@ void S_MixInit( void ) {
 	}
 	/* How many similar sounding close to eachother sound effects */
 	s_mixSame = Cvar_Get( "s_mixSame", "2", CVAR_ARCHIVE );
-	s_mixSameTime = Cvar_Get( "s_mixSameTime", "0.05", CVAR_ARCHIVE );
+	s_mixSameTime = Cvar_Get( "s_mixSameTime", "10", CVAR_ARCHIVE );
 
 	s_effects = Cvar_Get( "s_effects", "1", CVAR_ARCHIVE );
 	S_EffectInit();
