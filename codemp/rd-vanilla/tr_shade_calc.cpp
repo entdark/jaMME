@@ -17,29 +17,29 @@ float WAVEVALUENEW(genFunc_t func, float base, float amplitude, float phase, flo
 			t = tr.refdef.time * 0.001;
 		else
 			t = tess.shaderTime;
-	double angle = (double)phase + t * (double)freq + (double)tr.refdef.timeFraction * (double)freq * 0.001;
-	angle = fmod(angle, 1.0);
+	double index = (double)phase + t * (double)freq + (double)tr.refdef.timeFraction * (double)freq * 0.001;
+	index = fmod(index, 1.0);
 
 	switch (func) {
 	case GF_SIN:
-		return base + sin(DEG2RAD(angle * 360.0)) * amplitude;
+		return base + sin(DEG2RAD(index * 360.0)) * amplitude;
 	case GF_TRIANGLE:
-		if (angle < 0.25) {
-			angle = angle / 0.25;
-		} else if (angle < 0.5) {
-			angle = 1.0 - ((angle - 0.25) / 0.25);
-		} else if (angle < 0.75) {
-			angle = -((angle - 0.5) / 0.25);
-		} else if (angle <= 1.0) {
-			angle = -(1.0 - ((angle - 0.75) / 0.25));
+		if (index < 0.25) {
+			index = index / 0.25;
+		} else if (index < 0.5) {
+			index = 1.0 - ((index - 0.25) / 0.25);
+		} else if (index < 0.75) {
+			index = -((index - 0.5) / 0.25);
+		} else if (index <= 1.0) {
+			index = -(1.0 - ((index - 0.75) / 0.25));
 		}
-		return base + angle * amplitude;
+		return base + index * amplitude;
 	case GF_SQUARE:
 		return WAVEVALUE(tr.squareTable, base, amplitude, phase, freq);
 	case GF_SAWTOOTH:
-		return base + angle * amplitude;
+		return base + index * amplitude;
 	case GF_INVERSE_SAWTOOTH:
-		return base + (1.0 - angle) * amplitude;
+		return base + (1.0 - index) * amplitude;
 	case GF_NONE:
 	default:
 		break;
