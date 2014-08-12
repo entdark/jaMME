@@ -1495,10 +1495,10 @@ void RE_Font_DrawString(float ox, float oy, const char *psText, const float *rgb
 	// Draw a dropshadow if required
 	if(iFontHandle & STYLE_DROPSHADOW)
 	{
+		const vec4_t v4DKGREY2 = {0.15f, 0.15f, 0.15f, rgba?rgba[3]:1.0f};
+
 		offset = curfont->GetPointSize() * fScale * 0.075f;
-
-		static const vec4_t v4DKGREY2 = {0.15f, 0.15f, 0.15f, 1};
-
+		
 		gbInShadow = qtrue;
 		RE_Font_DrawString(ox + offset * fontRatioFix, oy + offset, psText, v4DKGREY2, iFontHandle & SET_MASK, iMaxPixelWidth, fScale);
 		gbInShadow = qfalse;
