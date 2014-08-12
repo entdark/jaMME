@@ -230,6 +230,7 @@ typedef struct {
 	void				(*Capture)								( const char *baseName, float fps, float focus, float radius );
 	void				(*CaptureStereo)						( const char *baseName, float fps, float focus, float radius );
 	void				(*BlurInfo)								( int* total, int* index );
+	void				(*TimeFraction)							( float timeFraction );
 	void				(*DemoRandomSeed)						( int time, float timeFraction );
 	void				(*NewUAGColors)							( qboolean newUAGColors );
 	void				(*FontRatioFix)							( float ratio );

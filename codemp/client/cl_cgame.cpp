@@ -846,7 +846,15 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_R_FONT_STRHEIGHTPIXELS:
 		return re.Font_HeightPixels( args[1], VMF(2) );
 	case CG_R_FONT_DRAWSTRING:
-		re.Font_DrawString( VMF(1), VMF(2), (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );
+		{float ox, oy;
+		cvar_t *fs_game;
+		fs_game = Cvar_FindVar("fs_game");
+		if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
+			ox = VMF(1); oy = VMF(2);
+		} else {
+			ox = args[1]; oy = args[2];
+		}
+		re.Font_DrawString( ox, oy, (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );}
 		return 0;
 	case CG_LANGUAGE_ISASIAN:
 		return re.Language_IsAsian();
@@ -1135,7 +1143,13 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return FX_FreeSystem();
 
 	case CG_FX_ADJUST_TIME:
-		FX_AdjustTime(args[1], VMF(2), VMF(3));
+		{cvar_t *fs_game;
+		fs_game = Cvar_FindVar("fs_game");
+		if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
+			FX_AdjustTime(args[1], VMF(2), VMF(3));
+		} else {
+			FX_AdjustTime(args[1], 50.0f, 0.0f);
+		}}
 		return 0;
 
 	case CG_FX_RESET:
@@ -1723,6 +1737,9 @@ Ghoul2 Insert End
 	case CG_MME_MUSIC:
 		S_MMEMusic( (const char *)VMA(1), VMF(2), VMF(3) );
         return 0; 	
+	case CG_MME_TIMEFRACTION:
+		re.TimeFraction(VMF(1));
+		return 0;
 	case CG_MME_NEWUAGCOLORS:
 		cls.uag.newColors = (qboolean)args[1];
 		re.NewUAGColors(cls.uag.newColors);

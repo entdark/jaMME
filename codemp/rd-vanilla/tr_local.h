@@ -2067,6 +2067,8 @@ int R_MME_MultiPassNextStereo( );
 
 void R_MME_DoNotTake( );
 
+void R_MME_TimeFraction(float timeFraction);
+
 //Bloom Stuff
 void R_BloomInit( void );
 void R_BloomScreen( void );

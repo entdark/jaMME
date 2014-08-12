@@ -1569,6 +1569,9 @@ Q_EXPORT refexport_t* QDECL GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.Capture = R_MME_Capture;
 	re.CaptureStereo = R_MME_CaptureStereo;
 	re.BlurInfo = R_MME_BlurInfo;
+
+	re.TimeFraction = R_MME_TimeFraction;
+	
 	re.DemoRandomSeed = R_DemoRandomSeed;
 	re.NewUAGColors = R_NewUAGColors;
 

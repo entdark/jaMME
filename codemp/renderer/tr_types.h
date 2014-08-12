@@ -320,7 +320,6 @@ typedef struct {
 
 	// time in milliseconds for shader effects and other time dependent rendering issues
 	int			time;
-	float		timeFraction;
 
 	int			rdflags;			// RDF_NOWORLDMODEL, etc
 

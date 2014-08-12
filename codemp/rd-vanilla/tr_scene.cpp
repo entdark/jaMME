@@ -712,6 +712,8 @@ Rendering a scene may require multiple views to be rendered
 to handle mirrors,
 @@@@@@@@@@@@@@@@@@@@@
 */
+static qboolean timeFractionSet = qfalse;
+
 refdef_t lastFD;
 void RE_RenderWorldEffects(void);
 void RE_RenderAutoMap(void);
@@ -750,7 +752,9 @@ void RE_RenderScene( const refdef_t *fd ) {
 	VectorCopy( fd->viewaxis[2], tr.refdef.viewaxis[2] );
 
 	tr.refdef.time = fd->time;
-	tr.refdef.timeFraction = fd->timeFraction;
+	if (!timeFractionSet)
+		tr.refdef.timeFraction = 0.0f;
+	timeFractionSet = qfalse;
 	tr.refdef.frametime = fd->time - lastTime;
 
 	if (fd->rdflags & RDF_SKYBOXPORTAL)
@@ -890,6 +894,11 @@ void RE_RenderScene( const refdef_t *fd ) {
 	{
 		RE_RenderAutoMap();
 	}
+}
+
+void R_MME_TimeFraction(float timeFraction) {
+	tr.refdef.timeFraction = timeFraction;
+	timeFractionSet = qtrue;
 }
 
 #if 0 //rwwFIXMEFIXME: Disable this before release!!!!!! I am just trying to find a crash bug.

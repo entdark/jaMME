@@ -558,14 +558,14 @@ void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(in
 	char	*gamedir;
 	char	*fn;
 	char	filename[MAX_QPATH];
-
+	cvar_t	*fs_game = Cvar_FindVar("fs_game");
+	
 	Com_sprintf( filename, sizeof( filename ), "%sx86.dll", name );
 
 	//let folder with dlls have a higher priority over pk3 with dlls
-/*	if (!Sys_UnpackDLL(filename))
-	{
+	if (!(fs_game && !Q_stricmp(fs_game->string, "mme")) && !Sys_UnpackDLL(filename)) {
 		return NULL;
-	}*/
+	}
 
 	libHandle = LoadLibrary( filename );
 	if ( !libHandle ) {

@@ -28,6 +28,7 @@ extern void trap_MME_BlurInfo( int* total, int * index );
 extern void trap_MME_Capture( const char *baseName, float fps, float focus, float radius );
 extern int trap_MME_SeekTime( int seekTime );
 extern void trap_MME_Music( const char *musicName, float time, float length );
+extern void trap_MME_TimeFraction( float timeFraction );
 extern void trap_R_RandomSeed( int time, float timeFraction );
 extern void trap_FX_RandomSeed( int time, float timeFraction );
 extern void trap_S_UpdateScale( float scale );
@@ -799,7 +800,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	trap_FX_AddScheduledEffects(qfalse);
 	
 	cg.refdef.time = cg.time;
-	cg.refdef.timeFraction = cg.timeFraction;
 	memcpy( cg.refdef.areamask, cg.snap->areamask, sizeof( cg.refdef.areamask ) );
 	/* Render some extra demo related stuff */
 	if (!captureFrame) {
@@ -920,6 +920,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	//Always!!! start with negative
 	if (captureFrame && stereoSep > 0.0f)
 		trap_Cvar_Set("r_stereoSeparation", va("%f", -stereoSep));
+	trap_MME_TimeFraction(cg.timeFraction);
 	CG_DrawActive( stereoView );
 
 	if (demo.viewType == viewChase && cg.playerCent && (cg.playerCent->currentState.number < MAX_CLIENTS)) {
