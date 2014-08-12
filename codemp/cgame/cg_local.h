@@ -1061,6 +1061,9 @@ Ghoul2 Insert End
 		qboolean		detected;
 		qboolean		newColors;
 	} uag;
+	struct {
+		qboolean		detected;
+	} enhanced;
 	
 	int					chargeTime;
 	qboolean			charging;

@@ -178,7 +178,7 @@ and whenever the server updates any serverinfo flagged cvars
 extern void trap_MME_NewUAGColors( qboolean newUAGColors );
 void CG_ParseServerinfo( void ) {
 	const char *info = NULL, *tinfo = NULL;
-	char *mapname;
+	char *mapname, *gamename;
 	int i;
 
 	info = CG_ConfigString( CS_SERVERINFO );
@@ -219,18 +219,22 @@ void CG_ParseServerinfo( void ) {
 	cgs.maxclients = Com_Clampi( 0, MAX_CLIENTS, atoi( Info_ValueForKey( info, "sv_maxclients" ) ) );
 
 	CG_Printf("\n");
-	if (!Q_stricmpn(Info_ValueForKey(info, "gamename"), "JA+ Mod", 7)) {
+	gamename = Info_ValueForKey(info, "gamename");
+	if (!Q_stricmpn(gamename, "JA+ Mod", 7)) {
 		cg.japlus.detected = qtrue;
 		cg.japlus.SSF = JAPLUS_SERVER_FLAGS;
 		CG_Printf("JA+ demo detected\n");
-	} else if (!Q_stricmpn(Info_ValueForKey(info, "gamename"), "^4U^3A^5Galaxy", 14)) {	//uag :s
+	} else if (!Q_stricmpn(gamename, "^4U^3A^5Galaxy", 14)) {	//uag :s
 		cg.japlus.detected = qtrue;
 		cg.japlus.SSF = JAPLUS_SERVER_FLAGS;
 		cg.uag.detected = qtrue;
 		CG_Printf("^4U^3A^5Galaxy ^7demo detected\n");
-	} else if (!Q_stricmpn(Info_ValueForKey(info, "gamename"), "MakerMod", 8)) {
+	} else if (!Q_stricmpn(gamename, "base_enhanced", 13)) {
+		CG_Printf("Base Enhanced demo detected\n");
+		cg.enhanced.detected = qtrue;
+	} else if (!Q_stricmpn(gamename, "MakerMod", 8)) {
 		CG_Printf("MakerMod demo detected\n");
-	} else if (!Q_stricmpn(Info_ValueForKey(info, "gamename"), "Lugormod", 8)) {
+	} else if (!Q_stricmpn(gamename, "Lugormod", 8)) {
 		CG_Printf("Lugormod demo detected\n");
 	} else {
 		CG_Printf("Base/Unknown demo detected\n");
