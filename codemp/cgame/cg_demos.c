@@ -127,12 +127,6 @@ static void VibrateView( const float range, const int eventTime, const float fxT
 static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
 	float range = 1.0f - (cg.eventRadius / RADIUS_LIMIT);
 	float oldRange = 1.0f - (cg.eventOldRadius / RADIUS_LIMIT);
-
-	if (cg.eventOldTime > cg.time) {
-		cg.eventRadius = cg.eventOldRadius = 0;
-		cg.eventTime = cg.eventOldTime = 0;
-		cg.eventCoeff = cg.eventOldCoeff = 0;
-	}
 	if (cg.eventRadius > cg.eventOldRadius
 		&& cg.eventOldRadius != 0
 		&& (cg.eventOldTime + EFFECT_LENGTH) > cg.eventTime
@@ -656,6 +650,10 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		CG_ClearParticles ();
 		trap_FX_Reset();
 		trap_R_ClearDecals();
+
+		cg.eventRadius = cg.eventOldRadius = 0;
+		cg.eventTime = cg.eventOldTime = 0;
+		cg.eventCoeff = cg.eventOldCoeff = 0;
 
 		cg.centerPrintTime = 0;
         cg.damageTime = 0;
