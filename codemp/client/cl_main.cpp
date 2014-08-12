@@ -2104,20 +2104,24 @@ void CL_Frame ( int msec ) {
 			int blurFrames = Cvar_VariableIntegerValue("mme_blurFrames");
 			char shotName[MAX_OSPATH];
 			Com_sprintf( shotName, sizeof( shotName ), "capture/%s/%s", mme_demoFileName->string, Cvar_VariableString("mov_captureName") );
+			if (blurFrames < 1)
+				blurFrames = 1;
+			else if (blurFrames > 256)
+				blurFrames = 256;
 			// fixed time for next frame'
-			fps = cl_avidemo->integer * com_timescale->value * (blurFrames ? blurFrames : 1);
-			if ( fps > 1000.0f)
-				fps = 1000.0f;
+			fps = cl_avidemo->value * com_timescale->value * (float)blurFrames;
+//			if ( fps > 1000.0f)
+//				fps = 1000.0f;
 			frameTime = (1000.0f / fps);
-			if (frameTime < 1) {
-				frameTime = 1;
+			if (frameTime < 0) {
+				frameTime = 0;
 			}
 			//TODO use mme_depthFocus
 			re.Capture( shotName, fps, 0, 0 );
 			frameTime += clc.aviDemoRemain;
 			msec = (int)frameTime;
 			clc.aviDemoRemain = frameTime - msec;
-
+			/* Signal this frame to be recorded */
 			S_MMERecord(shotName, 1.0f / fps);
 		}
 	}
