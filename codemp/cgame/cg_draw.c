@@ -7636,7 +7636,7 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void) {
 	int numToDraw = 0;
 	int linesToDraw = 0;
 	int i = 0;
-	int x = 30;
+	float x = 44.0f*cgs.widthRatioCoef;
 	float y = cg.scoreBoardShowing ? 475 : cg_chatBoxHeight.integer;
 	float fontScale = 0.65f;
 
