@@ -367,8 +367,13 @@ if(BuildMPEngine)
 	# (mrw) TODO Is this actually required on windows? It is loaded at runtime, should not be linked?
 	find_package(OpenGL REQUIRED)
 	set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} ${OPENGL_INCLUDE_DIR})
-	set(MPEngineLibraries ${MPEngineLibraries} ${OPENGL_LIBRARIES} "mad")
-
+	set(MPEngineLibraries ${MPEngineLibraries} ${OPENGL_LIBRARIES})
+	
+	#libmad stuff
+	if(APPLE)
+		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/macosx/libmad/libmad.a)
+	endif(APPLE)
+	
 	# OpenAL (is optionally included for Windows)
 	if(UseInternalOpenAL)
 		set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} "${MPDir}/client/OpenAL")

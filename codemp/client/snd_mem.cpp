@@ -346,7 +346,11 @@ static openSound_t * S_WavOpen( const char *fileName ) {
 //=============================================================================
 
 #ifdef HAVE_LIBMAD 
+#ifdef MACOS_X
+#include "macosx/libmad/mad.h"
+#else
 #include <mad.h>
+#endif
 //#pragma comment (lib, "libmad.lib")
 //#pragma comment (lib, "libmadd.lib")
 #define MP3_SEEKINTERVAL 16 

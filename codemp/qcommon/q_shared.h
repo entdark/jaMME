@@ -9,7 +9,11 @@
 
 #define PRODUCT_NAME			"jampconfig"
 
+#ifndef MACOS_X
 #define CLIENT_WINDOW_TITLE "Jedi Knight®: Jedi Academy (MP)" // for q3e minimizer
+#else
+#define CLIENT_WINDOW_TITLE "Jedi Knight: Jedi Academy (MP)" // for q3e minimizer
+#endif
 #define CLIENT_CONSOLE_TITLE "Jedi Knight Academy MP Console"
 #define HOMEPATH_NAME_UNIX ".jamme"	//sad stuff, but let's leave that :s
 #define HOMEPATH_NAME_WIN "jaMME"		//and this one as well :C
