@@ -437,6 +437,7 @@ if(BuildMPEngine)
 		"${MPDir}/client/snd_dma.cpp"
 		"${MPDir}/client/snd_effects.cpp"
 		"${MPDir}/client/snd_local.h"
+		"${MPDir}/client/snd_main.cpp"
 		"${MPDir}/client/snd_mem.cpp"
 		"${MPDir}/client/snd_mix.cpp"
 		"${MPDir}/client/snd_mme.cpp"
@@ -471,42 +472,7 @@ if(BuildMPEngine)
 		)
 	source_group("ravl" FILES ${MPEngineRavlFiles})
 	set(MPEngineFiles ${MPEngineFiles} ${MPEngineRavlFiles})
-	
-	set(MPEngineMp3Files
-		"${MPDir}/mp3code/cdct.c"
-		"${MPDir}/mp3code/config.h"
-		"${MPDir}/mp3code/csbt.c"
-		"${MPDir}/mp3code/csbtb.c"
-		"${MPDir}/mp3code/csbtl3.c"
-		"${MPDir}/mp3code/cup.c"
-		"${MPDir}/mp3code/cupini.c"
-		"${MPDir}/mp3code/cupl1.c"
-		"${MPDir}/mp3code/cupl3.c"
-		"${MPDir}/mp3code/cwin.c"
-		"${MPDir}/mp3code/cwinb.c"
-		"${MPDir}/mp3code/cwinm.c"
-		"${MPDir}/mp3code/htable.h"
-		"${MPDir}/mp3code/hwin.c"
-		"${MPDir}/mp3code/jdw.h"
-		"${MPDir}/mp3code/l3.h"
-		"${MPDir}/mp3code/l3dq.c"
-		"${MPDir}/mp3code/l3init.c"
-		"${MPDir}/mp3code/mdct.c"
-		"${MPDir}/mp3code/mhead.c"
-		"${MPDir}/mp3code/mhead.h"
-		"${MPDir}/mp3code/mp3struct.h"
-		"${MPDir}/mp3code/msis.c"
-		"${MPDir}/mp3code/port.h"
-		"${MPDir}/mp3code/small_header.h"
-		"${MPDir}/mp3code/tableawd.h"
-		"${MPDir}/mp3code/towave.c"
-		"${MPDir}/mp3code/uph.c"
-		"${MPDir}/mp3code/upsf.c"
-		"${MPDir}/mp3code/wavep.c"
-		)
-	source_group("mp3code" FILES ${MPEngineMp3Files})
-	set(MPEngineFiles ${MPEngineFiles} ${MPEngineMp3Files})
-	
+		
 	if(WIN32)
 		set(MPEngineWin32Files
 			"${MPDir}/win32/glw_win.h"
