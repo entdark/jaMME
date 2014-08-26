@@ -82,6 +82,7 @@ set(MPCGameCgameFiles
   "${MPDir}/cgame/cg_demos.c"
 	"${MPDir}/cgame/cg_demos_camera.c"
 	"${MPDir}/cgame/cg_demos_capture.c"
+	"${MPDir}/cgame/cg_demos_anim.c"
 	"${MPDir}/cgame/cg_demos_hud.c"
 	"${MPDir}/cgame/cg_demos_line.c"
 	"${MPDir}/cgame/cg_demos_math.c"
