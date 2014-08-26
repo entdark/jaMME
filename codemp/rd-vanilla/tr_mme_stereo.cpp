@@ -169,7 +169,7 @@ int R_MME_MultiPassNextStereo( ) {
 
 	index = control->totalIndex;
 	outAlloc = (byte *)ri.Hunk_AllocateTempMemory( mainData.pixelCount * 3 + 16);
-	outAlign = (__m64 *)((((int)(outAlloc)) + 15) & ~15);
+	outAlign = (__m64 *)((((intptr_t)(outAlloc)) + 15) & ~15);
 
 	GLimp_EndFrame();
 	R_MME_GetShot( outAlign );
@@ -276,7 +276,7 @@ qboolean R_MME_TakeShotStereo( void ) {
 			byte *outAlloc;
 			__m64 *outAlign;
 			outAlloc = (byte *)ri.Hunk_AllocateTempMemory( pixelCount * 3 + 16);
-			outAlign = (__m64 *)((((int)(outAlloc)) + 15) & ~15);
+			outAlign = (__m64 *)((((intptr_t)(outAlloc)) + 15) & ~15);
 
 			if ( mme_saveShot->integer == 1 ) {
 				R_MME_MultiShot( (byte*)outAlign );
@@ -494,6 +494,6 @@ void R_MME_InitStereo(void) {
 			allocFailed = qtrue;
 			return;
 		}
-		workAlign = (char *)(((int)workAlloc + 15) & ~15);
+		workAlign = (char *)(((intptr_t)workAlloc + 15) & ~15);
 	}
 }

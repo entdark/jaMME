@@ -409,7 +409,6 @@ if(BuildMPEngine)
 	set(MPEngineFiles ${MPEngineFiles} ${MPEngineJpegFiles})
 	
 	set(MPEngineClientFiles
-		"${MPDir}/client/cl_avi.cpp"
 		"${MPDir}/client/cl_cgame.cpp"
 		"${MPDir}/client/cl_cin.cpp"
 		"${MPDir}/client/cl_console.cpp"
@@ -435,17 +434,12 @@ if(BuildMPEngine)
 		"${MPDir}/client/FxUtil.h"
 		"${MPDir}/client/snd_ambient.cpp"
 		"${MPDir}/client/snd_ambient.h"
-		"${MPDir}/client/snd_demos.cpp"
 		"${MPDir}/client/snd_dma.cpp"
 		"${MPDir}/client/snd_effects.cpp"
 		"${MPDir}/client/snd_local.h"
 		"${MPDir}/client/snd_mem.cpp"
 		"${MPDir}/client/snd_mix.cpp"
 		"${MPDir}/client/snd_mme.cpp"
-		"${MPDir}/client/snd_mp3.cpp"
-		"${MPDir}/client/snd_mp3.h"
-		"${MPDir}/client/snd_music.cpp"
-		"${MPDir}/client/snd_music.h"
 		)
 	source_group("client" FILES ${MPEngineClientFiles})
 	set(MPEngineFiles ${MPEngineFiles} ${MPEngineClientFiles})

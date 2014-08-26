@@ -182,10 +182,15 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 {
 	void *dllhandle = NULL;
 	
-	if(useSystemLib)
+	if(useSystemLib) {
 		Com_Printf("Trying to load \"%s\"...\n", name);
+		dllhandle = Sys_LoadLibrary(name);
+		if (!dllhandle) {
+			Com_Printf( "Sys_LoadDll(%s) failed: \"%s\"\n", name, Sys_LibraryError() );
+		}
+	}
 	
-	if(!useSystemLib || !(dllhandle = Sys_LoadLibrary(name)))
+	if(!useSystemLib || !dllhandle)
 	{
 		const char *topDir;
 		char libPath[MAX_OSPATH];
@@ -202,6 +207,8 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 		{
 			const char *basePath = Cvar_VariableString("fs_basepath");
 			
+			Com_Printf( "Sys_LoadDll(%s) failed: \"%s\"\n", libPath, Sys_LibraryError() );
+
 			if(!basePath || !*basePath)
 				basePath = ".";
 			
@@ -216,6 +223,8 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 			{
 				const char *cdPath = Cvar_VariableString("fs_cdpath");
 
+				Com_Printf( "Sys_LoadDll(%s) failed: \"%s\"\n", libPath, Sys_LibraryError() );
+
 				if(!basePath || !*basePath)
 					basePath = ".";
 
@@ -228,6 +237,7 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 
 				if(!dllhandle)
 				{
+					Com_Printf( "Sys_LoadDll(%s) failed: \"%s\"\n", libPath, Sys_LibraryError() );
 					Com_Printf("Loading \"%s\" failed\n", name);
 				}
 			}
@@ -249,7 +259,7 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 
 void *Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) )
 {
-	void	*libHandle;
+	void	*libHandle = NULL;
 	void	(QDECL *dllEntry)( intptr_t (QDECL *syscallptr)(intptr_t, ...) );
 	char	*basepath;
 	char	*homepath;
