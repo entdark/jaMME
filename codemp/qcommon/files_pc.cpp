@@ -260,7 +260,11 @@ qboolean FS_FileErase( const char *file )
 
 	testpath = FS_BuildOSPath( fs_homepath->string, fs_gamedir, file );
 
+#ifndef _WIN32
+	return (qboolean)(unlink( testpath ) == 0);
+#else
 	return (qboolean)(_unlink( testpath ) == 0);
+#endif
 }
 
 /*

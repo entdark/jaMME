@@ -367,7 +367,7 @@ if(BuildMPEngine)
 	# (mrw) TODO Is this actually required on windows? It is loaded at runtime, should not be linked?
 	find_package(OpenGL REQUIRED)
 	set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} ${OPENGL_INCLUDE_DIR})
-	set(MPEngineLibraries ${MPEngineLibraries} ${OPENGL_LIBRARIES})
+	set(MPEngineLibraries ${MPEngineLibraries} ${OPENGL_LIBRARIES} "mad")
 
 	# OpenAL (is optionally included for Windows)
 	if(UseInternalOpenAL)
@@ -413,9 +413,11 @@ if(BuildMPEngine)
 		"${MPDir}/client/cl_cgame.cpp"
 		"${MPDir}/client/cl_cin.cpp"
 		"${MPDir}/client/cl_console.cpp"
+		"${MPDir}/client/cl_demos.cpp"
 		"${MPDir}/client/cl_input.cpp"
 		"${MPDir}/client/cl_keys.cpp"
 		"${MPDir}/client/cl_main.cpp"
+		"${MPDir}/client/cl_mme.cpp"
 		"${MPDir}/client/cl_net_chan.cpp"
 		"${MPDir}/client/cl_parse.cpp"
 		"${MPDir}/client/cl_scrn.cpp"
@@ -433,10 +435,13 @@ if(BuildMPEngine)
 		"${MPDir}/client/FxUtil.h"
 		"${MPDir}/client/snd_ambient.cpp"
 		"${MPDir}/client/snd_ambient.h"
+		"${MPDir}/client/snd_demos.cpp"
 		"${MPDir}/client/snd_dma.cpp"
+		"${MPDir}/client/snd_effects.cpp"
 		"${MPDir}/client/snd_local.h"
 		"${MPDir}/client/snd_mem.cpp"
 		"${MPDir}/client/snd_mix.cpp"
+		"${MPDir}/client/snd_mme.cpp"
 		"${MPDir}/client/snd_mp3.cpp"
 		"${MPDir}/client/snd_mp3.h"
 		"${MPDir}/client/snd_music.cpp"

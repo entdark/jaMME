@@ -2838,7 +2838,7 @@ void *G2_FindSurface_BC(const model_s *mod, int index, int lod)
 	assert(mod->mdxm);
 
 	// point at first lod list
-	byte	*current = (byte*)((int)mod->mdxm + (int)mod->mdxm->ofsLODs);
+	byte	*current = (byte*)((intptr_t)mod->mdxm + (intptr_t)mod->mdxm->ofsLODs);
 	int i;
 
 	//walk the lods
@@ -4220,7 +4220,7 @@ qboolean R_LoadMDXM( model_t *mod, void *buffer, const char *mod_name, qboolean 
 	int					size;
 	mdxmSurfHierarchy_t	*surfInfo;
 
-#ifndef _M_IX86
+#if 0
 	int					k;
 	int					frameSize;
 	mdxmTag_t			*tag;
@@ -4373,7 +4373,7 @@ qboolean R_LoadMDXM( model_t *mod, void *buffer, const char *mod_name, qboolean 
 			// change to surface identifier
 			surf->ident = SF_MDX;
 			// register the shaders
-#ifndef _M_IX86
+#if 0
 //
 // optimisation, we don't bother doing this for standard intel case since our data's already in that format...
 //
@@ -4659,7 +4659,7 @@ qboolean R_LoadMDXA( model_t *mod, void *buffer, const char *mod_name, qboolean 
 	byte				*sizeMarker;
 #endif
 
-#ifndef _M_IX86
+#if 0
 	int					j, k, i;
 	int					frameSize;
 	mdxaFrame_t			*cframe;
@@ -4735,7 +4735,7 @@ qboolean R_LoadMDXA( model_t *mod, void *buffer, const char *mod_name, qboolean 
 	if (!bAlreadyFound)
 	{
 		mdxaSkel_t			*boneParent;
-#ifdef _M_IX86
+#if 0
 		mdxaSkel_t			*boneInfo;
 		int i, k;
 #endif
@@ -4854,7 +4854,7 @@ qboolean R_LoadMDXA( model_t *mod, void *buffer, const char *mod_name, qboolean 
 		return qtrue;	// All done, stop here, do not LittleLong() etc. Do not pass go...
 	}
 
-#ifndef _M_IX86
+#if 0
 
 	//
 	// optimisation, we don't bother doing this for standard intel case since our data's already in that format...

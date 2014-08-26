@@ -622,7 +622,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		Com_Memcpy( VMA(1), VMA(2), args[3] );
 		return 0;
 	case TRAP_STRNCPY:
-		return (int)strncpy( (char *)VMA(1), (const char *)VMA(2), args[3] );
+		return (intptr_t)strncpy( (char *)VMA(1), (const char *)VMA(2), args[3] );
 	case TRAP_SIN:
 		return FloatAsInt( sin( VMF(1) ) );
 	case TRAP_COS:

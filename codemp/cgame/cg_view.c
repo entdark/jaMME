@@ -2913,7 +2913,7 @@ int cg_siegeClassIndex = -2;
 
 extern void CG_SetPredictedThirdPerson(void);
 extern void trap_S_UpdateScale( float scale );
-void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayback ) {
+void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demoPlayback ) {
 	int		inwater;
 	const char *cstr;
 	float mSensitivity = cg.zoomSensitivity;
