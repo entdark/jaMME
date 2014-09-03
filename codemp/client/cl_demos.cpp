@@ -778,6 +778,8 @@ static void demoPlayForwardFrame( demoPlay_t *play ) {
 			CL_Disconnect_f();
 		}
 		if (mme_demoAutoQuit->integer && !demoPrecaching) {
+			if (mme_demoAutoQuit->integer == 2)
+				Cbuf_ExecuteText( EXEC_APPEND, "quit" );
 			CL_Disconnect_f();
 		}
 		play->lastFrame = qtrue;
@@ -968,7 +970,7 @@ errorreturn:
 
 static void demoPlayStop( demoPlay_t *play ) {
 	FS_FCloseFile( play->fileHandle );
-	if (FS_FileExists( play->fileName ) && mme_demoRemove->integer)
+	if (mme_demoRemove->integer && FS_FileExists( play->fileName ))
 		FS_FileErase( play->fileName );
 	Z_Free( play );
 }
