@@ -435,6 +435,7 @@ void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothe
 					newHandle = 0;
 				}
 				if (levelCount) {
+					demoFirstPack = qtrue;
 					Com_sprintf( newName, sizeof( newName ), "%s.%d.mme", newBaseName, levelCount );
 				} else {
 					Com_sprintf( newName, sizeof( newName ), "%s.mme", newBaseName );
