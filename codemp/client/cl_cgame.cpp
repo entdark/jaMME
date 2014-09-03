@@ -849,8 +849,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return re.Font_HeightPixels( args[1], VMF(2) );
 	case CG_R_FONT_DRAWSTRING:
 		{float ox, oy;
-		cvar_t *fs_game;
-		fs_game = Cvar_FindVar("fs_game");
+		cvar_t *fs_game = Cvar_FindVar("fs_game");
 		if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
 			ox = VMF(1); oy = VMF(2);
 		} else {
@@ -1145,12 +1144,11 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return FX_FreeSystem();
 
 	case CG_FX_ADJUST_TIME:
-		{cvar_t *fs_game;
-		fs_game = Cvar_FindVar("fs_game");
+		{cvar_t *fs_game = Cvar_FindVar("fs_game");
 		if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
 			FX_AdjustTime(args[1], VMF(2), VMF(3));
 		} else {
-			FX_AdjustTime(args[1], 50.0f, 0.0f);
+			FX_AdjustTime(args[1], cls.frametime, 0.0f);
 		}}
 		return 0;
 
