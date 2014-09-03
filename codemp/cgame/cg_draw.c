@@ -224,7 +224,7 @@ static void CG_DrawZoomMask( void )
 	float max, fi;
 
 	// Check for Binocular specific zooming since we'll want to render different bits in each case
-	if ( cg.predictedPlayerState.zoomMode == 2 )
+	if ( cg.playerPredicted && cg.predictedPlayerState.zoomMode == 2 )
 	{
 		int val, i;
 		float off;
