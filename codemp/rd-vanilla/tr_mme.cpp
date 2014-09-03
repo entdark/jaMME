@@ -267,8 +267,8 @@ qboolean R_MME_TakeShot( void ) {
 	//Special early version using the framebuffer
 	if ( mme_saveShot->integer && blurControl->totalFrames > 0 &&
 		R_FrameBuffer_Blur( blurControl->Float[ blurControl->totalIndex ], blurControl->totalIndex, blurControl->totalFrames ) ) {
-		float fps;
 		byte *shotBuf;
+		float fps;
 		if ( ++(blurControl->totalIndex) < blurControl->totalFrames ) 
 			return qtrue;
 		blurControl->totalIndex = 0;
@@ -574,7 +574,7 @@ void R_MME_Init(void) {
 	mme_dofRadius = ri.Cvar_Get ( "mme_dofRadius", "2", CVAR_ARCHIVE );
 
 	mme_cpuSSE2 = ri.Cvar_Get ( "mme_cpuSSE2", "0", CVAR_ARCHIVE );
-	mme_pbo = ri.Cvar_Get ( "mme_pbo", "0", CVAR_ARCHIVE );
+	mme_pbo = ri.Cvar_Get ( "mme_pbo", "1", CVAR_ARCHIVE );
 	
 	mme_depthRange = ri.Cvar_Get ( "mme_depthRange", "512", CVAR_ARCHIVE );
 	mme_depthFocus = ri.Cvar_Get ( "mme_depthFocus", "1024", CVAR_ARCHIVE );
