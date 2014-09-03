@@ -1087,7 +1087,7 @@ void CG_DrawWeaponSelect( void ) {
 	int				bits;
 	int				count;
 	int				smallIconSize,bigIconSize;
-	int				holdX,x,y,pad;
+	float			holdX,x,y,pad;
 	int				sideLeftIconCnt,sideRightIconCnt;
 	int				sideMax,holdCount,iconCnt;
 	int				height;
