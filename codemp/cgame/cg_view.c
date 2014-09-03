@@ -1400,7 +1400,7 @@ notZoom:
 	// warp if underwater
 	cg.refdef.viewContents = CG_PointContents( cg.refdef.vieworg, -1 );
 	if ( cg.refdef.viewContents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ){
-		v = WAVE_AMPLITUDE * sin(((double)cg.time + (double)cg.timeFraction) / 1000.0 * WAVE_FREQUENCY * M_PI * 2);
+		v = WAVE_AMPLITUDE * sin((cg.time / 1000.0 + cg.timeFraction / 1000.0) * WAVE_FREQUENCY * M_PI * 2);
 		fov_x += v;
 		fov_y -= v;
 		inwater = qtrue;
