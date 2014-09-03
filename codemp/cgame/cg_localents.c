@@ -244,10 +244,9 @@ void CG_AddFragment( localEntity_t *le ) {
 
 	if ( le->pos.trType == TR_STATIONARY ) {
 		// sink into the ground if near the removal time
-		float	t;
-		float	t_e;
+		float t, t_e;
 		
-		t = (le->endTime - cg.time) + cg.timeFraction;
+		t = (le->endTime - cg.time) - cg.timeFraction;
 		if ( t < (SINK_TIME*2) ) {
 			le->refEntity.renderfx |= RF_FORCE_ENT_ALPHA;
 			t_e = (float)(t/(SINK_TIME*2));
