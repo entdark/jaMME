@@ -5559,7 +5559,7 @@ void Item_Model_Paint(itemDef_t *item)
 	{
 		origin[0] = item->textscale;
 	}
-	refdef.fov_x = (modelPtr->fov_x) ? modelPtr->fov_x : (int)((float)refdef.width / 640.0f * 90.0f);
+	refdef.fov_x = (modelPtr->fov_x) ? modelPtr->fov_x : ((float)refdef.width / 640.0f * 90.0f);
 	refdef.fov_y = (modelPtr->fov_y) ? modelPtr->fov_y : atan2( refdef.height, refdef.width / tan( refdef.fov_x / 360 * M_PI ) ) * ( 360 / M_PI );
 	
 	//refdef.fov_x = (int)((float)refdef.width / 640.0f * 90.0f);
