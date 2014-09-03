@@ -1576,6 +1576,7 @@ Q_EXPORT refexport_t* QDECL GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.NewUAGColors = R_NewUAGColors;
 
 	re.FontRatioFix = RE_FontRatioFix;
+	re.RotatePic2RatioFix = RE_RotatePic2RatioFix;
 
 	return &re;
 }

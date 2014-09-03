@@ -1556,6 +1556,22 @@ const void *RB_RotatePic ( const void *data )
 
 /*
 =============
+RB_RotatePic2RatioFix
+=============
+*/
+static float ratio = 1.0f;
+const void *RB_RotatePic2RatioFix( const void *data ) {
+	const rotatePicRatioFixCommand_t *cmd;
+	cmd = (const rotatePicRatioFixCommand_t *)data;
+	if (cmd->ratio <= 0.0f)
+		ratio = 1.0f;
+	else
+		ratio = cmd->ratio;
+	return (const void *)(cmd + 1);
+}
+
+/*
+=============
 RB_DrawRotatePic2
 =============
 */
@@ -1585,6 +1601,7 @@ const void *RB_RotatePic2 ( const void *data )
 
 			// rotation point is going to be around the center of the passed in coordinates
 			qglTranslatef( cmd->x, cmd->y, 0 );
+			qglScalef(ratio, 1.0, 1.0); 
 			qglRotatef( cmd->a, 0.0, 0.0, 1.0 );
 		
 			GL_Bind( image );
@@ -1988,6 +2005,9 @@ again:
 			break;
 		case RC_ROTATE_PIC2:
 			data = RB_RotatePic2( data );
+			break;
+		case RC_ROTATE_PIC2_RATIOFIX:
+			data = RB_RotatePic2RatioFix( data );
 			break;
 		case RC_DRAW_SURFS:
 			backEnd.doneSurfaces = qtrue;

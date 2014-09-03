@@ -1902,6 +1902,11 @@ typedef struct {
 
 typedef struct {
 	int		commandId;
+	float	ratio;
+} rotatePicRatioFixCommand_t;
+
+typedef struct {
+	int		commandId;
 	trRefdef_t	refdef;
 	viewParms_t	viewParms;
 	drawSurf_t *drawSurfs;
@@ -1950,6 +1955,7 @@ typedef enum {
 	RC_SCREENSHOT,
 	RC_CAPTURE,
 	RC_CAPTURE_STEREO,
+	RC_ROTATE_PIC2_RATIOFIX,
 } renderCommand_t;
 
 
@@ -1999,6 +2005,7 @@ void RE_RotatePic ( float x, float y, float w, float h,
 					  float s1, float t1, float s2, float t2,float a, qhandle_t hShader );
 void RE_RotatePic2 ( float x, float y, float w, float h, 
 					  float s1, float t1, float s2, float t2,float a, qhandle_t hShader );
+void RE_RotatePic2RatioFix ( float ratio );
 void RE_BeginFrame( stereoFrame_t stereoFrame );
 void RE_EndFrame( int *frontEndMsec, int *backEndMsec );
 

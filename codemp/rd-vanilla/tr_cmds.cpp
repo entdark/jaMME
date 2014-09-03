@@ -265,6 +265,22 @@ void RE_RotatePic ( float x, float y, float w, float h,
 RE_RotatePic2
 =============
 */
+void RE_RotatePic2RatioFix ( float ratio ) {
+	rotatePicRatioFixCommand_t	*cmd;
+
+	cmd = (rotatePicRatioFixCommand_t *) R_GetCommandBuffer( sizeof( *cmd ) );
+	if ( !cmd ) {
+		return;
+	}
+	cmd->commandId = RC_ROTATE_PIC2_RATIOFIX;
+	cmd->ratio = ratio;
+}
+
+/*
+=============
+RE_RotatePic2
+=============
+*/
 void RE_RotatePic2 ( float x, float y, float w, float h, 
 					  float s1, float t1, float s2, float t2,float a, qhandle_t hShader ) {
 	rotatePicCommand_t	*cmd;

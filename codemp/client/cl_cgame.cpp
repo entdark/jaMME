@@ -1759,6 +1759,9 @@ Ghoul2 Insert End
 	case CG_CIN_ADJUST_TIME:
 		CIN_AdjustTime(args[1]);
 		return 0;
+	case CG_R_ROTATEPIC2_RATIOFIX:
+		re.RotatePic2RatioFix(VMF(1));
+		return 0;
 	default:
 	        assert(0); // bk010102
 		Com_Error( ERR_DROP, "Bad cgame system trap: %ld", (long int) args[0] );

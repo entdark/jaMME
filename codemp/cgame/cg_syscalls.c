@@ -1283,3 +1283,6 @@ void trap_S_UpdateScale( float scale ) {
 void trap_CIN_AdjustTime( int time ) {
 	Q_syscall( CG_CIN_ADJUST_TIME, time );
 }
+void trap_R_RotatePic2RatioFix( float ratio ) {
+	Q_syscall( CG_R_ROTATEPIC2_RATIOFIX, PASSFLOAT(ratio) );
+}

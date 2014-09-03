@@ -234,6 +234,7 @@ typedef struct {
 	void				(*DemoRandomSeed)						( int time, float timeFraction );
 	void				(*NewUAGColors)							( qboolean newUAGColors );
 	void				(*FontRatioFix)							( float ratio );
+	void				(*RotatePic2RatioFix)					( float ratio );
 } refexport_t;
 
 //
