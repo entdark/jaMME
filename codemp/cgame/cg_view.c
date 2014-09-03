@@ -957,10 +957,6 @@ static void CG_OffsetFirstPersonView( void ) {
 	origin = cg.refdef.vieworg;
 	angles = cg.refdef.viewangles;
 
-	//mme
-//	origin = cent->lerpOrigin;
-//	angles = cent->lerpOrigin;
-	
 	// if dead, fix the angle and don't add any kick
 	if (cg.snap->ps.stats[STAT_HEALTH] <= 0 && cg.playerPredicted) {
 		angles[ROLL] = 40;
@@ -970,21 +966,6 @@ static void CG_OffsetFirstPersonView( void ) {
 		return;
 	}
 
-	//mme
-/*	if ( cent->currentState.eFlags & EF_DEAD ) {
-		angles[ROLL] = 40;
-		angles[PITCH] = -15;
-		if ( !cg.playerPredicted ) {
-			origin[2] += DEAD_VIEWHEIGHT;
-			angles[YAW] = 0;
-		} else {
-			angles[YAW] = cg.snap->ps.stats[STAT_DEAD_YAW];
-			origin[2] += cg.predictedPlayerState.viewheight;
-//			origin[2] += pe->viewHeight;
-		}
-		return;
-	}
-*/
 	// add angles based on weapon kick
 	kickTime = (cg.time - cg.kick_time) + cg.timeFraction;
 	if ( kickTime < 800 )
@@ -1069,21 +1050,14 @@ static void CG_OffsetFirstPersonView( void ) {
 //===================================
 
 	// add view height
-//	origin[2] += cg.predictedPlayerState.viewheight;
 	//mme
 	origin[2] += pe->viewHeight;
 
 	// smooth out duck height changes
-/*	timeDelta = cg.time - cg.duckTime;
-	if ( timeDelta < DUCK_TIME) {
-		cg.refdef.vieworg[2] -= cg.duckChange 
-			* (DUCK_TIME - timeDelta) / DUCK_TIME;
-	}
-*/
 	//mme
 	timeDelta = (cg.time - pe->duckTime) + cg.timeFraction;
 	if ( timeDelta >= 0 && timeDelta < DUCK_TIME) {
-		cg.refdef.vieworg[2] -= pe->duckChange 
+		origin[2] -= pe->duckChange 
 			* (DUCK_TIME - timeDelta) / DUCK_TIME;
 	}
 
@@ -1096,18 +1070,6 @@ static void CG_OffsetFirstPersonView( void ) {
 	if (cg.playerPredicted)
 		origin[2] += bob;
 
-
-	// add fall height
-/*	delta = cg.time - cg.landTime;
-	if ( delta < LAND_DEFLECT_TIME ) {
-		f = delta / LAND_DEFLECT_TIME;
-		cg.refdef.vieworg[2] += cg.landChange * f;
-	} else if ( delta < LAND_DEFLECT_TIME + LAND_RETURN_TIME ) {
-		delta -= LAND_DEFLECT_TIME;
-		f = 1.0 - ( delta / LAND_RETURN_TIME );
-		cg.refdef.vieworg[2] += cg.landChange * f;
-	}
-*/
 	//mme
 	delta = (cg.time - pe->landTime) + cg.timeFraction;
 	if ( delta < LAND_DEFLECT_TIME ) {

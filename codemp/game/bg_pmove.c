@@ -9071,7 +9071,7 @@ CG_SwingAngles
 ==================
 */
 static float BG_SwingAngles( float destination, float swingTolerance, float clampTolerance,
-					float speed, float *angle, qboolean *swinging, /*int*/float frametime ) {
+					float speed, float *angle, qboolean *swinging, float frametime ) {
 	float	swing;
 	float	move;
 	float	scale;

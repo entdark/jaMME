@@ -198,9 +198,7 @@ CG_CalculateWeaponPosition
 ==============
 */
 static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
-	float	scale;
-	float	delta;
-	float	fracsin;
+	float scale, delta, fracsin;
 
 	playerEntity_t *pe = &cg.playerCent->pe;
 
