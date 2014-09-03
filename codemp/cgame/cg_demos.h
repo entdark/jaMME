@@ -179,6 +179,7 @@ typedef struct demoMain_s {
 		qhandle_t additiveWhiteShader;
 		qhandle_t mouseCursor;
 		qhandle_t switchOn, switchOff;
+		sfxHandle_t heavyRain, regularRain, lightRain;
 	} media;
 	demofindType_t find;
 	qboolean	seekEnabled;

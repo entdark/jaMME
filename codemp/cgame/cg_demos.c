@@ -1276,6 +1276,11 @@ void demoPlaybackInit(void) {
 	demo.media.switchOn = trap_R_RegisterShaderNoMip( "mme_message_on" );
 	demo.media.switchOff = trap_R_RegisterShaderNoMip( "mme_message_off" );
 
+	// Weather
+	demo.media.heavyRain = trap_S_RegisterSound("sound/ambient/rain_hard");
+	demo.media.regularRain = trap_S_RegisterSound("sound/ambient/rain_mid");
+	demo.media.lightRain = trap_S_RegisterSound("sound/ambient/rain_light");
+
 	trap_SetUserCmdValue( 0, 1.0f, 0.0f, 0.0f, 0.0f, 0, 0, qfalse );
 
 	trap_SendConsoleCommand("exec mmedemos.cfg\n");
