@@ -1338,7 +1338,7 @@ void CG_DrawWeaponSelect( void ) {
 			}
 
 
-			holdX += (smallIconSize*cgs.widthRatioCoef+pad);
+			holdX += (smallIconSize+pad)*cgs.widthRatioCoef;
 		}
 		if ( i == WP_CONCUSSION )
 		{
