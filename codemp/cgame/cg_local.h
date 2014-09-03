@@ -2217,7 +2217,6 @@ int			trap_CM_MarkFragments( int numPoints, const vec3_t *points,
 // normal sounds will have their volume dynamically changed as their entity
 // moves and the listener moves
 int			trap_S_GetVoiceVolume( int entityNum );
-void		trap_S_MuteSound( int entityNum, int entchannel );
 void		trap_S_StopSound( int entityNum, int entchannel, sfxHandle_t sfx );
 void		trap_S_StartSound( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx );
 void		trap_S_StopLoopingSound(int entnum);

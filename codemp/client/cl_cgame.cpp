@@ -776,13 +776,15 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_S_GETVOICEVOLUME:
 		return s_entityWavVol[args[1]];
 	case CG_S_MUTESOUND:
-		S_MuteSound( args[1], args[2] );
+		{cvar_t *fs_game = Cvar_FindVar("fs_game");
+		if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
+			S_StopSound(args[1], args[2], args[3] );
+		} else {
+			S_StopSound(args[1], args[2], -1 );
+		}}
 		return 0;
 	case CG_S_STARTSOUND:
 		S_StartSound( (float *)VMA(1), args[2], args[3], -1, args[4] );
-		return 0;
-	case CG_S_STOPSOUND:
-		S_StopSound(args[1], args[2], args[3] );
 		return 0;
 	case CG_S_STARTLOCALSOUND:
 		S_StartLocalSound( args[1], args[2] );

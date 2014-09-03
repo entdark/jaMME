@@ -186,12 +186,8 @@ int trap_S_GetVoiceVolume( int entityNum ) {
 	return Q_syscall( CG_S_GETVOICEVOLUME, entityNum );
 }
 
-void	trap_S_MuteSound( int entityNum, int entchannel ) {
-	Q_syscall( CG_S_MUTESOUND, entityNum, entchannel );
-}
-
 void	trap_S_StopSound( int entityNum, int entchannel, sfxHandle_t sfx ) {
-	Q_syscall( CG_S_STOPSOUND, entityNum, entchannel, sfx );
+	Q_syscall( CG_S_MUTESOUND, entityNum, entchannel, sfx );
 }
 
 void	trap_S_StartSound( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx ) {

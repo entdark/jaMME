@@ -1434,7 +1434,6 @@ void CG_NextWeapon_f( void ) {
 	}
 	else
 	{
-		trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
 		trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
 	}
 }
@@ -1501,7 +1500,6 @@ void CG_PrevWeapon_f( void ) {
 	}
 	else
 	{
-		trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
 		trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
 	}
 }
@@ -1626,7 +1624,6 @@ void CG_Weapon_f( void ) {
 
 	if (cg.weaponSelect != num)
 	{
-		trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
 		trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
 	}
 
@@ -1743,7 +1740,6 @@ void CG_WeaponClean_f( void ) {
 
 	if (cg.weaponSelect != num)
 	{
-		trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
 		trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
 	}
 
@@ -1786,7 +1782,6 @@ void CG_OutOfAmmoChange( int oldWeapon )
 	}
 
 	trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
-	trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
 }
 
 
