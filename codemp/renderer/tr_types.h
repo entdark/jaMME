@@ -128,6 +128,7 @@ typedef struct miniRefEntity_s
 
 } miniRefEntity_t;
 
+#define BACKWARD_JAMP_COMPAT
 #pragma warning (disable : 4201 )
 typedef struct {
 	// this stucture must remain identical as the miniRefEntity_t
@@ -158,7 +159,14 @@ typedef struct {
 	float				rotation;
 
 	// misc
+	/* IMPORTANT, entTODO: use float for the engine backward compatibility
+	but use double to have smooth animation in shaders with big shader time
+	I dunno what to choose, FIXHIM :( */
+#ifdef BACKWARD_JAMP_COMPAT
+	float		shaderTime;			// subtracted from refdef time to control effect start times
+#else
 	double		shaderTime;			// subtracted from refdef time to control effect start times
+#endif
 	int			frame;				// also used as MODEL_BEAM's diameter
 	//
 	//
