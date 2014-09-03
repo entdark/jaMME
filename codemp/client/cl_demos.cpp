@@ -774,7 +774,7 @@ static void demoPlayForwardFrame( demoPlay_t *play ) {
 	demoFrame_t *copyFrame;
 
 	if (play->filePos + 4 > play->fileSize) {
-		if (mme_demoAutoNext->integer && demoNextNum) {
+		if (mme_demoAutoNext->integer && demoNextNum && !demoPrecaching) {
 			CL_Disconnect_f();
 		}
 		if (mme_demoAutoQuit->integer && !demoPrecaching) {
