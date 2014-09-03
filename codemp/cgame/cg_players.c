@@ -1530,6 +1530,8 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	int			psTeam;
 
 	ci = &cgs.clientinfo[clientNum];
+	
+	oldGhoul2 = ci->ghoul2Model;
 
 	while (k < MAX_SABERS)
 	{
@@ -1561,8 +1563,6 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	strings[2] = "";
 	strings[3] = "";
 	strings[4] = cgs.allOverride;
-
-	oldGhoul2 = ci->ghoul2Model;
 
 	// build into a temp buffer so the defer checks can use
 	// the old value
@@ -1609,7 +1609,6 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	}
 
 	// isolate the player's name
-//	v = Info_ValueForKey( configstring, "n");
 	v = ConfigValue( strings, "n" );
 	Q_strncpyz( newInfo.name, v, sizeof( newInfo.name ) );
 	Q_strncpyz( newInfo.cleanname, v, sizeof( newInfo.cleanname ) );
