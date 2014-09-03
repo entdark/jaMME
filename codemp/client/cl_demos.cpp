@@ -22,6 +22,7 @@ static entityState_t	demoNullEntityState;
 static playerState_t	demoNullPlayerState;
 static qboolean			demoFirstPack;
 static qboolean			demoPrecaching = qfalse;
+static int				demoNextNum = 0;
 
 static const char *demoHeader = JK_VERSION " Demo";
 
@@ -772,10 +773,11 @@ static void demoPlayForwardFrame( demoPlay_t *play ) {
 	demoFrame_t *copyFrame;
 
 	if (play->filePos + 4 > play->fileSize) {
+		if (mme_demoAutoNext->integer && demoNextNum) {
+			CL_Disconnect_f();
+		}
 		if (mme_demoAutoQuit->integer && !demoPrecaching) {
 			CL_Disconnect_f();
-			S_StopAllSounds();
-			VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
 		}
 		play->lastFrame = qtrue;
 		return;
@@ -853,6 +855,38 @@ foundit:
 	return seekTime;
 }
 
+static int demoFindNext(const char *fileName) {
+	int i;
+	const int len = strlen(fileName);
+	char name[MAX_OSPATH], seekName[MAX_OSPATH];
+	fileHandle_t demoHandle = 0;
+	qboolean tryAgain = qtrue;
+	if (isdigit(fileName[len-1]) && ((fileName[len-2] == '.'))) {
+		Com_sprintf(seekName, len-1, fileName);
+		demoNextNum = fileName[len-1] - '0';
+	} else if (isdigit(fileName[len-1]) && (isdigit(fileName[len-2]) && (fileName[len-3] == '.'))) {
+		Com_sprintf(seekName, len-2, fileName);
+		demoNextNum = (fileName[len-2] - '0')*10 + (fileName[len-1] - '0');
+	} else {
+		Com_sprintf(seekName, MAX_OSPATH, fileName);
+	}
+tryAgain:
+	for (i = demoNextNum + 1; i < 99; i++) {
+		Com_sprintf(name, MAX_OSPATH, "mmedemos/%s.%d.mme", seekName, i);
+		FS_FOpenFileRead(name, &demoHandle, qtrue);
+		if (demoHandle) {
+			Com_Printf("Next demo file: %s\n", name);
+			return i;
+		}
+	}
+	Com_sprintf(seekName, len, "%s", fileName);
+	if (tryAgain) {
+		tryAgain = qfalse;
+		goto tryAgain;
+	}
+	return 0;
+}
+
 static demoPlay_t *demoPlayOpen( const char* fileName ) {
 	demoPlay_t	*play;
 	fileHandle_t fileHandle;
@@ -923,6 +957,7 @@ static demoPlay_t *demoPlayOpen( const char* fileName ) {
 			play->clientNum = i;
 			break;
 		}
+	demoNextNum = demoFindNext(mme_demoFileName->string);
 	return play;
 errorreturn:
 	Z_Free( play );
@@ -1207,6 +1242,7 @@ void CL_MMEDemo_f( void ) {
 		char mmeName[MAX_OSPATH];
 		Com_sprintf (mmeName, MAX_OSPATH, "mmedemos/%s.mme", cmd);
 		if (FS_FileExists( mmeName )) {
+			Cvar_Set( "mme_demoFileName", cmd );
 			demoPlay( mmeName );
 		} else {
 			Com_Printf("%s not found.\n", mmeName );
@@ -1317,5 +1353,18 @@ void CL_DemoListNext_f(void) {
 		demoListIndex = 0;
 		if ( mme_demoListQuit->integer )
 			Cbuf_ExecuteText( EXEC_APPEND, "quit" );
+	}
+	if (mme_demoAutoNext->integer && demoNextNum) {
+		char demoName[MAX_OSPATH];
+		if (demoNextNum == 1) {
+			Com_sprintf(demoName, MAX_OSPATH, "%s.1", mme_demoFileName->string);
+		} else if (demoNextNum < 10) {
+			Com_sprintf(demoName, strlen(mme_demoFileName->string)-1, mme_demoFileName->string);
+			strcat(demoName, va(".%d", demoNextNum));
+		} else if (demoNextNum < 100) {
+			Com_sprintf(demoName, strlen(mme_demoFileName->string)-2, mme_demoFileName->string);
+			strcat(demoName, va(".%d", demoNextNum));
+		}
+		Cmd_ExecuteString(va("mmeDemo \"%s\"\n", demoName));
 	}
 }
