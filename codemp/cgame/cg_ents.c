@@ -1473,7 +1473,7 @@ Ghoul2 Insert End
 		val = (1.0f - ((cent->currentState.time - cg.time) - cg.timeFraction) / 3200.0f ) * 0.3f;
 
 		ent.customShader = trap_R_RegisterShader( "gfx/effects/turretflashdie" );
-		ent.shaderRGBA[0] = (sin((double)(cg.time + cg.timeFraction)* 0.04) * val * 0.4f + val) * 255;
+		ent.shaderRGBA[0] = (sin(cg.time * 0.04 + cg.timeFraction * 0.04) * val * 0.4f + val) * 255;
 		ent.shaderRGBA[1] = ent.shaderRGBA[2] = 0;
 
 		ent.shaderRGBA[3] = 100;
@@ -2061,7 +2061,6 @@ Ghoul2 Insert End
 	{
 		// items bob up and down continuously
 		scale = (2 * M_PI) / 1300;
-		//0.005 + cent->currentState.number * 0.00001;
 		cent->lerpOrigin[2] += 4 + cos( scale * (cg.timeFraction + (cg.time % 1300)) ) * 4;
 	}
 	else
@@ -2355,7 +2354,7 @@ Ghoul2 Insert End
 				if ( item->giType == IT_POWERUP )
 				{
 					ent.origin[2] += 12;
-					spinAngles[1] = ( cg.time & 1023 ) * 360 / -1024.0f;
+					spinAngles[1] = ((cg.time & 1023) + cg.timeFraction) * 360.0f / -1024.0f;
 				}
 				AnglesToAxis( spinAngles, ent.axis );
 				
@@ -3121,7 +3120,7 @@ void CG_AdjustPositionForMover( const vec3_t in, int moverNum, int fromTime, int
 	BG_EvaluateTrajectory( &cent->currentState.pos, fromTime, oldOrigin );
 	BG_EvaluateTrajectory( &cent->currentState.apos, fromTime, oldAngles );
 
-	if (toTime == cg.time) {
+	if (toTime == cg.time && cg.demoPlayback == 2) {
 		demoNowTrajectory( &cent->currentState.pos, origin );
 		demoNowTrajectory( &cent->currentState.apos, angles );
 	} else {
