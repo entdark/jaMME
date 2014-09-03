@@ -7587,7 +7587,7 @@ CheckTrail:
 				dirlen1 *= 0.5f;
 			}
 
-			lagscale = (cg.time - saberTrail->lastTime);
+			lagscale = (cg.time - saberTrail->lastTime) + cg.timeFraction;
 			lagscale = 1.0f - (lagscale * 3 / 200);
 
 			if ( lagscale < 0.1f )
