@@ -2256,6 +2256,7 @@ skyBoxFovDone:
 	cg.refdef.rdflags |= RDF_DRAWSKYBOX;
 
 	cg.refdef.time = cg.time;
+	trap_MME_TimeFraction(cg.timeFraction);
 
 	if ( !cg.hyperspace) 
 	{ //rww - also had to add this to add effects being rendered in portal sky areas properly.
@@ -2741,6 +2742,7 @@ void CG_DrawAutoMap(void)
 	CG_DrawPic(x-SIDEFRAME_WIDTH, y+h, w+(SIDEFRAME_WIDTH*2), SIDEFRAME_HEIGHT, cgs.media.wireframeAutomapFrame_bottom);
 
 	refdef.time = cg.time;
+	trap_MME_TimeFraction(cg.timeFraction);
 
 	trap_R_ClearScene();
 	CG_AddRadarAutomapEnts();
