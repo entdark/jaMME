@@ -10858,7 +10858,7 @@ skipEffectOverride:
 		VectorCopy( elevated, seeker.lightingOrigin );
 		seeker.shadowPlane = shadowPlane;
 		seeker.renderfx = 0; //renderfx;
-							 //don't show in first person?
+		//don't show in first person?
 
 		dir[0] = cos(((double)cg.time / 12.0 + (double)cg.timeFraction / 12.0) * ((double)M_PI * 2.0) / 255.0) * 20.0f;
 		dir[1] = sin(((double)cg.time / 12.0 + (double)cg.timeFraction / 12.0) * ((double)M_PI * 2.0) / 255.0) * 20.0f;
@@ -12832,7 +12832,7 @@ skipCloaked:
 		legs.shaderRGBA[0] = 255;
 		legs.shaderRGBA[1] = 255;
 		legs.shaderRGBA[2] = 255;
-		legs.shaderRGBA[3] = 10.0f+(sin((double)((double)(cg.time / 4) + cg.timeFraction / 4))*128.0f);//112.0 * ((cent->damageTime - cg.time) / MIN_SHIELD_TIME) + random()*16;
+		legs.shaderRGBA[3] = 10.0f+(sin(cg.time / 4.0 + cg.timeFraction / 4.0)*128.0f);//112.0 * ((cent->damageTime - cg.time) / MIN_SHIELD_TIME) + random()*16;
 
 		legs.renderfx &= ~RF_RGB_TINT;
 		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;
