@@ -15,6 +15,7 @@ extern void CG_PowerupTimerSounds( void );
 extern void CG_UpdateSoundTrackers();
 extern float CG_DrawFPS( float y );
 extern void CG_DrawUpperRight( void );
+extern void CG_Clear2DTintsTimes(void);
 extern void CG_CameraDraw2D( void );
 extern void CG_Draw2D( void );
 extern void CG_DrawAutoMap(void);
@@ -649,6 +650,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		CG_InitLocalEntities();
 		CG_InitMarkPolys();
 		CG_ClearParticles ();
+		CG_Clear2DTintsTimes();
 		trap_FX_Reset();
 		trap_R_ClearDecals();
 

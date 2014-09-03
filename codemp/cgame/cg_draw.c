@@ -7315,34 +7315,6 @@ void CG_DrawCloakFuel(void)
 	CG_FillRect(x+1.0f*cgs.widthRatioCoef, y+1.0f, (CLFUELBAR_W-1.0f)*cgs.widthRatioCoef, CLFUELBAR_H-percent, cColor);
 }
 
-int cgRageTime = 0;
-int cgRageFadeTime = 0;
-float cgRageFadeVal = 0;
-
-int cgRageRecTime = 0;
-int cgRageRecFadeTime = 0;
-float cgRageRecFadeVal = 0;
-
-int cgAbsorbTime = 0;
-int cgAbsorbFadeTime = 0;
-float cgAbsorbFadeVal = 0;
-
-int cgProtectTime = 0;
-int cgProtectFadeTime = 0;
-float cgProtectFadeVal = 0;
-
-int cgYsalTime = 0;
-int cgYsalFadeTime = 0;
-float cgYsalFadeVal = 0;
-
-qboolean gCGHasFallVector = qfalse;
-vec3_t gCGFallVector;
-
-/*
-=================
-CG_Draw2D
-=================
-*/
 extern int cgSiegeRoundState;
 extern int cgSiegeRoundTime;
 
@@ -7680,7 +7652,49 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void) {
 	trap_R_SetColor( NULL );
 }
 
-static void CG_DrawInWaterTints (void) {
+int cgRageTime = 0;
+int cgRageFadeTime = 0;
+float cgRageFadeVal = 0;
+
+int cgRageRecTime = 0;
+int cgRageRecFadeTime = 0;
+float cgRageRecFadeVal = 0;
+
+int cgAbsorbTime = 0;
+int cgAbsorbFadeTime = 0;
+float cgAbsorbFadeVal = 0;
+
+int cgProtectTime = 0;
+int cgProtectFadeTime = 0;
+float cgProtectFadeVal = 0;
+
+int cgYsalTime = 0;
+int cgYsalFadeTime = 0;
+float cgYsalFadeVal = 0;
+
+void CG_Clear2DTintsTimes(void) {
+	cgRageTime = 0;
+	cgRageFadeTime = 0;
+	cgRageFadeVal = 0;
+
+	cgRageRecTime = 0;
+	cgRageRecFadeTime = 0;
+	cgRageRecFadeVal = 0;
+
+	cgAbsorbTime = 0;
+	cgAbsorbFadeTime = 0;
+	cgAbsorbFadeVal = 0;
+
+	cgProtectTime = 0;
+	cgProtectFadeTime = 0;
+	cgProtectFadeVal = 0;
+
+	cgYsalTime = 0;
+	cgYsalFadeTime = 0;
+	cgYsalFadeVal = 0;
+}
+
+static void CG_DrawInWaterTints(void) {
 	if ((cg.refdef.viewContents&CONTENTS_LAVA)) {
 	//tint screen red
 		vec4_t hcolor;
@@ -7726,7 +7740,7 @@ static qboolean CG_HasYsalamiri(int gametype, entityState_t *es) {
 	return qfalse;
 }
 
-static void CG_Draw2DScreenTints( void ) {
+static void CG_Draw2DScreenTints(void) {
 	float	rageTime, rageRecTime, absorbTime, protectTime, ysalTime;
 	vec4_t	hcolor;
 	int		forcePowersActive = cg.playerPredicted ?
@@ -8025,6 +8039,9 @@ static void CG_Draw2DScreenTints( void ) {
 	CG_DrawInWaterTints();
 }
 
+qboolean gCGHasFallVector = qfalse;
+vec3_t gCGFallVector;
+
 static void CG_UpdateFallVector (void) {
 	if (!cg.playerCent)
 		goto clearFallVector;
@@ -8075,42 +8092,32 @@ void CG_CameraDraw2D( void ) {
 	}
 }
 
+/*
+=================
+CG_Draw2D
+=================
+*/
+static vec4_t hcolor = {0, 0, 0, 0};
 void CG_Draw2D (void) {
 	float			inTime = cg.invenSelectTime+WEAPON_SELECT_TIME;
 	float			wpTime = cg.weaponSelectTime+WEAPON_SELECT_TIME;
 	float			bestTime;
-	vec4_t			hcolor = {0, 0, 0, 0};
 
 	// if we are taking a levelshot for the menu, don't draw anything
 	if (cg.levelShot) {
 		return;
 	}
+	if (!cg.playerCent)
+		return;
+	
+	CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 
-	if (cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR) {
-		cgRageTime = 0;
-		cgRageFadeTime = 0;
-		cgRageFadeVal = 0;
-
-		cgRageRecTime = 0;
-		cgRageRecFadeTime = 0;
-		cgRageRecFadeVal = 0;
-
-		cgAbsorbTime = 0;
-		cgAbsorbFadeTime = 0;
-		cgAbsorbFadeVal = 0;
-
-		cgProtectTime = 0;
-		cgProtectFadeTime = 0;
-		cgProtectFadeVal = 0;
-
-		cgYsalTime = 0;
-		cgYsalFadeTime = 0;
-		cgYsalFadeVal = 0;
+	if (cgs.clientinfo[cg.playerCent->currentState.clientNum].team == TEAM_SPECTATOR) {
+		CG_Clear2DTintsTimes();
 	}
 
 	if (cg_draw2D.integer == 0) {
 		CG_UpdateFallVector();
-		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 		return;
 	}
 
@@ -8143,9 +8150,7 @@ void CG_Draw2D (void) {
 		return;
 	}
 
-	if (!cg.playerCent)
-		return;
-	else if (!cg.playerPredicted) {
+	if (!cg.playerPredicted) {
 		cg.scoreBoardShowing = qfalse;
 		CG_Draw2DScreenTints();
 		if (cg.playerCent->currentState.time2)
@@ -8514,8 +8519,6 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 
 	// draw status bar and other floating elements
 	if (cg.demoPlayback != 2) {
-		vec4_t hcolor = {0, 0, 0, 0};
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 		CG_Draw2D();
 	}
 
