@@ -5192,7 +5192,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 	}
 
 	//I'm in a vehicle
-	if (cg.predictedPlayerState.m_iVehicleNum) {
+	if (cg.playerPredicted && cg.predictedPlayerState.m_iVehicleNum) {
 		centity_t *vehCent = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
 	    if ( vehCent 
 			&& vehCent->m_pVehicle 
@@ -5650,7 +5650,7 @@ static void CG_DrawHolocronIcons(void) {
 	//don't display over zoom mask
 		return;
 	}
-	if (cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR) {
+	if (cgs.clientinfo[cg.playerCent->currentState.clientNum].team == TEAM_SPECTATOR) {
 		return;
 	}
 
@@ -6274,39 +6274,29 @@ static void CG_ScanForCrosshairEntity( void ) {
 }
 
 //mme, taken from pugmod
-static void CG_SanitizeString( char *in, char *out )
-{
+static void CG_SanitizeString( char *in, char *out ) {
 	int i = 0;
 	int r = 0;
 
-	while (in[i])
-	{
-		if (i >= 128-1)
-		{ //the ui truncates the name here..
+	while (in[i]) {
+		if (i >= 128-1) { //the ui truncates the name here..
 			break;
 		}
-
-		if (in[i] == '^')
-		{
+		if (in[i] == '^') {
 			if (in[i+1] >= 48 && //'0'
 				in[i+1] <= 57) //'9'
 			{ //only skip it if there's a number after it for the color
 				i += 2;
 				continue;
-			}
-			else
-			{ //just skip the ^
+			} else { //just skip the ^
 				i++;
 				continue;
 			}
 		}
-
-		if (in[i] < 32)
-		{
+		if (in[i] < 32) {
 			i++;
 			continue;
 		}
-
 		out[r] = in[i];
 		r++;
 		i++;
@@ -6330,23 +6320,20 @@ static void CG_DrawCrosshairNames(void) {
 	if ( !cg_drawCrosshair.integer ) {
 		return;
 	}
-
+	if ( !cg_drawCrosshairNames.integer ) {
+		return;
+	}	
 	// scan the known entities to see if the crosshair is sighted on one
 	CG_ScanForCrosshairEntity();
 
-	if ( !cg_drawCrosshairNames.integer ) {
-		return;
-	}
 	//rww - still do the trace, our dynamic crosshair depends on it
-
-	if (cg.crosshairClientNum < ENTITYNUM_WORLD)
-	{
+	if (cg.crosshairClientNum < ENTITYNUM_WORLD) {
 		centity_t *veh = &cg_entities[cg.crosshairClientNum];
 
 		if (veh->currentState.eType == ET_NPC &&
 			veh->currentState.NPC_class == CLASS_VEHICLE &&
-			veh->currentState.owner < MAX_CLIENTS)
-		{ //draw the name of the pilot then
+			veh->currentState.owner < MAX_CLIENTS) {
+			//draw the name of the pilot then
 			cg.crosshairClientNum = veh->currentState.owner;
 			cg.crosshairVehNum = veh->currentState.number;
 			cg.crosshairVehTime = cg.time;
@@ -6354,13 +6341,11 @@ static void CG_DrawCrosshairNames(void) {
 		}
 	}
 
-	if (cg.crosshairClientNum >= MAX_CLIENTS)
-	{
+	if (cg.crosshairClientNum >= MAX_CLIENTS) {
 		return;
 	}
 
-	if (cg_entities[cg.crosshairClientNum].currentState.powerups & (1 << PW_CLOAKED))
-	{
+	if (cg_entities[cg.crosshairClientNum].currentState.powerups & (1 << PW_CLOAKED)) {
 		return;
 	}
 
@@ -6373,43 +6358,30 @@ static void CG_DrawCrosshairNames(void) {
 
 	name = cgs.clientinfo[ cg.crosshairClientNum ].cleanname;
 
-	if (cgs.gametype >= GT_TEAM)
-	{
+	if (cgs.gametype >= GT_TEAM) {
 		//if (cgs.gametype == GT_SIEGE)
-		if (1)
-		{ //instead of team-based we'll make it oriented based on which team we're on
-			if (cgs.clientinfo[cg.crosshairClientNum].team == cgs.clientinfo[cg.playerCent->currentState.number].team)
-			{
+		if (1) {
+		//instead of team-based we'll make it oriented based on which team we're on
+			if (cgs.clientinfo[cg.crosshairClientNum].team == cgs.clientinfo[cg.playerCent->currentState.number].team) {
 				baseColor = CT_GREEN;
-			}
-			else
-			{
+			} else {
 				baseColor = CT_RED;
 			}
-		}
-		else
-		{
-			if (cgs.clientinfo[cg.crosshairClientNum].team == TEAM_RED)
-			{
+		} else {
+			if (cgs.clientinfo[cg.crosshairClientNum].team == TEAM_RED) {
 				baseColor = CT_RED;
-			}
-			else
-			{
+			} else {
 				baseColor = CT_BLUE;
 			}
 		}
-	}
-	else
-	{
+	} else {
 		//baseColor = CT_WHITE;
 		if (cgs.gametype == GT_POWERDUEL &&
 			cgs.clientinfo[cg.playerCent->currentState.number].team != TEAM_SPECTATOR &&
-			cgs.clientinfo[cg.crosshairClientNum].duelTeam == cgs.clientinfo[cg.playerCent->currentState.number].duelTeam)
-		{ //on the same duel team in powerduel, so he's a friend
+			cgs.clientinfo[cg.crosshairClientNum].duelTeam == cgs.clientinfo[cg.playerCent->currentState.number].duelTeam) {
+		//on the same duel team in powerduel, so he's a friend
 			baseColor = CT_GREEN;
-		}
-		else
-		{
+		} else {
 			baseColor = CT_RED; //just make it red in nonteam modes since everyone is hostile and crosshair will be red on them too
 		}
 	}
