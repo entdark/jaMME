@@ -335,7 +335,7 @@ typedef struct {
 	// even the server will have this, which is a singleton
 	// so before assigning to this in R_Init, check if it's NULL!
 	CMiniHeap *		(*GetG2VertSpaceServer)				( void );
-	qboolean		(*S_MMEAviExport)					(byte *out, int *size);
+	qboolean		(*S_MMEAviImport)					(byte *out, int *size);
 } refimport_t;
 
 // this is the only function actually exported at the linker level

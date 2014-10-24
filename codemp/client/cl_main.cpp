@@ -2462,7 +2462,7 @@ void CL_InitRef( void ) {
 	G2VertSpaceServer = &CMiniHeap_singleton;
 
 	//mme
-	ri.S_MMEAviExport = S_MMEAviExport;
+	ri.S_MMEAviImport = S_MMEAviImport;
 
 	ret = GetRefAPI( REF_API_VERSION, &ri );
 

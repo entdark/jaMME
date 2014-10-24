@@ -49,7 +49,7 @@ sfxHandle_t	S_RegisterSound( const char *sample );
 // MME
 void S_MMERecord( const char *baseName, float deltaTime );
 void S_MMEWavClose( void );
-qboolean S_MMEAviExport(byte *out, int *size);
+qboolean S_MMEAviImport(byte *out, int *size);
 void S_MMEUpdate( float scale );
 void S_MMEMusic( const char *musicName, float time, float length );
 

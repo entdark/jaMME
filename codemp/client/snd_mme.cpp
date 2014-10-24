@@ -74,7 +74,7 @@ void S_MMEWavClose(void) {
 
 static byte wavExportBuf[MME_SAMPLERATE] = {0};
 static int bytesInBuf = 0;
-qboolean S_MMEAviExport(byte *out, int *size) {
+qboolean S_MMEAviImport(byte *out, int *size) {
 	const char *format = Cvar_VariableString("mme_screenShotFormat");
 	const int shot = Cvar_VariableIntegerValue("mme_saveShot");
 	const int depth = Cvar_VariableIntegerValue("mme_saveDepth");
