@@ -529,7 +529,7 @@ void mmeAviSound( mmeAviFile_t *aviFile, const char *name, mmeShotType_t type, i
 		return;
 	if (bytesInBuf + size > MME_SAMPLERATE) {
 #ifdef _DEBUG
-		Com_Printf( S_COLOR_YELLOW "WARNING: Audio capture buffer overflow -- truncating\n" );
+		Com_Printf( S_COLOR_YELLOW "WARNING: Audio capture buffer overflow - truncating\n" );
 #endif
 		size = MME_SAMPLERATE - bytesInBuf;
 	}
