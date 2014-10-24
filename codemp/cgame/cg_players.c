@@ -7003,7 +7003,7 @@ void CG_SaberCompWork(vec3_t start, vec3_t end, centity_t *owner, int saberNum, 
 qboolean BG_SuperBreakWinAnim( int anim );
 
 void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, int renderfx, int modelIndex, int saberNum, int bladeNum, vec3_t origin, vec3_t angles, qboolean fromSaber, qboolean dontDraw) {
-	vec3_t	org_, end, v, rgb1, draw_dir,
+	vec3_t	org_, end, v, rgb1,
 			axis_[3] = {0,0,0, 0,0,0, 0,0,0};	// shut the compiler up
 	trace_t	trace;
 	int i = 0;
