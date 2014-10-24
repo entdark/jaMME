@@ -98,7 +98,7 @@ static void CG_DemosUpdatePlayer( void ) {
 		break;
 */	case editLine:
 		demoMoveLine();
-		break;
+		break; 
 	}
 }
 
@@ -190,7 +190,7 @@ static void demoTrueView_f(void) {
 
 static int demoSetupView( void) {
 	vec3_t forward;
-	qboolean zoomFix;	//to see disruptor zoom when we are chasing a player
+	qboolean zoomFix = qfalse;	//to see disruptor zoom when we are chasing a player
 	int inwater = qfalse;
 	qboolean behindView = qfalse;
 
@@ -240,7 +240,6 @@ static int demoSetupView( void) {
 			} else {
 				VectorCopy( cent->lerpOrigin, demo.viewOrigin );
 				VectorCopy( cent->lerpAngles, demo.viewAngles );
-				zoomFix = qfalse;
 			}
 			demo.viewFov = cg_fov.value;
 		} else {
@@ -251,7 +250,6 @@ static int demoSetupView( void) {
 			demo.viewFov = cg_fov.value;
 			demo.viewTarget = demo.chase.target;
 			cg.renderingThirdPerson = qtrue;
-			zoomFix = qfalse;
 			gCGHasFallVector = qfalse;
 		}
 		break;
@@ -263,7 +261,6 @@ static int demoSetupView( void) {
 		demo.viewTarget = demo.camera.target;
 		cg.renderingThirdPerson = qtrue;
 		cameraMove();
-		zoomFix = qfalse;
 		gCGHasFallVector = qfalse;
 		break;
 	default:
