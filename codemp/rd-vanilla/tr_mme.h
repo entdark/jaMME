@@ -2,10 +2,10 @@
 
 #include "tr_local.h"
 
-#define AVI_MAX_FRAMES			2000000
-#define AVI_MAX_SIZE			((2*1024-10)*1024*1024)
-#define AVI_HEADER_SIZE			2048
-#define AVI_MAX_FILES			1000
+#define AVI_MAX_FRAMES	2000000
+#define AVI_MAX_SIZE	((2*1024-10)*1024*1024)
+#define AVI_HEADER_SIZE	2048
+#define AVI_MAX_FILES	1000
 
 #define BLURMAX 256
 
