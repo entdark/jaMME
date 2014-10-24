@@ -1112,6 +1112,10 @@ typedef struct {
 	WinVars_t *wv;
 #endif
 
+	qboolean finishStereo;
+	qboolean capturingDofOrStereo;
+	qboolean latestDofOrStereoFrame;
+
 	struct {
 		qboolean		newColors;
 	} uag;
@@ -2104,7 +2108,3 @@ void R_FrameBuffer_StartFrame( void );
 void R_FrameBuffer_EndFrame( void );
 //Try to do an fbo blur
 qboolean R_FrameBuffer_Blur( float scale, int frame, int total );
-
-extern qboolean finishStereo;
-extern qboolean r_capturingDofOrStereo;
-extern qboolean r_latestDofOrStereoFrame;
