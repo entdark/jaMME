@@ -70,8 +70,6 @@ void S_MMEWavClose(void) {
 	Com_Memset( &mmeSound, 0, sizeof(mmeSound) );
 }
 
-#define MAXUPDATE 4096
-
 static byte wavExportBuf[MME_SAMPLERATE] = {0};
 static int bytesInBuf = 0;
 qboolean S_MMEAviImport(byte *out, int *size) {
@@ -98,6 +96,7 @@ S_MME_Update
 Called from CL_Frame() in cl_main.c when shooting avidemo
 ===================
 */
+#define MAXUPDATE 4096
 void S_MMEUpdate( float scale ) {
 	int count, speed;
 	int mixTemp[MAXUPDATE*2];
