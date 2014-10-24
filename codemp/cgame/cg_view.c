@@ -2043,6 +2043,7 @@ extern qboolean cg_skyOri;
 extern vec3_t cg_skyOriPos;
 extern float cg_skyOriScale;
 extern qboolean cg_noFogOutsidePortal;
+extern void trap_MME_TimeFraction( float timeFraction );
 void CG_DrawSkyBoxPortal(const char *cstr)
 {
 	static float lastfov;
