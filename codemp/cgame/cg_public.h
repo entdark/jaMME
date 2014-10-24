@@ -337,6 +337,7 @@ Ghoul2 Insert Start
 /*
 Ghoul2 Insert End
 */
+	//New mme calls
 	CG_MME_CAPTURE = 400,
 	CG_MME_BLURINFO,
 	CG_MME_SEEKTIME,
