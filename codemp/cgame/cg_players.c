@@ -919,7 +919,9 @@ void CG_LoadCISounds(clientInfo_t *ci, qboolean modelloaded) {
 			// if the model didn't load use the sounds of the default model
 			if (soundpath[0])
 			{
-				ci->siegeSounds[i] = trap_S_RegisterSound( va("sound/%s/%s", soundpath, soundName) );
+				ci->siegeSounds[i] = trap_S_RegisterSound( va("sound/chars/%s/misc/%s", soundpath, soundName) );
+				if ( !ci->siegeSounds[i] )
+					ci->siegeSounds[i] = trap_S_RegisterSound( va( "sound/%s/%s", soundpath, soundName ) );
 			}
 			else
 			{
