@@ -4699,6 +4699,9 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 	vec3_t			boltOrg, tAng, getAng, right;
 	mdxaBone_t		boltMatrix;
 	clientInfo_t	*ci;
+	
+	if ( mov_filterMask.integer & movMaskFlags && cg.demoPlayback )
+		return;
 
 	if (cg.playerCent) {
 		//[TrueView]
@@ -4744,6 +4747,8 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 	AnglesToAxis(angles, axis);
 
 	memset( &ent, 0, sizeof( ent ) );
+	if ( mov_wallhack.integer & movMaskFlags && cg.demoPlayback )
+		ent.renderfx |= RF_NODEPTH;
 	VectorMA( boltOrg, 24, axis[0], ent.origin );
 
 	if ( mov_simpleFlags.integer || (cg_newFX.integer & NEWFX_SIMPLEFLAG)) {
@@ -10614,11 +10619,13 @@ void CG_Player( centity_t *cent ) {
 				return;
 			}
 		}
+		if (mov_wallhack.integer & movMaskClient && cg.demoPlayback) {
+			renderfx |= RF_NODEPTH;
+		}
 	} else if (mov_filterMask.integer & movMaskPlayers) {
 		return;
-	}
-	if (mov_wallhack.integer && cg.demoPlayback) {
-		renderfx |= RF_NODEPTH;// | RF_FORCE_ENT_ALPHA;
+	} else if (mov_wallhack.integer & movMaskPlayers && cg.demoPlayback) {
+		renderfx |= RF_NODEPTH;
 	}
 	// Update the player's client entity information regarding weapons.
 	// Explanation:  The entitystate has a weapond defined on it.  The cliententity does as well.
