@@ -679,8 +679,10 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		
 		for (i = 0; i < MAX_CHATBOX_ITEMS; i++)
 			cg.chatItems[i].time = 0;
+		CG_LoadDeferredPlayers();
 	} else if (cg.frametime > 100) {
 		hadSkip = qtrue;
+		CG_LoadDeferredPlayers();
 	} else {
 		hadSkip = qfalse;
 	}
