@@ -487,7 +487,7 @@ void Con_DrawInput (void) {
 	SCR_DrawSmallChar( (int)(con.xadjust + 1 * SMALLCHAR_WIDTH), y, ']' );
 
 	Field_Draw( &kg.g_consoleField, (int)(con.xadjust + 2 * SMALLCHAR_WIDTH), y,
-				SCREEN_WIDTH - 3 * SMALLCHAR_WIDTH, qtrue, qtrue );
+				SCREEN_WIDTH - 3 * SMALLCHAR_WIDTH, qtrue, qfalse );
 }
 
 
