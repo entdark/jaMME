@@ -3195,6 +3195,8 @@ static int impactSoundDebounceTime = 0;
 #define	RADAR_ASTEROID_RANGE				10000.0f
 #define	RADAR_MIN_ASTEROID_SURF_WARN_DIST	1200.0f
 
+extern void trap_R_RotatePic2RatioFix( float ratio );
+
 float CG_DrawRadar ( float y )
 {
 	vec4_t			color;
@@ -3219,7 +3221,8 @@ float CG_DrawRadar ( float y )
 	local = &cgs.clientinfo[ cg.snap->ps.clientNum ];
 	if ( !local->infoValid )
 		return y;
-
+	
+	trap_R_RotatePic2RatioFix(cgs.widthRatioCoef);
 	radar_x = SCREEN_WIDTH - (SCREEN_WIDTH - (580 - RADAR_RADIUS)) * cgs.widthRatioCoef;
 
 	// Draw the radar background image
@@ -3725,7 +3728,7 @@ float CG_DrawRadar ( float y )
 
 				CG_DrawRotatePic2( /*RADAR_X*/radar_x + (RADAR_RADIUS + sin (angle) * distance + xOffset)*cgs.widthRatioCoef,
 								   y + RADAR_RADIUS + cos (angle) * distance, 
-								   arrow_w*cgs.widthRatioCoef, arrow_h, 
+								   arrow_w, arrow_h, 
 								   (360 - cent->lerpAngles[YAW]) + cg.predictedPlayerState.viewangles[YAW], cgs.media.mAutomapPlayerIcon );
 				break;
 			}
@@ -3738,8 +3741,9 @@ float CG_DrawRadar ( float y )
 	arrow_h = arrowBaseScale * RADAR_RADIUS / 128;
 
 	trap_R_SetColor ( colorWhite );
-	CG_DrawRotatePic2( /*RADAR_X*/radar_x + (RADAR_RADIUS + xOffset)*cgs.widthRatioCoef, y + RADAR_RADIUS, arrow_w*cgs.widthRatioCoef, arrow_h, 
+	CG_DrawRotatePic2( /*RADAR_X*/radar_x + (RADAR_RADIUS + xOffset)*cgs.widthRatioCoef, y + RADAR_RADIUS, arrow_w, arrow_h, 
 					   0, cgs.media.mAutomapPlayerIcon );
+	trap_R_RotatePic2RatioFix(1.0f);
 
 	return y+(RADAR_RADIUS*2);
 }
