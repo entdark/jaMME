@@ -175,7 +175,6 @@ This is called explicitly when the gamestate is first received,
 and whenever the server updates any serverinfo flagged cvars
 ================
 */
-extern void trap_MME_NewUAGColors( qboolean newUAGColors );
 void CG_ParseServerinfo( void ) {
 	const char *info = NULL, *tinfo = NULL;
 	char *mapname, *gamename;
