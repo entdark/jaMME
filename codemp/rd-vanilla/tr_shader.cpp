@@ -5,7 +5,7 @@
 
 // tr_shader.c -- this file deals with the parsing and definition of shaders
 
-#define USE_NEW_SHADER_HASH
+//#define USE_NEW_SHADER_HASH
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -358,7 +358,7 @@ static void Shader_SkipRestOfLine ( const char **data ) {
 #define Shader_GetCurrentParseLine COM_GetCurrentParseLine
 #define Shader_Parse COM_Parse
 #define Shader_Shader_SkipWhitespace SkipWhitespace
-#define Shader_Compress COM_Comress
+#define Shader_Compress COM_Compress
 #define Shader_ParseExt COM_ParseExt
 #define Shader_SkipBracedSection SkipBracedSection
 #define Shader_SkipRestOfLine SkipRestOfLine
@@ -3631,7 +3631,7 @@ static /*const*/ char *FindShaderInShaderText( const char *shadername ) {
 		p = shaderTextHashTable[hash][i];
 		token = Shader_ParseExt(&p, qtrue);
 		if ( !Q_stricmp( token, shadername ) ) {
-			return p;
+			return (char *)p;
 		}
 	}
 
@@ -3649,7 +3649,7 @@ static /*const*/ char *FindShaderInShaderText( const char *shadername ) {
 		}
 
 		if ( !Q_stricmp( token, shadername ) ) {
-			return p;
+			return (char *)p;
 		}
 		else {
 			// skip the definition
@@ -4342,6 +4342,8 @@ static void ScanAndLoadShaderFiles( const char *path )
 	int i;
 	char *oldp, *token, *hashMem, *textEnd;
 	int shaderTextHashTableSizes[MAX_SHADERTEXT_HASH], hash, size;
+	char shaderName[MAX_QPATH];
+	int shaderLine;
 
 	long sum = 0, summand;
 	// scan for shader files
@@ -4366,18 +4368,19 @@ static void ScanAndLoadShaderFiles( const char *path )
 		ri.Printf( PRINT_DEVELOPER, "...loading '%s'\n", filename );
 		summand = ri.FS_ReadFile( filename, (void **)&buffers[i] );
 		if ( !buffers[i] ) {
-			ri.Com_Error( ERR_DROP, "Couldn't load %s", filename );
+			ri.Error( ERR_DROP, "Couldn't load %s", filename );
 		}
 
 		// Do a simple check on the shader structure in that file to make sure one bad shader file cannot fuck up all other shaders.
 		p = buffers[i];
+		COM_BeginParseSession(filename);
 		while(1)
 		{
 			token = Shader_ParseExt((const char **)&p, qtrue);
 			
 			if(!*token)
 				break;
-			
+#if 0			
 			oldp = p;
 			
 			token = Shader_ParseExt((const char **)&p, qtrue);
@@ -4391,6 +4394,33 @@ static void ScanAndLoadShaderFiles( const char *path )
 
 			Shader_SkipBracedSection((const char **)&oldp);
 			p = oldp;
+#endif
+			Q_strncpyz(shaderName, token, sizeof(shaderName));
+			shaderLine = COM_GetCurrentParseLine();
+
+			token = COM_ParseExt((const char **)&p, qtrue);
+			if(token[0] != '{' || token[1] != '\0')
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: Ignoring shader file %s. Shader \"%s\" on line %d missing opening brace",
+							filename, shaderName, shaderLine);
+				if (token[0])
+				{
+					ri.Printf(PRINT_WARNING, " (found \"%s\" on line %d)", token, COM_GetCurrentParseLine());
+				}
+				ri.Printf(PRINT_WARNING, ".\n");
+				ri.FS_FreeFile(buffers[i]);
+				buffers[i] = NULL;
+				break;
+			}
+
+			if(!SkipBracedSection2((const char **)&p, 1))
+			{
+				ri.Printf(PRINT_WARNING, "WARNING: Ignoring shader file %s. Shader \"%s\" on line %d missing closing brace.\n",
+							filename, shaderName, shaderLine);
+				ri.FS_FreeFile(buffers[i]);
+				buffers[i] = NULL;
+				break;
+			}
 		}
 
 		if (buffers[i])

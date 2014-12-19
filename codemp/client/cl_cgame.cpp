@@ -776,13 +776,15 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_S_GETVOICEVOLUME:
 		return s_entityWavVol[args[1]];
 	case CG_S_MUTESOUND:
-		S_MuteSound( args[1], args[2] );
+		{cvar_t *fs_game = Cvar_FindVar("fs_game");
+		if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
+			S_StopSound(args[1], args[2], args[3] );
+		} else {
+			S_StopSound(args[1], args[2], -1 );
+		}}
 		return 0;
 	case CG_S_STARTSOUND:
 		S_StartSound( (float *)VMA(1), args[2], args[3], -1, args[4] );
-		return 0;
-	case CG_S_STOPSOUND:
-		S_StopSound(args[1], args[2], args[3] );
 		return 0;
 	case CG_S_STARTLOCALSOUND:
 		S_StartLocalSound( args[1], args[2] );
@@ -847,8 +849,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return re.Font_HeightPixels( args[1], VMF(2) );
 	case CG_R_FONT_DRAWSTRING:
 		{float ox, oy;
-		cvar_t *fs_game;
-		fs_game = Cvar_FindVar("fs_game");
+		cvar_t *fs_game = Cvar_FindVar("fs_game");
 		if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
 			ox = VMF(1); oy = VMF(2);
 		} else {
@@ -1143,12 +1144,11 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return FX_FreeSystem();
 
 	case CG_FX_ADJUST_TIME:
-		{cvar_t *fs_game;
-		fs_game = Cvar_FindVar("fs_game");
+		{cvar_t *fs_game = Cvar_FindVar("fs_game");
 		if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
 			FX_AdjustTime(args[1], VMF(2), VMF(3));
 		} else {
-			FX_AdjustTime(args[1], 50.0f, 0.0f);
+			FX_AdjustTime(args[1], cls.frametime, 0.0f);
 		}}
 		return 0;
 
@@ -1758,6 +1758,9 @@ Ghoul2 Insert End
 		return 0;
 	case CG_CIN_ADJUST_TIME:
 		CIN_AdjustTime(args[1]);
+		return 0;
+	case CG_R_ROTATEPIC2_RATIOFIX:
+		re.RotatePic2RatioFix(VMF(1));
 		return 0;
 	default:
 	        assert(0); // bk010102

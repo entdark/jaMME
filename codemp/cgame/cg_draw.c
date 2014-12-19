@@ -224,7 +224,7 @@ static void CG_DrawZoomMask( void )
 	float max, fi;
 
 	// Check for Binocular specific zooming since we'll want to render different bits in each case
-	if ( cg.predictedPlayerState.zoomMode == 2 )
+	if ( cg.playerPredicted && cg.predictedPlayerState.zoomMode == 2 )
 	{
 		int val, i;
 		float off;
@@ -1448,7 +1448,7 @@ void CG_DrawForceSelect( void )
 	int		i;
 	int		count;
 	int		smallIconSize,bigIconSize;
-	int		holdX,x,y,x2,y2,pad,length;
+	float	holdX,x,y,x2,y2,pad,length;
 	int		sideLeftIconCnt,sideRightIconCnt;
 	int		sideMax,holdCount,iconCnt;
 	int		yOffset = 0;
@@ -1607,7 +1607,7 @@ void CG_DrawInvenSelect( void )
 	int				smallIconSize,bigIconSize;
 	int				sideLeftIconCnt,sideRightIconCnt;
 	int				count;
-	int				holdX,x,y,y2,pad;
+	float			holdX,x,y,y2,pad;
 	int				height;
 	float			addX;
 
@@ -2918,7 +2918,7 @@ CG_DrawMiniScoreboard
 static float CG_DrawMiniScoreboard ( float y ) 
 {
 	char temp[MAX_QPATH];
-	int xOffset = 0;
+	float xOffset = 0;
 
 	if ( !cg_drawScores.integer )
 	{
@@ -2937,7 +2937,7 @@ static float CG_DrawMiniScoreboard ( float y )
 		Q_strcat ( temp, MAX_QPATH, va(" %s: ", CG_GetStringEdString("MP_INGAME", "BLUE")) );
 		Q_strcat ( temp, MAX_QPATH, cgs.scores2==SCORE_NOT_PRESENT?"-":(va("%i",cgs.scores2)) );
 
-		CG_Text_Paint( SCREEN_WIDTH - (SCREEN_WIDTH - 630)*cgs.widthRatioCoef - CG_Text_Width ( temp, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, temp, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM );
+		CG_Text_Paint( SCREEN_WIDTH - (SCREEN_WIDTH - 630 - xOffset)*cgs.widthRatioCoef - CG_Text_Width ( temp, 0.7f, FONT_MEDIUM ), y, 0.7f, colorWhite, temp, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM );
 		y += 15;
 	}
 	else
@@ -2969,7 +2969,7 @@ static float CG_DrawEnemyInfo ( float y ) {
 	int			clientNum;
 	const char	*title;
 	clientInfo_t	*ci;
-	int xOffset = 0;
+	float xOffset = 0;
 
 	if (!cg.snap || !cg_drawEnemyInfo.integer || cgs.gametype == GT_POWERDUEL)
 		return y;
@@ -2991,11 +2991,11 @@ static float CG_DrawEnemyInfo ( float y ) {
 			size = ICON_SIZE * 1.25;
 			y += 5;
 
-			CG_DrawPic( SCREEN_WIDTH - size*cgs.widthRatioCoef - 12 + xOffset, y, size*cgs.widthRatioCoef, size, cgs.media.weaponIcons[WP_SABER] );
+			CG_DrawPic( SCREEN_WIDTH - (size + 12 - xOffset)*cgs.widthRatioCoef, y, size*cgs.widthRatioCoef, size, cgs.media.weaponIcons[WP_SABER] );
 
 			y += size;
 
-			CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( title, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, title, 0, 0, 0, FONT_MEDIUM );
+			CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( title, 0.7f, FONT_MEDIUM ) + xOffset*cgs.widthRatioCoef, y, 0.7f, colorWhite, title, 0, 0, 0, FONT_MEDIUM );
 
 			return y + BIGCHAR_HEIGHT + 2;
 		}
@@ -3037,23 +3037,21 @@ static float CG_DrawEnemyInfo ( float y ) {
 	y += 5;
 
 	if ( ci->modelIcon )
-		CG_DrawPic( SCREEN_WIDTH - size*cgs.widthRatioCoef - 5 + xOffset, y, size*cgs.widthRatioCoef, size, ci->modelIcon );
+		CG_DrawPic( SCREEN_WIDTH - (size + 5 - xOffset)*cgs.widthRatioCoef, y, size*cgs.widthRatioCoef, size, ci->modelIcon );
 
 	y += size;
 
-//	CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( ci->name, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, ci->name, 0, 0, 0, FONT_MEDIUM );
-	CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( ci->name, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, ci->name, 0, 0, 0, FONT_SMALL2 );
+	CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( ci->name, 1.0f, FONT_SMALL2 ) + xOffset*cgs.widthRatioCoef, y, 1.0f, colorWhite, ci->name, 0, 0, 0, FONT_SMALL2 );
 
 	y += 15;
-//	CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( title, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, title, 0, 0, 0, FONT_MEDIUM );
-	CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( title, 1.0f, FONT_SMALL2 ) + xOffset, y, 1.0f, colorWhite, title, 0, 0, 0, FONT_SMALL2 );
+	CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( title, 1.0f, FONT_SMALL2 ) + xOffset*cgs.widthRatioCoef, y, 1.0f, colorWhite, title, 0, 0, 0, FONT_SMALL2 );
 
 	if ( (cgs.gametype == GT_DUEL || cgs.gametype == GT_POWERDUEL) && cgs.clientinfo[cg.playerCent->currentState.number].team != TEAM_SPECTATOR) {
 		//also print their score
 		char text[1024];
 		y += 23;//15;
 		Com_sprintf(text, sizeof(text), "%i/%i", cgs.clientinfo[clientNum].score, cgs.fraglimit );
-		CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( text, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, text, 0, 0, 0, FONT_MEDIUM );
+		CG_Text_Paint( SCREEN_WIDTH - 10*cgs.widthRatioCoef - CG_Text_Width ( text, 0.7f, FONT_MEDIUM ) + xOffset*cgs.widthRatioCoef, y, 0.7f, colorWhite, text, 0, 0, 0, FONT_MEDIUM );
 	}
 
 // nmckenzie: DUEL_HEALTH - fixme - need checks and such here.  And this is coded to duelist 1 right now, which is wrongly.
@@ -3074,15 +3072,15 @@ CG_DrawSnapshot
 ==================
 */
 static float CG_DrawSnapshot( float y ) {
-	char		*s;
-	int			w;
-	int			xOffset = 0;
+	char *s;
+	int w;
+	float xOffset = 0;
 
 	s = va( "time:%i snap:%i cmd:%i", cg.snap->serverTime, 
 		cg.latestSnapshotNum, cgs.serverCommandSequence );
-	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH*cgs.widthRatioCoef;
+	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
 
-	CG_DrawBigString( 635 - w + xOffset, y + 2, s, 1.0F);
+	CG_DrawBigString( SCREEN_WIDTH - (5 + w - xOffset)*cgs.widthRatioCoef, y + 2, s, 1.0F);
 
 	return y + BIGCHAR_HEIGHT + 4;
 }
@@ -3101,7 +3099,7 @@ float CG_DrawFPS( float y ) {
 	static int	previous, lastupdate;
 	int		t, i, fps, total;
 	unsigned short frameTime;
-	const int		xOffset = 0;
+	const float		xOffset = 0;
 
 
 	// don't use serverTime, because that will be drifting to
@@ -3126,9 +3124,9 @@ float CG_DrawFPS( float y ) {
 	fps = 1000 * FPS_FRAMES / total;
 
 	s = va( "%ifps", fps );
-	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH*cgs.widthRatioCoef;
+	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
 
-	CG_DrawBigString( 635 - w + xOffset, y + 2, s, 1.0F);
+	CG_DrawBigString( SCREEN_WIDTH - (5 + w - xOffset)*cgs.widthRatioCoef, y + 2, s, 1.0F);
 
 	return y + BIGCHAR_HEIGHT + 4;
 }
@@ -3197,6 +3195,8 @@ static int impactSoundDebounceTime = 0;
 #define	RADAR_ASTEROID_RANGE				10000.0f
 #define	RADAR_MIN_ASTEROID_SURF_WARN_DIST	1200.0f
 
+extern void trap_R_RotatePic2RatioFix( float ratio );
+
 float CG_DrawRadar ( float y )
 {
 	vec4_t			color;
@@ -3208,8 +3208,8 @@ float CG_DrawRadar ( float y )
 	int				i;
 	float			arrowBaseScale;
 	float			zScale;
-	int				xOffset = 0;
-	int				radar_x;
+	float			xOffset = 0*cgs.widthRatioCoef;
+	float			radar_x;
 
 	// Make sure the radar should be showing
 	if (!cg.snap || cg.snap->ps.stats[STAT_HEALTH] <= 0 || !cg.playerPredicted)
@@ -3221,7 +3221,8 @@ float CG_DrawRadar ( float y )
 	local = &cgs.clientinfo[ cg.snap->ps.clientNum ];
 	if ( !local->infoValid )
 		return y;
-
+	
+	trap_R_RotatePic2RatioFix(cgs.widthRatioCoef);
 	radar_x = SCREEN_WIDTH - (SCREEN_WIDTH - (580 - RADAR_RADIUS)) * cgs.widthRatioCoef;
 
 	// Draw the radar background image
@@ -3393,7 +3394,7 @@ float CG_DrawRadar ( float y )
 						}
 
 						trap_R_SetColor ( color );
-						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale*cgs.widthRatioCoef, arrowBaseScale, shader );
+						CG_DrawPic ( x - 4*cgs.widthRatioCoef + xOffset, ly - 4, arrowBaseScale*cgs.widthRatioCoef, arrowBaseScale, shader );
 					}
 				}
 				break;
@@ -3457,7 +3458,7 @@ float CG_DrawRadar ( float y )
 						{
 							trap_R_SetColor ( NULL );
 						}
-						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale*cgs.widthRatioCoef, arrowBaseScale, cent->m_pVehicle->m_pVehicleInfo->radarIconHandle );
+						CG_DrawPic ( x - 4*cgs.widthRatioCoef + xOffset, ly - 4, arrowBaseScale*cgs.widthRatioCoef, arrowBaseScale, cent->m_pVehicle->m_pVehicleInfo->radarIconHandle );
 					}
 				}
 				break; //maybe do something?
@@ -3559,7 +3560,7 @@ float CG_DrawRadar ( float y )
 						}
 
 						trap_R_SetColor ( asteroidColor );
-						CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale*cgs.widthRatioCoef, arrowBaseScale, trap_R_RegisterShaderNoMip( "gfx/menus/radar/asteroid" ) );
+						CG_DrawPic ( x - 4*cgs.widthRatioCoef + xOffset, ly - 4, arrowBaseScale*cgs.widthRatioCoef, arrowBaseScale, trap_R_RegisterShaderNoMip( "gfx/menus/radar/asteroid" ) );
 					}
 				}
 				break;
@@ -3661,7 +3662,7 @@ float CG_DrawRadar ( float y )
 					{
 						trap_R_SetColor ( NULL );
 					}
-					CG_DrawPic ( x - 4 + xOffset, ly - 4, arrowBaseScale*cgs.widthRatioCoef, arrowBaseScale, cgs.media.mAutomapRocketIcon );
+					CG_DrawPic ( x - 4*cgs.widthRatioCoef + xOffset, ly - 4, arrowBaseScale*cgs.widthRatioCoef, arrowBaseScale, cgs.media.mAutomapRocketIcon );
 				}
 				break;
 
@@ -3727,7 +3728,7 @@ float CG_DrawRadar ( float y )
 
 				CG_DrawRotatePic2( /*RADAR_X*/radar_x + (RADAR_RADIUS + sin (angle) * distance + xOffset)*cgs.widthRatioCoef,
 								   y + RADAR_RADIUS + cos (angle) * distance, 
-								   arrow_w*cgs.widthRatioCoef, arrow_h, 
+								   arrow_w, arrow_h, 
 								   (360 - cent->lerpAngles[YAW]) + cg.predictedPlayerState.viewangles[YAW], cgs.media.mAutomapPlayerIcon );
 				break;
 			}
@@ -3740,8 +3741,9 @@ float CG_DrawRadar ( float y )
 	arrow_h = arrowBaseScale * RADAR_RADIUS / 128;
 
 	trap_R_SetColor ( colorWhite );
-	CG_DrawRotatePic2( /*RADAR_X*/radar_x + (RADAR_RADIUS + xOffset)*cgs.widthRatioCoef, y + RADAR_RADIUS, arrow_w*cgs.widthRatioCoef, arrow_h, 
+	CG_DrawRotatePic2( /*RADAR_X*/radar_x + (RADAR_RADIUS + xOffset)*cgs.widthRatioCoef, y + RADAR_RADIUS, arrow_w, arrow_h, 
 					   0, cgs.media.mAutomapPlayerIcon );
+	trap_R_RotatePic2RatioFix(1.0f);
 
 	return y+(RADAR_RADIUS*2);
 }
@@ -3756,7 +3758,7 @@ static float CG_DrawTimer( float y ) {
 	int			w;
 	int			mins, seconds, tens;
 	int			msec;
-	int			xOffset = 0;
+	float		xOffset = 0;
 
 	msec = cg.time - cgs.levelStartTime;
 
@@ -3767,9 +3769,9 @@ static float CG_DrawTimer( float y ) {
 	seconds -= tens * 10;
 
 	s = va( "%i:%i%i", mins, tens, seconds );
-	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH*cgs.widthRatioCoef;
+	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
 
-	CG_DrawBigString( 635 - w + xOffset, y + 2, s, 1.0F);
+	CG_DrawBigString( SCREEN_WIDTH - (5 + w - xOffset)*cgs.widthRatioCoef, y + 2, s, 1.0F);
 
 	return y + BIGCHAR_HEIGHT + 4;
 }
@@ -3782,7 +3784,7 @@ CG_DrawTeamOverlay
 */
 extern const char *CG_GetLocationString(const char *loc); //cg_main.c
 static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
-	int x, w, h, xx;
+	float x, w, h, xx;
 	int i, j, len;
 	const char *p;
 	vec4_t		hcolor;
@@ -3792,7 +3794,7 @@ static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
 	clientInfo_t *ci;
 	gitem_t	*item;
 	int ret_y, count;
-	int xOffset = 0;
+	float xOffset = 0*cgs.widthRatioCoef;
 
 	if ( !cg_drawTeamOverlay.integer ) {
 		return y;
@@ -3958,7 +3960,7 @@ static void CG_DrawPowerupIcons(int y)
 	int j;
 	int ico_size = 64;
 	//int y = ico_size/2;
-	int xOffset = 0;
+	float xOffset = 0*cgs.widthRatioCoef;
 	gitem_t	*item;
 
 	//Raz: was missing this
@@ -4327,7 +4329,7 @@ static void CG_DrawLagometer( void ) {
 	}
 
 	// draw the snapshot latency / drop graph
-	range = ah / 2;
+	range = ah / 2.0f;
 	vscale = range / MAX_LAGOMETER_PING;
 
 	for ( a = 0 ; a < aw ; a++ ) {
@@ -4759,9 +4761,9 @@ void CG_DrawHealthBar(centity_t *cent, float chX, float chY, float chW, float ch
 	vec4_t aColor;
 	vec4_t bColor;
 	vec4_t cColor;
-	float x = chX+((chW/2)-(HEALTH_WIDTH/2));
+	float x = chX+((chW/2)-(HEALTH_WIDTH/2))*cgs.widthRatioCoef;
 	float y = (chY+chH) + 8.0f;
-	float percent = ((float)cent->currentState.health/(float)cent->currentState.maxhealth)*HEALTH_WIDTH;
+	float percent = ((float)cent->currentState.health/(float)cent->currentState.maxhealth)*HEALTH_WIDTH*cgs.widthRatioCoef;
 	if (percent <= 0)
 	{
 		return;
@@ -4803,28 +4805,25 @@ void CG_DrawHealthBar(centity_t *cent, float chX, float chY, float chW, float ch
 	cColor[3] = 0.4f;
 
 	//draw the background (black)
-	CG_DrawRect(x, y, HEALTH_WIDTH, HEALTH_HEIGHT, 1.0f, colorTable[CT_BLACK]);
+	CG_DrawRect(x, y, HEALTH_WIDTH*cgs.widthRatioCoef, HEALTH_HEIGHT, 1.0f, colorTable[CT_BLACK]);
 
 	//now draw the part to show how much health there is in the color specified
-	CG_FillRect(x+1.0f, y+1.0f, percent-1.0f, HEALTH_HEIGHT-1.0f, aColor);
+	CG_FillRect(x+1.0f*cgs.widthRatioCoef, y+1.0f, percent-1.0f*cgs.widthRatioCoef, HEALTH_HEIGHT-1.0f, aColor);
 
 	//then draw the other part greyed out
-	CG_FillRect(x+percent, y+1.0f, HEALTH_WIDTH-percent-1.0f, HEALTH_HEIGHT-1.0f, cColor);
+	CG_FillRect(x+percent, y+1.0f, (HEALTH_WIDTH-1.0f)*cgs.widthRatioCoef-percent, HEALTH_HEIGHT-1.0f, cColor);
 }
 
 //same routine (at least for now), draw progress of a "hack" or whatever
-void CG_DrawHaqrBar(float chX, float chY, float chW, float chH)
-{
+void CG_DrawHaqrBar(float chX, float chY, float chW, float chH) {
 	vec4_t aColor;
 	vec4_t bColor;
 	vec4_t cColor;
-	float x = chX+((chW/2)-(HEALTH_WIDTH/2)*cgs.widthRatioCoef);
+	float x = chX+((chW/2.0f)-(HEALTH_WIDTH/2.0f))*cgs.widthRatioCoef;
 	float y = (chY+chH) + 8.0f;
-	float percent = ((((float)cg.predictedPlayerState.hackingTime-(float)cg.time)-cg.timeFraction)/(float)cg.predictedPlayerState.hackingBaseTime)*HEALTH_WIDTH*cgs.widthRatioCoef;
+	float percent = (((cg.predictedPlayerState.hackingTime-cg.time)-cg.timeFraction)/(float)cg.predictedPlayerState.hackingBaseTime)*HEALTH_WIDTH*cgs.widthRatioCoef;
 
-	if (percent > HEALTH_WIDTH*cgs.widthRatioCoef ||
-		percent < 1.0f)
-	{
+	if (percent > HEALTH_WIDTH*cgs.widthRatioCoef || percent < 1.0f) {
 		return;
 	}
 
@@ -4850,10 +4849,10 @@ void CG_DrawHaqrBar(float chX, float chY, float chW, float chH)
 	CG_DrawRect(x, y, HEALTH_WIDTH*cgs.widthRatioCoef, HEALTH_HEIGHT, 1.0f, colorTable[CT_BLACK]);
 
 	//now draw the part to show how much health there is in the color specified
-	CG_FillRect(x+1.0f, y+1.0f, (percent-1.0f), HEALTH_HEIGHT-1.0f, aColor);
+	CG_FillRect(x+1.0f*cgs.widthRatioCoef, y+1.0f, percent-1.0f*cgs.widthRatioCoef, HEALTH_HEIGHT-1.0f, aColor);
 
 	//then draw the other part greyed out
-	CG_FillRect(x+percent, y+1.0f, (HEALTH_WIDTH*cgs.widthRatioCoef-percent-1.0f), HEALTH_HEIGHT-1.0f, cColor);
+	CG_FillRect(x+percent, y+1.0f, ((HEALTH_WIDTH-1.0f)*cgs.widthRatioCoef-percent), HEALTH_HEIGHT-1.0f, cColor);
 
 	//draw the hacker icon
 	CG_DrawPic(x, y-HEALTH_WIDTH, HEALTH_WIDTH*cgs.widthRatioCoef, HEALTH_WIDTH, cgs.media.hackerIconShader);
@@ -4867,12 +4866,11 @@ vec4_t cg_genericTimerColor;
 #define CGTIMERBAR_W			10.0f
 #define CGTIMERBAR_X			(SCREEN_WIDTH-CGTIMERBAR_W-120.0f)
 #define CGTIMERBAR_Y			(SCREEN_HEIGHT-CGTIMERBAR_H-20.0f)
-void CG_DrawGenericTimerBar(void)
-{
+void CG_DrawGenericTimerBar(void) {
 	vec4_t aColor;
 	vec4_t bColor;
 	vec4_t cColor;
-	float x = CGTIMERBAR_X;
+	float x = SCREEN_WIDTH - (SCREEN_WIDTH - CGTIMERBAR_X)*cgs.widthRatioCoef;
 	float y = CGTIMERBAR_Y;
 	float percent = (((cg_genericTimerBar-cg.time)-cg.timeFraction)/(float)cg_genericTimerDur)*CGTIMERBAR_H;
 
@@ -4905,13 +4903,13 @@ void CG_DrawGenericTimerBar(void)
 	cColor[3] = 0.1f;
 
 	//draw the background (black)
-	CG_DrawRect(x, y, CGTIMERBAR_W, CGTIMERBAR_H, 1.0f, colorTable[CT_BLACK]);
+	CG_DrawRect(x, y, CGTIMERBAR_W*cgs.widthRatioCoef, CGTIMERBAR_H, 1.0f, colorTable[CT_BLACK]);
 
 	//now draw the part to show how much health there is in the color specified
-	CG_FillRect(x+1.0f, y+1.0f+(CGTIMERBAR_H-percent), CGTIMERBAR_W-2.0f, CGTIMERBAR_H-1.0f-(CGTIMERBAR_H-percent), aColor);
+	CG_FillRect(x+1.0f*cgs.widthRatioCoef, y+1.0f+(CGTIMERBAR_H-percent), (CGTIMERBAR_W-2.0f)*cgs.widthRatioCoef, CGTIMERBAR_H-1.0f-(CGTIMERBAR_H-percent), aColor);
 
 	//then draw the other part greyed out
-	CG_FillRect(x+1.0f, y+1.0f, CGTIMERBAR_W-2.0f, CGTIMERBAR_H-percent, cColor);
+	CG_FillRect(x+1.0f*cgs.widthRatioCoef, y+1.0f, (CGTIMERBAR_W-2.0f)*cgs.widthRatioCoef, CGTIMERBAR_H-percent, cColor);
 }
 
 static qboolean CG_CrosshairColour(vec4_t ecolor, centity_t *crossEnt, int chEntValid) {
@@ -5198,7 +5196,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 	}
 
 	//I'm in a vehicle
-	if (cg.predictedPlayerState.m_iVehicleNum) {
+	if (cg.playerPredicted && cg.predictedPlayerState.m_iVehicleNum) {
 		centity_t *vehCent = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
 	    if ( vehCent 
 			&& vehCent->m_pVehicle 
@@ -5642,13 +5640,13 @@ void CG_DrawBracketedEntities( void )
 //--------------------------------------------------------------
 static void CG_DrawHolocronIcons(void) {
 //--------------------------------------------------------------
-	int icon_size = 40;
+	float icon_size = 40.0f;
 	int i = 0;
-	int startx = 10;
-	int starty = 10;//SCREEN_HEIGHT - icon_size*3;
+	float startx = 10.0f;
+	float starty = 10.0f;//SCREEN_HEIGHT - icon_size*3;
 
-	int endx = icon_size;
-	int endy = icon_size;
+	float endx = icon_size;
+	float endy = icon_size;
 
 	int holocronBits = cg.playerPredicted ? cg.snap->ps.holocronBits : cg.playerCent->currentState.time2;
 
@@ -5656,7 +5654,7 @@ static void CG_DrawHolocronIcons(void) {
 	//don't display over zoom mask
 		return;
 	}
-	if (cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR) {
+	if (cgs.clientinfo[cg.playerCent->currentState.clientNum].team == TEAM_SPECTATOR) {
 		return;
 	}
 
@@ -6280,39 +6278,29 @@ static void CG_ScanForCrosshairEntity( void ) {
 }
 
 //mme, taken from pugmod
-static void CG_SanitizeString( char *in, char *out )
-{
+static void CG_SanitizeString( char *in, char *out ) {
 	int i = 0;
 	int r = 0;
 
-	while (in[i])
-	{
-		if (i >= 128-1)
-		{ //the ui truncates the name here..
+	while (in[i]) {
+		if (i >= 128-1) { //the ui truncates the name here..
 			break;
 		}
-
-		if (in[i] == '^')
-		{
+		if (in[i] == '^') {
 			if (in[i+1] >= 48 && //'0'
 				in[i+1] <= 57) //'9'
 			{ //only skip it if there's a number after it for the color
 				i += 2;
 				continue;
-			}
-			else
-			{ //just skip the ^
+			} else { //just skip the ^
 				i++;
 				continue;
 			}
 		}
-
-		if (in[i] < 32)
-		{
+		if (in[i] < 32) {
 			i++;
 			continue;
 		}
-
 		out[r] = in[i];
 		r++;
 		i++;
@@ -6336,23 +6324,20 @@ static void CG_DrawCrosshairNames(void) {
 	if ( !cg_drawCrosshair.integer ) {
 		return;
 	}
-
+	if ( !cg_drawCrosshairNames.integer ) {
+		return;
+	}	
 	// scan the known entities to see if the crosshair is sighted on one
 	CG_ScanForCrosshairEntity();
 
-	if ( !cg_drawCrosshairNames.integer ) {
-		return;
-	}
 	//rww - still do the trace, our dynamic crosshair depends on it
-
-	if (cg.crosshairClientNum < ENTITYNUM_WORLD)
-	{
+	if (cg.crosshairClientNum < ENTITYNUM_WORLD) {
 		centity_t *veh = &cg_entities[cg.crosshairClientNum];
 
 		if (veh->currentState.eType == ET_NPC &&
 			veh->currentState.NPC_class == CLASS_VEHICLE &&
-			veh->currentState.owner < MAX_CLIENTS)
-		{ //draw the name of the pilot then
+			veh->currentState.owner < MAX_CLIENTS) {
+			//draw the name of the pilot then
 			cg.crosshairClientNum = veh->currentState.owner;
 			cg.crosshairVehNum = veh->currentState.number;
 			cg.crosshairVehTime = cg.time;
@@ -6360,13 +6345,11 @@ static void CG_DrawCrosshairNames(void) {
 		}
 	}
 
-	if (cg.crosshairClientNum >= MAX_CLIENTS)
-	{
+	if (cg.crosshairClientNum >= MAX_CLIENTS) {
 		return;
 	}
 
-	if (cg_entities[cg.crosshairClientNum].currentState.powerups & (1 << PW_CLOAKED))
-	{
+	if (cg_entities[cg.crosshairClientNum].currentState.powerups & (1 << PW_CLOAKED)) {
 		return;
 	}
 
@@ -6379,43 +6362,30 @@ static void CG_DrawCrosshairNames(void) {
 
 	name = cgs.clientinfo[ cg.crosshairClientNum ].cleanname;
 
-	if (cgs.gametype >= GT_TEAM)
-	{
+	if (cgs.gametype >= GT_TEAM) {
 		//if (cgs.gametype == GT_SIEGE)
-		if (1)
-		{ //instead of team-based we'll make it oriented based on which team we're on
-			if (cgs.clientinfo[cg.crosshairClientNum].team == cgs.clientinfo[cg.playerCent->currentState.number].team)
-			{
+		if (1) {
+		//instead of team-based we'll make it oriented based on which team we're on
+			if (cgs.clientinfo[cg.crosshairClientNum].team == cgs.clientinfo[cg.playerCent->currentState.number].team) {
 				baseColor = CT_GREEN;
-			}
-			else
-			{
+			} else {
 				baseColor = CT_RED;
 			}
-		}
-		else
-		{
-			if (cgs.clientinfo[cg.crosshairClientNum].team == TEAM_RED)
-			{
+		} else {
+			if (cgs.clientinfo[cg.crosshairClientNum].team == TEAM_RED) {
 				baseColor = CT_RED;
-			}
-			else
-			{
+			} else {
 				baseColor = CT_BLUE;
 			}
 		}
-	}
-	else
-	{
+	} else {
 		//baseColor = CT_WHITE;
 		if (cgs.gametype == GT_POWERDUEL &&
 			cgs.clientinfo[cg.playerCent->currentState.number].team != TEAM_SPECTATOR &&
-			cgs.clientinfo[cg.crosshairClientNum].duelTeam == cgs.clientinfo[cg.playerCent->currentState.number].duelTeam)
-		{ //on the same duel team in powerduel, so he's a friend
+			cgs.clientinfo[cg.crosshairClientNum].duelTeam == cgs.clientinfo[cg.playerCent->currentState.number].duelTeam) {
+		//on the same duel team in powerduel, so he's a friend
 			baseColor = CT_GREEN;
-		}
-		else
-		{
+		} else {
 			baseColor = CT_RED; //just make it red in nonteam modes since everyone is hostile and crosshair will be red on them too
 		}
 	}
@@ -7195,10 +7165,10 @@ void CG_DrawJetpackFuel(void)
 	CG_DrawRect(x, y, JPFUELBAR_W*cgs.widthRatioCoef, JPFUELBAR_H, 1.0f, colorTable[CT_BLACK]);
 
 	//now draw the part to show how much health there is in the color specified
-	CG_FillRect(x+1.0f, y+1.0f+(JPFUELBAR_H-percent), (JPFUELBAR_W-1.0f)*cgs.widthRatioCoef, JPFUELBAR_H-1.0f-(JPFUELBAR_H-percent), aColor);
+	CG_FillRect(x+1.0f*cgs.widthRatioCoef, y+1.0f+(JPFUELBAR_H-percent), (JPFUELBAR_W-1.0f)*cgs.widthRatioCoef, JPFUELBAR_H-1.0f-(JPFUELBAR_H-percent), aColor);
 
 	//then draw the other part greyed out
-	CG_FillRect(x+1.0f, y+1.0f, (JPFUELBAR_W-1.0f)*cgs.widthRatioCoef, JPFUELBAR_H-percent, cColor);
+	CG_FillRect(x+1.0f*cgs.widthRatioCoef, y+1.0f, (JPFUELBAR_W-1.0f)*cgs.widthRatioCoef, JPFUELBAR_H-percent, cColor);
 }
 
 //draw meter showing e-web health when it is in use
@@ -7211,7 +7181,7 @@ void CG_DrawEWebHealth(void)
 	vec4_t aColor;
 	vec4_t bColor;
 	vec4_t cColor;
-	float x = EWEBHEALTH_X;
+	float x = SCREEN_WIDTH - (SCREEN_WIDTH - EWEBHEALTH_X)*cgs.widthRatioCoef;
 	float y = EWEBHEALTH_Y;
 	centity_t *eweb = &cg_entities[cg.predictedPlayerState.emplacedIndex];
 	float percent = ((float)eweb->currentState.health/eweb->currentState.maxhealth)*EWEBHEALTH_H;
@@ -7229,11 +7199,11 @@ void CG_DrawEWebHealth(void)
 	//kind of hacky, need to pass a coordinate in here
 	if (cg.snap->ps.jetpackFuel < 100)
 	{
-		x -= (JPFUELBAR_W+8.0f);
+		x -= (JPFUELBAR_W+8.0f)*cgs.widthRatioCoef;
 	}
 	if (cg.snap->ps.cloakFuel < 100)
 	{
-		x -= (JPFUELBAR_W+8.0f);
+		x -= (JPFUELBAR_W+8.0f)*cgs.widthRatioCoef;
 	}
 
 	//color of the bar
@@ -7255,13 +7225,13 @@ void CG_DrawEWebHealth(void)
 	cColor[3] = 0.1f;
 
 	//draw the background (black)
-	CG_DrawRect(x, y, EWEBHEALTH_W, EWEBHEALTH_H, 1.0f, colorTable[CT_BLACK]);
+	CG_DrawRect(x, y, EWEBHEALTH_W*cgs.widthRatioCoef, EWEBHEALTH_H, 1.0f, colorTable[CT_BLACK]);
 
 	//now draw the part to show how much health there is in the color specified
-	CG_FillRect(x+1.0f, y+1.0f+(EWEBHEALTH_H-percent), EWEBHEALTH_W-1.0f, EWEBHEALTH_H-1.0f-(EWEBHEALTH_H-percent), aColor);
+	CG_FillRect(x+1.0f*cgs.widthRatioCoef, y+1.0f+(EWEBHEALTH_H-percent), (EWEBHEALTH_W-1.0f)*cgs.widthRatioCoef, EWEBHEALTH_H-1.0f-(EWEBHEALTH_H-percent), aColor);
 
 	//then draw the other part greyed out
-	CG_FillRect(x+1.0f, y+1.0f, EWEBHEALTH_W-1.0f, EWEBHEALTH_H-percent, cColor);
+	CG_FillRect(x+1.0f*cgs.widthRatioCoef, y+1.0f, (EWEBHEALTH_W-1.0f)*cgs.widthRatioCoef, EWEBHEALTH_H-percent, cColor);
 }
 
 //draw meter showing cloak fuel when it's not full
@@ -7274,7 +7244,7 @@ void CG_DrawCloakFuel(void)
 	vec4_t aColor;
 	vec4_t bColor;
 	vec4_t cColor;
-	float x = CLFUELBAR_X;
+	float x = SCREEN_WIDTH - (SCREEN_WIDTH - CLFUELBAR_X)*cgs.widthRatioCoef;
 	float y = CLFUELBAR_Y;
 	float percent = ((float)cg.snap->ps.cloakFuel/100.0f)*CLFUELBAR_H;
 
@@ -7285,7 +7255,7 @@ void CG_DrawCloakFuel(void)
 
 	if ( cg.snap->ps.jetpackFuel < 100 )
 	{//if drawing jetpack fuel bar too, then move this over...?
-		x -= (JPFUELBAR_W+8.0f);
+		x -= (JPFUELBAR_W+8.0f)*cgs.widthRatioCoef;
 	}
 
 	if (percent < 0.1f)
@@ -7312,43 +7282,15 @@ void CG_DrawCloakFuel(void)
 	cColor[3] = 0.1f;
 
 	//draw the background (black)
-	CG_DrawRect(x, y, CLFUELBAR_W, CLFUELBAR_H, 1.0f, colorTable[CT_BLACK]);
+	CG_DrawRect(x, y, CLFUELBAR_W*cgs.widthRatioCoef, CLFUELBAR_H, 1.0f, colorTable[CT_BLACK]);
 
 	//now draw the part to show how much fuel there is in the color specified
-	CG_FillRect(x+1.0f, y+1.0f+(CLFUELBAR_H-percent), CLFUELBAR_W-1.0f, CLFUELBAR_H-1.0f-(CLFUELBAR_H-percent), aColor);
+	CG_FillRect(x+1.0f*cgs.widthRatioCoef, y+1.0f+(CLFUELBAR_H-percent), (CLFUELBAR_W-1.0f)*cgs.widthRatioCoef, CLFUELBAR_H-1.0f-(CLFUELBAR_H-percent), aColor);
 
 	//then draw the other part greyed out
-	CG_FillRect(x+1.0f, y+1.0f, CLFUELBAR_W-1.0f, CLFUELBAR_H-percent, cColor);
+	CG_FillRect(x+1.0f*cgs.widthRatioCoef, y+1.0f, (CLFUELBAR_W-1.0f)*cgs.widthRatioCoef, CLFUELBAR_H-percent, cColor);
 }
 
-int cgRageTime = 0;
-int cgRageFadeTime = 0;
-float cgRageFadeVal = 0;
-
-int cgRageRecTime = 0;
-int cgRageRecFadeTime = 0;
-float cgRageRecFadeVal = 0;
-
-int cgAbsorbTime = 0;
-int cgAbsorbFadeTime = 0;
-float cgAbsorbFadeVal = 0;
-
-int cgProtectTime = 0;
-int cgProtectFadeTime = 0;
-float cgProtectFadeVal = 0;
-
-int cgYsalTime = 0;
-int cgYsalFadeTime = 0;
-float cgYsalFadeVal = 0;
-
-qboolean gCGHasFallVector = qfalse;
-vec3_t gCGFallVector;
-
-/*
-=================
-CG_Draw2D
-=================
-*/
 extern int cgSiegeRoundState;
 extern int cgSiegeRoundTime;
 
@@ -7686,7 +7628,49 @@ static CGAME_INLINE void CG_ChatBox_DrawStrings(void) {
 	trap_R_SetColor( NULL );
 }
 
-static void CG_DrawInWaterTints (void) {
+int cgRageTime = 0;
+int cgRageFadeTime = 0;
+float cgRageFadeVal = 0;
+
+int cgRageRecTime = 0;
+int cgRageRecFadeTime = 0;
+float cgRageRecFadeVal = 0;
+
+int cgAbsorbTime = 0;
+int cgAbsorbFadeTime = 0;
+float cgAbsorbFadeVal = 0;
+
+int cgProtectTime = 0;
+int cgProtectFadeTime = 0;
+float cgProtectFadeVal = 0;
+
+int cgYsalTime = 0;
+int cgYsalFadeTime = 0;
+float cgYsalFadeVal = 0;
+
+void CG_Clear2DTintsTimes(void) {
+	cgRageTime = 0;
+	cgRageFadeTime = 0;
+	cgRageFadeVal = 0;
+
+	cgRageRecTime = 0;
+	cgRageRecFadeTime = 0;
+	cgRageRecFadeVal = 0;
+
+	cgAbsorbTime = 0;
+	cgAbsorbFadeTime = 0;
+	cgAbsorbFadeVal = 0;
+
+	cgProtectTime = 0;
+	cgProtectFadeTime = 0;
+	cgProtectFadeVal = 0;
+
+	cgYsalTime = 0;
+	cgYsalFadeTime = 0;
+	cgYsalFadeVal = 0;
+}
+
+static void CG_DrawInWaterTints(void) {
 	if ((cg.refdef.viewContents&CONTENTS_LAVA)) {
 	//tint screen red
 		vec4_t hcolor;
@@ -7732,7 +7716,7 @@ static qboolean CG_HasYsalamiri(int gametype, entityState_t *es) {
 	return qfalse;
 }
 
-static void CG_Draw2DScreenTints( void ) {
+static void CG_Draw2DScreenTints(void) {
 	float	rageTime, rageRecTime, absorbTime, protectTime, ysalTime;
 	vec4_t	hcolor;
 	int		forcePowersActive = cg.playerPredicted ?
@@ -8031,6 +8015,9 @@ static void CG_Draw2DScreenTints( void ) {
 	CG_DrawInWaterTints();
 }
 
+qboolean gCGHasFallVector = qfalse;
+vec3_t gCGFallVector;
+
 static void CG_UpdateFallVector (void) {
 	if (!cg.playerCent)
 		goto clearFallVector;
@@ -8081,42 +8068,32 @@ void CG_CameraDraw2D( void ) {
 	}
 }
 
+/*
+=================
+CG_Draw2D
+=================
+*/
+static vec4_t hcolor = {0, 0, 0, 0};
 void CG_Draw2D (void) {
 	float			inTime = cg.invenSelectTime+WEAPON_SELECT_TIME;
 	float			wpTime = cg.weaponSelectTime+WEAPON_SELECT_TIME;
 	float			bestTime;
-	vec4_t			hcolor = {0, 0, 0, 0};
 
 	// if we are taking a levelshot for the menu, don't draw anything
 	if (cg.levelShot) {
 		return;
 	}
+	if (!cg.playerCent)
+		return;
+	
+	CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 
-	if (cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR) {
-		cgRageTime = 0;
-		cgRageFadeTime = 0;
-		cgRageFadeVal = 0;
-
-		cgRageRecTime = 0;
-		cgRageRecFadeTime = 0;
-		cgRageRecFadeVal = 0;
-
-		cgAbsorbTime = 0;
-		cgAbsorbFadeTime = 0;
-		cgAbsorbFadeVal = 0;
-
-		cgProtectTime = 0;
-		cgProtectFadeTime = 0;
-		cgProtectFadeVal = 0;
-
-		cgYsalTime = 0;
-		cgYsalFadeTime = 0;
-		cgYsalFadeVal = 0;
+	if (cgs.clientinfo[cg.playerCent->currentState.clientNum].team == TEAM_SPECTATOR) {
+		CG_Clear2DTintsTimes();
 	}
 
 	if (cg_draw2D.integer == 0) {
 		CG_UpdateFallVector();
-		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
 		return;
 	}
 
@@ -8149,9 +8126,7 @@ void CG_Draw2D (void) {
 		return;
 	}
 
-	if (!cg.playerCent)
-		return;
-	else if (!cg.playerPredicted) {
+	if (!cg.playerPredicted) {
 		cg.scoreBoardShowing = qfalse;
 		CG_Draw2DScreenTints();
 		if (cg.playerCent->currentState.time2)
@@ -8520,8 +8495,6 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 
 	// draw status bar and other floating elements
 	if (cg.demoPlayback != 2) {
-		vec4_t hcolor = {0, 0, 0, 0};
-		CG_DrawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH*SCREEN_HEIGHT, hcolor);
 		CG_Draw2D();
 	}
 

@@ -6,7 +6,6 @@ void S_Shutdown( void );
 // if origin is NULL, the sound will be dynamically sourced from the entity
 void S_AddAmbientLoopingSound( const vec3_t origin, unsigned char volume, sfxHandle_t sfxHandle );
 void S_StartAmbientSound( const vec3_t origin, int entityNum, unsigned char volume, sfxHandle_t sfxHandle );
-void S_MuteSound(int entityNum, int entchannel);
 void S_StopSound(int entityNum, int entchannel, sfxHandle_t sfxHandle );
 void S_StartSound( const vec3_t origin, int entnum, int entchannel, unsigned char volume, sfxHandle_t sfx );
 void S_StartLocalSound( sfxHandle_t sfx, int channelNum );
@@ -50,7 +49,7 @@ sfxHandle_t	S_RegisterSound( const char *sample );
 // MME
 void S_MMERecord( const char *baseName, float deltaTime );
 void S_MMEWavClose( void );
-qboolean S_MMEAviExport(byte *out, int *size);
+qboolean S_MMEAviImport(byte *out, int *size);
 void S_MMEUpdate( float scale );
 void S_MMEMusic( const char *musicName, float time, float length );
 

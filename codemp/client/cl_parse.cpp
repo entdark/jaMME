@@ -50,8 +50,7 @@ Parses deltas from the given base and adds the resulting entity
 to the current frame
 ==================
 */
-void CL_DeltaEntity (msg_t *msg, clSnapshot_t *frame, int newnum, entityState_t *old, 
-					 qboolean unchanged) {
+static void CL_DeltaEntity(msg_t *msg, clSnapshot_t *frame, int newnum, entityState_t *old, qboolean unchanged) {
 	entityState_t	*state;
 
 	// save the parsed entity state into the big circular buffer so

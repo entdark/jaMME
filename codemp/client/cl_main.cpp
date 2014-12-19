@@ -2462,7 +2462,7 @@ void CL_InitRef( void ) {
 	G2VertSpaceServer = &CMiniHeap_singleton;
 
 	//mme
-	ri.S_MMEAviExport = S_MMEAviExport;
+	ri.S_MMEAviImport = S_MMEAviImport;
 
 	ret = GetRefAPI( REF_API_VERSION, &ri );
 
@@ -2662,6 +2662,7 @@ void CL_Init( void ) {
 	mme_demoAutoQuit = Cvar_Get ("mme_demoAutoQuit", "0", CVAR_ARCHIVE );
 	mme_demoRemove = Cvar_Get ("mme_demoRemove", "0", CVAR_ARCHIVE );
 	mme_demoPrecache = Cvar_Get ("mme_demoPrecache", "0", CVAR_ARCHIVE );
+	mme_demoAutoNext = Cvar_Get ("mme_demoAutoNext", "1", CVAR_ARCHIVE );
 
 	//
 	// register our commands

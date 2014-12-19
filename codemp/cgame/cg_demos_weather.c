@@ -10,11 +10,11 @@ void demoDrawRain(void) {
 	rainRange = demo.rain.range / backFactor;
 	rainNumber = (float)demo.rain.number * (rainRange / 1000.0f);
 	if (demo.rain.number >= 1000 / backFactor) {
-		sfx = cgs.media.heavyRain;
+		sfx = demo.media.heavyRain;
 	} else if (demo.rain.number >= 400 / backFactor) {
-		sfx = cgs.media.regularRain;
+		sfx = demo.media.regularRain;
 	} else {
-		sfx = cgs.media.lightRain;
+		sfx = demo.media.lightRain;
 	}
 	trap_S_AddLoopingSound(ENTITYNUM_NONE, cg.refdef.vieworg, vec3_origin, sfx);
 	if (demo.rain.time <= cg.time) {

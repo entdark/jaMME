@@ -1530,6 +1530,8 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	int			psTeam;
 
 	ci = &cgs.clientinfo[clientNum];
+	
+	oldGhoul2 = ci->ghoul2Model;
 
 	while (k < MAX_SABERS)
 	{
@@ -1561,8 +1563,6 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	strings[2] = "";
 	strings[3] = "";
 	strings[4] = cgs.allOverride;
-
-	oldGhoul2 = ci->ghoul2Model;
 
 	// build into a temp buffer so the defer checks can use
 	// the old value
@@ -1609,7 +1609,6 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	}
 
 	// isolate the player's name
-//	v = Info_ValueForKey( configstring, "n");
 	v = ConfigValue( strings, "n" );
 	Q_strncpyz( newInfo.name, v, sizeof( newInfo.name ) );
 	Q_strncpyz( newInfo.cleanname, v, sizeof( newInfo.cleanname ) );
@@ -4700,6 +4699,9 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 	vec3_t			boltOrg, tAng, getAng, right;
 	mdxaBone_t		boltMatrix;
 	clientInfo_t	*ci;
+	
+	if ( mov_filterMask.integer & movMaskFlags && cg.demoPlayback )
+		return;
 
 	if (cg.playerCent) {
 		//[TrueView]
@@ -4745,6 +4747,8 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 	AnglesToAxis(angles, axis);
 
 	memset( &ent, 0, sizeof( ent ) );
+	if ( mov_wallhack.integer & movMaskFlags && cg.demoPlayback )
+		ent.renderfx |= RF_NODEPTH;
 	VectorMA( boltOrg, 24, axis[0], ent.origin );
 
 	if ( mov_simpleFlags.integer || (cg_newFX.integer & NEWFX_SIMPLEFLAG)) {
@@ -7004,7 +7008,7 @@ void CG_SaberCompWork(vec3_t start, vec3_t end, centity_t *owner, int saberNum, 
 qboolean BG_SuperBreakWinAnim( int anim );
 
 void CG_AddSaberBlade( centity_t *cent, centity_t *scent, refEntity_t *saber, int renderfx, int modelIndex, int saberNum, int bladeNum, vec3_t origin, vec3_t angles, qboolean fromSaber, qboolean dontDraw) {
-	vec3_t	org_, end, v, rgb1, draw_dir,
+	vec3_t	org_, end, v, rgb1,
 			axis_[3] = {0,0,0, 0,0,0, 0,0,0};	// shut the compiler up
 	trace_t	trace;
 	int i = 0;
@@ -7588,7 +7592,7 @@ CheckTrail:
 				dirlen1 *= 0.5f;
 			}
 
-			lagscale = (cg.time - saberTrail->lastTime);
+			lagscale = (cg.time - saberTrail->lastTime) + cg.timeFraction;
 			lagscale = 1.0f - (lagscale * 3 / 200);
 
 			if ( lagscale < 0.1f )
@@ -10615,11 +10619,13 @@ void CG_Player( centity_t *cent ) {
 				return;
 			}
 		}
+		if (mov_wallhack.integer & movMaskClient && cg.demoPlayback) {
+			renderfx |= RF_NODEPTH;
+		}
 	} else if (mov_filterMask.integer & movMaskPlayers) {
 		return;
-	}
-	if (mov_wallhack.integer && cg.demoPlayback) {
-		renderfx |= RF_NODEPTH;// | RF_FORCE_ENT_ALPHA;
+	} else if (mov_wallhack.integer & movMaskPlayers && cg.demoPlayback) {
+		renderfx |= RF_NODEPTH;
 	}
 	// Update the player's client entity information regarding weapons.
 	// Explanation:  The entitystate has a weapond defined on it.  The cliententity does as well.
@@ -10859,7 +10865,7 @@ skipEffectOverride:
 		VectorCopy( elevated, seeker.lightingOrigin );
 		seeker.shadowPlane = shadowPlane;
 		seeker.renderfx = 0; //renderfx;
-							 //don't show in first person?
+		//don't show in first person?
 
 		dir[0] = cos(((double)cg.time / 12.0 + (double)cg.timeFraction / 12.0) * ((double)M_PI * 2.0) / 255.0) * 20.0f;
 		dir[1] = sin(((double)cg.time / 12.0 + (double)cg.timeFraction / 12.0) * ((double)M_PI * 2.0) / 255.0) * 20.0f;
@@ -12833,7 +12839,7 @@ skipCloaked:
 		legs.shaderRGBA[0] = 255;
 		legs.shaderRGBA[1] = 255;
 		legs.shaderRGBA[2] = 255;
-		legs.shaderRGBA[3] = 10.0f+(sin((double)((double)(cg.time / 4) + cg.timeFraction / 4))*128.0f);//112.0 * ((cent->damageTime - cg.time) / MIN_SHIELD_TIME) + random()*16;
+		legs.shaderRGBA[3] = 10.0f+(sin(cg.time / 4.0 + cg.timeFraction / 4.0)*128.0f);//112.0 * ((cent->damageTime - cg.time) / MIN_SHIELD_TIME) + random()*16;
 
 		legs.renderfx &= ~RF_RGB_TINT;
 		legs.renderfx &= ~RF_FORCE_ENT_ALPHA;

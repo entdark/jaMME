@@ -430,7 +430,11 @@ void Field_VariableSizeDraw( field_t *edit, int x, int y, int width, int size, q
 			cursorChar = 10;
 		}
 
-		i = drawLen - strlen( str );
+		if (cls.uag.newColors) {
+			i = drawLen - ( Q_PrintStrlenUAG( str ) );
+		} else {
+			i = drawLen - ( Q_PrintStrlen( str ) );
+		}
 
 		if ( size == SMALLCHAR_WIDTH ) {
 			SCR_DrawSmallChar( x + ( edit->cursor - prestep - i ) * size, y, cursorChar );

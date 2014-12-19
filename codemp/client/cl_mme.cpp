@@ -19,6 +19,7 @@ cvar_t	*mme_demoListQuit;
 cvar_t	*mme_demoAutoQuit;
 cvar_t	*mme_demoRemove;
 cvar_t	*mme_demoPrecache;
+cvar_t	*mme_demoAutoNext;
 
 void CL_MME_CheckCvarChanges(void) {
 	

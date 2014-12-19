@@ -165,8 +165,7 @@ XCVAR_DEF( ui_tm2_c4_cnt,						"0",					NULL,					CVAR_ROM|CVAR_INTERNAL )
 XCVAR_DEF( ui_tm2_c5_cnt,						"0",					NULL,					CVAR_ROM|CVAR_INTERNAL )
 XCVAR_DEF( ui_tm2_cnt,							"0",					NULL,					CVAR_ROM|CVAR_INTERNAL )
 XCVAR_DEF( ui_tm3_cnt,							"0",					NULL,					CVAR_ROM|CVAR_INTERNAL )
-
-//jamme
+//New MME ones
 XCVAR_DEF( mme_demoFileName,					"",						NULL,					0 )
 XCVAR_DEF( mov_absorbShader,					"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_absorbVisibility,				"0",					NULL,					CVAR_ARCHIVE )

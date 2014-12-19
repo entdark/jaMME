@@ -198,9 +198,7 @@ CG_CalculateWeaponPosition
 ==============
 */
 static void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles ) {
-	float	scale;
-	float	delta;
-	float	fracsin;
+	float scale, delta, fracsin;
 
 	playerEntity_t *pe = &cg.playerCent->pe;
 
@@ -1087,7 +1085,7 @@ void CG_DrawWeaponSelect( void ) {
 	int				bits;
 	int				count;
 	int				smallIconSize,bigIconSize;
-	int				holdX,x,y,pad;
+	float			holdX,x,y,pad;
 	int				sideLeftIconCnt,sideRightIconCnt;
 	int				sideMax,holdCount,iconCnt;
 	int				height;
@@ -1340,7 +1338,7 @@ void CG_DrawWeaponSelect( void ) {
 			}
 
 
-			holdX += (smallIconSize*cgs.widthRatioCoef+pad);
+			holdX += (smallIconSize+pad)*cgs.widthRatioCoef;
 		}
 		if ( i == WP_CONCUSSION )
 		{
@@ -1434,7 +1432,6 @@ void CG_NextWeapon_f( void ) {
 	}
 	else
 	{
-		trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
 		trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
 	}
 }
@@ -1501,7 +1498,6 @@ void CG_PrevWeapon_f( void ) {
 	}
 	else
 	{
-		trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
 		trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
 	}
 }
@@ -1626,7 +1622,6 @@ void CG_Weapon_f( void ) {
 
 	if (cg.weaponSelect != num)
 	{
-		trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
 		trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
 	}
 
@@ -1743,7 +1738,6 @@ void CG_WeaponClean_f( void ) {
 
 	if (cg.weaponSelect != num)
 	{
-		trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
 		trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
 	}
 
@@ -1786,7 +1780,6 @@ void CG_OutOfAmmoChange( int oldWeapon )
 	}
 
 	trap_S_StopSound(cg.snap->ps.clientNum, CHAN_WEAPON, -1);
-	trap_S_MuteSound(cg.snap->ps.clientNum, CHAN_WEAPON);
 }
 
 

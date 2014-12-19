@@ -298,16 +298,6 @@ void S_StartAmbientSound( const vec3_t origin, int entityNum, unsigned char volu
 
 /*
 ====================
-S_MuteSound
-
-Mutes sound on specified channel for specified entity.
-====================
-*/
-void S_MuteSound(int entityNum, int entchannel) {
-}
-
-/*
-====================
 S_StopSound
 
 Stops sound on specified channel for specified entity with specified sfx.

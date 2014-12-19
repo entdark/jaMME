@@ -1710,7 +1710,8 @@ typedef struct pc_token_s
 
 void	COM_MatchToken( const char**buf_p, char *match );
 
-void SkipBracedSection (const char **program);
+void SkipBracedSection(const char **program);
+qboolean SkipBracedSection2(const char **program, int depth);
 void SkipRestOfLine ( const char **data );
 
 void Parse1DMatrix (const char **buf_p, int x, float *m);

@@ -11114,8 +11114,7 @@ UI_UpdateCvars
 void UI_UpdateCvars( void ) {
 	int			i;
 	cvarTable_t	*cv;
-	vmCvar_t mov_ratioFix;
-
+	
 	for ( i = 0, cv = cvarTable ; i < cvarTableSize ; i++, cv++ ) {
 		int modCount = cv->vmCvar->modificationCount;
 		trap_Cvar_Update( cv->vmCvar );

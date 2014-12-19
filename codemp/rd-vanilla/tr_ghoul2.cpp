@@ -3837,7 +3837,7 @@ void RB_SurfaceGhoul( CRenderableSurface *surf )
 	extern bool g_bRenderGlowingObjects;
 	extern bool g_bDynamicGlowSupported;
 	if ((!tess.shader->hasGlow || g_bRenderGlowingObjects || !g_bDynamicGlowSupported || !r_DynamicGlow->integer)
-	&& (!r_capturingDofOrStereo || (r_capturingDofOrStereo && r_latestDofOrStereoFrame))) {
+	&& (!tr.capturingDofOrStereo || (tr.capturingDofOrStereo && tr.latestDofOrStereoFrame))) {
 		delete storeSurf;
 	}
 #endif

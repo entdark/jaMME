@@ -126,7 +126,6 @@ int aviFillHeader( mmeAviFile_t *aviFile ) {
 			avi_header[header_pos++] = 0;
 		}
 	}
-	nmain = header_pos - main_list - 4;
 	/* Audio stream list */
 	if (aviFile->audio) {
 		AVIOUT4("LIST");
@@ -162,9 +161,8 @@ int aviFillHeader( mmeAviFile_t *aviFile ) {
 		AVIOUTw(((16/8)*2));	 /* BlockAlign */
 		AVIOUTw(16);			 /* BitsPerSample */
 		AVIOUTw(0);				 /* bSize */
-
-		nmain = header_pos - main_list - 4;
 	}
+	nmain = header_pos - main_list - 4;
 	/* Finish stream list, i.e. put number of bytes in the list to proper pos */
 	if (!aviFile->audio) {
 		njunk = AVI_HEADER_SIZE - 8 - 12 - header_pos;
@@ -306,7 +304,6 @@ void aviClose( mmeAviFile_t *aviFile ) {
 			avi_header[header_pos++] = 0;
 		}
 	}
-	nmain = header_pos - main_list - 4;
 	/* Audio stream list */
 	if (aviFile->audio) {
 		AVIOUT4("LIST");
@@ -342,9 +339,8 @@ void aviClose( mmeAviFile_t *aviFile ) {
 		AVIOUTw(((16/8)*2));	 /* BlockAlign */
 		AVIOUTw(16);			 /* BitsPerSample */
 		AVIOUTw(0);				 /* bSize */
-
-		nmain = header_pos - main_list - 4;
 	}
+	nmain = header_pos - main_list - 4;
 	/* Finish stream list, i.e. put number of bytes in the list to proper pos */
 	if (!aviFile->audio) {
 		njunk = AVI_HEADER_SIZE - 8 - 12 - header_pos;
@@ -533,7 +529,7 @@ void mmeAviSound( mmeAviFile_t *aviFile, const char *name, mmeShotType_t type, i
 		return;
 	if (bytesInBuf + size > MME_SAMPLERATE) {
 #ifdef _DEBUG
-		Com_Printf( S_COLOR_YELLOW "WARNING: Audio capture buffer overflow -- truncating\n" );
+		Com_Printf( S_COLOR_YELLOW "WARNING: Audio capture buffer overflow - truncating\n" );
 #endif
 		size = MME_SAMPLERATE - bytesInBuf;
 	}

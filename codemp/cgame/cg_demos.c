@@ -15,6 +15,7 @@ extern void CG_PowerupTimerSounds( void );
 extern void CG_UpdateSoundTrackers();
 extern float CG_DrawFPS( float y );
 extern void CG_DrawUpperRight( void );
+extern void CG_Clear2DTintsTimes(void);
 extern void CG_CameraDraw2D( void );
 extern void CG_Draw2D( void );
 extern void CG_DrawAutoMap(void);
@@ -97,7 +98,7 @@ static void CG_DemosUpdatePlayer( void ) {
 		break;
 */	case editLine:
 		demoMoveLine();
-		break;
+		break; 
 	}
 }
 
@@ -189,7 +190,7 @@ static void demoTrueView_f(void) {
 
 static int demoSetupView( void) {
 	vec3_t forward;
-	qboolean zoomFix;	//to see disruptor zoom when we are chasing a player
+	qboolean zoomFix = qfalse;	//to see disruptor zoom when we are chasing a player
 	int inwater = qfalse;
 	qboolean behindView = qfalse;
 
@@ -239,7 +240,6 @@ static int demoSetupView( void) {
 			} else {
 				VectorCopy( cent->lerpOrigin, demo.viewOrigin );
 				VectorCopy( cent->lerpAngles, demo.viewAngles );
-				zoomFix = qfalse;
 			}
 			demo.viewFov = cg_fov.value;
 		} else {
@@ -250,7 +250,6 @@ static int demoSetupView( void) {
 			demo.viewFov = cg_fov.value;
 			demo.viewTarget = demo.chase.target;
 			cg.renderingThirdPerson = qtrue;
-			zoomFix = qfalse;
 			gCGHasFallVector = qfalse;
 		}
 		break;
@@ -262,7 +261,6 @@ static int demoSetupView( void) {
 		demo.viewTarget = demo.camera.target;
 		cg.renderingThirdPerson = qtrue;
 		cameraMove();
-		zoomFix = qfalse;
 		gCGHasFallVector = qfalse;
 		break;
 	default:
@@ -649,6 +647,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		CG_InitLocalEntities();
 		CG_InitMarkPolys();
 		CG_ClearParticles ();
+		CG_Clear2DTintsTimes();
 		trap_FX_Reset();
 		trap_R_ClearDecals();
 
@@ -680,8 +679,10 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		
 		for (i = 0; i < MAX_CHATBOX_ITEMS; i++)
 			cg.chatItems[i].time = 0;
+		CG_LoadDeferredPlayers();
 	} else if (cg.frametime > 100) {
 		hadSkip = qtrue;
+		CG_LoadDeferredPlayers();
 	} else {
 		hadSkip = qfalse;
 	}
@@ -1273,6 +1274,11 @@ void demoPlaybackInit(void) {
 	demo.media.mouseCursor = trap_R_RegisterShaderNoMip( "mme_cursor" );
 	demo.media.switchOn = trap_R_RegisterShaderNoMip( "mme_message_on" );
 	demo.media.switchOff = trap_R_RegisterShaderNoMip( "mme_message_off" );
+
+	// Weather
+	demo.media.heavyRain = trap_S_RegisterSound("sound/ambient/rain_hard");
+	demo.media.regularRain = trap_S_RegisterSound("sound/ambient/rain_mid");
+	demo.media.lightRain = trap_S_RegisterSound("sound/ambient/rain_light");
 
 	trap_SetUserCmdValue( 0, 1.0f, 0.0f, 0.0f, 0.0f, 0, 0, qfalse );
 

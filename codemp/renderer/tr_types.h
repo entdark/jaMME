@@ -96,6 +96,7 @@ typedef enum {
 	RT_MAX_REF_ENTITY_TYPE
 } refEntityType_t;
 
+#define BACKWARD_JAMP_COMPAT
 typedef struct miniRefEntity_s 
 {
 	refEntityType_t		reType;
@@ -123,7 +124,14 @@ typedef struct miniRefEntity_s
 	float				rotation;			// size 2 for RT_CYLINDER or number of verts in RT_ELECTRICITY
 
 	// misc
+	/* IMPORTANT, entTODO: use float for the engine backward compatibility
+	but use double to have smooth animation in shaders with big shader time
+	I dunno what to choose, FIXHIM :( */
+#ifdef BACKWARD_JAMP_COMPAT
+	float		shaderTime;			// subtracted from refdef time to control effect start times
+#else
 	double		shaderTime;			// subtracted from refdef time to control effect start times
+#endif
 	int			frame;				// also used as MODEL_BEAM's diameter
 
 } miniRefEntity_t;
@@ -158,7 +166,14 @@ typedef struct {
 	float				rotation;
 
 	// misc
+	/* IMPORTANT, entTODO: use float for the engine backward compatibility
+	but use double to have smooth animation in shaders with big shader time
+	I dunno what to choose, FIXHIM :( */
+#ifdef BACKWARD_JAMP_COMPAT
+	float		shaderTime;			// subtracted from refdef time to control effect start times
+#else
 	double		shaderTime;			// subtracted from refdef time to control effect start times
+#endif
 	int			frame;				// also used as MODEL_BEAM's diameter
 	//
 	//

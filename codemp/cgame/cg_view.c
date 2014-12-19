@@ -957,10 +957,6 @@ static void CG_OffsetFirstPersonView( void ) {
 	origin = cg.refdef.vieworg;
 	angles = cg.refdef.viewangles;
 
-	//mme
-//	origin = cent->lerpOrigin;
-//	angles = cent->lerpOrigin;
-	
 	// if dead, fix the angle and don't add any kick
 	if (cg.snap->ps.stats[STAT_HEALTH] <= 0 && cg.playerPredicted) {
 		angles[ROLL] = 40;
@@ -970,21 +966,6 @@ static void CG_OffsetFirstPersonView( void ) {
 		return;
 	}
 
-	//mme
-/*	if ( cent->currentState.eFlags & EF_DEAD ) {
-		angles[ROLL] = 40;
-		angles[PITCH] = -15;
-		if ( !cg.playerPredicted ) {
-			origin[2] += DEAD_VIEWHEIGHT;
-			angles[YAW] = 0;
-		} else {
-			angles[YAW] = cg.snap->ps.stats[STAT_DEAD_YAW];
-			origin[2] += cg.predictedPlayerState.viewheight;
-//			origin[2] += pe->viewHeight;
-		}
-		return;
-	}
-*/
 	// add angles based on weapon kick
 	kickTime = (cg.time - cg.kick_time) + cg.timeFraction;
 	if ( kickTime < 800 )
@@ -1069,21 +1050,14 @@ static void CG_OffsetFirstPersonView( void ) {
 //===================================
 
 	// add view height
-//	origin[2] += cg.predictedPlayerState.viewheight;
 	//mme
 	origin[2] += pe->viewHeight;
 
 	// smooth out duck height changes
-/*	timeDelta = cg.time - cg.duckTime;
-	if ( timeDelta < DUCK_TIME) {
-		cg.refdef.vieworg[2] -= cg.duckChange 
-			* (DUCK_TIME - timeDelta) / DUCK_TIME;
-	}
-*/
 	//mme
 	timeDelta = (cg.time - pe->duckTime) + cg.timeFraction;
 	if ( timeDelta >= 0 && timeDelta < DUCK_TIME) {
-		cg.refdef.vieworg[2] -= pe->duckChange 
+		origin[2] -= pe->duckChange 
 			* (DUCK_TIME - timeDelta) / DUCK_TIME;
 	}
 
@@ -1096,18 +1070,6 @@ static void CG_OffsetFirstPersonView( void ) {
 	if (cg.playerPredicted)
 		origin[2] += bob;
 
-
-	// add fall height
-/*	delta = cg.time - cg.landTime;
-	if ( delta < LAND_DEFLECT_TIME ) {
-		f = delta / LAND_DEFLECT_TIME;
-		cg.refdef.vieworg[2] += cg.landChange * f;
-	} else if ( delta < LAND_DEFLECT_TIME + LAND_RETURN_TIME ) {
-		delta -= LAND_DEFLECT_TIME;
-		f = 1.0 - ( delta / LAND_RETURN_TIME );
-		cg.refdef.vieworg[2] += cg.landChange * f;
-	}
-*/
 	//mme
 	delta = (cg.time - pe->landTime) + cg.timeFraction;
 	if ( delta < LAND_DEFLECT_TIME ) {
@@ -1438,7 +1400,7 @@ notZoom:
 	// warp if underwater
 	cg.refdef.viewContents = CG_PointContents( cg.refdef.vieworg, -1 );
 	if ( cg.refdef.viewContents & ( CONTENTS_WATER | CONTENTS_SLIME | CONTENTS_LAVA ) ){
-		v = WAVE_AMPLITUDE * sin(((double)cg.time + (double)cg.timeFraction) / 1000.0 * WAVE_FREQUENCY * M_PI * 2);
+		v = WAVE_AMPLITUDE * sin((cg.time / 1000.0 + cg.timeFraction / 1000.0) * WAVE_FREQUENCY * M_PI * 2);
 		fov_x += v;
 		fov_y -= v;
 		inwater = qtrue;
@@ -2081,6 +2043,7 @@ extern qboolean cg_skyOri;
 extern vec3_t cg_skyOriPos;
 extern float cg_skyOriScale;
 extern qboolean cg_noFogOutsidePortal;
+extern void trap_MME_TimeFraction( float timeFraction );
 void CG_DrawSkyBoxPortal(const char *cstr)
 {
 	static float lastfov;
@@ -2294,6 +2257,7 @@ skyBoxFovDone:
 	cg.refdef.rdflags |= RDF_DRAWSKYBOX;
 
 	cg.refdef.time = cg.time;
+	trap_MME_TimeFraction(cg.timeFraction);
 
 	if ( !cg.hyperspace) 
 	{ //rww - also had to add this to add effects being rendered in portal sky areas properly.
@@ -2779,6 +2743,7 @@ void CG_DrawAutoMap(void)
 	CG_DrawPic(x-SIDEFRAME_WIDTH, y+h, w+(SIDEFRAME_WIDTH*2), SIDEFRAME_HEIGHT, cgs.media.wireframeAutomapFrame_bottom);
 
 	refdef.time = cg.time;
+	trap_MME_TimeFraction(cg.timeFraction);
 
 	trap_R_ClearScene();
 	CG_AddRadarAutomapEnts();

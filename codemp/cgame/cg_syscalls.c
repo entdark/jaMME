@@ -186,12 +186,8 @@ int trap_S_GetVoiceVolume( int entityNum ) {
 	return Q_syscall( CG_S_GETVOICEVOLUME, entityNum );
 }
 
-void	trap_S_MuteSound( int entityNum, int entchannel ) {
-	Q_syscall( CG_S_MUTESOUND, entityNum, entchannel );
-}
-
 void	trap_S_StopSound( int entityNum, int entchannel, sfxHandle_t sfx ) {
-	Q_syscall( CG_S_STOPSOUND, entityNum, entchannel, sfx );
+	Q_syscall( CG_S_MUTESOUND, entityNum, entchannel, sfx );
 }
 
 void	trap_S_StartSound( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx ) {
@@ -200,8 +196,8 @@ void	trap_S_StartSound( vec3_t origin, int entityNum, int entchannel, sfxHandle_
 
 void	trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum ) {
 	//announcer is always hearable, rite?
-	if ( channelNum == CHAN_ANNOUNCER )
-		Q_syscall( CG_S_STARTSOUND, 0, ENTITYNUM_NONE, CHAN_ANNOUNCER, sfx );
+	if ( channelNum == CHAN_ANNOUNCER || channelNum == CHAN_LOCAL_SOUND )
+		Q_syscall( CG_S_STARTSOUND, 0, ENTITYNUM_NONE, channelNum, sfx );
 	else
 		Q_syscall( CG_S_STARTLOCALSOUND, sfx, channelNum );
 }
@@ -1282,4 +1278,7 @@ void trap_S_UpdateScale( float scale ) {
 }
 void trap_CIN_AdjustTime( int time ) {
 	Q_syscall( CG_CIN_ADJUST_TIME, time );
+}
+void trap_R_RotatePic2RatioFix( float ratio ) {
+	Q_syscall( CG_R_ROTATEPIC2_RATIOFIX, PASSFLOAT(ratio) );
 }

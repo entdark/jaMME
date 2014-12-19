@@ -167,7 +167,7 @@ qboolean R_MME_JitterOrigin( float *x, float *y ) {
 	mmeBlurControl_t* passControl = &passData.control;
 	*x = 0;
 	*y = 0;
-	if ( !shotData.take || finishStereo ) {
+	if ( !shotData.take || tr.finishStereo ) {
 		shotData.take = qfalse;
 		return qfalse;
 	}
@@ -188,7 +188,7 @@ qboolean R_MME_JitterOrigin( float *x, float *y ) {
 void R_MME_JitterView( float *pixels, float *eyes ) {
 	mmeBlurControl_t* blurControl = &blurData.control;
 	mmeBlurControl_t* passControl = &passData.control;
-	if ( !shotData.take || finishStereo ) {
+	if ( !shotData.take || tr.finishStereo ) {
 		shotData.take = qfalse;
 		return;
 	}
@@ -216,7 +216,7 @@ int R_MME_MultiPassNext( ) {
 	byte* outAlloc;
 	__m64 *outAlign;
 	int index;
-	if ( !shotData.take || finishStereo ) {
+	if ( !shotData.take || tr.finishStereo ) {
 		shotData.take = qfalse;
 		return 0;
 	}
@@ -231,13 +231,13 @@ int R_MME_MultiPassNext( ) {
 	R_MME_GetShot( outAlign );
 	R_MME_BlurAccumAdd( &passData.dof, outAlign );
 	
-	r_capturingDofOrStereo = qtrue;
+	tr.capturingDofOrStereo = qtrue;
 
 	ri.Hunk_FreeTempMemory( outAlloc );
 	if ( ++(control->totalIndex) < control->totalFrames ) {
 		int nextIndex = control->totalIndex;
 		if ( ++(nextIndex) >= control->totalFrames && r_stereoSeparation->value == 0.0f )
-			r_latestDofOrStereoFrame = qtrue;
+			tr.latestDofOrStereoFrame = qtrue;
 		return 1;
 	}
 	control->totalIndex = 0;
@@ -261,7 +261,7 @@ qboolean R_MME_TakeShot( void ) {
 	qboolean doGamma;
 	mmeBlurControl_t* blurControl = &blurData.control;
 
-	if ( !shotData.take || allocFailed || finishStereo )
+	if ( !shotData.take || allocFailed || tr.finishStereo )
 		return qfalse;
 	shotData.take = qfalse;
 
@@ -273,8 +273,8 @@ qboolean R_MME_TakeShot( void ) {
 	//Special early version using the framebuffer
 	if ( mme_saveShot->integer && blurControl->totalFrames > 0 &&
 		R_FrameBuffer_Blur( blurControl->Float[ blurControl->totalIndex ], blurControl->totalIndex, blurControl->totalFrames ) ) {
-		float fps;
 		byte *shotBuf;
+		float fps;
 		if ( ++(blurControl->totalIndex) < blurControl->totalFrames ) 
 			return qtrue;
 		blurControl->totalIndex = 0;
@@ -284,7 +284,7 @@ qboolean R_MME_TakeShot( void ) {
 			R_GammaCorrect( shotBuf, pixelCount * 3 );
 
 		fps = shotData.fps / ( blurControl->totalFrames );
-		audio = ri.S_MMEAviExport(inSound, &sizeSound);
+		audio = ri.S_MMEAviImport(inSound, &sizeSound);
 		R_MME_SaveShot( &shotData.main, glConfig.vidWidth, glConfig.vidHeight, fps, shotBuf, audio, sizeSound, inSound );
 		ri.Hunk_FreeTempMemory( shotBuf );
 		return qtrue;
@@ -375,7 +375,7 @@ qboolean R_MME_TakeShot( void ) {
 //			if ( mme_saveStencil->integer == 1 )
 //				R_MME_BlurAccumShift( blurStencil );
 		
-			audio = ri.S_MMEAviExport(inSound, &sizeSound);
+			audio = ri.S_MMEAviImport(inSound, &sizeSound);
 			audioTaken = qtrue;
 			// Big test for an rgba shot
 			if ( mme_saveShot->integer == 1 && shotData.main.type == mmeShotTypeRGBA ) {
@@ -434,7 +434,7 @@ qboolean R_MME_TakeShot( void ) {
 			}
 		}
 		if (!audioTaken)
-			audio = ri.S_MMEAviExport(inSound, &sizeSound);
+			audio = ri.S_MMEAviImport(inSound, &sizeSound);
 		audioTaken = qtrue;
 		R_MME_SaveShot( &shotData.main, glConfig.vidWidth, glConfig.vidHeight, shotData.fps, shotBuf, audio, sizeSound, inSound );
 		ri.Hunk_FreeTempMemory( shotBuf );
@@ -444,6 +444,9 @@ qboolean R_MME_TakeShot( void ) {
 /*		if ( mme_saveStencil->integer > 1 || ( !blurControl->totalFrames && mme_saveStencil->integer) ) {
 			byte *stencilShot = (byte *)ri.Hunk_AllocateTempMemory( pixelCount * 1);
 			R_MME_GetStencil( stencilShot );
+			if (!audioTaken && ((mme_saveStencil->integer > 1 && mme_saveShot->integer > 1)
+				|| (mme_saveStencil->integer == 1 && mme_saveShot->integer == 1)))
+				audio = ri.S_MMEAviImport(inSound, &sizeSound);
 			R_MME_SaveShot( &shotData.stencil, glConfig.vidWidth, glConfig.vidHeight, shotData.fps, stencilShot, audio, sizeSound, inSound );
 			ri.Hunk_FreeTempMemory( stencilShot );
 		}
@@ -452,7 +455,7 @@ qboolean R_MME_TakeShot( void ) {
 			R_MME_GetDepth( depthShot );
 			if (!audioTaken && ((mme_saveDepth->integer > 1 && mme_saveShot->integer > 1)
 				|| (mme_saveDepth->integer == 1 && mme_saveShot->integer == 1)))
-				audio = ri.S_MMEAviExport(inSound, &sizeSound);
+				audio = ri.S_MMEAviImport(inSound, &sizeSound);
 			R_MME_SaveShot( &shotData.depth, glConfig.vidWidth, glConfig.vidHeight, shotData.fps, depthShot, audio, sizeSound, inSound );
 			ri.Hunk_FreeTempMemory( depthShot );
 		}
@@ -530,7 +533,7 @@ void R_MME_Capture( const char *shotName, float fps, float focus, float radius )
 		return;
 	}
 	if (mme_dofFrames->integer > 0)
-		r_capturingDofOrStereo = qtrue;
+		tr.capturingDofOrStereo = qtrue;
 	cmd->commandId = RC_CAPTURE;
 	cmd->fps = fps;
 	cmd->focus = focus;
@@ -580,7 +583,7 @@ void R_MME_Init(void) {
 	mme_dofRadius = ri.Cvar_Get ( "mme_dofRadius", "2", CVAR_ARCHIVE );
 
 	mme_cpuSSE2 = ri.Cvar_Get ( "mme_cpuSSE2", "0", CVAR_ARCHIVE );
-	mme_pbo = ri.Cvar_Get ( "mme_pbo", "0", CVAR_ARCHIVE );
+	mme_pbo = ri.Cvar_Get ( "mme_pbo", "1", CVAR_ARCHIVE );
 	
 	mme_depthRange = ri.Cvar_Get ( "mme_depthRange", "512", CVAR_ARCHIVE );
 	mme_depthFocus = ri.Cvar_Get ( "mme_depthFocus", "1024", CVAR_ARCHIVE );

@@ -1114,6 +1114,10 @@ typedef struct {
 	WinVars_t *wv;
 #endif
 
+	qboolean finishStereo;
+	qboolean capturingDofOrStereo;
+	qboolean latestDofOrStereoFrame;
+
 	struct {
 		qboolean		newColors;
 	} uag;
@@ -1904,6 +1908,11 @@ typedef struct {
 
 typedef struct {
 	int		commandId;
+	float	ratio;
+} rotatePicRatioFixCommand_t;
+
+typedef struct {
+	int		commandId;
 	trRefdef_t	refdef;
 	viewParms_t	viewParms;
 	drawSurf_t *drawSurfs;
@@ -1952,6 +1961,7 @@ typedef enum {
 	RC_SCREENSHOT,
 	RC_CAPTURE,
 	RC_CAPTURE_STEREO,
+	RC_ROTATE_PIC2_RATIOFIX,
 } renderCommand_t;
 
 
@@ -2001,6 +2011,7 @@ void RE_RotatePic ( float x, float y, float w, float h,
 					  float s1, float t1, float s2, float t2,float a, qhandle_t hShader );
 void RE_RotatePic2 ( float x, float y, float w, float h, 
 					  float s1, float t1, float s2, float t2,float a, qhandle_t hShader );
+void RE_RotatePic2RatioFix ( float ratio );
 void RE_BeginFrame( stereoFrame_t stereoFrame );
 void RE_EndFrame( int *frontEndMsec, int *backEndMsec );
 
@@ -2099,7 +2110,3 @@ void R_FrameBuffer_StartFrame( void );
 void R_FrameBuffer_EndFrame( void );
 //Try to do an fbo blur
 qboolean R_FrameBuffer_Blur( float scale, int frame, int total );
-
-extern qboolean finishStereo;
-extern qboolean r_capturingDofOrStereo;
-extern qboolean r_latestDofOrStereoFrame;

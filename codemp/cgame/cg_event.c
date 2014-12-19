@@ -909,8 +909,7 @@ qboolean BG_InKnockDownOnly( int anim );
 void DoFall(centity_t *cent, entityState_t *es, int clientNum)
 {
 	int delta = es->eventParm;
-	playerEntity_t  *pe;
-	pe = &cent->pe;
+	playerEntity_t *pe = &cent->pe;
 
 	if (!(mov_soundDisable.integer & SDISABLE_FALL) && cent->currentState.eFlags & EF_DEAD)
 	{ //corpses crack into the ground ^_^
@@ -1549,9 +1548,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_STEP_16:		// smooth out step up transitions
 		DEBUGNAME("EV_STEP");
 	{
-		float	oldStep;
-		float	delta;
-		float	step;
+		float oldStep, delta, step;
 
 		// if we are interpolating, we don't need to smooth steps
 		if ( cg.demoPlayback || (cg.snap->ps.pm_flags & PMF_FOLLOW) ||
@@ -1559,13 +1556,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			break;
 		}
 		// check for stepping up before a previous step is completed
-/*		delta = cg.time - cg.stepTime;
-		if (delta < STEP_TIME) {
-			oldStep = cg.stepChange * (STEP_TIME - delta) / STEP_TIME;
-		} else {
-			oldStep = 0;
-		}
-*/
 		//mme
 		delta = (cg.time - pe->stepTime) + cg.timeFraction;
 		if (delta < STEP_TIME) {
@@ -1576,12 +1566,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 		// add this amount
 		step = 4 * (event - EV_STEP_4 + 1 );
-/*		cg.stepChange = oldStep + step;
-		if ( cg.stepChange > MAX_STEP_CHANGE ) {
-			cg.stepChange = MAX_STEP_CHANGE;
-		}
-		cg.stepTime = cg.time;
-*/		//mme
+		//mme
 		pe->stepChange = oldStep + step;
 		if ( pe->stepChange > MAX_STEP_CHANGE ) {
 			pe->stepChange = MAX_STEP_CHANGE;
@@ -1650,7 +1635,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		break;
 	case EV_ROLL:
 		DEBUGNAME("EV_ROLL");
-		if (es->number == cg.snap->ps.clientNum && cg.snap->ps.fallingToDeath)
+		if (cg.playerCent && es->number == cg.playerCent->currentState.clientNum && cg.fallingToDeath)
 			break;
 
 		if ( mov_duelIsolation.integer && (cg.predictedPlayerState.duelInProgress && (cg.predictedPlayerState.clientNum != es->clientNum && cg.predictedPlayerState.duelIndex != es->clientNum)) )
@@ -3375,7 +3360,6 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			cg_entities[es->trickedentindex2].currentState.eFlags -= EF_SOUNDTRACKER;
 		}
 		trap_S_StopSound(es->trickedentindex2, es->trickedentindex, -1);
-		trap_S_MuteSound(es->trickedentindex2, es->trickedentindex);
 		CG_S_StopLoopingSound(es->trickedentindex2, -1);
 		break;
 
