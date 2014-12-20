@@ -1,0 +1,38 @@
+Tail
+{
+	flags				usePhysics expensivePhysics impactKills impactFx
+
+	spawnFlags			cheapOrgCalc
+
+	life				5000
+	
+	rotation 180
+
+	velocity 1 -1200 0
+
+	size
+	{
+		start			0.25 0.5
+	}
+	
+	alpha
+	{
+		start 1
+	}
+
+	length
+	{
+		start			30
+	}
+
+	shaders
+	[
+		mme_rain
+	]
+
+	impactfx
+	[
+		rainsplash
+	]
+}
+
