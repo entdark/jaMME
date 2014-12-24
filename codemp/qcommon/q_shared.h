@@ -19,6 +19,8 @@
 #define HOMEPATH_NAME_WIN "jaMME"		//and this one as well :C
 #define HOMEPATH_NAME_MACOSX HOMEPATH_NAME_WIN
 
+#define	BASEGAME			"base"
+
 //NOTENOTE: Only change this to re-point ICARUS to a new script directory
 #define Q3_SCRIPT_DIR	"scripts"
 
@@ -254,7 +256,7 @@ float FloatSwap( const float *f );
 	}
 
     #if defined(__i386__)
-        #define ARCH_STRING "i386"
+        #define ARCH_STRING "x86"
     #elif defined(__x86_64__)
         #define idx64
         #define ARCH_STRING "x86_64"
