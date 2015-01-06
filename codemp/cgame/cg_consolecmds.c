@@ -337,6 +337,8 @@ static consoleCommand_t	commands[] = {
 	{ "siegeCvarUpdate", CG_SiegeCvarUpdate_f },
 	{ "siegeCompleteCvarUpdate", CG_SiegeCompleteCvarUpdate_f },
 	{ "clientlist", CG_ClientList_f },
+	{ "saveDemo", demoAutoSave_f },
+	{ "saveDemoLast", demoAutoSaveLast_f },
 };
 
 static size_t numCommands = ARRAY_LEN( commands );

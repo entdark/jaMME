@@ -132,6 +132,11 @@ void CG_SetInitialSnapshot( snapshot_t *snap ) {
 		// check for events
 		CG_CheckEvents( cent );
 	}
+	
+	if (cg_autoDemo.integer && !cg.demoPlayback) {
+		demoAutoComplete();
+		demoAutoRecord();
+	}
 }
 
 
