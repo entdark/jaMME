@@ -1,5 +1,7 @@
 #pragma once
 
+#define GL_GLEXT_PROTOTYPES
+
 #include <SDL_opengl.h>
 
 #define qglAccum glAccum
@@ -379,6 +381,12 @@ extern PFNGLGETPROGRAMIVARBPROC qglGetProgramivARB;
 extern PFNGLGETPROGRAMSTRINGARBPROC qglGetProgramStringARB;
 extern PFNGLISPROGRAMARBPROC qglIsProgramARB;
 
+extern PFNGLGENBUFFERSARBPROC qglGenBuffersARB;
+extern PFNGLBINDBUFFERARBPROC qglBindBufferARB;
+extern PFNGLBUFFERDATAARBPROC qglBufferDataARB;
+extern PFNGLMAPBUFFERARBPROC qglMapBufferARB;
+extern PFNGLUNMAPBUFFERARBPROC qglUnmapBufferARB;
+
 extern void ( * qglLockArraysEXT)( int, int);
 extern void ( * qglUnlockArraysEXT) ( void );
 extern void ( APIENTRY * qglPointParameterfEXT)( GLenum param, GLfloat value );
@@ -386,6 +394,42 @@ extern void ( APIENTRY * qglPointParameterfvEXT)( GLenum param, GLfloat *value )
 
 extern void ( APIENTRY * qglTexImage3DEXT) (GLenum, GLint, GLenum, GLsizei, GLsizei, GLsizei, GLint, GLenum, GLenum, const GLvoid *);
 extern void ( APIENTRY * qglTexSubImage3DEXT) (GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei, GLenum, GLenum, const GLvoid *);
+
+//added framebuffer extensions
+extern void (APIENTRY * qglGenFramebuffers )(GLsizei, GLuint *);
+extern void (APIENTRY * qglBindFramebuffer )(GLenum, GLuint);
+extern void (APIENTRY * qglGenRenderbuffers )(GLsizei, GLuint *);
+extern void (APIENTRY * qglBindRenderbuffer )(GLenum, GLuint);
+extern void (APIENTRY * qglRenderbufferStorage )(GLenum, GLenum, GLsizei, GLsizei);
+extern void (APIENTRY * qglFramebufferRenderbuffer )(GLenum, GLenum, GLenum, GLuint);
+extern void (APIENTRY * qglFramebufferTexture2D )(GLenum, GLenum, GLenum, GLuint, GLint);
+extern GLenum (APIENTRY * qglCheckFramebufferStatus )(GLenum);
+extern void (APIENTRY * qglDeleteFramebuffers )(GLsizei, const GLuint *);
+extern void (APIENTRY * qglDeleteRenderbuffers )(GLsizei, const GLuint *);
+
+//Multisampled FBO support
+extern void (APIENTRY * qglRenderbufferStorageMultisampleEXT ) ( GLenum target, GLsizei samples, GLenum internalformat, GLsizei width , GLsizei height );
+extern void (APIENTRY * qglBlitFramebufferEXT )( GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter );
+
+//added fragment/vertex program extensions
+extern  void (APIENTRYP qglAttachShader) (GLuint, GLuint);
+extern  void (APIENTRYP qglBindAttribLocation) (GLuint, GLuint, const GLchar *);
+extern  void (APIENTRYP qglCompileShader) (GLuint);
+extern GLuint (APIENTRYP qglCreateProgram) (void);
+extern GLuint (APIENTRYP qglCreateShader) (GLenum);
+extern void (APIENTRYP qglDeleteProgram) (GLuint);
+extern void (APIENTRYP qglDeleteShader) (GLuint);
+extern void (APIENTRYP qglShaderSource) (GLuint, GLsizei, const GLchar* *, const GLint *);
+extern void (APIENTRYP qglLinkProgram) (GLuint);
+extern void (APIENTRYP qglUseProgram) (GLuint);	
+extern GLint (APIENTRYP qglGetUniformLocation) (GLuint, const GLchar *);
+extern void (APIENTRYP qglUniform1f) (GLint, GLfloat);
+extern void (APIENTRYP qglUniform2f) (GLint, GLfloat, GLfloat);
+extern void (APIENTRYP qglUniform1i) (GLint, GLint);
+extern void (APIENTRYP qglGetProgramiv) (GLuint, GLenum, GLint *);
+extern void (APIENTRYP qglGetProgramInfoLog) (GLuint, GLsizei, GLsizei *, GLchar *);
+extern void (APIENTRYP qglGetShaderiv) (GLuint, GLenum, GLint *);
+extern void (APIENTRYP qglGetShaderInfoLog) (GLuint, GLsizei, GLsizei *, GLchar *);
 
 #define GL_TEXTURE_RECTANGLE_EXT GL_TEXTURE_RECTANGLE_ARB
 

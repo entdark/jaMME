@@ -79,6 +79,17 @@ set(MPCGameCgameFiles
 	"${MPDir}/cgame/cg_xcvar.h"
 	"${MPDir}/cgame/fx_local.h"
 	"${MPDir}/cgame/holocronicons.h"
+  "${MPDir}/cgame/cg_demos.c"
+	"${MPDir}/cgame/cg_demos_camera.c"
+	"${MPDir}/cgame/cg_demos_capture.c"
+	"${MPDir}/cgame/cg_demos_anim.c"
+	"${MPDir}/cgame/cg_demos_dof.c"
+	"${MPDir}/cgame/cg_demos_hud.c"
+	"${MPDir}/cgame/cg_demos_line.c"
+	"${MPDir}/cgame/cg_demos_math.c"
+	"${MPDir}/cgame/cg_demos_move.c"
+	"${MPDir}/cgame/cg_demos_weather.c"
+  "${MPDir}/cgame/bg_demos.c"
 	)
 source_group("cgame" FILES ${MPCGameCgameFiles})
 set(MPCGameFiles ${MPCGameFiles} ${MPCGameCgameFiles})
@@ -123,9 +134,9 @@ if(NOT WIN32)
 endif(NOT WIN32)
 
 if(WIN32)
-	install(TARGETS ${MPCGame} RUNTIME DESTINATION "OpenJK")
+	install(TARGETS ${MPCGame} RUNTIME DESTINATION "mme")
 else(WIN32)
-	install(TARGETS ${MPCGame} LIBRARY DESTINATION "OpenJK")
+	install(TARGETS ${MPCGame} LIBRARY DESTINATION "mme")
 endif(WIN32)
 set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPCGameDefines};${ReleaseDefines}")
 set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPCGameDefines};${ReleaseDefines}")

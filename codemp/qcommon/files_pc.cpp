@@ -260,7 +260,11 @@ qboolean FS_FileErase( const char *file )
 
 	testpath = FS_BuildOSPath( fs_homepath->string, fs_gamedir, file );
 
+#ifndef _WIN32
+	return (qboolean)(unlink( testpath ) == 0);
+#else
 	return (qboolean)(_unlink( testpath ) == 0);
+#endif
 }
 
 /*
@@ -2705,7 +2709,7 @@ void FS_Startup( const char *gameName ) {
 
 	fs_debug = Cvar_Get( "fs_debug", "0", 0 );
 	fs_copyfiles = Cvar_Get( "fs_copyfiles", "0", CVAR_INIT );
-	fs_cdpath = Cvar_Get ("fs_cdpath", Sys_DefaultCDPath(), CVAR_INIT|CVAR_PROTECTED );
+	fs_cdpath = Cvar_Get ("fs_cdpath", "", CVAR_INIT|CVAR_PROTECTED );
 	fs_basepath = Cvar_Get ("fs_basepath", Sys_DefaultInstallPath(), CVAR_INIT|CVAR_PROTECTED );
 	fs_basegame = Cvar_Get ("fs_basegame", "", CVAR_INIT );
 	homePath = Sys_DefaultHomePath();
@@ -2725,6 +2729,15 @@ void FS_Startup( const char *gameName ) {
 	if (fs_basepath->string[0]) {
 		FS_AddGameDirectory( fs_basepath->string, gameName );
 	}
+	
+#ifdef MACOS_X
+	fs_apppath = Cvar_Get ("fs_apppath", Sys_DefaultAppPath(), CVAR_INIT|CVAR_PROTECTED );
+	// Make MacOSX also include the base path included with the .app bundle
+	if (fs_apppath->string[0]) {
+		FS_AddGameDirectory( fs_apppath->string, gameName );
+	}
+#endif
+
 	// fs_homepath is somewhat particular to *nix systems, only add if relevant
 	// NOTE: same filtering below for mods and basegame
 	if (fs_homepath->string[0] && !Sys_PathCmp(fs_homepath->string, fs_basepath->string)) {
@@ -3285,3 +3298,108 @@ int		FS_FTell( fileHandle_t f ) {
 void	FS_Flush( fileHandle_t f ) {
 	fflush(fsh[f].handleFiles.file.o);
 }
+
+#ifdef MACOS_X
+bool FS_LoadMachOBundle( const char *name )
+{
+	int     len;
+	void    *data;
+	fileHandle_t    f;
+	char    *fn;
+	unzFile dll;
+	byte* buf;
+	char    dllName[MAX_QPATH];
+	char    *tempName;
+	unz_s   *zfi;
+	
+	//read zipped bundle from pk3
+	len = FS_ReadFile(name, &data);
+	
+	if (len < 1) {
+		return false;
+	}
+	
+	//write temporary file of zipped bundle to e.g. uixxxxxx
+	//unique filename to avoid any clashes
+	Com_sprintf( dllName, sizeof(dllName), "%sXXXXXX", name );
+	
+	tempName = mktemp( dllName );
+	
+	f = FS_FOpenFileWrite( dllName );
+	
+	if ( !f )
+	{
+		FS_FreeFile(data);
+		return false;
+	}
+	
+	if (FS_Write( data, len, f ) < len)
+	{
+		FS_FreeFile(data);
+		return false;
+	}
+	
+	FS_FCloseFile( f );
+	FS_FreeFile(data);
+	
+	//unzOpen zipped bundle, find the dylib, and try to write it
+	fn = FS_BuildOSPath( fs_homepath->string, fs_gamedir, dllName );
+	
+	dll = unzOpen( fn );
+	
+	Com_sprintf (dllName, sizeof(dllName), "%s.bundle/Contents/MacOS/%s", name, name);
+	
+	if (unzLocateFile(dll, dllName, 0) != UNZ_OK)
+	{
+		unzClose(dll);
+		remove( fn );
+		return false;
+	}
+	
+	unzOpenCurrentFile( dll );
+	
+	Com_sprintf( dllName, sizeof(dllName), "%s_pk3" DLL_EXT, name );
+	
+	f = FS_FOpenFileWrite( dllName );
+	
+	if ( !f )
+	{
+		unzCloseCurrentFile( dll );
+		unzClose( dll );
+		remove( fn );
+		return false;
+	}
+	
+	zfi = (unz_s *)dll;
+	
+	len = zfi->cur_file_info.uncompressed_size;
+	
+	buf = (byte*)Z_Malloc( len+1, TAG_FILESYS, qfalse);
+	
+	if (unzReadCurrentFile( dll, buf, len ) < len)
+	{
+		FS_FCloseFile( f );
+		unzCloseCurrentFile( dll );
+		unzClose( dll );
+		return false;
+	}
+	
+	if (FS_Write(buf, len, f) < len)
+	{
+		FS_FCloseFile( f );
+		unzCloseCurrentFile( dll );
+		unzClose( dll );
+		return false;
+	}
+	
+	FS_FCloseFile( f );
+	unzCloseCurrentFile( dll );
+	unzClose( dll );
+	Z_Free( buf );
+	
+	//remove temporary zipped bundle
+	remove( fn );
+	
+	return true;
+}
+#endif

@@ -68,7 +68,7 @@ void SV_BotWaypointReception(int wpnum, wpobject_t **wps)
 
 	while (i < gWPNum)
 	{
-		gWPArray[i] = (wpobject_t *)BotVMShift((int)wps[i]);
+		gWPArray[i] = (wpobject_t *)BotVMShift((intptr_t)wps[i]);
 		i++;
 	}
 }

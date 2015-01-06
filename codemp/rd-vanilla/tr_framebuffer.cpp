@@ -47,7 +47,9 @@
 //#pragma once
 
 #include "tr_local.h"
+#ifdef _WIN32
 #include "qgl.h"
+#endif
 
 cvar_t *r_fbo;
 cvar_t *r_fboMultiSample;
