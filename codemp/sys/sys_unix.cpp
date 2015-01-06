@@ -9,16 +9,21 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <libgen.h>
+#include <sched.h>
 
 #include "qcommon/qcommon.h"
 #include "qcommon/q_shared.h"
 #include "sys_local.h"
 
+#ifndef DEDICATED
+	#include <SDL.h>
+#endif
+
 #define	MAX_QUED_EVENTS		256
 #define	MASK_QUED_EVENTS	( MAX_QUED_EVENTS - 1 )
 
 qboolean stdin_active = qtrue;
-qboolean stdinIsATTY;
+qboolean stdinIsATTY = qfalse;
 
 // Used to determine where to store user-specific files
 static char homePath[ MAX_OSPATH ] = { 0 };
@@ -51,7 +56,7 @@ int Sys_Milliseconds (bool baseTime)
 	}
 
 	curtime = (tp.tv_sec - sys_timeBase)*1000 + tp.tv_usec/1000;
-    
+
     static int sys_timeBase = curtime;
 	if (!baseTime)
 	{
@@ -110,6 +115,29 @@ void Sys_BeginProfiling( void ) {
 }
 
 /*
+==================
+Sys_RandomBytes
+==================
+*/
+qboolean Sys_RandomBytes( byte *string, int len )
+{
+	FILE *fp;
+
+	fp = fopen( "/dev/urandom", "r" );
+	if( !fp )
+		return qfalse;
+
+	if( !fread( string, sizeof( byte ), len, fp ) )
+	{
+		fclose( fp );
+		return qfalse;
+	}
+
+	fclose( fp );
+	return qtrue;
+}
+
+/*
  ==================
  Sys_GetCurrentUser
  ==================
@@ -117,7 +145,7 @@ void Sys_BeginProfiling( void ) {
 char *Sys_GetCurrentUser( void )
 {
 	struct passwd *p;
-    
+
 	if ( (p = getpwuid( getuid() )) == NULL ) {
 		return "player";
 	}
@@ -129,9 +157,22 @@ char *Sys_GetCurrentUser( void )
 Sys_GetClipboardData
 ==================
 */
-char *Sys_GetClipboardData(void)
-{
+char *Sys_GetClipboardData( void ) {
+#ifdef DEDICATED
 	return NULL;
+#else
+	if ( !SDL_HasClipboardText() )
+		return NULL;
+
+	char *cbText = SDL_GetClipboardText();
+	size_t len = strlen( cbText ) + 1;
+
+	char *buf = (char *)Z_Malloc( len, TAG_CLIPBOARD );
+	Q_strncpyz( buf, cbText, len );
+
+	SDL_free( cbText );
+	return buf;
+#endif
 }
 
 #define MEM_THRESHOLD 96*1024*1024
@@ -195,10 +236,6 @@ sysEvent_t Sys_GetEvent( void ) {
 		return eventQue[ ( eventTail - 1 ) & MASK_QUED_EVENTS ];
 	}
 
-	// pump the message loop
-	// in vga this calls KBD_Update, under X, it calls GetEvent
-	Sys_SendKeyEvents ();
-
 	// check for console commands
 	s = Sys_ConsoleInput();
 	if ( s ) {
@@ -210,9 +247,6 @@ sysEvent_t Sys_GetEvent( void ) {
 		strcpy( b, s );
 		Sys_QueEvent( 0, SE_CONSOLE, 0, 0, len, b );
 	}
-
-	// check for other input devices
-	IN_Frame();
 
 	// check for network packets
 	MSG_Init( &netmsg, sys_packetReceived, sizeof( sys_packetReceived ) );
@@ -243,11 +277,20 @@ sysEvent_t Sys_GetEvent( void ) {
 }
 
 /*
+==============================================================
+
+DIRECTORY SCANNING
+
+==============================================================
+*/
+
+#define MAX_FOUND_FILES 0x1000
+
+/*
 ==================
 Sys_ListFiles
 ==================
 */
-#define	MAX_FOUND_FILES	0x1000
 void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, char **list, int *numfiles ) {
 	char		search[MAX_OSPATH], newsubdirs[MAX_OSPATH];
 	char		filename[MAX_OSPATH];
@@ -302,18 +345,14 @@ void Sys_ListFilteredFiles( const char *basedir, char *subdirs, char *filter, ch
 char **Sys_ListFiles( const char *directory, const char *extension, char *filter, int *numfiles, qboolean wantsubs )
 {
 	struct dirent *d;
-	// char *p; // bk001204 - unused
 	DIR		*fdir;
 	qboolean dironly = wantsubs;
 	char		search[MAX_OSPATH];
 	int			nfiles;
 	char		**listCopy;
 	char		*list[MAX_FOUND_FILES];
-	//int			flag; // bk001204 - unused
 	int			i;
 	struct stat st;
-
-	int			extLen;
 
 	if (filter) {
 
@@ -326,7 +365,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		if (!nfiles)
 			return NULL;
 
-		listCopy = (char **)Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ),TAG_FILESYS,qfalse );
+		listCopy = (char **)Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ), TAG_LISTFILES, qfalse );
 		for ( i = 0 ; i < nfiles ; i++ ) {
 			listCopy[i] = list[i];
 		}
@@ -343,7 +382,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		dironly = qtrue;
 	}
 
-	extLen = strlen( extension );
+	size_t extLen = strlen( extension );
 
 	// search
 	nfiles = 0;
@@ -362,9 +401,9 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 			continue;
 
 		if (*extension) {
-			if ( strlen( d->d_name ) < strlen( extension ) ||
+			if ( strlen( d->d_name ) < extLen ||
 				Q_stricmp(
-					d->d_name + strlen( d->d_name ) - strlen( extension ),
+					d->d_name + strlen( d->d_name ) - extLen,
 					extension ) ) {
 				continue; // didn't match
 			}
@@ -387,7 +426,7 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 		return NULL;
 	}
 
-	listCopy = (char **)Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ),TAG_FILESYS,qfalse );
+	listCopy = (char **)Z_Malloc( ( nfiles + 1 ) * sizeof( *listCopy ), TAG_LISTFILES, qfalse );
 	for ( i = 0 ; i < nfiles ; i++ ) {
 		listCopy[i] = list[i];
 	}
@@ -396,18 +435,18 @@ char **Sys_ListFiles( const char *directory, const char *extension, char *filter
 	return listCopy;
 }
 
-void	Sys_FreeFileList( char **list ) {
+void	Sys_FreeFileList( char **fileList ) {
 	int		i;
 
-	if ( !list ) {
+	if ( !fileList ) {
 		return;
 	}
 
-	for ( i = 0 ; list[i] ; i++ ) {
-		Z_Free( list[i] );
+	for ( i = 0 ; fileList[i] ; i++ ) {
+		Z_Free( fileList[i] );
 	}
 
-	Z_Free( list );
+	Z_Free( fileList );
 }
 
 /*
@@ -470,8 +509,10 @@ char *Sys_Cwd( void )
 {
 	static char cwd[MAX_OSPATH];
 
-	getcwd( cwd, sizeof( cwd ) - 1 );
-	cwd[MAX_OSPATH-1] = 0;
+	if ( getcwd( cwd, sizeof( cwd ) - 1 ) == NULL )
+		cwd[0] = '\0';
+	else
+		cwd[MAX_OSPATH-1] = '\0';
 
 	return cwd;
 }
@@ -508,38 +549,65 @@ void Sys_SetDefaultHomePath(const char *path)
 }
 
 /*
- ==================
- Sys_DefaultHomePath
- ==================
- */
+==================
+Sys_DefaultHomePath
+==================
+*/
+#ifdef MACOS_X
 char *Sys_DefaultHomePath(void)
 {
 	char *p;
-    
+
 	if( !*homePath && com_homepath != NULL )
 	{
 		if( ( p = getenv( "HOME" ) ) != NULL )
 		{
 			Com_sprintf(homePath, sizeof(homePath), "%s%c", p, PATH_SEP);
-#ifdef MACOS_X
 			Q_strcat(homePath, sizeof(homePath),
                      "Library/Application Support/");
-            
+
 			if(com_homepath->string[0])
 				Q_strcat(homePath, sizeof(homePath), com_homepath->string);
 			else
 				Q_strcat(homePath, sizeof(homePath), HOMEPATH_NAME_MACOSX);
+		}
+	}
+
+	return homePath;
+}
 #else
+char *Sys_DefaultHomePath(void)
+{
+	char *p;
+
+	if( !*homePath && com_homepath != NULL )
+	{
+		if( ( p = getenv( "XDG_DATA_HOME" ) ) != NULL )
+		{
+			Com_sprintf(homePath, sizeof(homePath), "%s%c", p, PATH_SEP);
 			if(com_homepath->string[0])
 				Q_strcat(homePath, sizeof(homePath), com_homepath->string);
 			else
 				Q_strcat(homePath, sizeof(homePath), HOMEPATH_NAME_UNIX);
-#endif
+
+			return homePath;
+		}
+
+		if( ( p = getenv( "HOME" ) ) != NULL )
+		{
+			Com_sprintf(homePath, sizeof(homePath), "%s%c.local%cshare%c", p, PATH_SEP, PATH_SEP, PATH_SEP);
+			if(com_homepath->string[0])
+				Q_strcat(homePath, sizeof(homePath), com_homepath->string);
+			else
+				Q_strcat(homePath, sizeof(homePath), HOMEPATH_NAME_UNIX);
+
+			return homePath;
 		}
 	}
-    
+
 	return homePath;
 }
+#endif
 
 char *Sys_ConsoleInput(void)
 {
@@ -610,4 +678,29 @@ void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptr
 	ev->evValue2 = value2;
 	ev->evPtrLength = ptrLength;
 	ev->evPtr = ptr;
+}
+
+void Sys_SetProcessorAffinity( void ) {
+#if defined(__linux__)
+	uint32_t cores;
+
+	if ( sscanf( com_affinity->string, "%X", &cores ) != 1 )
+		cores = 1; // set to first core only
+
+	if ( !cores )
+		return;
+
+	const long numCores = sysconf( _SC_NPROCESSORS_ONLN );
+	cpu_set_t set;
+	CPU_ZERO( &set );
+	for ( int i = 0; i < numCores; i++ ) {
+		if ( cores & (1<<i) ) {
+			CPU_SET( i, &set );
+		}
+	}
+
+	sched_setaffinity( 0, sizeof( set ), &set );
+#elif defined(MACOS_X)
+	//TODO: Apple's APIs for this are weird but exist on a per-thread level. Good enough for us.
+#endif
 }

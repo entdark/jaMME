@@ -3,6 +3,9 @@
 // cg_info.c -- display information while data is being loading
 
 #include "cg_local.h"
+#ifndef _WIN32
+#include <stddef.h>
+#endif
 
 #define MAX_LOADING_PLAYER_ICONS	16
 #define MAX_LOADING_ITEM_ICONS		26

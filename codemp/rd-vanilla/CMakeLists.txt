@@ -20,10 +20,12 @@ set(MPVanillaRendererFiles
 	"${MPDir}/rd-vanilla/tr_animation.cpp"
 	"${MPDir}/rd-vanilla/tr_arioche.cpp"
 	"${MPDir}/rd-vanilla/tr_backend.cpp"
+	"${MPDir}/rd-vanilla/tr_bloom.cpp"
 	"${MPDir}/rd-vanilla/tr_bsp.cpp"
 	"${MPDir}/rd-vanilla/tr_cmds.cpp"
 	"${MPDir}/rd-vanilla/tr_curve.cpp"
 	"${MPDir}/rd-vanilla/tr_font.cpp"
+	"${MPDir}/rd-vanilla/tr_framebuffer.cpp"
 	"${MPDir}/rd-vanilla/tr_ghoul2.cpp"
 	"${MPDir}/rd-vanilla/tr_image.cpp"
 	"${MPDir}/rd-vanilla/tr_init.cpp"
@@ -32,6 +34,11 @@ set(MPVanillaRendererFiles
 	"${MPDir}/rd-vanilla/tr_main.cpp"
 	"${MPDir}/rd-vanilla/tr_marks.cpp"
 	"${MPDir}/rd-vanilla/tr_mesh.cpp"
+	"${MPDir}/rd-vanilla/tr_mme.cpp"
+	"${MPDir}/rd-vanilla/tr_mme_avi.cpp"
+	"${MPDir}/rd-vanilla/tr_mme_common.cpp"
+	"${MPDir}/rd-vanilla/tr_mme_sse2.cpp"
+	"${MPDir}/rd-vanilla/tr_mme_stereo.cpp"
 	"${MPDir}/rd-vanilla/tr_model.cpp"
 	"${MPDir}/rd-vanilla/tr_noise.cpp"
 	"${MPDir}/rd-vanilla/tr_quicksprite.cpp"
@@ -137,7 +144,11 @@ endif(NOT WIN32)
 if(WIN32)
 	install(TARGETS ${MPVanillaRenderer} RUNTIME DESTINATION ".")
 else(WIN32)
-	install(TARGETS ${MPVanillaRenderer} LIBRARY DESTINATION ".")
+	if(MakeApplicationBundles AND BuildMPEngine)
+		install(TARGETS ${MPVanillaRenderer} LIBRARY DESTINATION "${MPEngine}.app/Contents/MacOS/")
+	else(MakeApplicationBundles AND BuildMPEngine)
+		install(TARGETS ${MPVanillaRenderer} LIBRARY DESTINATION ".")
+	endif(MakeApplicationBundles AND BuildMPEngine)
 endif(WIN32)
 set_target_properties(${MPVanillaRenderer} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${SharedDefines};${ReleaseDefines}")
 set_target_properties(${MPVanillaRenderer} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${SharedDefines};${ReleaseDefines}")

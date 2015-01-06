@@ -368,7 +368,12 @@ if(BuildMPEngine)
 	find_package(OpenGL REQUIRED)
 	set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} ${OPENGL_INCLUDE_DIR})
 	set(MPEngineLibraries ${MPEngineLibraries} ${OPENGL_LIBRARIES})
-
+	
+	#libmad stuff
+	if(APPLE)
+		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/macosx/libmad/libmad.a)
+	endif(APPLE)
+	
 	# OpenAL (is optionally included for Windows)
 	if(UseInternalOpenAL)
 		set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} "${MPDir}/client/OpenAL")
@@ -409,13 +414,14 @@ if(BuildMPEngine)
 	set(MPEngineFiles ${MPEngineFiles} ${MPEngineJpegFiles})
 	
 	set(MPEngineClientFiles
-		"${MPDir}/client/cl_avi.cpp"
 		"${MPDir}/client/cl_cgame.cpp"
 		"${MPDir}/client/cl_cin.cpp"
 		"${MPDir}/client/cl_console.cpp"
+		"${MPDir}/client/cl_demos.cpp"
 		"${MPDir}/client/cl_input.cpp"
 		"${MPDir}/client/cl_keys.cpp"
 		"${MPDir}/client/cl_main.cpp"
+		"${MPDir}/client/cl_mme.cpp"
 		"${MPDir}/client/cl_net_chan.cpp"
 		"${MPDir}/client/cl_parse.cpp"
 		"${MPDir}/client/cl_scrn.cpp"
@@ -434,13 +440,12 @@ if(BuildMPEngine)
 		"${MPDir}/client/snd_ambient.cpp"
 		"${MPDir}/client/snd_ambient.h"
 		"${MPDir}/client/snd_dma.cpp"
+		"${MPDir}/client/snd_effects.cpp"
 		"${MPDir}/client/snd_local.h"
+		"${MPDir}/client/snd_main.cpp"
 		"${MPDir}/client/snd_mem.cpp"
 		"${MPDir}/client/snd_mix.cpp"
-		"${MPDir}/client/snd_mp3.cpp"
-		"${MPDir}/client/snd_mp3.h"
-		"${MPDir}/client/snd_music.cpp"
-		"${MPDir}/client/snd_music.h"
+		"${MPDir}/client/snd_mme.cpp"
 		)
 	source_group("client" FILES ${MPEngineClientFiles})
 	set(MPEngineFiles ${MPEngineFiles} ${MPEngineClientFiles})
@@ -472,42 +477,7 @@ if(BuildMPEngine)
 		)
 	source_group("ravl" FILES ${MPEngineRavlFiles})
 	set(MPEngineFiles ${MPEngineFiles} ${MPEngineRavlFiles})
-	
-	set(MPEngineMp3Files
-		"${MPDir}/mp3code/cdct.c"
-		"${MPDir}/mp3code/config.h"
-		"${MPDir}/mp3code/csbt.c"
-		"${MPDir}/mp3code/csbtb.c"
-		"${MPDir}/mp3code/csbtl3.c"
-		"${MPDir}/mp3code/cup.c"
-		"${MPDir}/mp3code/cupini.c"
-		"${MPDir}/mp3code/cupl1.c"
-		"${MPDir}/mp3code/cupl3.c"
-		"${MPDir}/mp3code/cwin.c"
-		"${MPDir}/mp3code/cwinb.c"
-		"${MPDir}/mp3code/cwinm.c"
-		"${MPDir}/mp3code/htable.h"
-		"${MPDir}/mp3code/hwin.c"
-		"${MPDir}/mp3code/jdw.h"
-		"${MPDir}/mp3code/l3.h"
-		"${MPDir}/mp3code/l3dq.c"
-		"${MPDir}/mp3code/l3init.c"
-		"${MPDir}/mp3code/mdct.c"
-		"${MPDir}/mp3code/mhead.c"
-		"${MPDir}/mp3code/mhead.h"
-		"${MPDir}/mp3code/mp3struct.h"
-		"${MPDir}/mp3code/msis.c"
-		"${MPDir}/mp3code/port.h"
-		"${MPDir}/mp3code/small_header.h"
-		"${MPDir}/mp3code/tableawd.h"
-		"${MPDir}/mp3code/towave.c"
-		"${MPDir}/mp3code/uph.c"
-		"${MPDir}/mp3code/upsf.c"
-		"${MPDir}/mp3code/wavep.c"
-		)
-	source_group("mp3code" FILES ${MPEngineMp3Files})
-	set(MPEngineFiles ${MPEngineFiles} ${MPEngineMp3Files})
-	
+		
 	if(WIN32)
 		set(MPEngineWin32Files
 			"${MPDir}/win32/glw_win.h"
@@ -539,13 +509,32 @@ if(BuildMPEngine)
 	endif(WIN32)
 
 	# todo: windows resources
+	
+	if(MakeApplicationBundles)
+		set(MACOSX_BUNDLE_BUNDLE_NAME ${MPEngine})
+		set(MACOSX_BUNDLE_DISPLAY_NAME ${MPEngine})
+		set(MACOSX_BUNDLE_ICON_FILE jaMME.icns)
+		set_source_files_properties(${MPDir}/macosx/jaMME.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+		set(MPEngineFiles ${MPEngineFiles} ${MPDir}/macosx/jaMME.icns)
+		set_source_files_properties(${MPDir}/macosx/English.lproj/InfoPlist.strings PROPERTIES MACOSX_PACKAGE_LOCATION Resources/English.lproj)
+		set(MPEngineFiles ${MPEngineFiles} ${MPDir}/macosx/English.lproj/InfoPlist.strings)
+	endif(MakeApplicationBundles)
 
 	if(WIN32)
 		add_executable(${MPEngine} WIN32 ${MPEngineFiles})
 	else(WIN32)
-		add_executable(${MPEngine} ${MPEngineFiles})
+		if(MakeApplicationBundles)
+			add_executable(${MPEngine} MACOSX_BUNDLE ${MPEngineFiles})
+			set_target_properties(${MPEngine} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${MPDir}/macosx/jaMMEInfo.plist")
+		else(MakeApplicationBundles)
+			add_executable(${MPEngine} ${MPEngineFiles})
+		endif(MakeApplicationBundles)
 	endif(WIN32)
-    install(TARGETS ${MPEngine} RUNTIME DESTINATION ".")
+	if(MakeApplicationBundles)
+		install(TARGETS ${MPEngine} BUNDLE DESTINATION ".")
+	else(MakeApplicationBundles)
+		install(TARGETS ${MPEngine} RUNTIME DESTINATION ".")
+	endif(MakeApplicationBundles)
 	set_target_properties(${MPEngine} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPEngineDefines};${ReleaseDefines}")
 	set_target_properties(${MPEngine} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPEngineDefines};${ReleaseDefines}")
 	set_target_properties(${MPEngine} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPEngineDefines};${ReleaseDefines}")

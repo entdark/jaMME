@@ -6,8 +6,6 @@
 
 #include "unzip.h"
 
-#define	BASEGAME			"base"
-
 // if this is defined, the executable positively won't work with any paks other
 // than the demo pak, even if productid is present.  This is only used for our
 // last demo release to prevent the mac and linux users from using the demo
@@ -82,6 +80,11 @@ typedef struct {
 extern char			fs_gamedir[MAX_OSPATH];	// this will be a single file name with no separators
 extern cvar_t		*fs_debug;
 extern cvar_t		*fs_homepath;
+
+#ifdef MACOS_X
+extern cvar_t          *fs_apppath;
+#endif
+
 extern cvar_t		*fs_basepath;
 extern cvar_t		*fs_basegame;
 extern cvar_t		*fs_cdpath;
