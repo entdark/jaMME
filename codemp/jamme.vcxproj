@@ -116,7 +116,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <Link>
-      <AdditionalOptions>/MACHINE:I386 /FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/MACHINE:I386 /OPT:NOLBR /NODEFAULTLIB:LIBCMT %(AdditionalOptions)</AdditionalOptions>
       <AdditionalDependencies>winmm.lib;wsock32.lib;libmad.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -127,8 +127,9 @@
       <SubSystem>Windows</SubSystem>
       <StackReserveSize>8388608</StackReserveSize>
       <AdditionalLibraryDirectories>libs/win32</AdditionalLibraryDirectories>
-      <Profile>true</Profile>
+      <Profile>false</Profile>
       <ImageHasSafeExceptionHandlers />
+      <OptimizeReferences>false</OptimizeReferences>
     </Link>
     <Midl>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
