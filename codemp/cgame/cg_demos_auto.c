@@ -97,7 +97,7 @@ static qboolean FS_CopyFile(const char *fromOSPath, const char *toOSPath, char *
 			lExt = strchr(lExt+1, '.');
 		}
 		Q_strncpyz(nExt, lExt, sizeof(nExt));
-		COM_StripExtensionSafe(toOSPath, stripped, sizeof(stripped));
+		COM_StripExtension(toOSPath, stripped, sizeof(stripped));
 		fileCount++;
 		while (fopen(va("%s (%i)%s", stripped, fileCount, nExt), "rb")) {
 			fileCount++;
@@ -131,7 +131,6 @@ static void FS_Remove(const char *osPath) {
 }
 
 extern void CG_SanitizeString(char *in, char *out);
-extern stringID_table_t bgSiegeClassTypeNames[];
 char *demoAutoFormat(const char* name) {	
 	const	char *format;
 	qboolean haveTag = qfalse;

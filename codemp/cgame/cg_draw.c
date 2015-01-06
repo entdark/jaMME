@@ -6278,7 +6278,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 }
 
 //mme, taken from pugmod
-static void CG_SanitizeString( char *in, char *out ) {
+void CG_SanitizeString( char *in, char *out ) {
 	int i = 0;
 	int r = 0;
 

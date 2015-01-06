@@ -1002,14 +1002,14 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return re.Font_HeightPixels( args[1], VMF(2) );
 
 	case UI_R_FONT_DRAWSTRING:
-		float ox, oy;
+		{float ox, oy;
 		cvar_t *fs_game = Cvar_FindVar("fs_game");
 		if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
 			ox = VMF(1); oy = VMF(2);
 		} else {
 			ox = args[1]; oy = args[2];
 		}
-		re.Font_DrawString( ox, oy, (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );
+		re.Font_DrawString( ox, oy, (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );}
 		return 0;
 
 	case UI_LANGUAGE_ISASIAN:
