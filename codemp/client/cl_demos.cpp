@@ -777,7 +777,7 @@ static void demoPlayForwardFrame( demoPlay_t *play ) {
 			CL_Disconnect_f();
 		}
 		if (mme_demoAutoQuit->integer && !demoPrecaching) {
-			if (mme_demoAutoQuit->integer == 2)
+			if (mme_demoAutoQuit->integer == 2 && !demoPrecaching)
 				Cbuf_ExecuteText( EXEC_APPEND, "quit" );
 			CL_Disconnect_f();
 		}
