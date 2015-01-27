@@ -10,7 +10,7 @@
 typedef struct mixSound_s {
 	int			lastUsed;
 	int			speed;
-	int			samples;
+	int64_t		samples;
 	int			size;
 	sfxHandle_t	handle;
 	struct		mixSound_s *prev, *next;

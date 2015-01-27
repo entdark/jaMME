@@ -211,7 +211,7 @@ static void S_MixSpatialize(const vec3_t origin, float volume, int *left_vol, in
 extern int s_entityWavVol[MAX_GENTITIES];
 
 static void S_MixLipSync(const mixSound_t *sound, const mixChannel_t *ch) {
-	int indexAdd, indexLeft, index = 0;
+	int64_t indexAdd, indexLeft, index = 0;
 	int i, count;
 	int wavVol, sampleToCompare = 0;
 	const short *data;
@@ -253,7 +253,7 @@ static void S_MixLipSync(const mixSound_t *sound, const mixChannel_t *ch) {
 static void S_MixChannel( mixChannel_t *ch, int speed, int count, int *output ) {
 	const mixSound_t *sound;
 	int i, leftVol, rightVol;
-	int index, indexAdd, indexLeft;
+	int64_t index, indexAdd, indexLeft;
 	float *origin;
 	const short *data;
 	float volume;
@@ -413,7 +413,7 @@ static int S_MixDopplerFull( int speed, const vec3_t origin, const vec3_t veloci
 static void S_MixLoop( mixLoop_t *loop, const loopQueue_t *lq, int speed, int count, int *output ) {
 	const mixSound_t *sound;
 	int i, leftVol, rightVol;
-	int index, indexAdd, indexTotal;
+	int64_t index, indexAdd, indexTotal;
 	const short *data;
 	float volume;
 
