@@ -12,6 +12,8 @@
 #include "snd_local.h"
 
 #define HAVE_LIBMAD
+#define HAVE_LIBOGG
+#define HAVE_LIBFLAC
 
 extern	cvar_t* s_language;
 qboolean S_FileExists(char *fileName) {
@@ -38,14 +40,28 @@ tryDefaultLanguage:
 		COM_DefaultExtension(fileName, MAX_QPATH, ".mp3");
 		FS_FOpenFileRead(fileName, &f, qtrue);
 #endif
-		/* switch back to english (default) and try again */
-		if (!f && voice) {
-			strncpy(voice, "chars", 5);
-			voice = NULL;
-			goto tryDefaultLanguage;
+		if (!f) {
+#ifdef HAVE_LIBOGG
+			COM_StripExtension(fileName, fileName, MAX_QPATH);
+			COM_DefaultExtension(fileName, MAX_QPATH, ".ogg");
+			FS_FOpenFileRead(fileName, &f, qtrue);
+#endif
+			if (!f) {
+#ifdef HAVE_LIBFLAC
+				COM_StripExtension(fileName, fileName, MAX_QPATH);
+				COM_DefaultExtension(fileName, MAX_QPATH, ".flac");
+				FS_FOpenFileRead(fileName, &f, qtrue);
+#endif
+				/* switch back to english (default) and try again */
+				if (!f && voice) {
+					strncpy(voice, "chars", 5);
+					voice = NULL;
+					goto tryDefaultLanguage;
+				}
+				if (!f)
+					return qfalse;
+			}
 		}
-		if (!f)
-			return qfalse;
 	}
 	FS_FCloseFile(f);
 	return qtrue;
@@ -348,11 +364,10 @@ static openSound_t * S_WavOpen( const char *fileName ) {
 #ifdef HAVE_LIBMAD 
 #ifdef MACOS_X
 #include "macosx/libmad/mad.h"
-#else
-#include <mad.h>
+#elif defined _WIN32
+#include "mad.h"
+#pragma comment (lib, "libmad.lib")
 #endif
-//#pragma comment (lib, "libmad.lib")
-//#pragma comment (lib, "libmadd.lib")
 #define MP3_SEEKINTERVAL 16 
 #define MP3_SEEKMAX 4096
 
@@ -595,6 +610,725 @@ static openSound_t *S_MP3Open( const char *fileName ) {
 
 #endif
 
+#ifdef HAVE_LIBOGG
+#ifdef _WIN32
+#include "vorbis/codec.h"
+#pragma comment (lib, "libvorbis_static.lib")
+#pragma comment (lib, "libogg_static.lib")
+#endif
+
+typedef struct {
+	ogg_sync_state	sync;
+	ogg_stream_state stream;
+	ogg_page		page;
+	ogg_packet		packet;
+	vorbis_info		info;
+	vorbis_comment	comment;
+	vorbis_dsp_state state;
+	vorbis_block	block;
+	int				samplesLeft;
+	int				eos;
+	int				dataStart;
+	float			**pcm;
+} oggOpen_t;
+
+static qboolean S_OggInit( openSound_t *open ) {
+	oggOpen_t *ogg;
+	char *buffer;
+	int bytes;
+	int i;
+
+	ogg = (oggOpen_t *)open->data;
+
+	ogg_sync_init (&ogg->sync);
+
+    /* fragile!  Assumes all of our headers will fit in the first 8kB,
+       which currently they will */
+    buffer = ogg_sync_buffer (&ogg->sync,8192);
+    bytes = S_StreamRead(open, 8192, buffer);
+    ogg_sync_wrote (&ogg->sync,bytes);
+
+    if(ogg_sync_pageout (&ogg->sync,&ogg->page) != 1) {
+      if(bytes < 8192) {
+		return qfalse;
+      }
+    }
+
+    ogg_stream_init (&ogg->stream,ogg_page_serialno(&ogg->page));
+
+    vorbis_info_init (&ogg->info);
+    vorbis_comment_init (&ogg->comment);
+    if (ogg_stream_pagein (&ogg->stream,&ogg->page) < 0) {
+		return qfalse;
+    }
+
+    if (ogg_stream_packetout(&ogg->stream,&ogg->packet) != 1) {
+		return qfalse;
+    }
+
+    if (vorbis_synthesis_headerin (&ogg->info,&ogg->comment,&ogg->packet) < 0) {
+		return qfalse;
+    }
+
+    i = 0;
+    while ( i < 2) {
+      while (i < 2) {
+
+        int result = ogg_sync_pageout (&ogg->sync,&ogg->page);
+        if(result == 0)
+          break;
+        if(result==1) {
+          ogg_stream_pagein(&ogg->stream,&ogg->page);
+
+          while (i < 2) {
+            result = ogg_stream_packetout (&ogg->stream,&ogg->packet);
+            if (result == 0) break;
+            if (result < 0) {
+				return qfalse;
+            }
+            vorbis_synthesis_headerin (&ogg->info,&ogg->comment,&ogg->packet);
+            i++;
+          }
+        }
+      }
+
+      buffer = ogg_sync_buffer (&ogg->sync,4096);
+      bytes = S_StreamRead(open, 4096, buffer);
+      if (bytes == 0 && i < 2) {
+		return qfalse;
+      }
+
+      ogg_sync_wrote (&ogg->sync,bytes);
+    }
+
+    vorbis_synthesis_init (&ogg->state,&ogg->info);
+    vorbis_block_init (&ogg->state,&ogg->block);
+	return qtrue;
+}
+
+static qboolean S_OggTotalSamples( openSound_t *open ) {
+	oggOpen_t *ogg;
+	int eos = 0;
+	if (!open || !open->data)
+		return qfalse;
+	ogg = (oggOpen_t *)open->data;
+    while(!eos) {
+      while (!eos) {
+        int result = ogg_sync_pageout (&ogg->sync,&ogg->page);
+        if (result == 0)
+          break;
+        if (result < 0) {
+//          fprintf (stderr,"Corrupt or missing data in bitstream; "
+//                   "continuing...\n");
+        } else {
+          ogg_stream_pagein (&ogg->stream,&ogg->page);
+          while (1) {
+            result = ogg_stream_packetout (&ogg->stream,&ogg->packet);
+
+            if (result == 0)
+              break;
+            if (result < 0) {
+              /* no reason to complain; already complained above */
+            } else {
+              float **pcm;
+              int samples;
+
+              if (vorbis_synthesis (&ogg->block,&ogg->packet) == 0)
+                vorbis_synthesis_blockin(&ogg->state,&ogg->block);
+              while ((samples = vorbis_synthesis_pcmout (&ogg->state,&pcm)) > 0) {
+                vorbis_synthesis_read (&ogg->state,samples);
+                open->totalSamples += samples ;
+              }
+            }
+          }
+
+          if (ogg_page_eos (&ogg->page)) eos = 1;
+        }
+      }
+
+      if (!eos) {
+        char *buffer = ogg_sync_buffer (&ogg->sync,4096);
+        int bytes = S_StreamRead(open, 4096, buffer);
+        ogg_sync_wrote (&ogg->sync,bytes);
+        if (bytes == 0) eos = 1;
+      }
+    }
+	return qtrue;
+}
+
+static short S_OggSample(float fsample) {
+	int sample = floor(fsample*32767.f+.5f);
+	if (sample > 32767) {
+		return 32767;
+	} else if (sample < -32768) {
+		return 32768;
+	}
+	return sample;
+}
+
+static int S_OggRead( openSound_t *open, qboolean stereo, int size, short *data ) {
+	oggOpen_t *ogg;
+	int done;
+	int bufSize;
+
+	if (!open || !open->data )
+		return 0;
+	ogg = (oggOpen_t *)(open->data);
+	bufSize = 4096/ogg->info.channels;
+	done = 0;
+	if (ogg->samplesLeft) {
+		goto finishSamples;
+		}
+		/* Have we got any pcm data waiting */
+		while(!ogg->eos && size > 0) {
+      while (!ogg->eos && size > 0) {
+        int result = ogg_sync_pageout (&ogg->sync,&ogg->page);
+        if (result == 0)
+          break;
+        if (result < 0) {
+//          fprintf (stderr,"Corrupt or missing data in bitstream; "
+//                   "continuing...\n");
+        } else {
+          ogg_stream_pagein (&ogg->stream,&ogg->page);
+          while (1) {
+            result = ogg_stream_packetout (&ogg->stream,&ogg->packet);
+
+            if (result == 0)
+              break;
+            if (result < 0) {
+              /* no reason to complain; already complained above */
+            } else {
+
+              if (vorbis_synthesis (&ogg->block,&ogg->packet) == 0)
+                vorbis_synthesis_blockin(&ogg->state,&ogg->block);
+              while ((ogg->samplesLeft = vorbis_synthesis_pcmout (&ogg->state,&ogg->pcm)) > 0 && size > 0) {
+finishSamples:
+				  int i, todo;
+				todo = ogg->samplesLeft;
+                todo = todo < size ? todo : size;
+				todo = todo < bufSize ? todo : bufSize;
+				if ( data ) {
+					if ( ogg->info.channels == 1 ) {
+						float *left = ogg->pcm[0];
+						if ( stereo ) {
+							for (i = 0;i<todo;i++) {
+								data[0] = data[1] = S_OggSample( left[i]  );
+								data += 2;
+							}
+						} else{
+							for (i = 0;i<todo;i++) {
+								*data++ = S_OggSample( left[i]  );
+							}
+						}
+						ogg->pcm[0] += todo;
+					} else if ( ogg->info.channels == 2 ) {
+						float *left = ogg->pcm[0];
+						float *right = ogg->pcm[1];
+						if ( stereo ) {
+							for (i = 0;i<todo;i++) {
+								data[0] = S_OggSample( left[i] );
+								data[1] = S_OggSample( right[i] );
+								data+=2;
+							}
+						} else {
+							for (i = 0;i<todo;i++) {
+								int addSample;
+								addSample = S_OggSample( left[i] );
+								addSample += S_OggSample( right[i] );
+								*data++ = addSample >> 1;
+							}
+						}
+						ogg->pcm[0] += todo;
+						ogg->pcm[1] += todo;
+					} else {
+						return done;
+					}
+					vorbis_synthesis_read (&ogg->state, todo);
+				} 
+				done += todo;
+				size -= todo;
+				ogg->samplesLeft -= todo;
+				if ( ogg->samplesLeft || size <= 0 )
+					return done;
+              }
+            }
+          }
+
+          if (ogg_page_eos (&ogg->page)) ogg->eos = 1;
+        }
+      }
+
+      if (!ogg->eos) {
+        char *buffer = ogg_sync_buffer (&ogg->sync,4096);
+        int bytes = S_StreamRead(open, 4096, buffer);
+        ogg_sync_wrote (&ogg->sync,bytes);
+        if (bytes == 0) ogg->eos = 1;
+      }
+    }
+	return done;
+}
+
+static int S_OggSeek( struct openSound_s *open, int samples ) {
+	oggOpen_t *ogg;
+	if (!open || !open->data )
+		return 0;
+	ogg = (oggOpen_t *)open->data;
+	ogg->samplesLeft = 0;
+	ogg->eos = 0;
+	S_StreamSeek(open, ((float)samples/open->totalSamples)*(open->fileSize));
+	return samples;
+}
+
+static void S_OggClose( openSound_t *open) {
+	oggOpen_t *ogg;
+	if (!open || !open->data )
+		return;
+	ogg = (oggOpen_t *)(open->data);	
+	ogg_stream_clear (&ogg->stream);
+	vorbis_block_clear (&ogg->block);
+	vorbis_dsp_clear (&ogg->state);
+	vorbis_comment_clear (&ogg->comment);
+	vorbis_info_clear (&ogg->info);
+	ogg_sync_clear (&ogg->sync);
+}
+
+#ifdef HAVE_LIBFLAC
+extern "C" {
+#ifdef _WIN32
+//ent: important to define FLAC__NO_DLL if we use a static lib
+#define FLAC__NO_DLL
+//#include "protected/stream_decoder.h"
+#define FLAC__HAS_OGG
+#include "FLAC/stream_decoder.h"
+#endif
+}
+static openSound_t *S_FlacOpen( const char *fileName, FLAC__bool is_ogg );
+#endif
+static openSound_t *S_OggOpen( const char *fileName ) {
+	oggOpen_t *ogg;
+	openSound_t *open;
+    char *buffer;
+    int bytes;
+
+	open = S_StreamOpen( fileName, sizeof( oggOpen_t ) );
+	if (!open) {
+		Com_Printf("OggOpen:File %s failed to open\n", fileName);
+		return 0;
+	}
+	ogg = (oggOpen_t *)open->data;
+	open->read = S_OggRead;
+	open->seek = S_OggSeek;
+	open->close = S_OggClose;
+	
+	if (!S_OggInit(open)) {
+		Com_Printf("OggOpen:File %s failed to init\n", fileName);
+		S_SoundClose( open );
+#ifdef HAVE_LIBFLAC
+		Com_Printf("OggOpen:Checking for flac codec...\n", fileName);
+		open = S_FlacOpen(fileName, /*is_ogg*/1);
+		if (open)
+			return open;
+		Com_Printf("OggOpen:File %s failed to open as flac\n", fileName);
+#endif
+		return 0;
+	}
+	ogg->dataStart = open->filePos;
+	if (!S_OggTotalSamples(open)) {
+		Com_Printf("OggOpen:File %s has no samples\n", fileName);
+		S_SoundClose( open );
+		return 0;
+	}
+
+	/* Reset to the beginning and finalize setting of values */
+	S_StreamSeek(open, 0);
+	open->rate = ogg->info.rate;
+	return open;
+}
+
+#endif
+
+#ifdef HAVE_LIBFLAC
+//ent: my windows static lib built with FLAC__HAS_OGG, FLAC__CPU_IA32, FLAC__HAS_NASM, FLAC__HAS_X86INTRIN,
+//FLAC__SSE2_SUPPORTED, FLAC__SSE4_1_SUPPORTED
+#ifdef _WIN32
+#pragma comment (lib, "libFLAC_static.lib")
+#endif
+
+typedef struct {
+	FLAC__StreamDecoder *decoder;
+	qboolean			stereo;
+	int					size;
+	short				*data;
+	int					done;
+	const FLAC__int32	*buffer[FLAC__MAX_CHANNELS];
+	int					samplesLeft;
+	unsigned int		channels;
+	qboolean			seeked;
+} flacOpen_t;
+
+FLAC__StreamDecoderWriteStatus S_FlacWriteCallback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data) {
+	openSound_t	*open = (openSound_t *)client_data;
+	flacOpen_t	*flac = (flacOpen_t *)(open->data);
+	qboolean	stereo = flac->stereo;
+	unsigned int channels;
+	int			i;
+	if(buffer [0] == NULL) {
+		Com_Printf("Flac error: buffer [0] is NULL\n");
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	}
+	channels = flac->channels = frame->header.channels;
+	flac->samplesLeft = frame->header.blocksize;
+	for (i = 0; i < channels; i++)
+		flac->buffer[i] = buffer[i];
+	/* write decoded PCM samples */
+	while(flac->size > 0) {
+		int todo;
+		if ( flac->samplesLeft <= flac->size ) {
+			todo = flac->samplesLeft;
+		} else {
+			todo = flac->size;
+		}
+		if ( channels == 1 ) {
+			if ( stereo ) {
+				for (i = 0;i<todo;i++) {
+					flac->data[0] = flac->data[1] = (FLAC__int16)flac->buffer[0][i];
+					flac->data += 2;
+				}
+			} else{
+				for (i = 0;i<todo;i++) {
+					*flac->data++ = (FLAC__int16)flac->buffer[0][i];
+				}
+			}
+			flac->buffer[0] += todo;
+		} else if ( channels == 2 ) {
+			if ( stereo ) {
+				for (i = 0;i<todo;i++) {
+					flac->data[0] = (FLAC__int16)flac->buffer[0][i];
+					flac->data[1] = (FLAC__int16)flac->buffer[1][i];
+					flac->data+=2;
+				}
+			} else {
+				for (i = 0;i<todo;i++) {
+					int addSample;
+					addSample = (FLAC__int16)flac->buffer[0][i];
+					addSample += (FLAC__int16)flac->buffer[1][i];
+					*flac->data++ = addSample >> 1;
+				}
+			}
+			flac->buffer[0] += todo;
+			flac->buffer[1] += todo;
+		} else if ( channels >= 3 && channels <= FLAC__MAX_CHANNELS) {
+			if ( stereo ) {
+				for (i = 0;i<todo;i++) {
+					int addSample;
+					int u;
+					float halfChan = (float)channels/2;
+					addSample = (FLAC__int16)flac->buffer[0][i];
+					for (u = 1; u < (halfChan-0.2f); u++)
+						addSample += (FLAC__int16)flac->buffer[u*2][i];
+					flac->data[0] = (float)addSample / ((channels%2 == 0)?(channels/2):(channels+1)/2);
+					addSample = (FLAC__int16)flac->buffer[1][i];
+					for (u = 1; u < (halfChan-0.2f); u++)
+						addSample += (FLAC__int16)flac->buffer[(u*2)+((halfChan-u)<0.8f)?0:1][i];
+					flac->data[1] = (float)addSample / ((channels%2 == 0)?(channels/2):(channels+1)/2);
+					flac->data+=2;
+				}
+			} else {
+				for (i = 0;i<todo;i++) {
+					int addSample;
+					int u;
+					addSample = (FLAC__int16)flac->buffer[0][i];
+					for (u = 1; u < (channels); u++)
+						addSample += (FLAC__int16)flac->buffer[u][i];
+					addSample += (FLAC__int16)flac->buffer[2][i];
+					*flac->data++ = (float)addSample / (channels);
+				}
+			}
+			for (i = 0; i < channels; i++) {
+				flac->buffer[i] += todo;
+			}
+		} else {
+			flac->done = flac->size = 0;
+			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+		} 
+		flac->done += todo;
+		flac->size -= todo;
+		flac->samplesLeft -= todo;
+		if ( flac->samplesLeft && !flac->size )
+			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+		else if ( flac->size && !flac->samplesLeft )
+			return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+		//wtf should never reach, or maybe when flac->samplesLeft == size == 0
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	}
+	
+}
+
+void S_FlacMetadataCallback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data) {
+}
+
+void S_FlacErrorCallback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data) {
+	openSound_t *open = (openSound_t *)client_data;
+	flacOpen_t *flac = (flacOpen_t *)open->data;
+	//entFIXME: special hack to ignore error message of bad header although the sound is being played fine
+	if (!(flac->seeked && (status == FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER
+		//ent: since we can jump in time sometimes we can catch FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC
+		//and according to docs that error below is not fatal
+		|| status == FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)))
+		Com_Printf("Flac error callback: %s\n", FLAC__StreamDecoderErrorStatusString[status]);
+}
+FLAC__StreamDecoderReadStatus S_FlacReadCallback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data) {
+	openSound_t *open = (openSound_t *)client_data;
+	if(*bytes > 0) {
+		*bytes = S_StreamRead(open, (*bytes)*sizeof(FLAC__byte), buffer);
+		if(*bytes == 0)
+			return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
+		else
+			return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
+	}
+	else
+		return FLAC__STREAM_DECODER_READ_STATUS_ABORT; /* abort to avoid a deadlock */
+}
+
+FLAC__StreamDecoderSeekStatus S_FlacSeekCallback(const FLAC__StreamDecoder *decoder, FLAC__uint64 absolute_byte_offset, void *client_data) {
+	openSound_t *open = (openSound_t *)client_data;
+	flacOpen_t *flac = (flacOpen_t *)open->data;
+	if(S_StreamSeek(open, (int)absolute_byte_offset)) {
+		return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
+	} else {
+		flac->seeked = qtrue;
+		return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
+	}
+}
+
+FLAC__StreamDecoderTellStatus S_FlacTellCallback(const FLAC__StreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data) {
+	int pos;
+	openSound_t *open = (openSound_t *)client_data;
+	if((pos = FS_FTell(open->fileHandle)) < 0)
+		return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
+	else {
+		*absolute_byte_offset = (FLAC__uint64)pos;
+		return FLAC__STREAM_DECODER_TELL_STATUS_OK;
+	}
+}
+
+FLAC__StreamDecoderLengthStatus S_FlacLengthCallback(const FLAC__StreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data) {
+	openSound_t *open = (openSound_t *)client_data;
+	if(open->fileSize <= 0)
+		return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
+	else {
+		*stream_length = open->fileSize;
+		return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
+	}
+}
+
+FLAC__bool S_FlacEOFCallback(const FLAC__StreamDecoder *decoder, void *client_data) {
+	openSound_t *open = (openSound_t *)client_data;
+	return FS_FEof(open->fileHandle)? 1 : 0;
+}
+
+static int S_FlacRead( openSound_t *open, qboolean stereo, int size, short *data ) {
+	flacOpen_t *flac;
+	unsigned int channels;
+	FLAC__StreamDecoderState state;
+
+	if (!open || !open->data )
+		return 0;
+	flac = (flacOpen_t *)(open->data);
+	channels = flac->channels;
+	flac->done = 0;
+	if (flac->samplesLeft && channels) {
+		int i, todo;
+		if ( flac->samplesLeft <= size ) {
+			todo = flac->samplesLeft;
+		} else {
+			todo = size;
+		}
+		if ( channels == 1 ) {
+			if ( stereo ) {
+				for (i = 0;i<todo;i++) {
+					data[0] = data[1] = (FLAC__int16)flac->buffer[0][i];
+					data += 2;
+				}
+			} else{
+				for (i = 0;i<todo;i++) {
+					*data++ = (FLAC__int16)flac->buffer[0][i];
+				}
+			}
+			flac->buffer[0] += todo;
+		} else if ( channels == 2 ) {
+			if ( stereo ) {
+				for (i = 0;i<todo;i++) {
+					data[0] = (FLAC__int16)flac->buffer[0][i];
+					data[1] = (FLAC__int16)flac->buffer[1][i];
+					data+=2;
+				}
+			} else {
+				for (i = 0;i<todo;i++) {
+					int addSample;
+					addSample = (FLAC__int16)flac->buffer[0][i];
+					addSample += (FLAC__int16)flac->buffer[1][i];
+					*data++ = addSample >> 1;
+				}
+			}
+			flac->buffer[0] += todo;
+			flac->buffer[1] += todo;
+		} else if ( channels >= 3 && channels <= FLAC__MAX_CHANNELS) {
+			if ( stereo ) {
+				for (i = 0;i<todo;i++) {
+					int addSample;
+					int u;
+					float halfChan = (float)channels/2;
+					addSample = (FLAC__int16)flac->buffer[0][i];
+					for (u = 1; u < (halfChan-0.2f); u++)
+						addSample += (FLAC__int16)flac->buffer[u*2][i];
+					data[0] = (float)addSample / ((channels%2 == 0)?(channels/2):(channels+1)/2);
+					addSample = (FLAC__int16)flac->buffer[1][i];
+					for (u = 1; u < (halfChan-0.2f); u++)
+						addSample += (FLAC__int16)flac->buffer[(u*2)+((halfChan-u)<0.8f)?0:1][i];
+					data[1] = (float)addSample / ((channels%2 == 0)?(channels/2):(channels+1)/2);
+					data+=2;
+				}
+			} else {
+				for (i = 0;i<todo;i++) {
+					int addSample;
+					int u;
+					addSample = (FLAC__int16)flac->buffer[0][i];
+					for (u = 1; u < (channels); u++)
+						addSample += (FLAC__int16)flac->buffer[u][i];
+					addSample += (FLAC__int16)flac->buffer[2][i];
+					*data++ = (float)addSample / (channels);
+				}
+			}
+			for (i = 0; i < channels; i++) {
+				flac->buffer[i] += todo;
+			}
+		}
+		flac->done += todo;
+		size -= todo;
+		flac->samplesLeft -= todo;
+		if ( !size )
+			return flac->done;
+	}
+	flac->data = data;
+	flac->size = size;
+	flac->stereo = stereo;
+//	state = FLAC__stream_decoder_get_state(flac->decoder);
+//	Com_Printf("Flac decoder state: %s\n", FLAC__StreamDecoderStateString[state]);
+	if (!FLAC__stream_decoder_process_until_end_of_stream(flac->decoder)) {
+		state = FLAC__stream_decoder_get_state(flac->decoder);
+//		Com_Printf("Flac decoder state: %s\n", FLAC__StreamDecoderStateString[state]);
+		if (state == FLAC__STREAM_DECODER_SEEK_ERROR) {
+			FLAC__stream_decoder_flush(flac->decoder);
+			if (flac->size)
+				FLAC__stream_decoder_process_until_end_of_stream(flac->decoder);
+		}
+	}
+	return flac->done;
+}
+
+static int S_FlacSeek( struct openSound_s *open, int samples ) {
+	flacOpen_t *flac;
+	FLAC__StreamDecoderState state;
+	if (!open || !open->data )
+		return 0;
+	flac = (flacOpen_t *)open->data;
+	flac->samplesLeft = 0;
+	state = FLAC__stream_decoder_get_state(flac->decoder);
+	if (state != FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC)
+		FLAC__stream_decoder_flush(flac->decoder);
+	flac->seeked = qfalse;
+	if (FLAC__stream_decoder_seek_absolute(flac->decoder, samples) || flac->seeked) {
+		state = FLAC__stream_decoder_get_state(flac->decoder);
+//		Com_Printf("Flac decoder state: %s\n", FLAC__StreamDecoderStateString[state]);
+		if (state != FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC)
+			FLAC__stream_decoder_flush(flac->decoder);
+//		state = FLAC__stream_decoder_get_state(flac->decoder);
+//		Com_Printf("Flac decoder state: %s\n", FLAC__StreamDecoderStateString[state]);
+//		FLAC__stream_decoder_process_until_end_of_metadata(flac->decoder);
+//		state = FLAC__stream_decoder_get_state(flac->decoder);
+//		Com_Printf("Flac decoder state: %s\n", FLAC__StreamDecoderStateString[state]);
+		return samples;
+	}
+//	state = FLAC__stream_decoder_get_state(flac->decoder);
+//	Com_Printf("Flac decoder state: %s\n", FLAC__StreamDecoderStateString[state]);
+	return 0;
+}
+
+static void S_FlacClose( openSound_t *open) {
+	flacOpen_t *flac;
+	if (!open || !open->data )
+		return;
+	flac = (flacOpen_t *)(open->data);	
+	FLAC__stream_decoder_delete(flac->decoder);
+}
+
+static openSound_t *S_FlacOpen( const char *fileName, FLAC__bool is_ogg ) {
+	flacOpen_t *flac;
+	openSound_t *open;
+	FLAC__StreamDecoderInitStatus init_status;
+
+	open = S_StreamOpen( fileName, sizeof( flacOpen_t ) );
+	if (!open) {
+		Com_Printf("FlacOpen:File %s failed to open\n", fileName);
+		return 0;
+	}
+	flac = (flacOpen_t *)open->data;
+	open->read = S_FlacRead;
+	open->seek = S_FlacSeek;
+	open->close = S_FlacClose;	
+	flac->decoder = 0;
+	if((flac->decoder = FLAC__stream_decoder_new()) == NULL) {
+		Com_Printf("FlacOpen:File %s failed to allocate decoder\n", fileName);
+		S_SoundClose( open );
+		return 0;
+	}	
+	(void)FLAC__stream_decoder_set_md5_checking(flac->decoder, true);
+	if (!is_ogg)
+	init_status = FLAC__stream_decoder_init_stream(flac->decoder,
+		S_FlacReadCallback,
+		S_FlacSeekCallback,
+		S_FlacTellCallback,
+		S_FlacLengthCallback,
+		S_FlacEOFCallback,
+		S_FlacWriteCallback,
+		S_FlacMetadataCallback,
+		S_FlacErrorCallback,
+		open);
+	else
+	init_status = FLAC__stream_decoder_init_ogg_stream(flac->decoder,
+		S_FlacReadCallback,
+		S_FlacSeekCallback,
+		S_FlacTellCallback,
+		S_FlacLengthCallback,
+		S_FlacEOFCallback,
+		S_FlacWriteCallback,
+		S_FlacMetadataCallback,
+		S_FlacErrorCallback,
+		open);
+
+	if(init_status != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
+		Com_Printf("FlacOpen:File %s failed to init decoder: %s\n", fileName, FLAC__StreamDecoderInitStatusString[init_status]);
+		S_SoundClose( open );
+		return 0;
+	}
+
+	/* Reset to the beginning and finalize setting of values */
+	FLAC__stream_decoder_process_until_end_of_metadata(flac->decoder);
+	open->totalSamples = FLAC__stream_decoder_get_total_samples(flac->decoder);
+	if (!open->totalSamples) {
+		Com_Printf("FlacOpen:File %s has unknown amount of samples\n", fileName);
+		S_SoundClose( open );
+		return 0;
+	}
+	FLAC__stream_decoder_process_single(flac->decoder);
+	open->rate = FLAC__stream_decoder_get_sample_rate(flac->decoder);//flac->decoder->private_->stream_info.data.stream_info.sample_rate;
+	FLAC__stream_decoder_reset(flac->decoder);
+	FLAC__stream_decoder_process_until_end_of_metadata(flac->decoder);
+	return open;
+}
+#endif
+
 openSound_t *S_SoundOpen( const char *fileName ) {
 	const char *fileExt;
 
@@ -612,6 +1346,14 @@ openSound_t *S_SoundOpen( const char *fileName ) {
 #ifdef HAVE_LIBMAD
 	} else if (!Q_stricmp( fileExt, ".mp3")) {
 		return S_MP3Open( fileName );
+#endif
+#ifdef HAVE_LIBOGG
+	} else if (!Q_stricmp( fileExt, ".ogg") || !Q_stricmp( fileExt, ".oga")) {
+		return S_OggOpen( fileName );
+#endif
+#ifdef HAVE_LIBFLAC
+	} else if (!Q_stricmp( fileExt, ".flac")) {
+		return S_FlacOpen( fileName, /*is_ogg =*/0 );
 #endif
 	} else {
 		Com_Printf("SoundOpen:File %s has unknown extension %s\n", fileName, fileExt );

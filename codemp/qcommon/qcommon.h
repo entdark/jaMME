@@ -615,6 +615,9 @@ void	FS_WriteFile( const char *qpath, const void *buffer, int size );
 int		FS_filelength( fileHandle_t f );
 // doesn't work for files that are opened from a pack file
 
+qboolean FS_FEof( fileHandle_t f );
+// where are we?
+
 int		FS_FTell( fileHandle_t f );
 // where are we?
 

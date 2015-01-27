@@ -3285,6 +3285,16 @@ int		FS_FOpenFileByMode( const char *qpath, fileHandle_t *f, fsMode_t mode ) {
 	return r;
 }
 
+qboolean FS_FEof( fileHandle_t f ) {
+	qboolean eof;
+	if (fsh[f].zipFile == qtrue) {
+		eof = (qboolean)unzeof(fsh[f].handleFiles.file.z);
+	} else {
+		eof = (qboolean)feof(fsh[f].handleFiles.file.o);
+	}
+	return eof;
+}
+
 int		FS_FTell( fileHandle_t f ) {
 	int pos;
 	if (fsh[f].zipFile == qtrue) {
