@@ -15,10 +15,26 @@
 #define HAVE_LIBOGG
 #define HAVE_LIBFLAC
 
+const char *ext[] = {
+	".wav",
+#ifdef HAVE_LIBMAD
+	".mp3",
+#endif
+#ifdef HAVE_LIBOGG
+	".ogg",
+	".oga",
+#endif
+#ifdef HAVE_LIBFLAC
+	".flac",
+#endif
+	NULL,
+};
+
 extern	cvar_t* s_language;
 qboolean S_FileExists(char *fileName) {
 	char *voice = strstr(fileName,"chars");
 	fileHandle_t f;
+	int i;
 	if (voice && s_language) {
 		if (stricmp("DEUTSCH",s_language->string)==0) {				
 			strncpy(voice,"chr_d",5);	// same number of letters as "chars"
@@ -31,38 +47,23 @@ qboolean S_FileExists(char *fileName) {
 		}
 	}
 tryDefaultLanguage:
-	COM_StripExtension(fileName, fileName, MAX_QPATH);
-	COM_DefaultExtension(fileName, MAX_QPATH, ".wav");
-	FS_FOpenFileRead(fileName, &f, qtrue);
-	if (!f) {
-#ifdef HAVE_LIBMAD
+	i = 0;
+	while (ext[i]) {
 		COM_StripExtension(fileName, fileName, MAX_QPATH);
-		COM_DefaultExtension(fileName, MAX_QPATH, ".mp3");
+		COM_DefaultExtension(fileName, MAX_QPATH, ext[i]);
 		FS_FOpenFileRead(fileName, &f, qtrue);
-#endif
-		if (!f) {
-#ifdef HAVE_LIBOGG
-			COM_StripExtension(fileName, fileName, MAX_QPATH);
-			COM_DefaultExtension(fileName, MAX_QPATH, ".ogg");
-			FS_FOpenFileRead(fileName, &f, qtrue);
-#endif
-			if (!f) {
-#ifdef HAVE_LIBFLAC
-				COM_StripExtension(fileName, fileName, MAX_QPATH);
-				COM_DefaultExtension(fileName, MAX_QPATH, ".flac");
-				FS_FOpenFileRead(fileName, &f, qtrue);
-#endif
-				/* switch back to english (default) and try again */
-				if (!f && voice) {
-					strncpy(voice, "chars", 5);
-					voice = NULL;
-					goto tryDefaultLanguage;
-				}
-				if (!f)
-					return qfalse;
-			}
-		}
+		if (f)
+			break;
+		i++;
 	}
+	/* switch back to english (default) and try again */
+	if (!f && voice) {
+		strncpy(voice, "chars", 5);
+		voice = NULL;
+		goto tryDefaultLanguage;
+	}
+	if (!f)
+		return qfalse;
 	FS_FCloseFile(f);
 	return qtrue;
 }
