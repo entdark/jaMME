@@ -650,8 +650,10 @@ static qboolean S_OggInit( openSound_t *open ) {
 
     if(ogg_sync_pageout (&ogg->sync,&ogg->page) != 1) {
       if(bytes < 8192) {
-		return qfalse;
+		Com_Printf("OggInit:Out of data.\n");
       }
+	  Com_Printf("OggInit:Input does not appear to be an Ogg bitstream.\n");
+	  return qfalse;
     }
 
     ogg_stream_init (&ogg->stream,ogg_page_serialno(&ogg->page));
@@ -659,14 +661,17 @@ static qboolean S_OggInit( openSound_t *open ) {
     vorbis_info_init (&ogg->info);
     vorbis_comment_init (&ogg->comment);
     if (ogg_stream_pagein (&ogg->stream,&ogg->page) < 0) {
+		Com_Printf("OggInit:Error reading first page of Ogg bitstream data.\n");
 		return qfalse;
     }
 
     if (ogg_stream_packetout(&ogg->stream,&ogg->packet) != 1) {
+		Com_Printf("OggInit:Error reading initial header packet.\n");
 		return qfalse;
     }
 
     if (vorbis_synthesis_headerin (&ogg->info,&ogg->comment,&ogg->packet) < 0) {
+		Com_Printf("OggInit:This Ogg bitstream does not contain Vorbis audio data.\n");
 		return qfalse;
     }
 
@@ -684,6 +689,7 @@ static qboolean S_OggInit( openSound_t *open ) {
             result = ogg_stream_packetout (&ogg->stream,&ogg->packet);
             if (result == 0) break;
             if (result < 0) {
+				Com_Printf("OggInit:Corrupt secondary header.\n");
 				return qfalse;
             }
             vorbis_synthesis_headerin (&ogg->info,&ogg->comment,&ogg->packet);
@@ -695,6 +701,7 @@ static qboolean S_OggInit( openSound_t *open ) {
       buffer = ogg_sync_buffer (&ogg->sync,4096);
       bytes = S_StreamRead(open, 4096, buffer);
       if (bytes == 0 && i < 2) {
+		Com_Printf("OggInit:End of file before finding all Vorbis headers!\n");
 		return qfalse;
       }
 
@@ -783,12 +790,11 @@ static int S_OggRead( openSound_t *open, qboolean stereo, int size, short *data 
 		/* Have we got any pcm data waiting */
 		while(!ogg->eos && size > 0) {
       while (!ogg->eos && size > 0) {
-        int result = ogg_sync_pageout (&ogg->sync,&ogg->page);
+        result = ogg_sync_pageout (&ogg->sync,&ogg->page);
         if (result == 0)
           break;
         if (result < 0) {
-//          fprintf (stderr,"Corrupt or missing data in bitstream; "
-//                   "continuing...\n");
+			Com_Printf("OggRead:Corrupt or missing data in bitstream; continuing...\n");
         } else {
           ogg_stream_pagein (&ogg->stream,&ogg->page);
           while (1) {
