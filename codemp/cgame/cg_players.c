@@ -6089,6 +6089,24 @@ void CG_DoSFXSaber( vec3_t blade_muz, vec3_t blade_tip, vec3_t trail_tip, vec3_t
 
 //	if ( color == SABER_BLACK && (cp_pluginDisable.integer & CPD_BLACKSABERSDISABLE) )
 //		color = SABER_ORANGE;
+	
+	if ((int)blade_len > 1 && cg.rainNumber > 0 && cg.rainTime <= cg.time && Q_irand(0,5000) <= cg.rainNumber) {
+		int pos = Q_irand(0,blade_len);
+		vec3_t fizz;
+		vec3_t endf;
+		trace_t tr;
+				
+		VectorMA( blade_muz, pos, blade_dir, fizz );
+		VectorCopy(fizz,endf);
+		endf[2] += 9999;
+		
+		CG_Trace( &tr, fizz, NULL, NULL, endf, 0, MASK_SOLID);
+		
+		if (tr.surfaceFlags & SURF_SKY) {
+			fizz[2] += 1;
+			trap_FX_PlayEffectID(cgs.effects.saberFizz, fizz, blade_dir, -1, 1);
+		}		
+	}
 
 	switch ( color ) {
 	case SABER_RED:
