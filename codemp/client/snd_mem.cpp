@@ -629,7 +629,6 @@ typedef struct {
 	vorbis_block	block;
 	int				samplesLeft;
 	int				eos;
-	int				dataStart;
 	float			**pcm;
 } oggOpen_t;
 
@@ -707,20 +706,22 @@ static qboolean S_OggInit( openSound_t *open ) {
 	return qtrue;
 }
 
-static qboolean S_OggTotalSamples( openSound_t *open ) {
+static int S_OggTotalSamples( openSound_t *open ) {
 	oggOpen_t *ogg;
-	int eos = 0;
+	int eos;
+	int totalSamples;
 	if (!open || !open->data)
-		return qfalse;
+		return 0;
 	ogg = (oggOpen_t *)open->data;
+	eos = 0;
+	totalSamples = 0;
     while(!eos) {
       while (!eos) {
         int result = ogg_sync_pageout (&ogg->sync,&ogg->page);
         if (result == 0)
           break;
         if (result < 0) {
-//          fprintf (stderr,"Corrupt or missing data in bitstream; "
-//                   "continuing...\n");
+			Com_Printf("OggTotalSamples:Corrupt or missing data in bitstream; continuing...\n");
         } else {
           ogg_stream_pagein (&ogg->stream,&ogg->page);
           while (1) {
@@ -731,14 +732,13 @@ static qboolean S_OggTotalSamples( openSound_t *open ) {
             if (result < 0) {
               /* no reason to complain; already complained above */
             } else {
-              float **pcm;
               int samples;
 
               if (vorbis_synthesis (&ogg->block,&ogg->packet) == 0)
                 vorbis_synthesis_blockin(&ogg->state,&ogg->block);
-              while ((samples = vorbis_synthesis_pcmout (&ogg->state,&pcm)) > 0) {
+              while ((samples = vorbis_synthesis_pcmout (&ogg->state,NULL)) > 0) {
                 vorbis_synthesis_read (&ogg->state,samples);
-                open->totalSamples += samples ;
+                totalSamples += samples ;
               }
             }
           }
@@ -754,7 +754,7 @@ static qboolean S_OggTotalSamples( openSound_t *open ) {
         if (bytes == 0) eos = 1;
       }
     }
-	return qtrue;
+	return totalSamples;
 }
 
 static short S_OggSample(float fsample) {
@@ -933,8 +933,7 @@ static openSound_t *S_OggOpen( const char *fileName ) {
 #endif
 		return 0;
 	}
-	ogg->dataStart = open->filePos;
-	if (!S_OggTotalSamples(open)) {
+	if ((open->totalSamples = S_OggTotalSamples(open)) <= 0) {
 		Com_Printf("OggOpen:File %s has no samples\n", fileName);
 		S_SoundClose( open );
 		return 0;
