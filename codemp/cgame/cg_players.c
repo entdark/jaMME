@@ -7570,7 +7570,7 @@ CheckTrail:
 		VectorCopy( org_, saberTrail->base );
 		VectorMA( end, 3.0f, axis_[0], saberTrail->tip );
 		saberTrail->lastTime = cg.time;
-	} else {
+	} else if (sfxSabers) {
 		// Use the supremely hacky SFX Sabers.
 		saberTrail->duration = trailDur;//cg_saberTrailLength.value;
 
@@ -7685,7 +7685,7 @@ CheckTrail:
 
 JustDoIt:
 	if (cg_saberTrail.integer && cg.time < saberTrail->lastTime)
-		saberTrail->lastTime = cg.time;
+		saberTrail->lastTime = saberTrail->inAction = cg.time;
 	if (dontDraw)
 	{
 		return;
