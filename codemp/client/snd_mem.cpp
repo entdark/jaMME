@@ -1241,6 +1241,11 @@ static int S_FlacSeek( struct openSound_s *open, int samples ) {
 		return 0;
 	flac = (flacOpen_t *)open->data;
 	flac->samplesLeft = 0;
+	if (samples == 0) {
+		FLAC__stream_decoder_reset(flac->decoder);
+		FLAC__stream_decoder_process_until_end_of_metadata(flac->decoder);
+		return 0;
+	}
 	state = FLAC__stream_decoder_get_state(flac->decoder);
 	if (state != FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC)
 		FLAC__stream_decoder_flush(flac->decoder);
