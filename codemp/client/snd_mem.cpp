@@ -364,7 +364,7 @@ static openSound_t * S_WavOpen( const char *fileName ) {
 
 #ifdef HAVE_LIBMAD 
 #ifdef MACOS_X
-#include "macosx/libmad/mad.h"
+#include <mad.h>
 #elif defined _WIN32
 #include "mad.h"
 #pragma comment (lib, "libmad.lib")
@@ -616,6 +616,8 @@ static openSound_t *S_MP3Open( const char *fileName ) {
 #include "vorbis/codec.h"
 #pragma comment (lib, "libvorbis_static.lib")
 #pragma comment (lib, "libogg_static.lib")
+#else
+#include <vorbis/codec.h>
 #endif
 
 typedef struct {
@@ -791,7 +793,7 @@ static int S_OggRead( openSound_t *open, qboolean stereo, int size, short *data 
 		/* Have we got any pcm data waiting */
 		while(!ogg->eos && size > 0) {
       while (!ogg->eos && size > 0) {
-        int result = ogg_sync_pageout (&ogg->sync,&ogg->page);
+        result = ogg_sync_pageout (&ogg->sync,&ogg->page);
         if (result == 0)
           break;
         if (result < 0) {
@@ -907,6 +909,10 @@ extern "C" {
 //#include "protected/stream_decoder.h"
 #define FLAC__HAS_OGG
 #include "FLAC/stream_decoder.h"
+#else
+#define FLAC__NO_DLL
+#define FLAC__HAS_OGG
+#include <FLAC/stream_decoder.h>
 #endif
 }
 static openSound_t *S_FlacOpen( const char *fileName, FLAC__bool is_ogg );

@@ -42,7 +42,11 @@ static qboolean FS_CreatePath(char *OSPath) {
 		if (*ofs == PATH_SEP) {	
 			// create the directory
 			*ofs = 0;
+#ifdef _WIN32
 			_mkdir (OSPath);
+#else
+			mkdir(OSPath, 0750);
+#endif
 			*ofs = PATH_SEP;
 		}
 	}

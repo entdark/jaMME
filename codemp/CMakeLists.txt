@@ -369,9 +369,12 @@ if(BuildMPEngine)
 	set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} ${OPENGL_INCLUDE_DIR})
 	set(MPEngineLibraries ${MPEngineLibraries} ${OPENGL_LIBRARIES})
 	
-	#libmad stuff
+	#library stuff
 	if(APPLE)
-		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/macosx/libmad/libmad.a)
+		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libmad.a)
+		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libFLAC.a)
+		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libogg.a)
+		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libvorbis.a)
 	endif(APPLE)
 	
 	# OpenAL (is optionally included for Windows)
@@ -395,6 +398,8 @@ if(BuildMPEngine)
 		set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} ${SDL2_INCLUDE_DIR})
 		set(MPEngineLibraries ${MPEngineLibraries} ${SDL2_LIBRARY})
 	endif(NOT WIN32)
+
+	set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} ${MPDir}/libs/win32/include)
 
 	# EAX is Windows-Only (right?)
 	if(WIN32)
