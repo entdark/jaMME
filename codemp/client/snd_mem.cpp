@@ -1067,7 +1067,8 @@ FLAC__StreamDecoderWriteStatus S_FlacWriteCallback(const FLAC__StreamDecoder *de
 		//wtf should never reach, or maybe when flac->samplesLeft == size == 0
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
-	
+	//although we call this func when flac->size is always > 0, but to please the compiler we return anyways
+	return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 }
 
 void S_FlacMetadataCallback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data) {
