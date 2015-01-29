@@ -778,6 +778,7 @@ static int S_OggRead( openSound_t *open, qboolean stereo, int size, short *data 
 	oggOpen_t *ogg;
 	int done;
 	int bufSize;
+	int result;
 
 	if (!open || !open->data )
 		return 0;
@@ -790,11 +791,12 @@ static int S_OggRead( openSound_t *open, qboolean stereo, int size, short *data 
 		/* Have we got any pcm data waiting */
 		while(!ogg->eos && size > 0) {
       while (!ogg->eos && size > 0) {
-        result = ogg_sync_pageout (&ogg->sync,&ogg->page);
+        int result = ogg_sync_pageout (&ogg->sync,&ogg->page);
         if (result == 0)
           break;
         if (result < 0) {
-			Com_Printf("OggRead:Corrupt or missing data in bitstream; continuing...\n");
+//          fprintf (stderr,"Corrupt or missing data in bitstream; "
+//                   "continuing...\n");
         } else {
           ogg_stream_pagein (&ogg->stream,&ogg->page);
           while (1) {
@@ -814,44 +816,42 @@ finishSamples:
 				todo = ogg->samplesLeft;
                 todo = todo < size ? todo : size;
 				todo = todo < bufSize ? todo : bufSize;
-				if ( data ) {
-					if ( ogg->info.channels == 1 ) {
-						float *left = ogg->pcm[0];
-						if ( stereo ) {
-							for (i = 0;i<todo;i++) {
-								data[0] = data[1] = S_OggSample( left[i]  );
-								data += 2;
-							}
-						} else{
-							for (i = 0;i<todo;i++) {
-								*data++ = S_OggSample( left[i]  );
-							}
+				if ( ogg->info.channels == 1 ) {
+					float *left = ogg->pcm[0];
+					if ( stereo ) {
+						for (i = 0;i<todo;i++) {
+							data[0] = data[1] = S_OggSample( left[i]  );
+							data += 2;
 						}
-						ogg->pcm[0] += todo;
-					} else if ( ogg->info.channels == 2 ) {
-						float *left = ogg->pcm[0];
-						float *right = ogg->pcm[1];
-						if ( stereo ) {
-							for (i = 0;i<todo;i++) {
-								data[0] = S_OggSample( left[i] );
-								data[1] = S_OggSample( right[i] );
-								data+=2;
-							}
-						} else {
-							for (i = 0;i<todo;i++) {
-								int addSample;
-								addSample = S_OggSample( left[i] );
-								addSample += S_OggSample( right[i] );
-								*data++ = addSample >> 1;
-							}
+					} else{
+						for (i = 0;i<todo;i++) {
+							*data++ = S_OggSample( left[i]  );
 						}
-						ogg->pcm[0] += todo;
-						ogg->pcm[1] += todo;
-					} else {
-						return done;
 					}
-					vorbis_synthesis_read (&ogg->state, todo);
-				} 
+					ogg->pcm[0] += todo;
+				} else if ( ogg->info.channels == 2 ) {
+					float *left = ogg->pcm[0];
+					float *right = ogg->pcm[1];
+					if ( stereo ) {
+						for (i = 0;i<todo;i++) {
+							data[0] = S_OggSample( left[i] );
+							data[1] = S_OggSample( right[i] );
+							data+=2;
+						}
+					} else {
+						for (i = 0;i<todo;i++) {
+							int addSample;
+							addSample = S_OggSample( left[i] );
+							addSample += S_OggSample( right[i] );
+							*data++ = addSample >> 1;
+						}
+					}
+					ogg->pcm[0] += todo;
+					ogg->pcm[1] += todo;
+				} else {
+					return done;
+				}
+				vorbis_synthesis_read (&ogg->state, todo);
 				done += todo;
 				size -= todo;
 				ogg->samplesLeft -= todo;
