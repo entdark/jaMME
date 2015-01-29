@@ -616,7 +616,7 @@ int		FS_filelength( fileHandle_t f );
 // doesn't work for files that are opened from a pack file
 
 qboolean FS_FEof( fileHandle_t f );
-// where are we?
+// did we reach the end?
 
 int		FS_FTell( fileHandle_t f );
 // where are we?
