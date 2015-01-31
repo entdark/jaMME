@@ -1209,6 +1209,7 @@ handles will be invalid
 void CL_Snd_Restart_f( void ) {
 	S_Shutdown();
 	S_Init();
+	S_BeginRegistration();
 
 //	CL_Vid_Restart_f();
 }
