@@ -408,6 +408,8 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 
 	weaponNum = cent->currentState.weapon;
 
+	VectorClear(cg.lastFPFlashPoint);
+
 	if (cent->currentState.weapon == WP_EMPLACED_GUN)
 	{
 		return;
