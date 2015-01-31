@@ -897,7 +897,6 @@ extern "C" {
 #ifdef _WIN32
 //ent: important to define FLAC__NO_DLL if we use a static lib
 #define FLAC__NO_DLL
-//#include "protected/stream_decoder.h"
 #define FLAC__HAS_OGG
 #include "FLAC/stream_decoder.h"
 #else
@@ -911,8 +910,6 @@ static openSound_t *S_FlacOpen( const char *fileName, FLAC__bool is_ogg );
 static openSound_t *S_OggOpen( const char *fileName ) {
 	oggOpen_t *ogg;
 	openSound_t *open;
-    char *buffer;
-    int bytes;
 
 	open = S_StreamOpen( fileName, sizeof( oggOpen_t ) );
 	if (!open) {
@@ -927,9 +924,9 @@ static openSound_t *S_OggOpen( const char *fileName ) {
 	if (!S_OggInit(open)) {
 		Com_Printf("OggOpen:File %s failed to init\n", fileName);
 		S_SoundClose( open );
-#ifdef HAVE_LIBFLAC
+#if defined HAVE_LIBFLAC && defined FLAC__HAS_OGG
 		Com_Printf("OggOpen:Checking for flac codec...\n", fileName);
-		open = S_FlacOpen(fileName, /*is_ogg*/1);
+		open = S_FlacOpen(fileName, /*is_ogg =*/1);
 		if (open)
 			return open;
 		Com_Printf("OggOpen:File %s failed to open as flac\n", fileName);
@@ -969,91 +966,105 @@ typedef struct {
 	qboolean			seeked;
 } flacOpen_t;
 
+short *S_FlacWriteData(flacOpen_t *flac, short *data, int todo) {
+	qboolean stereo = flac->stereo;
+	unsigned int channels = flac->channels;
+	int i;
+	if ( channels == 1 ) {
+		if ( stereo ) {
+			for (i = 0;i<todo;i++) {
+				data[0] = data[1] = (FLAC__int16)flac->buffer[0][i];
+				data += 2;
+			}
+		} else{
+			for (i = 0;i<todo;i++) {
+				*data++ = (FLAC__int16)flac->buffer[0][i];
+			}
+		}
+		flac->buffer[0] += todo;
+	} else if ( channels == 2 ) {
+		if ( stereo ) {
+			for (i = 0;i<todo;i++) {
+				data[0] = (FLAC__int16)flac->buffer[0][i];
+				data[1] = (FLAC__int16)flac->buffer[1][i];
+				data+=2;
+			}
+		} else {
+			for (i = 0;i<todo;i++) {
+				int addSample;
+				addSample = (FLAC__int16)flac->buffer[0][i];
+				addSample += (FLAC__int16)flac->buffer[1][i];
+				*data++ = addSample >> 1;
+			}
+		}
+		flac->buffer[0] += todo;
+		flac->buffer[1] += todo;
+	} else if ( channels >= 3 && channels <= FLAC__MAX_CHANNELS) {
+		if ( stereo ) {
+			for (i = 0;i<todo;i++) {
+				int addSample;
+				int u;
+				//if we have even amount of channels, then put all the odd ones to left output channel
+				//and all the even ones to right output channel
+				//if we have odd amount of channels, then put all the odd ones except the last to left output channel
+				//and all even ones to right output channel, the last odd one goes to both left and right channels
+				float halfChan = (float)channels/2;
+				addSample = (FLAC__int16)flac->buffer[0][i];
+				for (u = 1; u < (halfChan-0.2f); u++)
+					addSample += (FLAC__int16)flac->buffer[u*2][i];
+				data[0] = (float)addSample / ((channels%2 == 0)?(channels/2):(channels+1)/2);
+				addSample = (FLAC__int16)flac->buffer[1][i];
+				for (u = 1; u < (halfChan-0.2f); u++)
+					addSample += (FLAC__int16)flac->buffer[(u*2)+((halfChan-u)<0.8f)?0:1][i];
+				data[1] = (float)addSample / ((channels%2 == 0)?(channels/2):(channels+1)/2);
+				data+=2;
+			}
+		} else {
+			for (i = 0;i<todo;i++) {
+				int addSample;
+				int u;
+				addSample = (FLAC__int16)flac->buffer[0][i];
+				for (u = 1; u < (channels); u++)
+					addSample += (FLAC__int16)flac->buffer[u][i];
+				addSample += (FLAC__int16)flac->buffer[2][i];
+				*data++ = (float)addSample / (channels);
+			}
+		}
+		for (i = 0; i < channels; i++) {
+			flac->buffer[i] += todo;
+		}
+	} else {
+		return NULL;
+	} 
+	return data;
+}
+
 FLAC__StreamDecoderWriteStatus S_FlacWriteCallback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data) {
 	openSound_t	*open = (openSound_t *)client_data;
 	flacOpen_t	*flac = (flacOpen_t *)(open->data);
-	qboolean	stereo = flac->stereo;
-	unsigned int channels;
 	int			i;
 	if(buffer [0] == NULL) {
 		Com_Printf("Flac error: buffer [0] is NULL\n");
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
-	channels = flac->channels = frame->header.channels;
+	flac->channels = frame->header.channels;
 	flac->samplesLeft = frame->header.blocksize;
-	for (i = 0; i < channels; i++)
+	for (i = 0; i < flac->channels; i++)
 		flac->buffer[i] = buffer[i];
 	/* write decoded PCM samples */
 	while(flac->size > 0) {
 		int todo;
+		short *data;
 		if ( flac->samplesLeft <= flac->size ) {
 			todo = flac->samplesLeft;
 		} else {
 			todo = flac->size;
 		}
-		if ( channels == 1 ) {
-			if ( stereo ) {
-				for (i = 0;i<todo;i++) {
-					flac->data[0] = flac->data[1] = (FLAC__int16)flac->buffer[0][i];
-					flac->data += 2;
-				}
-			} else{
-				for (i = 0;i<todo;i++) {
-					*flac->data++ = (FLAC__int16)flac->buffer[0][i];
-				}
-			}
-			flac->buffer[0] += todo;
-		} else if ( channels == 2 ) {
-			if ( stereo ) {
-				for (i = 0;i<todo;i++) {
-					flac->data[0] = (FLAC__int16)flac->buffer[0][i];
-					flac->data[1] = (FLAC__int16)flac->buffer[1][i];
-					flac->data+=2;
-				}
-			} else {
-				for (i = 0;i<todo;i++) {
-					int addSample;
-					addSample = (FLAC__int16)flac->buffer[0][i];
-					addSample += (FLAC__int16)flac->buffer[1][i];
-					*flac->data++ = addSample >> 1;
-				}
-			}
-			flac->buffer[0] += todo;
-			flac->buffer[1] += todo;
-		} else if ( channels >= 3 && channels <= FLAC__MAX_CHANNELS) {
-			if ( stereo ) {
-				for (i = 0;i<todo;i++) {
-					int addSample;
-					int u;
-					float halfChan = (float)channels/2;
-					addSample = (FLAC__int16)flac->buffer[0][i];
-					for (u = 1; u < (halfChan-0.2f); u++)
-						addSample += (FLAC__int16)flac->buffer[u*2][i];
-					flac->data[0] = (float)addSample / ((channels%2 == 0)?(channels/2):(channels+1)/2);
-					addSample = (FLAC__int16)flac->buffer[1][i];
-					for (u = 1; u < (halfChan-0.2f); u++)
-						addSample += (FLAC__int16)flac->buffer[(u*2)+((halfChan-u)<0.8f)?0:1][i];
-					flac->data[1] = (float)addSample / ((channels%2 == 0)?(channels/2):(channels+1)/2);
-					flac->data+=2;
-				}
-			} else {
-				for (i = 0;i<todo;i++) {
-					int addSample;
-					int u;
-					addSample = (FLAC__int16)flac->buffer[0][i];
-					for (u = 1; u < (channels); u++)
-						addSample += (FLAC__int16)flac->buffer[u][i];
-					addSample += (FLAC__int16)flac->buffer[2][i];
-					*flac->data++ = (float)addSample / (channels);
-				}
-			}
-			for (i = 0; i < channels; i++) {
-				flac->buffer[i] += todo;
-			}
-		} else {
-			flac->done = flac->size = 0;
+		data = S_FlacWriteData(flac, flac->data, todo);
+		if ( !data ) {
 			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		} 
+		flac->data = data;
 		flac->done += todo;
 		flac->size -= todo;
 		flac->samplesLeft -= todo;
@@ -1133,86 +1144,26 @@ FLAC__bool S_FlacEOFCallback(const FLAC__StreamDecoder *decoder, void *client_da
 
 static int S_FlacRead( openSound_t *open, qboolean stereo, int size, short *data ) {
 	flacOpen_t *flac;
-	unsigned int channels;
 	FLAC__StreamDecoderState state;
 
 	if (!open || !open->data )
 		return 0;
 	flac = (flacOpen_t *)(open->data);
-	channels = flac->channels;
 	flac->done = 0;
-	if (flac->samplesLeft && channels) {
-		int i, todo;
+	if (flac->samplesLeft && flac->channels) {
+		int todo;
 		if ( flac->samplesLeft <= size ) {
 			todo = flac->samplesLeft;
 		} else {
 			todo = size;
 		}
-		if ( channels == 1 ) {
-			if ( stereo ) {
-				for (i = 0;i<todo;i++) {
-					data[0] = data[1] = (FLAC__int16)flac->buffer[0][i];
-					data += 2;
-				}
-			} else{
-				for (i = 0;i<todo;i++) {
-					*data++ = (FLAC__int16)flac->buffer[0][i];
-				}
-			}
-			flac->buffer[0] += todo;
-		} else if ( channels == 2 ) {
-			if ( stereo ) {
-				for (i = 0;i<todo;i++) {
-					data[0] = (FLAC__int16)flac->buffer[0][i];
-					data[1] = (FLAC__int16)flac->buffer[1][i];
-					data+=2;
-				}
-			} else {
-				for (i = 0;i<todo;i++) {
-					int addSample;
-					addSample = (FLAC__int16)flac->buffer[0][i];
-					addSample += (FLAC__int16)flac->buffer[1][i];
-					*data++ = addSample >> 1;
-				}
-			}
-			flac->buffer[0] += todo;
-			flac->buffer[1] += todo;
-		} else if ( channels >= 3 && channels <= FLAC__MAX_CHANNELS) {
-			if ( stereo ) {
-				for (i = 0;i<todo;i++) {
-					int addSample;
-					int u;
-					float halfChan = (float)channels/2;
-					addSample = (FLAC__int16)flac->buffer[0][i];
-					for (u = 1; u < (halfChan-0.2f); u++)
-						addSample += (FLAC__int16)flac->buffer[u*2][i];
-					data[0] = (float)addSample / ((channels%2 == 0)?(channels/2):(channels+1)/2);
-					addSample = (FLAC__int16)flac->buffer[1][i];
-					for (u = 1; u < (halfChan-0.2f); u++)
-						addSample += (FLAC__int16)flac->buffer[(u*2)+((halfChan-u)<0.8f)?0:1][i];
-					data[1] = (float)addSample / ((channels%2 == 0)?(channels/2):(channels+1)/2);
-					data+=2;
-				}
-			} else {
-				for (i = 0;i<todo;i++) {
-					int addSample;
-					int u;
-					addSample = (FLAC__int16)flac->buffer[0][i];
-					for (u = 1; u < (channels); u++)
-						addSample += (FLAC__int16)flac->buffer[u][i];
-					addSample += (FLAC__int16)flac->buffer[2][i];
-					*data++ = (float)addSample / (channels);
-				}
-			}
-			for (i = 0; i < channels; i++) {
-				flac->buffer[i] += todo;
-			}
-		}
+		flac->data = S_FlacWriteData(flac, data, todo);
 		flac->done += todo;
 		size -= todo;
 		flac->samplesLeft -= todo;
-		if ( !size )
+		if ( !size || !flac->data )
 			return flac->done;
+		data = flac->data;
 	}
 	flac->data = data;
 	flac->size = size;
