@@ -765,7 +765,7 @@ static short S_OggSample(float fsample) {
 	if (sample > 32767) {
 		return 32767;
 	} else if (sample < -32768) {
-		return 32768;
+		return -32768;
 	}
 	return sample;
 }
