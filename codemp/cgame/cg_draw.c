@@ -4263,6 +4263,8 @@ static void CG_DrawDisconnect( void ) {
 #define	MAX_LAGOMETER_PING	900
 #define	MAX_LAGOMETER_RANGE	300
 
+#define LAGOMETER_PING_DELAY 700
+
 /*
 ==============
 CG_DrawLagometer
@@ -4275,6 +4277,8 @@ static void CG_DrawLagometer( void ) {
 	float	ax, ay, aw, ah, mid, range;
 	int		color;
 	float	vscale;
+	static int lastPingTime = 0;
+	static int lastPing = 0;
 
 	if ( !cg_lagometer.integer || cgs.localServer || !cg.playerPredicted) {
 		CG_DrawDisconnect();
@@ -4362,7 +4366,15 @@ static void CG_DrawLagometer( void ) {
 	}
 
 	//draw ping, WORKS WRONG
-//	CG_Text_Paint(ax + 2, ay + 2, 0.5f, colorWhite, va("%i",lagometer.snapshotSamples[ lagometer.snapshotCount - 1 ]), 0, 0, 3, FONT_SMALL );
+	if (cg.time > lastPingTime) {
+		lastPing = lagometer.snapshotSamples[ (lagometer.snapshotCount - 1) & ( LAG_SAMPLES - 1) ];
+		if (lastPing < 0)
+			lastPing = 0;
+		lastPingTime = cg.time + LAGOMETER_PING_DELAY;
+	} else if (cg.time + LAGOMETER_PING_DELAY < lastPingTime) {
+		lastPingTime = 0;
+	}
+	CG_Text_Paint(ax + 2, ay + 2, 0.5f, colorWhite, va("%i",lastPing), 0, 0, 3, FONT_SMALL );
 
 	trap_R_SetColor( NULL );
 
