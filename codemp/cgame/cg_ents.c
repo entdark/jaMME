@@ -1980,7 +1980,7 @@ Ghoul2 Insert End
 			MAKERGBA( ent.shaderRGBA, 255, 255, 255, 200 );
 			ent.renderfx |= RF_FORCE_ENT_ALPHA;
 			if (mov_wallhack.integer & movMaskItems && cg.demoPlayback) {
-				ent.renderfx |= RF_NODEPTH;
+				ent.renderfx |= RF_DEPTHHACK;
 			}
 			ent.radius = 28.0f;
 		}
@@ -2016,7 +2016,7 @@ Ghoul2 Insert End
 			ent.renderfx |= RF_FORCE_ENT_ALPHA;
 		}
 		if (mov_wallhack.integer & movMaskItems && cg.demoPlayback) {
-			ent.renderfx |= RF_NODEPTH;
+			ent.renderfx |= RF_DEPTHHACK;
 		}
 
 		if ( es->eFlags & EF_ITEMPLACEHOLDER )
@@ -2236,7 +2236,7 @@ Ghoul2 Insert End
 		ent.customShader = cgs.media.itemRespawningPlaceholder;
 	}
 	if (mov_wallhack.integer & movMaskItems && cg.demoPlayback) {
-		ent.renderfx |= RF_NODEPTH;
+		ent.renderfx |= RF_DEPTHHACK;
 	}
 
 	// increase the size of the weapons when they are presented as items
@@ -2307,7 +2307,7 @@ Ghoul2 Insert End
 
 		ent.renderfx |= RF_RGB_TINT;
 		if (mov_wallhack.integer & movMaskItems && cg.demoPlayback) {
-			ent.renderfx |= RF_NODEPTH;
+			ent.renderfx |= RF_DEPTHHACK;
 		}
 		ent.shaderRGBA[0] = 0;
 		ent.shaderRGBA[1] = 200;
@@ -2714,7 +2714,7 @@ Ghoul2 Insert End
 	ent.skinNum = cg.clientFrame & 1;
 	ent.renderfx = /*weapon->missileRenderfx | */RF_NOSHADOW;
 	if (mov_wallhack.integer & movMaskMissiles && cg.demoPlayback) {
-		ent.renderfx |= RF_NODEPTH;
+		ent.renderfx |= RF_DEPTHHACK;
 	}
 
 	if ( !(s1->eFlags&EF_JETPACK_ACTIVE) )
