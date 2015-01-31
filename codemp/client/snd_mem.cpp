@@ -642,76 +642,72 @@ static qboolean S_OggInit( openSound_t *open ) {
 
 	ogg = (oggOpen_t *)open->data;
 
-	ogg_sync_init (&ogg->sync);
+	ogg_sync_init(&ogg->sync);
 
-    /* fragile!  Assumes all of our headers will fit in the first 8kB,
-       which currently they will */
-    buffer = ogg_sync_buffer (&ogg->sync,8192);
-    bytes = S_StreamRead(open, 8192, buffer);
-    ogg_sync_wrote (&ogg->sync,bytes);
+	/* fragile!	Assumes all of our headers will fit in the first 8kB,
+		 which currently they will */
+	buffer = ogg_sync_buffer(&ogg->sync, 8192);
+	bytes = S_StreamRead(open, 8192, buffer);
+	ogg_sync_wrote(&ogg->sync, bytes);
 
-    if(ogg_sync_pageout (&ogg->sync,&ogg->page) != 1) {
-      if(bytes < 8192) {
-		Com_Printf("OggInit:Out of data.\n");
-      }
-	  Com_Printf("OggInit:Input does not appear to be an Ogg bitstream.\n");
-	  return qfalse;
-    }
+	if(ogg_sync_pageout(&ogg->sync, &ogg->page) != 1) {
+		if(bytes < 8192) {
+			Com_Printf("OggInit:Out of data.\n");
+		}
+		Com_Printf("OggInit:Input does not appear to be an Ogg bitstream.\n");
+		return qfalse;
+	}
 
-    ogg_stream_init (&ogg->stream,ogg_page_serialno(&ogg->page));
+	ogg_stream_init(&ogg->stream, ogg_page_serialno(&ogg->page));
 
-    vorbis_info_init (&ogg->info);
-    vorbis_comment_init (&ogg->comment);
-    if (ogg_stream_pagein (&ogg->stream,&ogg->page) < 0) {
+	vorbis_info_init(&ogg->info);
+	vorbis_comment_init(&ogg->comment);
+	if (ogg_stream_pagein(&ogg->stream, &ogg->page) < 0) {
 		Com_Printf("OggInit:Error reading first page of Ogg bitstream data.\n");
 		return qfalse;
-    }
+	}
 
-    if (ogg_stream_packetout(&ogg->stream,&ogg->packet) != 1) {
+	if (ogg_stream_packetout(&ogg->stream, &ogg->packet) != 1) {
 		Com_Printf("OggInit:Error reading initial header packet.\n");
 		return qfalse;
-    }
+	}
 
-    if (vorbis_synthesis_headerin (&ogg->info,&ogg->comment,&ogg->packet) < 0) {
+	if (vorbis_synthesis_headerin(&ogg->info, &ogg->comment, &ogg->packet) < 0) {
 		Com_Printf("OggInit:This Ogg bitstream does not contain Vorbis audio data.\n");
 		return qfalse;
-    }
+	}
 
-    i = 0;
-    while ( i < 2) {
-      while (i < 2) {
-
-        int result = ogg_sync_pageout (&ogg->sync,&ogg->page);
-        if(result == 0)
-          break;
-        if(result==1) {
-          ogg_stream_pagein(&ogg->stream,&ogg->page);
-
-          while (i < 2) {
-            result = ogg_stream_packetout (&ogg->stream,&ogg->packet);
-            if (result == 0) break;
-            if (result < 0) {
-				Com_Printf("OggInit:Corrupt secondary header.\n");
-				return qfalse;
-            }
-            vorbis_synthesis_headerin (&ogg->info,&ogg->comment,&ogg->packet);
-            i++;
-          }
-        }
-      }
-
-      buffer = ogg_sync_buffer (&ogg->sync,4096);
-      bytes = S_StreamRead(open, 4096, buffer);
-      if (bytes == 0 && i < 2) {
-		Com_Printf("OggInit:End of file before finding all Vorbis headers!\n");
-		return qfalse;
-      }
-
-      ogg_sync_wrote (&ogg->sync,bytes);
-    }
-
-    vorbis_synthesis_init (&ogg->state,&ogg->info);
-    vorbis_block_init (&ogg->state,&ogg->block);
+	i = 0;
+	while (i < 2) {
+		while (i < 2) {
+			int result = ogg_sync_pageout(&ogg->sync, &ogg->page);
+			if(result == 0)
+				break;
+			if(result == 1) {
+				ogg_stream_pagein(&ogg->stream, &ogg->page);
+				while (i < 2) {
+					result = ogg_stream_packetout(&ogg->stream, &ogg->packet);
+					if (result == 0)
+						break;
+					if (result < 0) {
+						Com_Printf("OggInit:Corrupt secondary header.\n");
+						return qfalse;
+					}
+					vorbis_synthesis_headerin(&ogg->info, &ogg->comment, &ogg->packet);
+					i++;
+				}
+			}
+		}
+		buffer = ogg_sync_buffer(&ogg->sync, 4096);
+		bytes = S_StreamRead(open, 4096, buffer);
+		if (bytes == 0 && i < 2) {
+			Com_Printf("OggInit:End of file before finding all Vorbis headers!\n");
+			return qfalse;
+		}
+		ogg_sync_wrote(&ogg->sync ,bytes);
+	}
+	vorbis_synthesis_init(&ogg->state, &ogg->info);
+	vorbis_block_init(&ogg->state, &ogg->block);
 	return qtrue;
 }
 
@@ -724,45 +720,43 @@ static int S_OggTotalSamples( openSound_t *open ) {
 	ogg = (oggOpen_t *)open->data;
 	eos = 0;
 	totalSamples = 0;
-    while(!eos) {
-      while (!eos) {
-        int result = ogg_sync_pageout (&ogg->sync,&ogg->page);
-        if (result == 0)
-          break;
-        if (result < 0) {
-			Com_Printf("OggTotalSamples:Corrupt or missing data in bitstream; continuing...\n");
-        } else {
-          ogg_stream_pagein (&ogg->stream,&ogg->page);
-          while (1) {
-            result = ogg_stream_packetout (&ogg->stream,&ogg->packet);
-
-            if (result == 0)
-              break;
-            if (result < 0) {
-              /* no reason to complain; already complained above */
-            } else {
-              int samples;
-
-              if (vorbis_synthesis (&ogg->block,&ogg->packet) == 0)
-                vorbis_synthesis_blockin(&ogg->state,&ogg->block);
-              while ((samples = vorbis_synthesis_pcmout (&ogg->state,NULL)) > 0) {
-                vorbis_synthesis_read (&ogg->state,samples);
-                totalSamples += samples ;
-              }
-            }
-          }
-
-          if (ogg_page_eos (&ogg->page)) eos = 1;
-        }
-      }
-
-      if (!eos) {
-        char *buffer = ogg_sync_buffer (&ogg->sync,4096);
-        int bytes = S_StreamRead(open, 4096, buffer);
-        ogg_sync_wrote (&ogg->sync,bytes);
-        if (bytes == 0) eos = 1;
-      }
-    }
+	while(!eos) {
+		while (!eos) {
+			int result = ogg_sync_pageout(&ogg->sync, &ogg->page);
+			if (result == 0)
+				break;
+			if (result < 0) {
+				Com_Printf("OggTotalSamples:Corrupt or missing data in bitstream; continuing...\n");
+			} else {
+				ogg_stream_pagein(&ogg->stream, &ogg->page);
+				while (1) {
+					result = ogg_stream_packetout(&ogg->stream, &ogg->packet);
+					if (result == 0)
+						break;
+					if (result < 0) {
+						/* no reason to complain; already complained above */
+					} else {
+						int samples;
+						if (vorbis_synthesis(&ogg->block, &ogg->packet) == 0)
+							vorbis_synthesis_blockin(&ogg->state, &ogg->block);
+						while ((samples = vorbis_synthesis_pcmout(&ogg->state, NULL)) > 0) {
+							vorbis_synthesis_read(&ogg->state, samples);
+							totalSamples += samples ;
+						}
+					}
+				}
+				if (ogg_page_eos(&ogg->page))
+					eos = 1;
+			}
+		}
+		if (!eos) {
+			char *buffer = ogg_sync_buffer(&ogg->sync, 4096);
+			int bytes = S_StreamRead(open, 4096, buffer);
+			ogg_sync_wrote(&ogg->sync, bytes);
+			if (bytes == 0)
+				eos = 1;
+		}
+	}
 	return totalSamples;
 }
 
@@ -789,91 +783,88 @@ static int S_OggRead( openSound_t *open, qboolean stereo, int size, short *data 
 	done = 0;
 	if (ogg->samplesLeft) {
 		goto finishSamples;
-		}
-		/* Have we got any pcm data waiting */
-		while(!ogg->eos && size > 0) {
-      while (!ogg->eos && size > 0) {
-        result = ogg_sync_pageout (&ogg->sync,&ogg->page);
-        if (result == 0)
-          break;
-        if (result < 0) {
-//          fprintf (stderr,"Corrupt or missing data in bitstream; "
-//                   "continuing...\n");
-        } else {
-          ogg_stream_pagein (&ogg->stream,&ogg->page);
-          while (1) {
-            result = ogg_stream_packetout (&ogg->stream,&ogg->packet);
-
-            if (result == 0)
-              break;
-            if (result < 0) {
-              /* no reason to complain; already complained above */
-            } else {
-
-              if (vorbis_synthesis (&ogg->block,&ogg->packet) == 0)
-                vorbis_synthesis_blockin(&ogg->state,&ogg->block);
-              while ((ogg->samplesLeft = vorbis_synthesis_pcmout (&ogg->state,&ogg->pcm)) > 0 && size > 0) {
-finishSamples:
-				  int i, todo;
-				todo = ogg->samplesLeft;
-                todo = todo < size ? todo : size;
-				todo = todo < bufSize ? todo : bufSize;
-				if ( ogg->info.channels == 1 ) {
-					float *left = ogg->pcm[0];
-					if ( stereo ) {
-						for (i = 0;i<todo;i++) {
-							data[0] = data[1] = S_OggSample( left[i]  );
-							data += 2;
-						}
-					} else{
-						for (i = 0;i<todo;i++) {
-							*data++ = S_OggSample( left[i]  );
-						}
-					}
-					ogg->pcm[0] += todo;
-				} else if ( ogg->info.channels == 2 ) {
-					float *left = ogg->pcm[0];
-					float *right = ogg->pcm[1];
-					if ( stereo ) {
-						for (i = 0;i<todo;i++) {
-							data[0] = S_OggSample( left[i] );
-							data[1] = S_OggSample( right[i] );
-							data+=2;
-						}
+	}
+	/* Have we got any pcm data waiting */
+	while(!ogg->eos && size > 0) {
+		while (!ogg->eos && size > 0) {
+			result = ogg_sync_pageout(&ogg->sync, &ogg->page);
+			if (result == 0)
+				break;
+			if (result < 0) {
+				Com_Printf("S_OggRead:Corrupt or missing data in bitstream; continuing...\n");
+			} else {
+				ogg_stream_pagein(&ogg->stream, &ogg->page);
+				while (1) {
+					result = ogg_stream_packetout(&ogg->stream, &ogg->packet);
+					if (result == 0)
+						break;
+					if (result < 0) {
+						/* no reason to complain; already complained above */
 					} else {
-						for (i = 0;i<todo;i++) {
-							int addSample;
-							addSample = S_OggSample( left[i] );
-							addSample += S_OggSample( right[i] );
-							*data++ = addSample >> 1;
+						if (vorbis_synthesis(&ogg->block, &ogg->packet) == 0)
+							vorbis_synthesis_blockin(&ogg->state, &ogg->block);
+						while ((ogg->samplesLeft = vorbis_synthesis_pcmout(&ogg->state, &ogg->pcm)) > 0 && size > 0) {
+finishSamples:
+							int i, todo;
+							todo = ogg->samplesLeft;
+							todo = todo < size ? todo : size;
+							todo = todo < bufSize ? todo : bufSize;
+							if ( ogg->info.channels == 1 ) {
+								float *left = ogg->pcm[0];
+								if ( stereo ) {
+									for (i = 0;i<todo;i++) {
+										data[0] = data[1] = S_OggSample( left[i] );
+										data += 2;
+									}
+								} else{
+									for (i = 0;i<todo;i++) {
+										*data++ = S_OggSample( left[i] );
+									}
+								}
+								ogg->pcm[0] += todo;
+							} else if ( ogg->info.channels == 2 ) {
+								float *left = ogg->pcm[0];
+								float *right = ogg->pcm[1];
+								if ( stereo ) {
+									for (i = 0;i<todo;i++) {
+										data[0] = S_OggSample( left[i] );
+										data[1] = S_OggSample( right[i]);
+										data+=2;
+									}
+								} else {
+									for (i = 0;i<todo;i++) {
+										int addSample;
+										addSample = S_OggSample( left[i] );
+										addSample += S_OggSample( right[i] );
+										*data++ = addSample >> 1;
+									}
+								}
+								ogg->pcm[0] += todo;
+								ogg->pcm[1] += todo;
+							} else {
+								return done;
+							}
+							vorbis_synthesis_read(&ogg->state, todo);
+							done += todo;
+							size -= todo;
+							ogg->samplesLeft -= todo;
+							if ( ogg->samplesLeft || size <= 0 )
+								return done;
 						}
 					}
-					ogg->pcm[0] += todo;
-					ogg->pcm[1] += todo;
-				} else {
-					return done;
 				}
-				vorbis_synthesis_read (&ogg->state, todo);
-				done += todo;
-				size -= todo;
-				ogg->samplesLeft -= todo;
-				if ( ogg->samplesLeft || size <= 0 )
-					return done;
-              }
-            }
-          }
-
-          if (ogg_page_eos (&ogg->page)) ogg->eos = 1;
-        }
-      }
-
-      if (!ogg->eos) {
-        char *buffer = ogg_sync_buffer (&ogg->sync,4096);
-        int bytes = S_StreamRead(open, 4096, buffer);
-        ogg_sync_wrote (&ogg->sync,bytes);
-        if (bytes == 0) ogg->eos = 1;
-      }
-    }
+				if (ogg_page_eos(&ogg->page))
+					ogg->eos = 1;
+			}
+		}
+		if (!ogg->eos) {
+			char *buffer = ogg_sync_buffer(&ogg->sync, 4096);
+			int bytes = S_StreamRead(open, 4096, buffer);
+			ogg_sync_wrote(&ogg->sync, bytes);
+			if (bytes == 0)
+				ogg->eos = 1;
+		}
+	}
 	return done;
 }
 
