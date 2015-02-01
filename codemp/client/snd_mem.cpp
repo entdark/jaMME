@@ -791,7 +791,7 @@ static int S_OggRead( openSound_t *open, qboolean stereo, int size, short *data 
 			if (result == 0)
 				break;
 			if (result < 0) {
-				Com_Printf("S_OggRead:Corrupt or missing data in bitstream; continuing...\n");
+//				Com_Printf("S_OggRead:Corrupt or missing data in bitstream; continuing...\n");
 			} else {
 				ogg_stream_pagein(&ogg->stream, &ogg->page);
 				while (1) {
