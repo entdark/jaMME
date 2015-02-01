@@ -777,7 +777,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return s_entityWavVol[args[1]];
 	case CG_S_MUTESOUND:
 		{cvar_t *fs_game = Cvar_FindVar("fs_game");
-		if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
+		if (fs_game && !Q_stricmpn(fs_game->string, "mme", 3)) {
 			S_StopSound(args[1], args[2], args[3] );
 		} else {
 			S_StopSound(args[1], args[2], -1 );
@@ -850,7 +850,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_R_FONT_DRAWSTRING:
 		{float ox, oy;
 		cvar_t *fs_game = Cvar_FindVar("fs_game");
-		if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
+		if (fs_game && !Q_stricmpn(fs_game->string, "mme", 3)) {
 			ox = VMF(1); oy = VMF(2);
 		} else {
 			ox = args[1]; oy = args[2];
@@ -1145,7 +1145,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 
 	case CG_FX_ADJUST_TIME:
 		{cvar_t *fs_game = Cvar_FindVar("fs_game");
-		if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
+		if (fs_game && !Q_stricmpn(fs_game->string, "mme", 3)) {
 			FX_AdjustTime(args[1], VMF(2), VMF(3));
 		} else {
 			FX_AdjustTime(args[1], cls.frametime, 0.0f);

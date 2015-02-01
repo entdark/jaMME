@@ -1004,7 +1004,7 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_R_FONT_DRAWSTRING:
 		{float ox, oy;
 		cvar_t *fs_game = Cvar_FindVar("fs_game");
-		if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
+		if (fs_game && !Q_stricmpn(fs_game->string, "mme", 3)) {
 			ox = VMF(1); oy = VMF(2);
 		} else {
 			ox = args[1]; oy = args[2];

@@ -563,7 +563,7 @@ void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(in
 	Com_sprintf( filename, sizeof( filename ), "%sx86.dll", name );
 
 	//let folder with dlls have a higher priority over pk3 with dlls
-	if (!(fs_game && !Q_stricmp(fs_game->string, "mme")) && !Sys_UnpackDLL(filename)) {
+	if (!(fs_game && !Q_stricmpn(fs_game->string, "mme", 3)) && !Sys_UnpackDLL(filename)) {
 		return NULL;
 	}
 

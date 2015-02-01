@@ -534,7 +534,7 @@ void CL_PlayDemo_f( void ) {
 	fs_game = Cvar_FindVar ("fs_game" );
 	if (!fs_game)
 		return;
-	haveConvert = (qboolean)(mme_demoConvert->integer && !Q_stricmp( fs_game->string, "mme" ));
+	haveConvert = (qboolean)(mme_demoConvert->integer && !Q_stricmpn( fs_game->string, "mme", 3 ));
 	// make sure a local server is killed
 	// 2 means don't force disconnect of local client
 	Cvar_Set( "sv_killserver", "2" );
@@ -2680,7 +2680,7 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("disconnect", CL_Disconnect_f);
 	Cmd_AddCommand ("cinematic", CL_PlayCinematic_f);
 	cvar_t *fs_game = Cvar_FindVar("fs_game");
-	if (!(fs_game && !Q_stricmp(fs_game->string, "mme")))
+	if (!(fs_game && !Q_stricmpn(fs_game->string, "mme", 3)))
 		Cmd_AddCommand ("connect", CL_Connect_f);
 	Cmd_AddCommand ("reconnect", CL_Reconnect_f);
 	Cmd_AddCommand ("localservers", CL_LocalServers_f);
