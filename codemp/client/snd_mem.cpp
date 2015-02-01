@@ -1276,6 +1276,15 @@ static openSound_t *S_FlacOpen( const char *fileName, FLAC__bool is_ogg ) {
 	/* Reset to the beginning and finalize setting of values */
 	FLAC__stream_decoder_process_until_end_of_metadata(flac->decoder);
 	open->totalSamples = FLAC__stream_decoder_get_total_samples(flac->decoder);
+	//special hack for flac.ogg
+	if (!open->totalSamples) {
+		while (1) {
+			if (FLAC__stream_decoder_process_single(flac->decoder) == 0 ||
+				FLAC__stream_decoder_get_state(flac->decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
+				break;
+		}
+		open->totalSamples = FLAC__stream_decoder_get_total_samples(flac->decoder);
+	}
 	if (!open->totalSamples) {
 		Com_Printf("FlacOpen:File %s has unknown amount of samples\n", fileName);
 		S_SoundClose( open );
