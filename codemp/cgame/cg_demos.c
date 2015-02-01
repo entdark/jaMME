@@ -194,6 +194,7 @@ static int demoSetupView( void) {
 	int inwater = qfalse;
 	qboolean behindView = qfalse;
 
+	cg.zoomMode = 0;
 	cg.trueView = qfalse;
 	cg.playerPredicted = qfalse;
 	cg.playerCent = 0;
