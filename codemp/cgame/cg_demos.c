@@ -680,6 +680,19 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		
 		for (i = 0; i < MAX_CHATBOX_ITEMS; i++)
 			cg.chatItems[i].time = 0;
+		//entFIXME: probably a wrong fix for not disappearing limbs/duplicating limbs after rewinding?
+		for (i = 0; cg_dismember.integer > 0 && i < cg.snap->numEntities; i++) {
+			centity_t *cent = &cg_entities[cg.snap->entities[i].number];
+			if (cent->currentState.modelGhoul2 >= G2_MODELPART_HEAD &&
+				cent->currentState.modelGhoul2 <= G2_MODELPART_RLEG &&
+				/*cent->currentState.modelindex < MAX_CLIENTS &&*/
+				cent->currentState.weapon == G2_MODEL_PART) {
+				if (cent->ghoul2 && trap_G2_HaveWeGhoul2Models(cent->ghoul2)) {
+					trap_G2API_CleanGhoul2Models(&cent->ghoul2);
+				}
+				cent->ghoul2 = NULL;
+			}
+		}
 		CG_LoadDeferredPlayers();
 	} else if (cg.frametime > 100) {
 		hadSkip = qtrue;
