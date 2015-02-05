@@ -3283,7 +3283,7 @@ void CG_Shutdown( void )
 	// some mods may need to do cleanup work here,
 	// like closing files or archiving session data
 
-	if (cg_autoDemo.integer) {
+	if (cg_autoDemo.integer && !cg.demoPlayback) {
 		trap_SendConsoleCommand("stoprecord;");
 		demoAutoComplete();
 	}
