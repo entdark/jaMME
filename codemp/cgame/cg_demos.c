@@ -780,6 +780,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		cg.rainNumber = 0;
 		cg.rainTime = INT_MAX;
 	}
+	
+	VectorClear(cg.lastFPFlashPoint);
 
 	CG_CalcScreenEffects();
 

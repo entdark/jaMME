@@ -408,8 +408,6 @@ void CG_AddPlayerWeapon( refEntity_t *parent, playerState_t *ps, centity_t *cent
 
 	weaponNum = cent->currentState.weapon;
 
-	VectorClear(cg.lastFPFlashPoint);
-
 	if (cent->currentState.weapon == WP_EMPLACED_GUN)
 	{
 		return;
@@ -568,7 +566,8 @@ getFlash:
 	memset (&flash, 0, sizeof(flash));
 	CG_PositionEntityOnTag( &flash, &gun, gun.hModel, "tag_flash");
 
-	VectorCopy(flash.origin, cg.lastFPFlashPoint);
+	if (!thirdPerson && !cg.zoomMode && cg.playerCent && cg.playerCent == cent)
+		VectorCopy(flash.origin, cg.lastFPFlashPoint);
 	if (cg.zoomMode)
 		return;
 	// Do special charge bits
