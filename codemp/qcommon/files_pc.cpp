@@ -159,21 +159,24 @@ FS_CopyFile
 Copy a fully specified file from one place to another
 =================
 */
-void FS_CopyFile( char *fromOSPath, char *toOSPath ) {
+qboolean FS_CopyFile( char *fromOSPath, char *toOSPath, char *newOSPath, const int newSize ) {
 	FILE	*f;
 	int		len;
 	byte	*buf;
+	int		fileCount = 1;
+	char	*lExt, nExt[MAX_QPATH];
+	char	stripped[MAX_QPATH];
 
-	Com_Printf( "copy %s to %s\n", fromOSPath, toOSPath );
+	Com_DPrintf( "copy %s to %s\n", fromOSPath, toOSPath );
 
 	if (strstr(fromOSPath, "journal.dat") || strstr(fromOSPath, "journaldata.dat")) {
 		Com_Printf( "Ignoring journal files\n");
-		return;
+		return qfalse;
 	}
 
 	f = fopen( fromOSPath, "rb" );
 	if ( !f ) {
-		return;
+		return qfalse;
 	}
 	fseek (f, 0, SEEK_END);
 	len = ftell (f);
@@ -187,17 +190,42 @@ void FS_CopyFile( char *fromOSPath, char *toOSPath ) {
 	fclose( f );
 
 	if( FS_CreatePath( toOSPath ) ) {
-		return;
+		return qfalse;
 	}
 
-	f = fopen( toOSPath, "wb" );
+	// if the file exists then create a new one with (N)
+	if (fopen(toOSPath, "rb") && newOSPath && newSize > 0) {
+		lExt = strchr(toOSPath, '.');
+		if (!lExt) {
+			lExt = "";
+		}
+		while (strchr(lExt+1, '.')) {
+			lExt = strchr(lExt+1, '.');
+		}
+		Q_strncpyz(nExt, lExt, sizeof(nExt));
+		COM_StripExtension(toOSPath, stripped, sizeof(stripped));
+		fileCount++;
+		while (fopen(va("%s (%i)%s", stripped, fileCount, nExt), "rb")) {
+			fileCount++;
+		}
+	}
+	if (fileCount > 1 && newOSPath && newSize > 0) {
+		Q_strncpyz(newOSPath, va("%s (%i)%s", stripped, fileCount, nExt), newSize);
+		f = fopen(newOSPath, "wb");
+	} else {
+		if (newOSPath && newSize > 0) {
+			Q_strncpyz(newOSPath, "", newSize);
+		}
+		f = fopen(toOSPath, "wb");
+	}
 	if ( !f ) {
-		return;
+		return qfalse;
 	}
 	if (fwrite( buf, 1, len, f ) != len)
 		Com_Error( ERR_FATAL, "Short write in FS_Copyfiles()\n" );
 	fclose( f );
 	free( buf );
+	return qtrue;
 }
 
 /*
@@ -441,7 +469,7 @@ void FS_SV_Rename( const char *from, const char *to ) {
 
 	if (rename( from_ospath, to_ospath )) {
 		// Failed, try copying it and deleting the original
-		FS_CopyFile ( from_ospath, to_ospath );
+		FS_CopyFile ( from_ospath, to_ospath, NULL, 0 );
 		FS_Remove ( from_ospath );
 	}
 }
@@ -471,7 +499,7 @@ void FS_Rename( const char *from, const char *to ) {
 
 	if (rename( from_ospath, to_ospath )) {
 		// Failed, try copying it and deleting the original
-		FS_CopyFile ( from_ospath, to_ospath );
+		FS_CopyFile ( from_ospath, to_ospath, NULL, 0 );
 		FS_Remove ( from_ospath );
 	}
 }
@@ -1034,7 +1062,7 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 						default:
 						case 1:
 						{
-							FS_CopyFile( netpath, copypath );
+							FS_CopyFile( netpath, copypath, NULL, 0 );
 						}
 						break;
 

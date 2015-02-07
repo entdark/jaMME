@@ -3193,8 +3193,6 @@ Ghoul2 Insert End
 
 	CG_Set2DRatio();
 
-	demoAutoInit();
-
 	//Raz: warn for poor settings
 	trap_Cvar_VariableStringBuffer( "rate", buf, sizeof( buf ) );
 	if ( atoi( buf ) == 4000 )
@@ -3282,11 +3280,6 @@ void CG_Shutdown( void )
 
 	// some mods may need to do cleanup work here,
 	// like closing files or archiving session data
-
-	if (cg_autoDemo.integer && !cg.demoPlayback) {
-		trap_SendConsoleCommand("stoprecord;");
-		demoAutoComplete();
-	}
 }
 
 /*

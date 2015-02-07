@@ -1172,12 +1172,6 @@ static void CG_MapRestart( void ) {
 	}
 	*/
 //	trap_Cvar_Set("cg_thirdPerson", "0");
-	
-	if (cg_autoDemo.integer && !cg.demoPlayback ) {
-		trap_SendConsoleCommand("stoprecord;");
-		demoAutoComplete();
-		demoAutoRecord();
-	}
 }
 
 /*

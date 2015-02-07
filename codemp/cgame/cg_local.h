@@ -2638,11 +2638,3 @@ void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end );
 #define	SDISABLE_PAIN			0x080000	//pain, death
 #define	SDISABLE_LOOPING		0x100000	//all looping sounds; prolly :s
 #define	SDISABLE_JETPACK		0x200000
-
-// cg_demos_auto.c
-
-extern void demoAutoSave_f(void);
-extern void demoAutoSaveLast_f(void);
-extern void demoAutoComplete(void);
-extern void demoAutoRecord(void);
-extern void demoAutoInit(void);

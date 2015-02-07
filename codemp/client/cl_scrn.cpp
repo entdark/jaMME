@@ -252,7 +252,7 @@ static void SCR_DrawStringExt2( float x, float y, float charWidth, float charHei
 			s += 2;
 			continue;
 		}
-		SCR_DrawChar2( xx+2, y+2, charWidth, charHeight, *s );
+		SCR_DrawChar2( xx+2*cls.ratioFix, y+2, charWidth, charHeight, *s );
 		xx += charWidth;
 		s++;
 	}

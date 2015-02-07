@@ -399,6 +399,9 @@ extern	cvar_t	*cl_allowAltEnter;
 extern	cvar_t	*cl_conXOffset;
 extern	cvar_t	*cl_inGameVideo;
 
+extern	cvar_t	*cl_autoDemo;
+extern	cvar_t	*cl_autoDemoFormat;
+
 #ifndef _WIN32
 extern	cvar_t	*cl_consoleKeys;
 #endif
@@ -613,3 +616,12 @@ qboolean CL_Netchan_Process( netchan_t *chan, msg_t *msg );
 // cl_mme.c
 //
 void CL_MME_CheckCvarChanges(void);
+
+
+// cg_demos_auto.c
+
+extern void demoAutoSave_f(void);
+extern void demoAutoSaveLast_f(void);
+extern void demoAutoComplete(void);
+extern void demoAutoRecord(void);
+extern void demoAutoInit(void);

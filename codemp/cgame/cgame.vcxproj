@@ -299,7 +299,6 @@
     <ClCompile Include="cg_consolecmds.c" />
     <ClCompile Include="cg_demos.c" />
     <ClCompile Include="cg_demos_anim.c" />
-    <ClCompile Include="cg_demos_auto.c" />
     <ClCompile Include="cg_demos_camera.c" />
     <ClCompile Include="cg_demos_capture.c" />
     <ClCompile Include="cg_demos_dof.c" />

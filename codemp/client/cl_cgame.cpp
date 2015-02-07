@@ -443,6 +443,7 @@ CL_GetServerCommand
 Set up argc/argv for the given command
 ===================
 */
+extern void CL_StopRecord_f( void );
 qboolean CL_GetServerCommand( int serverCommandNumber ) {
 	char	*s;
 	char	*cmd;
@@ -529,6 +530,12 @@ rescan:
 		// reparse the string, because Con_ClearNotify() may have done another Cmd_TokenizeString()
 		Cmd_TokenizeString( s );
 		Com_Memset( cl.cmds, 0, sizeof( cl.cmds ) );
+	
+		if (cl_autoDemo->integer && !clc.demoplaying ) {
+			CL_StopRecord_f();
+			demoAutoComplete();
+			demoAutoRecord();
+		}
 		return qtrue;
 	}
 
@@ -589,6 +596,11 @@ void CL_ShutdownCGame( void ) {
 #ifdef _DONETPROFILE_
 	ClReadProf().ShowTotals();
 #endif
+
+	if (cl_autoDemo->integer && !clc.demoplaying) {
+		CL_StopRecord_f();
+		demoAutoComplete();
+	}
 }
 
 static int	FloatAsInt( float f ) {
@@ -1819,6 +1831,8 @@ void CL_InitCGame( void ) {
 	// use the lastExecutedServerCommand instead of the serverCommandSequence
 	// otherwise server commands sent just before a gamestate are dropped
 	VM_Call( cgvm, CG_INIT, clc.serverMessageSequence, clc.lastExecutedServerCommand, clc.clientNum );
+
+	demoAutoInit();
 
 	// reset any CVAR_CHEAT cvars registered by cgame
 	if ( !clc.demoplaying && !cl_connectedToCheatServer )

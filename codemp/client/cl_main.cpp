@@ -78,6 +78,9 @@ cvar_t	*cl_framerate;
 
 cvar_t	*cl_autolodscale;
 
+cvar_t	*cl_autoDemo;
+cvar_t	*cl_autoDemoFormat;
+
 #ifndef _WIN32
 cvar_t	*cl_consoleKeys;
 #endif
@@ -2126,6 +2129,13 @@ void CL_Frame ( int msec ) {
 			S_MMERecord(shotName, 1.0f / fps);
 		}
 	}
+	
+	if (cl_autoDemo->integer && !clc.demoplaying) {
+		if (cls.state != CA_ACTIVE && clc.demorecording)
+			demoAutoComplete();
+		else if (cls.state == CA_ACTIVE && !clc.demorecording)
+			demoAutoRecord();
+	}
 
 	// save the msec before checking pause
 	cls.realFrametime = msec;
@@ -2650,6 +2660,11 @@ void CL_Init( void ) {
 	// cgame might not be initialized before menu is used
 	Cvar_Get ("cg_viewsize", "100", CVAR_ARCHIVE );
 
+	
+	cl_autoDemo = Cvar_Get ("cl_autoDemo", "1", CVAR_ARCHIVE );
+	cl_autoDemoFormat = Cvar_Get ("cl_autoDemoFormat", "%t_%m", CVAR_ARCHIVE );
+	Cmd_AddCommand ("saveDemo", demoAutoSave_f);
+	Cmd_AddCommand ("saveDemoLast", demoAutoSaveLast_f);
 
 	// MME cvars
 	mme_saveWav = Cvar_Get ("mme_saveWav", "1", CVAR_ARCHIVE );

@@ -436,6 +436,9 @@
     <ClCompile Include="client\snd_main.cpp">
       <Filter>Sound</Filter>
     </ClCompile>
+    <ClCompile Include="client\cl_demos_auto.cpp">
+      <Filter>Client</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="botlib\aasfile.h">
