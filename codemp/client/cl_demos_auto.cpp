@@ -1,6 +1,6 @@
 // Copyright (C) 2015 ent (entdark)
 //
-// cg_demos_auto.c - autorecording demos routine
+// cl_demos_auto.c - autorecording demos routine
 //
 // credits: 
 // - teh aka dumbledore aka teh_1337: autorecording demos
@@ -20,38 +20,6 @@ typedef struct demoAuto_s {
 static demoAuto_t demoAuto;
 static char mod[MAX_QPATH];
 
-//mme, taken from pugmod
-void CG_SanitizeString( char *in, char *out ) {
-	int i = 0;
-	int r = 0;
-
-	while (in[i]) {
-		if (i >= 128-1) { //the ui truncates the name here..
-			break;
-		}
-		if (in[i] == '^') {
-			if (in[i+1] >= 48 && //'0'
-				in[i+1] <= 57) //'9'
-			{ //only skip it if there's a number after it for the color
-				i += 2;
-				continue;
-			} else { //just skip the ^
-				i++;
-				continue;
-			}
-		}
-		if (in[i] < 32) {
-			i++;
-			continue;
-		}
-		out[r] = in[i];
-		r++;
-		i++;
-	}
-	out[r] = 0;
-}
-
-extern int trap_RealTime(qtime_t *qtime);
 char *demoAutoFormat(const char* name) {	
 	const	char *format;
 	qboolean haveTag = qfalse;
@@ -64,7 +32,11 @@ char *demoAutoFormat(const char* name) {
 	qtime_t ct;
 
 	char playerName[MAX_QPATH], *mapName = COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO]), "mapname"));
-	CG_SanitizeString(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_PLAYERS+cl.snap.ps.clientNum]), "n"), playerName);
+	Q_strncpyz(playerName, Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_PLAYERS+cl.snap.ps.clientNum]), "n"), sizeof(playerName));
+	if (cls.uag.newColors)
+		Q_StripColorUAG(playerName);
+	else
+		Q_StripColor(playerName);
 	Com_RealTime(&ct);
 	
 	format = cl_autoDemoFormat->string;
