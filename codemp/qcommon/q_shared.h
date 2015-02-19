@@ -477,6 +477,15 @@ float FloatSwap( const float *f );
 	#define PLATFORM_STRING OS_STRING "-" ARCH_STRING "-debug"
 #endif
 
+#if defined(__linux__)
+	#define USE_AIO
+#endif
+
+#if defined(USE_AIO)
+	#include <aio.h>
+	#include <signal.h>
+#endif
+
 // ================================================================
 // TYPE DEFINITIONS
 // ================================================================

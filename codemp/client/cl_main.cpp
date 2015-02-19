@@ -2419,6 +2419,9 @@ void CL_InitRef( void ) {
 	ri.FS_ReadFile = FS_ReadFile;
 	ri.FS_FCloseFile = FS_FCloseFile;
 	ri.FS_FOpenFileRead = FS_FOpenFileRead;
+#ifdef USE_AIO
+	ri.FS_FOpenFileWriteAsync = FS_FOpenFileWriteAsync;
+#endif
 	ri.FS_FOpenFileWrite = FS_FOpenFileWrite;
 	ri.FS_FDirectOpenFileWrite = FS_FDirectOpenFileWrite;
 	ri.FS_FOpenFileByMode = FS_FOpenFileByMode;

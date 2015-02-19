@@ -433,12 +433,95 @@ void CG_InterpolatePlayerState( qboolean grabAngles ) {
 	int				i;
 	playerState_t	*out;
 	snapshot_t		*prev, *next;
+	timedPlayerState_t *tps, *nexttps;
+	timedPlayerState_t realtps, realnexttps;
+	qboolean nextTpsTeleport = qfalse;
 
 	out = &cg.predictedPlayerState;
 	prev = cg.snap;
 	next = cg.nextSnap;
 
-	*out = cg.snap->ps;
+	if ( cg_commandSmooth.integer ) {
+		int bestTime = -1, bestIdx = 0;
+		// find best pair of tps,nexttps
+		// should start at earliest snap and move forward
+		for ( i = cg.psHistory.nextSlot; i < cg.psHistory.nextSlot + MAX_STATE_HISTORY; i++ ) {
+			tps = &cg.psHistory.states[i % MAX_STATE_HISTORY];
+			if ( tps->time <= cg.time + cg.timeFraction && tps->time >= bestTime ) {
+				bestTime = tps->time;
+				bestIdx = i % MAX_STATE_HISTORY;
+			}
+		}
+		if ( bestTime == -1 ) {
+			// all tps were bigger?
+			Com_Printf( "WARNING: All tps times larger than cg.time\n" );
+			bestTime = cg.psHistory.states[0].time;
+			for ( i = cg.psHistory.nextSlot; i < cg.psHistory.nextSlot + MAX_STATE_HISTORY; i++ ) {
+				tps = &cg.psHistory.states[i % MAX_STATE_HISTORY];
+				if ( tps->time >= cg.time + cg.timeFraction && tps->time <= bestTime ) {
+					bestTime = tps->time;
+					bestIdx = i % MAX_STATE_HISTORY;
+				}
+			}
+		}
+		if ( bestIdx == (cg.psHistory.nextSlot + MAX_STATE_HISTORY - 1) % MAX_STATE_HISTORY ) {
+			// then nexttps is invalid, so we have to go back one further
+			bestIdx = (bestIdx + MAX_STATE_HISTORY - 1) % MAX_STATE_HISTORY;
+		}
+		// now we have the index of nexttps.  now to compute tps's index
+		nexttps = &cg.psHistory.states[(bestIdx + 1) % MAX_STATE_HISTORY];
+		nextTpsTeleport = nexttps->isTeleport;
+		for ( i = bestIdx; i != (cg.psHistory.nextSlot + MAX_STATE_HISTORY - 1) % MAX_STATE_HISTORY; i = (i + MAX_STATE_HISTORY - 1) % MAX_STATE_HISTORY ) {
+			tps = &cg.psHistory.states[i];
+			if ( tps->time != nexttps->time ) {
+				if ( i != bestIdx ) {
+#ifdef _DEBUG
+					Com_Printf( "Gap: %d frames\n", (bestIdx + MAX_STATE_HISTORY - i) % MAX_STATE_HISTORY );
+#endif
+				}
+				break;
+			}
+			// don't interpolate if any ps between tps and nexttps is a teleport (including nexttps)
+			nextTpsTeleport |= tps->isTeleport;
+		}
+	} else {
+		tps = &realtps;
+		tps->ps = prev->ps;
+		tps->serverTime = tps->time = prev->serverTime;
+		if (next) {
+			nexttps = &realnexttps;
+			nexttps->ps = next->ps;
+			nexttps->serverTime = nexttps->time = next->serverTime;
+		} else {
+			nexttps = NULL;
+		}
+	}
+	if ( !nexttps ) {
+		return;
+	}
+#ifdef _DEBUG
+	if ( !( tps->time <= cg.time + cg.timeFraction && nexttps->time >= cg.time + cg.timeFraction ) ) {
+		Com_Printf( "WARNING: Couldn't locate slots with correct time\n" );
+	}
+	if ( nexttps->time - tps->time < 0 ) {
+		Com_Printf( "WARNING: nexttps->time - tps->time < 0 (%d, %d)\n", nexttps->time, tps->time );
+	}
+#endif
+	if ( tps->time != nexttps->time ) {
+		f = (cg.timeFraction + ( cg.time - tps->time )) / ( nexttps->time - tps->time );
+#ifdef _DEBUG
+		if ( f > 1 ) {
+			Com_Printf("EXTRAPOLATING (f=%f)\n", f );
+		} else if ( f < 0 ) {
+			Com_Printf("GOING BACKWARDS (f=%f)\n", f );
+		}
+#endif
+	} else {
+		f = 0;
+	}
+
+	*out = tps->ps;
+	out->stats[STAT_HEALTH] = cg.snap->ps.stats[STAT_HEALTH];
 
 	// if we are still allowing local input, short circuit the view angles
 	if ( grabAngles ) {
@@ -452,32 +535,37 @@ void CG_InterpolatePlayerState( qboolean grabAngles ) {
 	}
 
 	// if the next frame is a teleport, we can't lerp to it
-	if ( cg.nextFrameTeleport ) {
+	if ( (cg_commandSmooth.integer && nextTpsTeleport) || (!cg_commandSmooth.integer && cg.nextFrameTeleport) ) {
 		return;
 	}
 
-	if ( !next || next->serverTime <= prev->serverTime ) {
+	/*if ( !next || next->serverTime <= prev->serverTime ) {
 		return;
-	}
+	}*/
 
-	f = (cg.timeFraction + ( cg.time - prev->serverTime )) / ( next->serverTime - prev->serverTime );
-
-	i = next->ps.bobCycle;
-	if ( i < prev->ps.bobCycle ) {
+	i = nexttps->ps.bobCycle;
+	if ( i < tps->ps.bobCycle ) {
 		i += 256;		// handle wraparound
 	}
-	out->bobCycle = prev->ps.bobCycle + f * ( i - prev->ps.bobCycle );
+	out->bobCycle = tps->ps.bobCycle + f * ( i - tps->ps.bobCycle );
 
 	for ( i = 0 ; i < 3 ; i++ ) {
-		out->origin[i] = prev->ps.origin[i] + f * (next->ps.origin[i] - prev->ps.origin[i] );
+		out->origin[i] = tps->ps.origin[i] + f * (nexttps->ps.origin[i] - tps->ps.origin[i] );
 		if ( !grabAngles ) {
 			out->viewangles[i] = LerpAngle( 
-				prev->ps.viewangles[i], next->ps.viewangles[i], f );
+				tps->ps.viewangles[i], nexttps->ps.viewangles[i], f );
 		}
-		out->velocity[i] = prev->ps.velocity[i] + 
-			f * (next->ps.velocity[i] - prev->ps.velocity[i] );
+		out->velocity[i] = tps->ps.velocity[i] + 
+			f * (nexttps->ps.velocity[i] - tps->ps.velocity[i] );
 	}
 
+	{
+		playerState_t curps = tps->ps;
+		curps.stats[STAT_HEALTH] = cg.snap->ps.stats[STAT_HEALTH];
+		BG_PlayerStateToEntityState( &curps, &cg_entities[ curps.clientNum ].currentState, qfalse );
+		BG_PlayerStateToEntityState( &nexttps->ps, &cg_entities[ nexttps->ps.clientNum ].nextState, qfalse );
+		cg.playerInterpolation = f;
+	}
 }
 
 void CG_InterpolateVehiclePlayerState( qboolean grabAngles ) {

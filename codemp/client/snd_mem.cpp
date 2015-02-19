@@ -363,11 +363,11 @@ static openSound_t * S_WavOpen( const char *fileName ) {
 //=============================================================================
 
 #ifdef HAVE_LIBMAD 
-#ifdef MACOS_X
-#include <mad.h>
-#elif defined _WIN32
+#ifdef _WIN32
 #include "mad.h"
 #pragma comment (lib, "libmad.lib")
+#else
+#include <mad.h>
 #endif
 #define MP3_SEEKINTERVAL 16 
 #define MP3_SEEKMAX 4096

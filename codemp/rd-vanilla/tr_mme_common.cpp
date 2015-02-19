@@ -7,7 +7,7 @@ void R_MME_GetShot( void* output ) {
 	} else {
 		static int index = 0;
 		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[index]);
-		index = index ^ 1;
+		index = (index + 1) % 4;
 		qglReadPixels( 0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGB, GL_UNSIGNED_BYTE, 0 );
 
 		// map the PBO to process its data by CPU

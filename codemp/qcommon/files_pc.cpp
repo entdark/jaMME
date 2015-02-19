@@ -353,6 +353,9 @@ fileHandle_t FS_SV_FOpenFileWrite( const char *filename ) {
 	Q_strncpyz( fsh[f].name, filename, sizeof( fsh[f].name ) );
 
 	fsh[f].handleSync = qfalse;
+#ifdef USE_AIO
+	fsh[f].handleAsync = qfalse;
+#endif
 	if (!fsh[f].handleFiles.file.o) {
 		f = 0;
 	}
@@ -393,6 +396,9 @@ int FS_SV_FOpenFileRead( const char *filename, fileHandle_t *fp ) {
 
 	fsh[f].handleFiles.file.o = fopen( ospath, "rb" );
 	fsh[f].handleSync = qfalse;
+#ifdef USE_AIO
+	fsh[f].handleAsync = qfalse;
+#endif
 	if (!fsh[f].handleFiles.file.o)
 	{
 		// NOTE TTimo on non *nix systems, fs_homepath == fs_basepath, might want to avoid
@@ -409,6 +415,9 @@ int FS_SV_FOpenFileRead( const char *filename, fileHandle_t *fp ) {
 
 			fsh[f].handleFiles.file.o = fopen( ospath, "rb" );
 			fsh[f].handleSync = qfalse;
+#ifdef USE_AIO
+			fsh[f].handleAsync = qfalse;
+#endif
 
 			if ( !fsh[f].handleFiles.file.o )
 			{
@@ -429,6 +438,9 @@ int FS_SV_FOpenFileRead( const char *filename, fileHandle_t *fp ) {
 
 		fsh[f].handleFiles.file.o = fopen( ospath, "rb" );
 		fsh[f].handleSync = qfalse;
+#ifdef USE_AIO
+		fsh[f].handleAsync = qfalse;
+#endif
 
 		if( !fsh[f].handleFiles.file.o ) {
 			f = 0;
@@ -504,6 +516,53 @@ void FS_Rename( const char *from, const char *to ) {
 	}
 }
 
+#ifdef USE_AIO
+/*
+Callback for final write which will free all memory and close the file
+(at this point no blocking should be needed).
+*/
+extern void Com_PushEvent( sysEvent_t *event );
+static void aio_completion_handler( sigval_t sigval ) {
+	fileHandle_t f = sigval.sival_int;
+	sysEvent_t event;
+	Com_Memset( &event, 0, sizeof( event ) );
+	event.evType = SE_AIO_FCLOSE;
+	event.evValue = f;
+	Com_PushEvent( &event );
+}
+
+void FS_FCloseAio( int handle ) {
+	fileHandle_t f = (fileHandle_t) handle;
+	if ( f < 1 || f >= MAX_FILE_HANDLES ) {
+		Com_Error( ERR_FATAL, "FCloseAio called with invalid handle %d\n", f );
+	}
+	fileBufferNode_t *node = fsh[f].pending;
+	int numPendingWrites = 0;
+	if ( !fsh[f].closing ) {
+		Com_Printf( "Warning: closing file not set to closing: %d\n", f );
+	} else {
+		Com_Printf( "Closing file %d (%s)\n", f, fsh[f].name );
+	}
+	while ( node != NULL ) {
+		fileBufferNode_t *nextNode = node->next;
+		// busy-wait for completion of the write
+		if ( aio_error( &node->cb ) == EINPROGRESS ) {
+			numPendingWrites++;
+		}
+		while ( aio_error( &node->cb ) == EINPROGRESS );
+		Z_Free( node->buffer );
+		Z_Free( node );
+		node = nextNode;
+	}
+	if ( numPendingWrites > 0 ) {
+		Com_Printf( "Waited for %d pending writes to complete before closing\n", numPendingWrites );
+	}
+	fclose (fsh[f].handleFiles.file.o);
+	Z_Free( fsh[f].pendingBuffer.buffer );
+	Com_Memset( &fsh[f], 0, sizeof( fsh[f] ) );
+}
+#endif
+
 /*
 ==============
 FS_FCloseFile
@@ -514,6 +573,9 @@ For some reason, other dll's can't just cal fclose()
 on files returned by FS_FOpenFile...
 ==============
 */
+#ifdef USE_AIO
+static void FS_WriteAio( const void *buffer, int len, fileHandle_t h, void (*notify_function) (sigval_t) );
+#endif
 void FS_FCloseFile( fileHandle_t f ) {
 	if ( !fs_searchpaths ) {
 		Com_Error( ERR_FATAL, "Filesystem call made without initialization\n" );
@@ -533,10 +595,59 @@ void FS_FCloseFile( fileHandle_t f ) {
 
 	// we didn't find it as a pak, so close it as a unique file
 	if (fsh[f].handleFiles.file.o) {
-		fclose (fsh[f].handleFiles.file.o);
+#ifdef USE_AIO
+		if ( fsh[f].handleAsync ) {
+			if ( fsh[f].closing ) {
+				// file is already closing
+				Com_Printf( "Ignoring duplicate FCloseFile call for handle %d\n", f );
+				return;
+			}
+			fileBufferNode_t *node = fsh[f].pending;
+			int numPendingWrites = 0;
+			while ( node != NULL ) {
+				if ( aio_error( &node->cb ) == EINPROGRESS ) {
+					numPendingWrites++;
+				}
+				node = node->next;
+			}
+			numPendingWrites++;
+			{
+				pendingBuffer_t *pb = &fsh[f].pendingBuffer;
+				Com_Printf( "Waiting for %d pending writes to complete before closing\n", numPendingWrites );
+				fsh[f].closing = qtrue;
+				FS_WriteAio( pb->buffer, pb->bufferOffset, f, aio_completion_handler );
+				// need to keep around the data
+				return;
+			}
+		} else
+#endif
+		{
+			fclose (fsh[f].handleFiles.file.o);
+		}
 	}
 	Com_Memset( &fsh[f], 0, sizeof( fsh[f] ) );
 }
+
+#ifdef USE_AIO
+static size_t BUFFER_SIZE = 64 * 1024;
+fileHandle_t FS_FOpenFileWriteAsync( const char *filename ) {
+	fileHandle_t f;
+	FILE *fp;
+	f = FS_FOpenFileWrite( filename );
+	if ( f ) {
+		fsh[f].handleAsync = qtrue;
+		fsh[f].pending = NULL;
+		fsh[f].closing = qfalse;
+		fsh[f].pendingBuffer.buffer = ( byte * ) Z_Malloc( BUFFER_SIZE, TAG_FILESYS, qtrue );
+		fsh[f].pendingBuffer.bufferLen = BUFFER_SIZE;
+		fsh[f].pendingBuffer.bufferOffset = 0;
+		fp = FS_FileForHandle( f );
+		// need to set O_APPEND in order to not have every aio_write overwrite the others
+		fcntl( fileno( fp ), F_SETFL, O_APPEND );
+	}
+	return f;
+}
+#endif
 
 /*
 ===========
@@ -573,6 +684,9 @@ fileHandle_t FS_FOpenFileWrite( const char *filename ) {
 	Q_strncpyz( fsh[f].name, filename, sizeof( fsh[f].name ) );
 
 	fsh[f].handleSync = qfalse;
+#ifdef USE_AIO
+	fsh[f].handleAsync = qfalse;
+#endif
 	if (!fsh[f].handleFiles.file.o) {
 		f = 0;
 	}
@@ -650,6 +764,9 @@ fileHandle_t FS_FOpenFileReadWrite( const char *filename ) {
 	Q_strncpyz( fsh[f].name, filename, sizeof( fsh[f].name ) );
 
 	fsh[f].handleSync = qfalse;
+#ifdef USE_AIO
+	fsh[f].handleAsync = qfalse;
+#endif
 	if (!fsh[f].handleFiles.file.o) {
 		f = 0;
 	}
@@ -690,6 +807,9 @@ fileHandle_t FS_FOpenFileAppend( const char *filename ) {
 
 	fsh[f].handleFiles.file.o = fopen( ospath, "ab" );
 	fsh[f].handleSync = qfalse;
+#ifdef USE_AIO
+	fsh[f].handleAsync = qfalse;
+#endif
 	if (!fsh[f].handleFiles.file.o) {
 		f = 0;
 	}
@@ -1221,6 +1341,53 @@ int FS_Read( void *buffer, int len, fileHandle_t f ) {
 	}
 }
 
+#ifdef USE_AIO
+static void FS_WriteAio( const void *buffer, int len, fileHandle_t h, void (*notify_function) (sigval_t) ) {
+	FILE *f = FS_FileForHandle(h);
+	fileBufferNode_t *node = ( fileBufferNode_t * ) Z_Malloc( sizeof( fileBufferNode_t ), TAG_FILESYS, qtrue );
+	node->buffer = Z_Malloc( len, TAG_FILESYS, qfalse );
+	memcpy( node->buffer, buffer, len );
+	node->next = NULL;
+	node->cb.aio_fildes = fileno( f );
+	node->cb.aio_buf = node->buffer;
+	node->cb.aio_nbytes = len;
+	if ( notify_function == NULL ) {
+		node->cb.aio_sigevent.sigev_notify = SIGEV_NONE;
+	} else {
+		node->cb.aio_sigevent.sigev_notify = SIGEV_THREAD;
+		node->cb.aio_sigevent.sigev_notify_function = notify_function;
+		node->cb.aio_sigevent.sigev_notify_attributes = NULL;
+		node->cb.aio_sigevent.sigev_value.sival_int = (int) h;
+	}
+	if ( aio_write( &node->cb ) ) {
+		Com_Error( ERR_FATAL, "Failed to write to file: error %d\n", aio_error( &node->cb ) );
+	}
+	fileBufferNode_t *lastNode = fsh[h].pending;
+	fileBufferNode_t *prevNode = NULL;
+	while ( lastNode != NULL ) {
+		fileBufferNode_t *nextNode = lastNode->next;
+		if ( aio_error( &lastNode->cb ) != EINPROGRESS ) {
+			// this write completed, so remove it from the list
+			if ( prevNode == NULL ) {
+				fsh[h].pending = lastNode->next;
+			} else {
+				prevNode->next = lastNode->next;
+			}
+			Z_Free( lastNode->buffer );
+			Z_Free( lastNode );
+		} else {
+			prevNode = lastNode;
+		}
+		lastNode = nextNode;
+	}
+	if ( prevNode == NULL ) {
+		fsh[h].pending = node;
+	} else {
+		prevNode->next = node;
+	}
+}
+#endif
+
 /*
 =================
 FS_Write
@@ -1246,27 +1413,53 @@ int FS_Write( const void *buffer, int len, fileHandle_t h ) {
 	f = FS_FileForHandle(h);
 	buf = (byte *)buffer;
 
-	remaining = len;
-	tries = 0;
-	while (remaining) {
-		block = remaining;
-		written = fwrite (buf, 1, block, f);
-		if (written == 0) {
-			if (!tries) {
-				tries = 1;
-			} else {
-				Com_Printf( "FS_Write: 0 bytes written\n" );
-				return 0;
-			}
-		}
-
-		if (written == -1) {
-			Com_Printf( "FS_Write: -1 bytes written\n" );
+#if defined(USE_AIO)
+	if ( fsh[h].handleAsync ) {
+		if ( fsh[h].closing ) {
+			Com_Printf( "Denying attempt to write to async file %d after closing it\n", h );
 			return 0;
 		}
+		// first buffer as much as we can
+		pendingBuffer_t *pb = &fsh[h].pendingBuffer;
+		int remainingLen = len;
+		while ( remainingLen > 0 ) {
+			int copyLen = min( remainingLen, (int) ( pb->bufferLen - pb->bufferOffset ) );
+			memcpy( &pb->buffer[pb->bufferOffset], buf, copyLen );
+			pb->bufferOffset += copyLen;
+			buf += copyLen;
+			remainingLen -= copyLen;
+			if ( pb->bufferOffset >= pb->bufferLen ) {
+				// buffer is full, dump it
+				FS_WriteAio( pb->buffer, pb->bufferLen, h, NULL );
+				pb->bufferOffset = 0;
+			}
+		}
+		return len;
+	} else
+#endif
+	{
+		remaining = len;
+		tries = 0;
+		while (remaining) {
+			block = remaining;
+			written = fwrite (buf, 1, block, f);
+			if (written == 0) {
+				if (!tries) {
+					tries = 1;
+				} else {
+					Com_Printf( "FS_Write: 0 bytes written\n" );
+					return 0;
+				}
+			}
 
-		remaining -= written;
-		buf += written;
+			if (written == -1) {
+				Com_Printf( "FS_Write: -1 bytes written\n" );
+				return 0;
+			}
+
+			remaining -= written;
+			buf += written;
+		}
 	}
 	if ( fsh[h].handleSync ) {
 		fflush( f );
@@ -3309,6 +3502,9 @@ int		FS_FOpenFileByMode( const char *qpath, fileHandle_t *f, fsMode_t mode ) {
 		}
 	}
 	fsh[*f].handleSync = sync;
+#ifdef USE_AIO
+	fsh[*f].handleAsync = qfalse;
+#endif
 
 	return r;
 }

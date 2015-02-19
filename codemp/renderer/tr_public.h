@@ -204,6 +204,7 @@ typedef struct {
 	qboolean			(*G2API_SetSkin)						( CGhoul2Info *ghlInfo, qhandle_t customSkin, qhandle_t renderSkin );
 	qboolean			(*G2API_SetSurfaceOnOff)				( CGhoul2Info_v &ghoul2, const char *surfaceName, const int flags );
 	void				(*G2API_SetTime)						( int currentTime, int clock );
+	void				(*G2API_SetTimeFraction)				( float timeFraction );
 	qboolean			(*G2API_SkinlessModel)					( CGhoul2Info *g2 );
 	qboolean			(*G2API_StopBoneAngles)					( CGhoul2Info *ghlInfo, const char *boneName );
 	qboolean			(*G2API_StopBoneAnglesIndex)			( CGhoul2Info *ghlInfo, const int index );
@@ -280,6 +281,9 @@ typedef struct {
 	int				(*FS_ReadFile)						( const char *qpath, void **buffer );
 	void			(*FS_FCloseFile)					( fileHandle_t f );
 	int				(*FS_FOpenFileRead)					( const char *qpath, fileHandle_t *file, qboolean uniqueFILE );
+#ifdef USE_AIO
+	fileHandle_t	(*FS_FOpenFileWriteAsync)			( const char *qpath );
+#endif
 	fileHandle_t	(*FS_FOpenFileWrite)				( const char *qpath );
 	fileHandle_t	(*FS_FDirectOpenFileWrite)			( const char *filename, const char *mode );
 	int				(*FS_FOpenFileByMode)				( const char *qpath, fileHandle_t *f, fsMode_t mode );

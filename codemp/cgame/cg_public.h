@@ -357,6 +357,7 @@ Ghoul2 Insert End
 	CG_CIN_ADJUST_TIME,
 	CG_R_ROTATEPIC2_RATIOFIX,
 
+	CG_G2_SETTIMEFRACTION,
 } cgameImport_t;
 
 

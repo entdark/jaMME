@@ -485,6 +485,15 @@ is resetting due to a game change
 ================
 */
 void FS_InitFilesystem( void ) {
+#ifdef USE_AIO
+	struct aioinit init;
+	memset( &init, 0, sizeof( init ) );
+	init.aio_threads = 20;
+	init.aio_num = 64;
+	init.aio_idle_time = 300;
+	aio_init( &init );
+	Com_Printf( "Initialized AIO\n" );
+#endif
 	// allow command line parms to override our defaults
 	// we have to specially handle this, because normal command
 	// line variable sets don't happen until after the filesystem

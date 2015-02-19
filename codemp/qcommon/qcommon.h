@@ -567,6 +567,9 @@ qboolean FS_CompareZipChecksum(const char *zipfile);
 int		FS_GetFileList(  const char *path, const char *extension, char *listbuf, int bufsize );
 int		FS_GetModList(  char *listbuf, int bufsize );
 
+#ifdef USE_AIO
+fileHandle_t	FS_FOpenFileWriteAsync( const char *qpath );
+#endif
 fileHandle_t	FS_FOpenFileWrite( const char *qpath );
 fileHandle_t	FS_FDirectOpenFileWrite( const char *filename, const char *mode );
 fileHandle_t	FS_FOpenFileReadWrite( const char *filename );
@@ -727,6 +730,8 @@ extern	cvar_t	*com_G2Report;
 #endif
 
 extern	cvar_t	*com_RMG;
+
+extern cvar_t  *com_affinity;
 
 // both client and server must agree to pause
 extern	cvar_t	*cl_paused;
@@ -949,7 +954,10 @@ typedef enum {
 	SE_MOUSE,	// evValue and evValue2 are reletive signed x / y moves
 	SE_JOYSTICK_AXIS,	// evValue is an axis number and evValue2 is the current state (-127 to 127)
 	SE_CONSOLE,	// evPtr is a char*
-	SE_PACKET	// evPtr is a netadr_t followed by data bytes to evPtrLength
+	SE_PACKET,	// evPtr is a netadr_t followed by data bytes to evPtrLength
+#ifdef USE_AIO
+	SE_AIO_FCLOSE,	// evPtr is a pointer to fsh[h]
+#endif
 } sysEventType_t;
 
 typedef struct {

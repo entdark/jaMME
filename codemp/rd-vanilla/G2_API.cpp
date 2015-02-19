@@ -145,6 +145,7 @@ qboolean G2_TestModelPointers(CGhoul2Info *ghlInfo);
 //rww - RAGDOLL_BEGIN
 #define NUM_G2T_TIME (2)
 static int G2TimeBases[NUM_G2T_TIME];
+static float G2TimeFractionBase;
 
 void G2API_SetTime(int currentTime,int clock)
 {
@@ -163,6 +164,17 @@ void G2API_SetTime(int currentTime,int clock)
 #endif
 }
 
+void G2API_SetTimeFraction(float currentTimeFraction)
+{
+#if G2_DEBUG_TIME
+	Com_Printf("Set Time Fraction: before %f",G2TimeFractionBase);
+#endif
+	G2TimeFractionBase=currentTimeFraction;
+#if G2_DEBUG_TIME
+	Com_Printf(" after %f\n",G2TimeFractionBase);
+#endif
+}
+
 int	G2API_GetTime(int argTime) // this may or may not return arg depending on ghoul2_time cvar
 {
 	int ret=G2TimeBases[1];
@@ -172,6 +184,11 @@ int	G2API_GetTime(int argTime) // this may or may not return arg depending on gh
 	}
 
 	return ret;
+}
+
+float G2API_GetTimeFraction()
+{
+	return G2TimeFractionBase;
 }
 //rww - RAGDOLL_END
 
@@ -2554,6 +2571,11 @@ int G2API_Ghoul2Size ( CGhoul2Info_v &ghoul2 )
 extern int		G2_DecideTraceLod(CGhoul2Info &ghoul2, int useLod);
 void G2API_AddSkinGore(CGhoul2Info_v &ghoul2,SSkinGoreData &gore)
 {
+	int goreTime = gore.currentTime, g2Time = G2API_GetTime(0);
+	float g2Float = (float) g2Time;
+	if (gore.currentTime == g2Float)
+		goreTime = g2Time;
+
 	if (VectorLength(gore.rayDirection)<.1f)
 	{
 		assert(0); // can't add gore without a shot direction
@@ -2561,8 +2583,8 @@ void G2API_AddSkinGore(CGhoul2Info_v &ghoul2,SSkinGoreData &gore)
 	}
 
 	// make sure we have transformed the whole skeletons for each model
-	//G2_ConstructGhoulSkeleton(ghoul2, gore.currentTime, NULL, true, gore.angles, gore.position, gore.scale, false);
-	G2_ConstructGhoulSkeleton(ghoul2, gore.currentTime, true, gore.scale);
+	//G2_ConstructGhoulSkeleton(ghoul2, goreTime, NULL, true, gore.angles, gore.position, gore.scale, false);
+	G2_ConstructGhoulSkeleton(ghoul2, goreTime, true, gore.scale);
 
 	// pre generate the world matrix - used to transform the incoming ray
 	G2_GenerateWorldMatrix(gore.angles, gore.position);
@@ -2581,7 +2603,7 @@ void G2API_AddSkinGore(CGhoul2Info_v &ghoul2,SSkinGoreData &gore)
 		// now having done that, time to build the model
 		ri.GetG2VertSpaceServer()->ResetHeap();
 
-		G2_TransformModel(ghoul2, gore.currentTime, gore.scale,ri.GetG2VertSpaceServer(),lod,true);
+		G2_TransformModel(ghoul2, goreTime, gore.scale,ri.GetG2VertSpaceServer(),lod,true);
 
 		// now walk each model and compute new texture coordinates
 		G2_TraceModels(ghoul2, transHitLocation, transRayDirection, 0, gore.entNum, 0,lod,0.0f,gore.SSize,gore.TSize,gore.theta,gore.shader,&gore,qtrue);

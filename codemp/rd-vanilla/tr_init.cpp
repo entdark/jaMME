@@ -1078,7 +1078,7 @@ Ghoul2 Insert End
 }
 
 
-GLuint pboIds[2];
+GLuint pboIds[4];
 /*
 ===============
 R_Init
@@ -1186,11 +1186,11 @@ void R_Init( void ) {
 		// create 2 pixel buffer objects, you need to delete them when program exits.
 		// glBufferDataARB with NULL pointer reserves only memory space.
 		int dataSize = glConfig.vidWidth * glConfig.vidHeight * 3;
-		qglGenBuffersARB(2, pboIds);
-		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[0]);
-		qglBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, dataSize, 0, GL_STREAM_READ_ARB);
-		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[1]);
-		qglBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, dataSize, 0, GL_STREAM_READ_ARB);
+		qglGenBuffersARB(4, pboIds);
+		for ( int idx = 0; idx < 4; idx++ ) {
+			qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[idx]);
+			qglBufferDataARB(GL_PIXEL_PACK_BUFFER_ARB, dataSize, 0, GL_STREAM_READ_ARB);
+		}
 
 		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, 0);
 	}
@@ -1541,6 +1541,7 @@ Q_EXPORT refexport_t* QDECL GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.G2API_SetSkin						= G2API_SetSkin;
 	re.G2API_SetSurfaceOnOff				= G2API_SetSurfaceOnOff;
 	re.G2API_SetTime						= G2API_SetTime;
+	re.G2API_SetTimeFraction				= G2API_SetTimeFraction;
 	re.G2API_SkinlessModel					= G2API_SkinlessModel;
 	re.G2API_StopBoneAngles					= G2API_StopBoneAngles;
 	re.G2API_StopBoneAnglesIndex			= G2API_StopBoneAnglesIndex;
