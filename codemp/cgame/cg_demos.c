@@ -348,6 +348,7 @@ static int demoSetupView( void) {
 
 extern snapshot_t *CG_ReadNextSnapshot( void );
 extern void CG_SetNextSnap( snapshot_t *snap );
+extern void CG_SetNextNextSnap( snapshot_t *snap );
 extern void CG_TransitionSnapshot( void );
 
 void demoProcessSnapShots( qboolean hadSkip ) {
