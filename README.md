@@ -1,7 +1,7 @@
-jaMME
-=====
+Jedi Academy Movie Maker's Edition
+==================================
 
-jaMME is an engine modification of Jedi Academy for moviemaking. It's a port of q3mme with most of its features and some new ones. The modification is based on early (May 2013th) version of OpenJK. Original source code belongs to Raven Software.
+Jedi Academy Movie Maker's Edition (jaMME) is an engine modification of Jedi Academy for moviemaking. It's a port of q3mme with most of its features and some new ones. The modification is based on very early (May 2013th) version of OpenJK. Original source code belongs to Raven Software.
 
 # Features #
 * demo playback control (pause, rewind)
@@ -21,10 +21,23 @@ jaMME is an engine modification of Jedi Academy for moviemaking. It's a port of 
 * capturing in any resolution
 * off-screen capturing
 * capturing a list of demos
-* supporting mods: base (basejka, base_enhanced), ja+ (ja++), lugormod, makermod
+* supporting mods: base (basejka, base_enhanced), ja+ (ja++), lugormod, makermod, MBII
+
+# Contributors #
+* ent
+* Scooper
+* redsaurus
+* teh
 
 # Installation #
-Either extract the archive to "GameData" folder or extract anywhere, then create folder "base" next to folder "mme", put in there ("base") assets0.pk3, assets1.pk3, assets2.pk3, assets3.pk3 from "base" from your original game path. Then run launch_jaMME.cmd file and enjoy the mod.
+Extract the archive to "GameData" folder.
+
+# Dependencies #
+* zlib for pk3 support
+* libmad for mp3 support
+* libogg for ogg vorbis support
+* libvorbis for ogg vorbis support
+* libflac for flac support
 
 # Credits #
 * q3mme crew and their q3mme mod
@@ -35,3 +48,4 @@ Either extract the archive to "GameData" folder or extract anywhere, then create
 * Razorace and his trueview feature (taken from JA++)
 * Grant R. Griffin and his "FIR filter algorithms for use in C"
 * OpenJK contributors and their OpenJK project
+* redsaurus for Mac support

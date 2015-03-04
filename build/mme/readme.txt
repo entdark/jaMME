@@ -13,22 +13,19 @@
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  jaMME is an engine modification of Jedi Academy for moviemaking. It's a
-port of q3mme with most of its features and some new ones.
+  Jedi Academy Movie Maker's Edition (jaMME) is an engine modification of
+Jedi Academy for moviemaking. It's a port of q3mme with most of its
+features and some new ones.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   Author: ent
-  Contributors: ent, Scooper
-  Version: 1.7
-! Date: 20.12.2014
+  Contributors: ent, Scooper, redsaurus, teh
+  Version: 1.8
+! Date: 05.03.2015
 ! Filesize: 7.21 MB
 
-  Installation: either extract the archive to "GameData" folder or extract
-anywhere, then create folder "base" next to folder "mme", put in there
-("base") assets0.pk3, assets1.pk3, assets2.pk3, assets3.pk3 from "base"
-from your original game path. Then run start_jaMME.cmd file and enjoy the
-mod.
+  Installation: extract the archive to "GameData" folder.
 
   Credits: 
     - q3mme crew and their q3mme mod
@@ -41,7 +38,8 @@ mod.
     - Razorace and his trueview feature (taken from JA++)
     - Grant R. Griffin and his "FIR filter algorithms for use in C"
     - OpenJK contributors and their OpenJK project
+    - redsaurus for Mac support
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Copyrights: ©2014 ent; jaMME source code is opened under GPLv2 license
+  Copyrights: ©2015 ent; jaMME source code is opened under GPLv2 license
