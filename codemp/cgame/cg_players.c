@@ -1728,10 +1728,10 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	//Raz: Gender hints
 	if ( (v = ConfigValue( strings, "ds" )) )
 	{
-		if ( *v == 'm' )
-			newInfo.gender = GENDER_MALE;
-		else
+		if ( *v == 'f' )
 			newInfo.gender = GENDER_FEMALE;
+		else
+			newInfo.gender = GENDER_MALE;
 	}	
 
 	// team task
