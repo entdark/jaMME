@@ -78,6 +78,135 @@ static void CG_TransitionEntity( centity_t *cent ) {
 	CG_CheckEvents( cent );
 }
 
+void CG_AddToHistory( int serverTime, entityState_t *state, centity_t *cent ) {
+	timedEntityState_t *tstate = &cent->stateHistory.states[cent->stateHistory.nextSlot % MAX_STATE_HISTORY], *prev = NULL;
+	if ( cent->stateHistory.nextSlot > 0 ) {
+		prev = &cent->stateHistory.states[(cent->stateHistory.nextSlot - 1) % MAX_STATE_HISTORY];
+		if ( prev->serverTime == serverTime ) {
+			// already have this snap recorded
+			return;
+		}
+		if ( prev->serverTime > serverTime ) {
+			// jumped back in time
+			cent->currentStateHistory = cent->stateHistory.nextSlot;
+		}
+	}
+	tstate->es = *state;
+	tstate->serverTime = serverTime;
+	tstate->isTeleport = cent->stateHistory.nextSlot <= 0 ||
+		( prev && prev->serverTime > serverTime ) ||
+		( ( cent->stateHistory.states[(cent->stateHistory.nextSlot - 1) % MAX_STATE_HISTORY].es.eFlags ^ state->eFlags ) & EF_TELEPORT_BIT ) ? qtrue : qfalse;
+	if ( prev && state->pos.trType == TR_LINEAR_STOP ) {
+		if ( cent->stateHistory.nextSlot == 0 ) {
+			// base case
+			tstate->time = serverTime;
+		} else {
+			// determine correct lerp time for new snap
+			if (tstate->isTeleport) {
+				// if frame is a teleport, reset as best we can
+				tstate->time = max(prev->time, tstate->serverTime);
+				if ( prev->serverTime > tstate->serverTime ) {
+					tstate->time = tstate->serverTime;
+				}
+			} else {
+				// so for smoothest experience, time should be cg.nextSnap->ps.commandTime
+				// but, we shouldn't drift time too far off or else player will move weird (will appear to be further ahead depending on ping)
+				// so, prevent to drift further than 1 frame away in future, or 2 in past
+				int bestNewTime = state->pos.trTime - prev->es.pos.trTime + prev->time;
+				int deltaTime = tstate->serverTime - prev->serverTime;
+				// allow  to drift ahead or behind by 1 frame only
+				int newTime = min( tstate->serverTime + deltaTime, max( prev->serverTime, bestNewTime ) );
+				tstate->time = newTime;
+		
+#ifdef _DEBUG
+				if ( tstate->time < prev->time ) {
+					Com_Printf( "WARNING: Drifted backwards\n" );
+				}
+#endif
+
+				//Com_Printf("Corrected time %d ms (commandDiff %d, framedelta %d)\n", tps->time - tps->serverTime, tps->ps.commandTime - lasttps->ps.commandTime, deltaTime);
+			}
+		}
+	} else {
+		// command time unknown
+#ifdef _DEBUG
+		Com_Printf( "commandTime unknown for client %d\n", state->number );
+		tstate->time = serverTime;
+#endif
+	}
+	if ( ( cent->stateHistory.nextSlot % MAX_STATE_HISTORY ) == ( cent->currentStateHistory % MAX_STATE_HISTORY ) && cent->currentStateHistory < cent->stateHistory.nextSlot ) {
+		// buffer overflowed, force advance
+#ifdef _DEBUG
+		Com_Printf( "centity buffer overflow for client %d\n", state->number );
+#endif
+		cent->currentStateHistory = cent->stateHistory.nextSlot - MAX_STATE_HISTORY + 1;
+	}
+	cent->stateHistory.nextSlot++;
+}
+
+void CG_UpdateTps( snapshot_t *snap, qboolean isTeleport ) {
+	timedPlayerState_t	*tps, *lasttps = NULL;
+
+	tps = &cg.psHistory.states[cg.psHistory.nextSlot % MAX_STATE_HISTORY];
+	if ( cg.psHistory.nextSlot > 0 ) {
+		lasttps = &cg.psHistory.states[( cg.psHistory.nextSlot - 1 ) % MAX_STATE_HISTORY];
+		if ( lasttps->serverTime == snap->serverTime ) {
+			// already have this snap recorded
+			return;
+		}
+		if ( lasttps->serverTime > snap->serverTime ) {
+			// jumped back in time
+			cg.currentPsHistory = cg.psHistory.nextSlot;
+		}
+	}
+	
+	tps->ps = snap->ps;
+	tps->serverTime = snap->serverTime;
+	tps->isTeleport = isTeleport;
+	if ( lasttps ) {
+		// determine correct lerp time for new snap
+		if ( isTeleport ) {
+			// if frame is a teleport, reset as best we can
+			tps->time = max( lasttps->time, tps->serverTime );
+			if ( lasttps->serverTime > tps->serverTime ) {
+				tps->time = tps->serverTime;
+			}
+		}
+		else {
+			// so for smoothest experience, time should be cg.nextSnap->ps.commandTime
+			// but, we shouldn't drift time too far off or else player will move weird (will appear to be further ahead depending on ping)
+			// so, prevent to drift further than 1 frame away in future, or 2 in past
+			int bestNewTime = tps->ps.commandTime - lasttps->ps.commandTime + lasttps->time;
+			int deltaTime = tps->serverTime - lasttps->serverTime;
+			// allow  to drift ahead or behind by 1 frame only
+			int newTime = min( tps->serverTime + deltaTime, max( lasttps->serverTime, bestNewTime ) );
+			if ( lasttps->serverTime != 0 ) {
+				tps->time = newTime;
+			}
+			else {
+				tps->time = tps->serverTime;
+			}
+
+#ifdef _DEBUG
+			if ( tps->time < lasttps->time ) {
+				Com_Printf( "WARNING: Drifted backwards\n" );
+			}
+#endif
+
+			//Com_Printf("Corrected time %d ms (commandDiff %d, framedelta %d)\n", tps->time - tps->serverTime, tps->ps.commandTime - lasttps->ps.commandTime, deltaTime);
+		}
+	} else {
+		tps->time = tps->serverTime;
+	}
+	if ( ( cg.psHistory.nextSlot % MAX_STATE_HISTORY ) == ( cg.currentPsHistory % MAX_STATE_HISTORY ) && cg.currentPsHistory < cg.psHistory.nextSlot ) {
+		// buffer overflowed, force advance
+#ifdef _DEBUG
+		Com_Printf( "ps buffer overflow\n" );
+#endif
+		cg.currentPsHistory = cg.psHistory.nextSlot - MAX_STATE_HISTORY + 1;
+	}
+	cg.psHistory.nextSlot++;
+}
 
 /*
 ==================
@@ -93,7 +222,7 @@ FIXME: Also called by map_restart?
 void CG_SetInitialSnapshot( snapshot_t *snap ) {
 	int				i;
 	centity_t		*cent;
-	entityState_t	*state;
+	entityState_t	*state, pes;
 
 	cg.snap = snap; 
 
@@ -118,6 +247,10 @@ void CG_SetInitialSnapshot( snapshot_t *snap ) {
 	// what the server has indicated the current weapon is
 	CG_Respawn();
 
+	CG_UpdateTps( snap, qtrue );
+	BG_PlayerStateToEntityStateExtraPolate( &snap->ps, &pes, snap->ps.commandTime, qfalse );
+	CG_AddToHistory( snap->serverTime, &pes, &cg_entities[ snap->ps.clientNum ] );
+
 	for ( i = 0 ; i < cg.snap->numEntities ; i++ ) {
 		state = &cg.snap->entities[ i ];
 		cent = &cg_entities[ state->number ];
@@ -126,6 +259,10 @@ void CG_SetInitialSnapshot( snapshot_t *snap ) {
 		//cent->currentState = *state;
 		cent->interpolate = qfalse;
 		cent->currentValid = qtrue;
+
+		if ( state->number < MAX_CLIENTS ) {
+			CG_AddToHistory( snap->serverTime, state, cent );
+		}
 
 		CG_ResetEntity( cent );
 
@@ -154,49 +291,6 @@ static qboolean CG_IsTeleport( snapshot_t *lastSnap, snapshot_t *snap ) {
 	return qfalse;
 }
 
-static void CG_UpdateTps( snapshot_t *snap, qboolean isTeleport ) {
-	timedPlayerState_t	*tps, *lasttps;
-
-	tps = &cg.psHistory.states[cg.psHistory.nextSlot];
-	lasttps = &cg.psHistory.states[(cg.psHistory.nextSlot + MAX_STATE_HISTORY - 1) % MAX_STATE_HISTORY];
-	cg.psHistory.nextSlot = (cg.psHistory.nextSlot + 1) % MAX_STATE_HISTORY;
-	Com_Memset( tps, 0, sizeof( *tps ) );
-
-	if ( lasttps->serverTime != cg.snap->serverTime ) {
-		//Com_Printf( "Warning: lasttps->serverTime != cg.snap->serverTime\n" );
-	}
-
-	tps->ps = snap->ps;
-	tps->serverTime = snap->serverTime;
-	tps->isTeleport = isTeleport;
-	// determine correct lerp time for new snap
-	if (isTeleport) {
-		// if frame is a teleport, reset as best we can
-		tps->time = max(lasttps->time, tps->serverTime);
-	} else {
-		// so for smoothest experience, time should be cg.nextSnap->ps.commandTime
-		// but, we shouldn't drift time too far off or else player will move weird (will appear to be further ahead depending on ping)
-		// so, prevent to drift further than 1 frame away in future, or 2 in past
-		int bestNewTime = tps->ps.commandTime - lasttps->ps.commandTime + lasttps->time;
-		int deltaTime = tps->serverTime - lasttps->serverTime;
-		// allow  to drift ahead or behind by 1 frame only
-		int newTime = min( tps->serverTime + deltaTime, max( lasttps->serverTime, bestNewTime ) );
-		if ( lasttps->serverTime != 0 ) {
-			tps->time = newTime;
-		} else {
-			tps->time = tps->serverTime;
-		}
-		
-#ifdef _DEBUG
-		if ( tps->time < lasttps->time ) {
-			Com_Printf( "WARNING: Drifted backwards\n" );
-		}
-#endif
-
-		//Com_Printf("Corrected time %d ms (commandDiff %d, framedelta %d)\n", tps->time - tps->serverTime, tps->ps.commandTime - lasttps->ps.commandTime, deltaTime);
-	}
-}
-
 /*
 ===================
 CG_SetNextSnap
@@ -206,7 +300,7 @@ A new snapshot has just been read in from the client system.
 */
 void CG_SetNextSnap( snapshot_t *snap ) {
 	int					num;
-	entityState_t		*es;
+	entityState_t		*es, pes;
 	centity_t			*cent;
 
 	cg.nextSnap = snap;
@@ -215,6 +309,9 @@ void CG_SetNextSnap( snapshot_t *snap ) {
 	BG_PlayerStateToEntityState( &snap->ps, &cg_entities[ snap->ps.clientNum ].nextState, qfalse );
 	//cg_entities[ cg.snap->ps.clientNum ].interpolate = qtrue;
 	//No longer want to do this, as the cg_entities[clnum] and cg.predictedPlayerEntity are one in the same.
+	BG_PlayerStateToEntityStateExtraPolate( &snap->ps, &pes, snap->ps.commandTime, qfalse );
+	CG_AddToHistory( snap->serverTime, &pes, &cg_entities[ snap->ps.clientNum ] );
+	//cg_entities[snap->ps.clientNum].interpolate = qtrue;
 
 	// check for extrapolation errors
 	for ( num = 0 ; num < snap->numEntities ; num++ ) 
@@ -231,6 +328,10 @@ void CG_SetNextSnap( snapshot_t *snap ) {
 			cent->interpolate = qfalse;
 		} else {
 			cent->interpolate = qtrue;
+		}
+
+		if ( es->number < MAX_CLIENTS ) {
+			CG_AddToHistory( snap->serverTime, es, cent );
 		}
 	}
 
@@ -252,8 +353,25 @@ A new snapshot has just been read in from the client system.
 ===================
 */
 void CG_SetNextNextSnap( snapshot_t *snap ) {
+	int num;
+	entityState_t *es, pes;
+	centity_t *cent;
 	cg.nextNextSnap = snap;
 	CG_UpdateTps( snap, CG_IsTeleport( cg.nextSnap, snap ) );
+	BG_PlayerStateToEntityStateExtraPolate( &snap->ps, &pes, snap->ps.commandTime, qfalse );
+	//cg_entities[ cg.snap->ps.clientNum ].interpolate = qtrue;
+	//No longer want to do this, as the cg_entities[clnum] and cg.predictedPlayerEntity are one in the same.
+	CG_AddToHistory( snap->serverTime, &pes, &cg_entities[ snap->ps.clientNum ] );
+
+	for ( num = 0 ; num < snap->numEntities ; num++ ) 
+	{
+		es = &snap->entities[num];
+		cent = &cg_entities[ es->number ];
+
+		if ( es->number < MAX_CLIENTS ) {
+			CG_AddToHistory( snap->serverTime, es, cent );
+		}
+	}
 }
 
 /*

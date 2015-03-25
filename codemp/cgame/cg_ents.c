@@ -3151,6 +3151,43 @@ void CG_AdjustPositionForMover( const vec3_t in, int moverNum, int fromTime, int
 	// FIXME: origin change when on a rotating object
 }
 
+void CG_AdvanceStateHistory( centity_t *cent ) {
+	cent->currentStateHistory++;
+}
+
+void CG_ComputeCommandSmoothStates( centity_t *cent, timedEntityState_t **currentState, timedEntityState_t **nextState ) {
+	playerHistory_t *hist = &cent->stateHistory;
+	timedEntityState_t *curEsh = &hist->states[cent->currentStateHistory % MAX_STATE_HISTORY];
+	timedEntityState_t *nextEsh = &hist->states[(cent->currentStateHistory + 1) % MAX_STATE_HISTORY];
+	int nextEshOffset = 1;
+	// advance as needed
+	while ( nextEsh->time - cg.time < cg.timeFraction && cent->currentStateHistory + 1 < hist->nextSlot ) {
+		CG_AdvanceStateHistory( cent );
+		curEsh = &hist->states[cent->currentStateHistory % MAX_STATE_HISTORY];
+		nextEsh = &hist->states[(cent->currentStateHistory + 1) % MAX_STATE_HISTORY];
+	}
+	// curEsh should now be right.  nextEsh may be, unless player went a whole frame with no userCmd
+	// in that case we probably want to skip it - note we still need to keep the thing around in case it has an event
+	// otherwise we will miss that event
+	*currentState = curEsh;
+	qboolean nextIsTeleport = nextEsh->isTeleport;
+	while ( curEsh->time >= nextEsh->time && cent->currentStateHistory + nextEshOffset < hist->nextSlot ) {
+		nextEshOffset++;
+		nextEsh = &hist->states[(cent->currentStateHistory + nextEshOffset) % MAX_STATE_HISTORY];
+		nextIsTeleport |= nextEsh->isTeleport;
+	}
+	if ( cent->currentStateHistory + nextEshOffset == hist->nextSlot || nextIsTeleport ) {
+		// couldn't find a valid nextEsh
+#ifdef _DEBUG
+		Com_Printf( "couldn't find valid nextEsh for client %d\n", cent->currentState.number );
+#endif
+		*nextState = NULL;
+		return;
+	}
+	*nextState = nextEsh;
+	return;
+}
+
 /*
 =============================
 CG_InterpolateEntityPosition
@@ -3159,6 +3196,14 @@ CG_InterpolateEntityPosition
 static void CG_InterpolateEntityPosition( centity_t *cent ) {
 	vec3_t		current, next;
 	float		f;
+	entityState_t *currentState, *nextState;
+	int currentStateTime, nextStateTime;
+	if ( cg.snap ) {
+		currentStateTime = cg.snap->serverTime;
+	}
+	if ( cg.nextSnap ) {
+		nextStateTime = cg.nextSnap->serverTime;
+	}
 
 	// it would be an internal error to find an entity that interpolates without
 	// a snapshot ahead of the current one
@@ -3173,17 +3218,55 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 		f = cg.frameInterpolation;
 	}
 
+	if ( cg_commandSmooth.integer > 1 && cent->currentState.number < MAX_CLIENTS && cent != &cg_entities[cg.snap->ps.clientNum] ) {
+		timedEntityState_t *curEsh, *nextEsh;
+		CG_ComputeCommandSmoothStates( cent, &curEsh, &nextEsh );
+		currentState = &curEsh->es;
+		currentStateTime = curEsh->time;
+		if ( nextEsh == NULL ) {
+#ifdef _DEBUG
+			Com_Printf( "Missing nextEsh for client %d\n", currentState->number );
+#endif
+			// TODO: timeFraction???
+			BG_EvaluateTrajectory( &currentState->pos, cg.time, cent->lerpOrigin );
+			BG_EvaluateTrajectory( &currentState->apos, cg.time, cent->lerpAngles );
+			return;
+		}
+		nextState = &nextEsh->es;
+		nextStateTime = nextEsh->time;
+		f = ( cg.timeFraction + ( cg.time - curEsh->time ) ) / ( nextEsh->time - curEsh->time );
+#ifdef _DEBUG
+		if ( currentState->number == cg.predictedPlayerState.clientNum ) {
+			static float prevf = -1.0f;
+			static int prevtime = -1;
+			if ( prevf != -1.0f && f < prevf && currentStateTime == prevtime ) {
+				Com_Printf( "%d %f %f %d\n", currentStateTime, prevf, f, nextStateTime );
+			}
+			prevf = f;
+			prevtime = currentStateTime;
+		}
+		if ( f > 1 ) {
+			Com_Printf( "Extrapolating forwards for client %d\n", currentState->number );
+		} else if ( f < 0 ) {
+			Com_Printf( "Extrapolating backwards for client %d\n", currentState->number );
+		}
+#endif
+	} else {
+		currentState = &cent->currentState;
+		nextState = &cent->nextState;
+	}
+
 	// this will linearize a sine or parabolic curve, but it is important
 	// to not extrapolate player positions if more recent data is available
-	BG_EvaluateTrajectory( &cent->currentState.pos, cg.snap->serverTime, current );
-	BG_EvaluateTrajectory( &cent->nextState.pos, cg.nextSnap->serverTime, next );
+	BG_EvaluateTrajectory( &currentState->pos, currentStateTime, current );
+	BG_EvaluateTrajectory( &nextState->pos, nextStateTime, next );
 
 	cent->lerpOrigin[0] = current[0] + f * ( next[0] - current[0] );
 	cent->lerpOrigin[1] = current[1] + f * ( next[1] - current[1] );
 	cent->lerpOrigin[2] = current[2] + f * ( next[2] - current[2] );
 
-	BG_EvaluateTrajectory( &cent->currentState.apos, cg.snap->serverTime, current );
-	BG_EvaluateTrajectory( &cent->nextState.apos, cg.nextSnap->serverTime, next );
+	BG_EvaluateTrajectory( &currentState->apos, currentStateTime, current );
+	BG_EvaluateTrajectory( &nextState->apos, nextStateTime, next );
 
 	cent->lerpAngles[0] = LerpAngle( current[0], next[0], f );
 	cent->lerpAngles[1] = LerpAngle( current[1], next[1], f );
@@ -3198,15 +3281,27 @@ CG_CalcEntityLerpPositions
 */
 void CG_CalcEntityLerpPositions( centity_t *cent ) {
 	qboolean goAway = qfalse;
-	if (!cent->currentState.apos.trTime) {
-		cent->currentState.apos.trTime = cg.time - cg.time % 360;
+	entityState_t *currentState, *nextState;
+
+	if ( cg_commandSmooth.integer > 1 && cent->currentState.number < MAX_CLIENTS && cent != &cg_entities[cg.snap->ps.clientNum] ) {
+		timedEntityState_t *curEsh, *nextEsh;
+		CG_ComputeCommandSmoothStates( cent, &curEsh, &nextEsh );
+		currentState = &curEsh->es;
+		nextState = nextEsh == NULL ? NULL : &nextEsh->es;
+	} else {
+		currentState = &cent->currentState;
+		nextState = &cent->nextState;
+	}
+
+	if (!currentState->apos.trTime) {
+		currentState->apos.trTime = cg.time - cg.time % 360;
 	}
 	// if this player does not want to see extrapolated players
 	if ( !cg_smoothClients.integer ) {
 		// make sure the clients use TR_INTERPOLATE
-		if ( cent->currentState.number < MAX_CLIENTS || cent->currentState.eType == ET_NPC ) {
-			cent->currentState.pos.trType = TR_INTERPOLATE;
-			cent->nextState.pos.trType = TR_INTERPOLATE;
+		if ( currentState->number < MAX_CLIENTS || currentState->eType == ET_NPC ) {
+			currentState->pos.trType = TR_INTERPOLATE;
+			if ( nextState != NULL ) nextState->pos.trType = TR_INTERPOLATE;
 		}
 	}
 
@@ -3224,20 +3319,20 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 		}
 	}
 
-	if ( cent->interpolate && cent->currentState.pos.trType == TR_INTERPOLATE ) {
+	if ( cent->interpolate && currentState->pos.trType == TR_INTERPOLATE ) {
 		CG_InterpolateEntityPosition( cent );
 		return;
 	}
 
 	// first see if we can interpolate between two snaps for
 	// linear extrapolated clients
-	if ( cent->interpolate && cent->currentState.pos.trType == TR_LINEAR_STOP &&
+	if ( cent->interpolate && currentState->pos.trType == TR_LINEAR_STOP &&
 			(cent->currentState.number < MAX_CLIENTS || cent->currentState.eType == ET_NPC) ) {
 		CG_InterpolateEntityPosition( cent );
 		goAway = qtrue;
 	}
 	else if (cent->interpolate &&
-		cent->currentState.eType == ET_NPC && cent->currentState.NPC_class == CLASS_VEHICLE)
+		currentState->eType == ET_NPC && currentState->NPC_class == CLASS_VEHICLE )
 	{
 		CG_InterpolateEntityPosition( cent );
 		goAway = qtrue;
@@ -3245,8 +3340,8 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 	else
 	{
 		// just use the current frame and evaluate as best we can
-		demoNowTrajectory( &cent->currentState.pos, cent->lerpOrigin );
-		demoNowTrajectory( &cent->currentState.apos, cent->lerpAngles );
+		demoNowTrajectory( &currentState->pos, cent->lerpOrigin );
+		demoNowTrajectory( &currentState->apos, cent->lerpAngles );
 	}
 #if 0
 	if (cent->hasRagOffset && cent->ragOffsetTime < cg.time)
@@ -3313,8 +3408,9 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 
 	// adjust for riding a mover if it wasn't rolled into the predicted
 	// player state
-	if ( cent->currentState.number != cg.predictedPlayerState.clientNum ) {
-		CG_AdjustPositionForMover( cent->lerpOrigin, cent->currentState.groundEntityNum, 
+	if ( currentState->number != cg.predictedPlayerState.clientNum ) {
+		//TODO: command smoothing should change from/to times ????
+		CG_AdjustPositionForMover( cent->lerpOrigin, currentState->groundEntityNum, 
 		cg.snap->serverTime, cg.time, cent->lerpOrigin );
 	}
 }
