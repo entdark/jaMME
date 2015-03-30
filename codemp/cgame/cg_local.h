@@ -368,6 +368,7 @@ typedef struct psHistory_s {
 	timedPlayerState_t	states[MAX_STATE_HISTORY];
 } psHistory_t;
 
+void demoTrajectory( const trajectory_t *tr, int time, float timeFraction, vec3_t result );
 void demoNowTrajectory( const trajectory_t *tr, vec3_t result );
 // centity_t have a direct corespondence with gentity_t in the game, but
 // only the entityState_t is directly communicated to the cgame
@@ -2007,6 +2008,7 @@ void CG_AddPacketEntities( qboolean isPortal );
 void CG_ManualEntityRender(centity_t *cent);
 void CG_Beam( centity_t *cent );
 void CG_AdjustPositionForMover( const vec3_t in, int moverNum, int fromTime, int toTime, vec3_t out );
+void CG_AdjustInterpolatedPositionForMover( const vec3_t in, int moverNum, int fromTime, float fromTimeFraction, int toTime, float toTimeFraction, vec3_t out );
 
 void CG_PositionEntityOnTag( refEntity_t *entity, const refEntity_t *parent, 
 							qhandle_t parentModel, char *tagName );

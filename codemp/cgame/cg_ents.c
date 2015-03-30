@@ -3151,6 +3151,57 @@ void CG_AdjustPositionForMover( const vec3_t in, int moverNum, int fromTime, int
 	// FIXME: origin change when on a rotating object
 }
 
+// Version of the above that can work with arbitrary times and timeFractions
+void CG_AdjustInterpolatedPositionForMover( const vec3_t in, int moverNum, int fromTime, float fromTimeFraction, int toTime, float toTimeFraction, vec3_t out ) {
+	centity_t	*cent;
+	vec3_t	oldOrigin, origin, deltaOrigin;
+	vec3_t	oldAngles, angles, deltaAngles;
+	timedEntityState_t *tes;
+	int i;
+
+	if ( moverNum <= 0 || moverNum >= ENTITYNUM_MAX_NORMAL ) {
+		VectorCopy( in, out );
+		return;
+	}
+
+	cent = &cg_entities[moverNum];
+	if ( cent->currentState.eType != ET_MOVER ) {
+		VectorCopy( in, out );
+		return;
+	}
+
+	for ( i = cent->currentStateHistory; i < cent->stateHistory.nextSlot; i++ ) {
+		if ( i + 1 < cent->stateHistory.nextSlot ) {
+			timedEntityState_t *next = &cent->stateHistory.states[( i + 1 ) % MAX_STATE_HISTORY];
+			tes = &cent->stateHistory.states[i % MAX_STATE_HISTORY];
+			// use next es over cur es if mover started moving in next frame, since player interpolation will use both
+			if ( tes->serverTime - fromTime <= fromTimeFraction && next->serverTime - fromTime > fromTimeFraction ) {
+				entityState_t *es = &tes->es;
+				if ( tes->es.pos.trType == TR_STATIONARY && next->es.pos.trType != TR_STATIONARY ) {
+					es = &next->es;
+				}
+				demoTrajectory( &es->pos, fromTime, fromTimeFraction, oldOrigin );
+				demoTrajectory( &es->apos, fromTime, fromTimeFraction, oldAngles );
+			}
+			if ( tes->serverTime - toTime <= toTimeFraction && next->serverTime - toTime > toTimeFraction ) {
+				entityState_t *es = &tes->es;
+				if ( tes->es.pos.trType == TR_STATIONARY && next->es.pos.trType != TR_STATIONARY ) {
+					es = &next->es;
+				}
+				demoTrajectory( &es->pos, toTime, toTimeFraction, origin );
+				demoTrajectory( &es->apos, toTime, toTimeFraction, angles );
+			}
+		}
+	}
+
+	VectorSubtract( origin, oldOrigin, deltaOrigin );
+	VectorSubtract( angles, oldAngles, deltaAngles );
+
+	VectorAdd( in, deltaOrigin, out );
+
+	// FIXME: origin change when on a rotating object
+}
+
 void CG_AdvanceStateHistory( centity_t *cent ) {
 	cent->currentStateHistory++;
 }
@@ -3197,6 +3248,7 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 	vec3_t		current, next;
 	float		f;
 	entityState_t *currentState, *nextState;
+	timedEntityState_t *curEsh = NULL, *nextEsh = NULL;
 	int currentStateTime, nextStateTime;
 	if ( cg.snap ) {
 		currentStateTime = cg.snap->serverTime;
@@ -3219,7 +3271,6 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 	}
 
 	if ( cg_commandSmooth.integer > 1 && cent->currentState.number < MAX_CLIENTS && cent != &cg_entities[cg.snap->ps.clientNum] ) {
-		timedEntityState_t *curEsh, *nextEsh;
 		CG_ComputeCommandSmoothStates( cent, &curEsh, &nextEsh );
 		currentState = &curEsh->es;
 		currentStateTime = curEsh->time;
@@ -3271,6 +3322,19 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 	cent->lerpAngles[0] = LerpAngle( current[0], next[0], f );
 	cent->lerpAngles[1] = LerpAngle( current[1], next[1], f );
 	cent->lerpAngles[2] = LerpAngle( current[2], next[2], f );
+
+	if ( cg_commandSmooth.integer > 1 && cent->currentState.number < MAX_CLIENTS && cent != &cg_entities[cg.snap->ps.clientNum] ) {
+		// adjust for the movement of the groundentity
+		// step 1: remove the delta introduced by cur->next origin interpolation
+		int curTime = curEsh->serverTime + (int) ( f * ( nextEsh->serverTime - curEsh->serverTime ) );
+		float curTimeFraction = ( f * ( nextEsh->serverTime - curEsh->serverTime ) );
+		curTimeFraction -= (long) curTimeFraction;
+		CG_AdjustInterpolatedPositionForMover( cent->lerpOrigin,
+			currentState->groundEntityNum, curTime, curTimeFraction, curEsh->serverTime, 0, cent->lerpOrigin );
+		// step 2: mover state should now be what it was at currentServerTime, now redo calculation of mover effect to cg.time
+		CG_AdjustInterpolatedPositionForMover( cent->lerpOrigin,
+			currentState->groundEntityNum, curEsh->serverTime, 0, cg.time, cg.timeFraction, cent->lerpOrigin );
+	}
 }
 
 /*

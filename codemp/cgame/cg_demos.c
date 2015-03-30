@@ -414,9 +414,7 @@ void demoProcessSnapShots( qboolean hadSkip ) {
 			memcpy(&cent->currentState, state, sizeof(entityState_t));
 			cent->interpolate = qfalse;
 			cent->currentValid = qtrue;
-			if ( state->number < MAX_CLIENTS ) {
-				CG_AddToHistory( snap->serverTime, state, cent );
-			}
+			CG_AddToHistory( snap->serverTime, state, cent );
 			if ( ( cent->currentState.eType == ET_NPC )
 				&& !(cent->currentState.NPC_class == CLASS_VEHICLE
 				&& cent->m_pVehicle && cent->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER

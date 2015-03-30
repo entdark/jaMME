@@ -468,7 +468,7 @@ void CG_InterpolatePlayerState( qboolean grabAngles ) {
 	snapshot_t		*prev, *next;
 	playerState_t	*curps = NULL, *nextps = NULL;
 	qboolean		nextPsTeleport = qfalse;
-	int				currentTime = 0, nextTime = 0;
+	int				currentTime = 0, nextTime = 0, currentServerTime = 0, nextServerTime = 0;
 
 	out = &cg.predictedPlayerState;
 	prev = cg.snap;
@@ -479,19 +479,24 @@ void CG_InterpolatePlayerState( qboolean grabAngles ) {
 		CG_ComputeCommandSmoothPlayerstates( &tps, &nexttps, &nextPsTeleport );
 		curps = &tps->ps;
 		currentTime = tps->time;
+		currentServerTime = tps->serverTime;
 		if ( nexttps ) {
 			nextps = &nexttps->ps;
 			nextTime = nexttps->time;
+			nextServerTime = nexttps->serverTime;
 		}
 	} else {
 		curps = &prev->ps;
 		currentTime = prev->serverTime;
+		currentServerTime = prev->serverTime;
 		if ( next ) {
 			nextps = &next->ps;
 			nextTime = next->serverTime;
+			nextServerTime = next->serverTime;
 		} else {
 			nextps = NULL;
 			nextTime = 0;
+			nextServerTime = 0;
 		}
 		nextPsTeleport = cg.nextFrameTeleport;
 	}
@@ -558,10 +563,29 @@ void CG_InterpolatePlayerState( qboolean grabAngles ) {
 			f * (nextps->velocity[i] - curps->velocity[i] );
 	}
 
+	// requires commandSmooth 2, since it needs entity state history of the mover
+	if ( cg_commandSmooth.integer > 1 ) {
+		// adjust for the movement of the groundentity
+		// step 1: remove the delta introduced by cur->next origin interpolation
+		int curTime = currentServerTime + (int) ( f * ( nextServerTime - currentServerTime ) );
+		float curTimeFraction = ( f * ( nextServerTime - currentServerTime ) );
+		curTimeFraction -= (long) curTimeFraction;
+		CG_AdjustInterpolatedPositionForMover( out->origin,
+			curps->groundEntityNum, curTime, curTimeFraction, currentServerTime, 0, out->origin );
+		// step 2: mover state should now be what it was at currentServerTime, now redo calculation of mover effect to cg.time
+		CG_AdjustInterpolatedPositionForMover( out->origin,
+			curps->groundEntityNum, currentServerTime, 0, cg.time, cg.timeFraction, out->origin );
+	}
+
 	curps->stats[STAT_HEALTH] = cg.snap->ps.stats[STAT_HEALTH];
 	BG_PlayerStateToEntityState( curps, &cg_entities[ curps->clientNum ].currentState, qfalse );
 	BG_PlayerStateToEntityState( nextps, &cg_entities[ nextps->clientNum ].nextState, qfalse );
 	cg.playerInterpolation = f;
+	if ( cg.timeFraction >= cg.nextSnap->serverTime - cg.time ) {
+		cg.physicsTime = cg.nextSnap->serverTime;
+	} else {
+		cg.physicsTime = cg.snap->serverTime;
+	}
 }
 
 void CG_InterpolateVehiclePlayerState( qboolean grabAngles ) {
