@@ -367,6 +367,7 @@ void demoProcessSnapShots( qboolean hadSkip ) {
 			cgs.serverCommandSequence = cg.snap->serverCommandSequence;
 		cg.snap = 0;
 		cg.nextSnap = 0;
+		cg.nextNextSnap = 0;
 
 		for (i=-1;i<MAX_GENTITIES;i++) {
 			centity_t *cent = i < 0 ? &cg_entities[cg.predictedPlayerState.clientNum] : &cg_entities[i];
