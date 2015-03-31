@@ -1,6 +1,6 @@
 // Copyright (C) 2015 ent (entdark)
 //
-// cl_demos_auto.c - autorecording demos routine
+// cl_demos_auto.cpp - autorecording demos routine
 //
 // credits: 
 // - teh aka dumbledore aka teh_1337: autorecording demos
@@ -142,7 +142,9 @@ void demoAutoSaveLast_f(void) {
 	}
 }
 
+extern void CL_StopRecord_f( void );
 void demoAutoComplete(void) {
+	CL_StopRecord_f();
 	char newName[MAX_QPATH];
 	//if we are not manually saving, then temporarily store a demo in LastDemo folder
 	if (!*demoAuto.demoName && FS_CopyFile(va("%s/demos/%s.dm_26", mod, demoAuto.defaultName), va("%s/demos/LastDemo/LastDemo.dm_26", mod), NULL, 0)) {
@@ -167,9 +169,9 @@ void demoAutoInit(void) {
 	cvar_t *fs_game;
 	memset(&demoAuto, 0, sizeof(demoAuto_t));
 	fs_game = Cvar_FindVar ("fs_game" );
-	if (!fs_game) {
-		Q_strncpyz(mod, "base", sizeof(mod));
-	} else {
+	if (fs_game && (Q_stricmp(fs_game->string, ""))) {
 		Q_strncpyz(mod, fs_game->string, sizeof(mod));
+	} else {
+		Q_strncpyz(mod, "base", sizeof(mod));
 	}
 }

@@ -443,7 +443,6 @@ CL_GetServerCommand
 Set up argc/argv for the given command
 ===================
 */
-extern void CL_StopRecord_f( void );
 qboolean CL_GetServerCommand( int serverCommandNumber ) {
 	char	*s;
 	char	*cmd;
@@ -532,7 +531,6 @@ rescan:
 		Com_Memset( cl.cmds, 0, sizeof( cl.cmds ) );
 	
 		if (cl_autoDemo->integer && !clc.demoplaying ) {
-			CL_StopRecord_f();
 			demoAutoComplete();
 			demoAutoRecord();
 		}
@@ -598,7 +596,6 @@ void CL_ShutdownCGame( void ) {
 #endif
 
 	if (cl_autoDemo->integer && !clc.demoplaying) {
-		CL_StopRecord_f();
 		demoAutoComplete();
 	}
 }
