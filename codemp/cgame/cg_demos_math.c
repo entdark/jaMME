@@ -748,7 +748,7 @@ void demoTrajectory( const trajectory_t *tr, int time, float timeFraction, vec3_
 }
 
 void demoNowTrajectory( const trajectory_t *tr, vec3_t result ) {
-	return demoTrajectory( tr, cg.time, cg.timeFraction, result );
+	demoTrajectory( tr, cg.time, cg.timeFraction, result );
 }
 
 void demoRotatePoint(vec3_t point, const vec3_t matrix[3]) { 
