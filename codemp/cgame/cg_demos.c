@@ -350,6 +350,8 @@ extern snapshot_t *CG_ReadNextSnapshot( void );
 extern void CG_SetNextSnap( snapshot_t *snap );
 extern void CG_SetNextNextSnap( snapshot_t *snap );
 extern void CG_TransitionSnapshot( void );
+extern void CG_AddToHistory( int serverTime, entityState_t *state, centity_t *cent );
+extern void CG_UpdateTps( snapshot_t *snap, qboolean isTeleport );
 
 void demoProcessSnapShots( qboolean hadSkip ) {
 	int i;
@@ -385,6 +387,7 @@ void demoProcessSnapShots( qboolean hadSkip ) {
 
 	/* Check if we have some transition between snapsnots */
 	if (!cg.snap) {
+		entityState_t pes;
 		snap = CG_ReadNextSnapshot();
 		if (!snap)
 			return;
@@ -402,13 +405,17 @@ void demoProcessSnapShots( qboolean hadSkip ) {
 		BG_PlayerStateToEntityState( &snap->ps, &cg_entities[ snap->ps.clientNum ].currentState, qfalse );
 		CG_BuildSolidList();
 		CG_ExecuteNewServerCommands( snap->serverCommandSequence );
-		for ( i = 0 ; i < cg.snap->numEntities ; i++ ) {
+		CG_UpdateTps( snap, qtrue );
+		BG_PlayerStateToEntityStateExtraPolate( &snap->ps, &pes, snap->ps.commandTime, qfalse );
+		CG_AddToHistory( snap->serverTime, &pes, &cg_entities[snap->ps.clientNum] );
+		for ( i = 0; i < cg.snap->numEntities; i++ ) {
 			entityState_t *state = &cg.snap->entities[ i ];
 			centity_t *cent = &cg_entities[ state->number ];
 			memcpy(&cent->currentState, state, sizeof(entityState_t));
 			cent->interpolate = qfalse;
 			cent->currentValid = qtrue;
-			if ((cent->currentState.eType == ET_NPC)
+			CG_AddToHistory( snap->serverTime, state, cent );
+			if ( ( cent->currentState.eType == ET_NPC )
 				&& !(cent->currentState.NPC_class == CLASS_VEHICLE
 				&& cent->m_pVehicle && cent->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER
 				&& cg.predictedPlayerState.m_iVehicleNum
@@ -451,7 +458,7 @@ skipNPC:
 				break;
 			CG_SetNextNextSnap( snap );
 		}
-		if ( cg.time + cg.timeFraction >= cg.snap->serverTime && cg.time + cg.timeFraction < cg.nextSnap->serverTime )
+		if ( cg.timeFraction >= cg.snap->serverTime - cg.time && cg.timeFraction < cg.nextSnap->serverTime - cg.time )
 			break;
 		//Todo our own transition checking if we wanna hear certain sounds
 		CG_TransitionSnapshot();
