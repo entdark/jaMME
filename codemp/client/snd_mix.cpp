@@ -324,7 +324,13 @@ void S_MixChannels( mixChannel_t *ch, int channels, int speed, int count, int *o
 		foundCount = 0;
 		scanChan = ch;
 		for (scanCount = channels;scanCount > 0;scanCount--, scanChan++ ) {
-            /* Large group of tests to see if this one should be counted as a same sound */
+			/* We have to interrupt charging weapon sounds */
+			if ( q->entChan == CHAN_WEAPON && scanChan->entChan == CHAN_WEAPON
+				&& q->entNum == scanChan->entNum) {
+				scanChan->handle = 0;
+				break;
+			}
+			/* Large group of tests to see if this one should be counted as a same sound */
 			/* Same sound effect ? */
 			if ( q->handle != scanChan->handle )
 				continue;
