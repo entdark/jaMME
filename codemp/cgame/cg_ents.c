@@ -3213,7 +3213,7 @@ void CG_ComputeCommandSmoothStates( centity_t *cent, timedEntityState_t **curren
 	timedEntityState_t *nextEsh = &hist->states[(cent->currentStateHistory + 1) % MAX_STATE_HISTORY];
 	int nextEshOffset = 1;
 	// advance as needed
-	while ( nextEsh->time - cg.time < cg.timeFraction && cent->currentStateHistory + 1 < hist->nextSlot ) {
+	while ( nextEsh->time - cg.time <= cg.timeFraction && cent->currentStateHistory + 1 < hist->nextSlot ) {
 		CG_AdvanceStateHistory( cent );
 		curEsh = &hist->states[cent->currentStateHistory % MAX_STATE_HISTORY];
 		nextEsh = &hist->states[(cent->currentStateHistory + 1) % MAX_STATE_HISTORY];
