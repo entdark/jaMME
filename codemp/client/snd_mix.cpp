@@ -261,7 +261,7 @@ static void S_MixChannel( mixChannel_t *ch, int speed, int count, int *output ) 
 	if (ch->entChan == CHAN_VOICE || ch->entChan == CHAN_VOICE_ATTEN || ch->entChan == CHAN_VOICE_GLOBAL)
 		volume = s_volumeVoice->value * (1 << MIX_SHIFT) * 0.5;
 	else if (ch->entChan == CHAN_AMBIENT)
-		volume = s_volumeVoice->value * ch->volume * 0.375; //0.5 * 0.75
+		volume = s_volume->value * ch->volume * 0.375; //0.5 * 0.75
 	else
 		volume = s_volume->value * (1 << MIX_SHIFT) * 0.5;
 
