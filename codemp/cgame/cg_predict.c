@@ -425,7 +425,7 @@ void CG_ComputeCommandSmoothPlayerstates( timedPlayerState_t **currentState, tim
 	timedPlayerState_t *nexttps = &hist->states[( cg.currentPsHistory + 1 ) % MAX_STATE_HISTORY];
 	int nextTpsOffset = 1;
 	// advance as needed
-	while ( nexttps->time - cg.time < cg.timeFraction && cg.currentPsHistory + 1 < hist->nextSlot ) {
+	while ( nexttps->time - cg.time <= cg.timeFraction && cg.currentPsHistory + 1 < hist->nextSlot ) {
 		cg.currentPsHistory++;
 		tps = &hist->states[cg.currentPsHistory % MAX_STATE_HISTORY];
 		nexttps = &hist->states[( cg.currentPsHistory + 1 ) % MAX_STATE_HISTORY];
