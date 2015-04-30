@@ -215,7 +215,7 @@ static void demoFramePack( msg_t *msg, const demoFrame_t *newFrame, const demoFr
 				oldEntity = &demoNullEntityState;
 			}
 		}
-		MSG_WriteDeltaEntity( msg, (entityState_t *)oldEntity, (entityState_t *)newEntity, qfalse );
+		MSG_WriteDeltaEntity( msg, (entityState_t *)oldEntity, (entityState_t *)newEntity, qtrue );
 	}
 	MSG_WriteBits( msg, (MAX_GENTITIES-1), GENTITYNUM_BITS );
 	/* Add the area mask */
