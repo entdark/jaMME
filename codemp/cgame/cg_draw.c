@@ -3787,56 +3787,58 @@ static float CG_DrawSpeed( float y ) {
 	int			xOffset = 0;
 	static vec_t minJumpHeight = 0.0f, maxJumpHeight = 0.0f;
 	static int	lastZVel = 0;
+	vec3_t		velocity;
 
-	if ( (int) cg.snap->ps.velocity[2] > 0 )
-	{
-		if ( lastZVel == 0 )
-			minJumpHeight = cg.snap->ps.origin[2];
-		maxJumpHeight = cg.snap->ps.origin[2];
+	if (cg.playerPredicted)
+		VectorCopy(cg.snap->ps.velocity, velocity);
+	else
+		VectorCopy(cg.playerCent->currentState.pos.trDelta, velocity);
+
+	if ((int)velocity[2] > 0) {
+		if (lastZVel == 0)
+			minJumpHeight = cg.playerCent->lerpOrigin[2];
+		maxJumpHeight = cg.playerCent->lerpOrigin[2];
 	}
 
-	lastZVel = (int) cg.snap->ps.velocity[2];
+	lastZVel = (int) velocity[2];
 
-	s = va( "%i XYvel", (int) sqrt( cg.snap->ps.velocity[0] * cg.snap->ps.velocity[0] + cg.snap->ps.velocity[1] * cg.snap->ps.velocity[1] ) );
-	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
+	s = va("%i XYvel", (int)sqrt(velocity[0] * velocity[0] + velocity[1] * velocity[1]));
+	w = CG_DrawStrlen(s) * BIGCHAR_WIDTH;
 
-	CG_DrawBigString( 635 - w + xOffset, y + 2, s, 1.0F );
+	CG_DrawBigString(635 - w + xOffset, y + 2, s, 1.0F);
 
 	y += BIGCHAR_HEIGHT + 4;
 
-	if ( cg_drawSpeed.integer > 1 )
-	{
-		s = va( "%i Zvel", (int) cg.snap->ps.velocity[2] );
-		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
+	if (cg_drawSpeed.integer > 1) {
+		s = va("%i Zvel", (int)velocity[2]);
+		w = CG_DrawStrlen(s) * BIGCHAR_WIDTH;
 
-		CG_DrawBigString( 635 - w + xOffset, y + 2, s, 1.0F );
-
-		y += BIGCHAR_HEIGHT + 4;
-	}
-
-	if ( cg_drawSpeed.integer > 2 )
-	{
-		s = va( "%i jump", (int) ( maxJumpHeight - minJumpHeight ) );
-		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
-
-		CG_DrawBigString( 635 - w + xOffset, y + 2, s, 1.0F );
+		CG_DrawBigString(635 - w + xOffset, y + 2, s, 1.0F);
 
 		y += BIGCHAR_HEIGHT + 4;
 	}
 
-	if ( cg_drawSpeed.integer > 3 )
-	{
-		s = va( "%i base speed", cg.snap->ps.basespeed );
-		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
+	if (cg_drawSpeed.integer > 2) {
+		s = va("%i jump", (int) (maxJumpHeight - minJumpHeight));
+		w = CG_DrawStrlen(s) * BIGCHAR_WIDTH;
 
-		CG_DrawBigString( 635 - w + xOffset, y + 2, s, 1.0F );
+		CG_DrawBigString(635 - w + xOffset, y + 2, s, 1.0F);
+
+		y += BIGCHAR_HEIGHT + 4;
+	}
+
+	if (cg_drawSpeed.integer > 3) {
+		s = va("%i base speed", cg.snap->ps.basespeed);
+		w = CG_DrawStrlen(s) * BIGCHAR_WIDTH;
+
+		CG_DrawBigString(635 - w + xOffset, y + 2, s, 1.0F);
 
 		y += BIGCHAR_HEIGHT + 4;
 
-		s = va( "%i gravity", cg.snap->ps.gravity );
-		w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
+		s = va("%i gravity", cg.snap->ps.gravity);
+		w = CG_DrawStrlen(s) * BIGCHAR_WIDTH;
 
-		CG_DrawBigString( 635 - w + xOffset, y + 2, s, 1.0F );
+		CG_DrawBigString(635 - w + xOffset, y + 2, s, 1.0F);
 
 		y += BIGCHAR_HEIGHT + 4;
 	}
