@@ -523,6 +523,7 @@ demo <demoname>
 
 ====================
 */
+extern void demoCommandSmoothingEnable(qboolean enable);
 void CL_PlayDemo_f( void ) {
 	char		name[MAX_OSPATH], *testName, testNameActual[MAX_OSPATH];
 	char		*ext;
@@ -537,7 +538,10 @@ void CL_PlayDemo_f( void ) {
 	fs_game = Cvar_FindVar ("fs_game" );
 	if (!fs_game)
 		return;
+	demoCommandSmoothingEnable(qfalse);
 	haveConvert = (qboolean)(mme_demoConvert->integer && !Q_stricmpn( fs_game->string, "mme", 3 ));
+	if (!Q_stricmp( fs_game->string, "mme"))
+		demoCommandSmoothingEnable(qtrue);
 	// make sure a local server is killed
 	// 2 means don't force disconnect of local client
 	Cvar_Set( "sv_killserver", "2" );

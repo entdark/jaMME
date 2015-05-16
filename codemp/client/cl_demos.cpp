@@ -22,6 +22,7 @@ static entityState_t	demoNullEntityState;
 static playerState_t	demoNullPlayerState;
 static qboolean			demoFirstPack;
 static qboolean			demoPrecaching = qfalse;
+static qboolean			demoCommandSmoothing = qfalse;
 static int				demoNextNum = 0;
 
 static const char *demoHeader = JK_VERSION " Demo";
@@ -708,6 +709,14 @@ conversionerror:
 	return;
 }
 
+void demoCommandSmoothingEnable(qboolean enable) {
+	demoCommandSmoothing = enable;
+}
+
+qboolean demoCommandSmoothingState(void) {
+	return demoCommandSmoothing;
+}
+
 static void demoPlayAddCommand( demoPlay_t *play, const char *cmd ) {
 	int len = strlen ( cmd ) + 1;
 	int index = (++play->commandCount) % DEMO_PLAY_CMDS;
@@ -792,8 +801,14 @@ static void demoPlayForwardFrame( demoPlay_t *play ) {
 	MSG_Init( &msg, demoBuffer, sizeof(demoBuffer) );
 	MSG_BeginReading( &msg );
 	msg.cursize = blockSize;
-	play->frame = &play->storageFrame[(play->frameNumber + 1 + FRAME_BUF_SIZE) % FRAME_BUF_SIZE];
-	play->nextFrame = &play->storageFrame[(play->frameNumber + 2 + FRAME_BUF_SIZE) % FRAME_BUF_SIZE];
+	if (demoCommandSmoothing) {
+		play->frame = &play->storageFrame[(play->frameNumber + 1 + FRAME_BUF_SIZE) % FRAME_BUF_SIZE];
+		play->nextFrame = &play->storageFrame[(play->frameNumber + 2 + FRAME_BUF_SIZE) % FRAME_BUF_SIZE];
+	} else {
+		demoFrame_t *copyFrame = play->frame;
+		play->frame = play->nextFrame;
+		play->nextFrame = copyFrame;
+	}
 	demoFrameUnpack( &msg, play->frame, play->nextFrame );
 	play->frameNumber++;
 }
@@ -825,15 +840,19 @@ static void demoPlaySetIndex( demoPlay_t *play, int index ) {
 	play->filePos = wantPos;
 #endif
 
-	play->frameNumber = play->fileIndex[index].frame - 2;
+	if (demoCommandSmoothing)
+		play->frameNumber = play->fileIndex[index].frame - 2;
 
 	demoPlayForwardFrame( play );
 	demoPlayForwardFrame( play );
 
+	if (!demoCommandSmoothing)
+		play->frameNumber = play->fileIndex[index].frame;
 }
 
 static int demoPlaySeek( demoPlay_t *play, int seekTime ) {
 	int i;
+	qboolean seekTimeValid;
 
 	seekTime += play->startTime;
 
@@ -850,7 +869,8 @@ static int demoPlaySeek( demoPlay_t *play, int seekTime ) {
 foundit:
 		demoPlaySetIndex( play, i);
 	}
-	while (!play->lastFrame && ( seekTime >= play->frame->serverTime)) {
+	seekTimeValid = (qboolean)(demoCommandSmoothing ? ( seekTime >= play->frame->serverTime) : ( seekTime > play->nextFrame->serverTime));
+	while (!play->lastFrame && seekTimeValid) {
 		demoPlayForwardFrame( play  );
 	}
 	return seekTime;
@@ -1021,14 +1041,19 @@ qboolean demoGetSnapshot( int snapNumber, snapshot_t *snap ) {
 	demoFrame_t *frame;
 	int i;
 
-	if (snapNumber < play->frameNumber - FRAME_BUF_SIZE + 2)
+	if (demoCommandSmoothing && snapNumber < play->frameNumber - FRAME_BUF_SIZE + 2)
+		return qfalse;
+	if (!demoCommandSmoothing && snapNumber < play->frameNumber)
 		return qfalse;
 	if (snapNumber > play->frameNumber + 1)
 		return qfalse;
 	if (snapNumber == play->frameNumber + 1 && play->lastFrame)
 		return qfalse;
 
-	frame = &play->storageFrame[snapNumber % FRAME_BUF_SIZE];
+	if (demoCommandSmoothing)
+		frame = &play->storageFrame[snapNumber % FRAME_BUF_SIZE];
+	else
+		frame = snapNumber == play->frameNumber ? play->frame : play->nextFrame;
 
 	demoPlaySynch( play, frame );
 	snap->serverCommandSequence = play->commandCount;
