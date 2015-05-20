@@ -852,7 +852,6 @@ static void demoPlaySetIndex( demoPlay_t *play, int index ) {
 
 static int demoPlaySeek( demoPlay_t *play, int seekTime ) {
 	int i;
-	qboolean seekTimeValid;
 
 	seekTime += play->startTime;
 
@@ -869,8 +868,7 @@ static int demoPlaySeek( demoPlay_t *play, int seekTime ) {
 foundit:
 		demoPlaySetIndex( play, i);
 	}
-	seekTimeValid = (qboolean)(demoCommandSmoothing ? ( seekTime >= play->frame->serverTime) : ( seekTime > play->nextFrame->serverTime));
-	while (!play->lastFrame && seekTimeValid) {
+	while (!play->lastFrame && (demoCommandSmoothing ? ( seekTime >= play->frame->serverTime) : ( seekTime > play->nextFrame->serverTime))) {
 		demoPlayForwardFrame( play  );
 	}
 	return seekTime;
