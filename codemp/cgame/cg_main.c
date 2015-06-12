@@ -194,8 +194,7 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 	case CG_LAST_ATTACKER:
 		return CG_LastAttacker();
 	case CG_KEY_EVENT:
-		CG_KeyEvent(arg0, arg1);
-		return 0;
+		return CG_KeyEvent(arg0, arg1);
 	case CG_MOUSE_EVENT:
 //		cgDC.cursorx = cgs.cursorX;
 //		cgDC.cursory = cgs.cursorY;
