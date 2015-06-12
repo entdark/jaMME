@@ -22,7 +22,6 @@ cvar_t	*mme_demoPrecache;
 cvar_t	*mme_demoAutoNext;
 
 void CL_MME_CheckCvarChanges(void) {
-	
 	if (cl_avidemo->modified) {
 		cl_avidemo->modified = qfalse;
 		clc.aviDemoRemain = 0;

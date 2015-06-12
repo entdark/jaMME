@@ -360,6 +360,7 @@ All console printing must go through this in order to be logged to disk
 If no console is visible, the text will appear at the top of the game window
 ================
 */
+static qboolean newString = qtrue;
 void CL_ConsolePrint( const char *txt) {
 	int		y;
 	int		c, l;
@@ -394,8 +395,20 @@ void CL_ConsolePrint( const char *txt) {
 	}
 
 	color = ColorIndex(COLOR_WHITE);
+	
+	if (newString) {
+		time_t rawtime;
+		char timeStr[32] = {0};
+		char *timedTxt;
+		time(&rawtime);
+		strftime(timeStr,sizeof(timeStr),"[%H:%M:%S]",localtime(&rawtime));
+		timedTxt = va("%s %s" , timeStr, txt);
+		txt = timedTxt;
+	}
 
+	qboolean last = qfalse;
 	while ( (c = (unsigned char) *txt) != 0 ) {
+		newString = last = qfalse;
 		if ( cls.uag.newColors && Q_IsColorStringUAG( (unsigned char*) txt ) ) {
 			color = ColorIndexUAG( *(txt+1) );
 			txt += 2;
@@ -424,6 +437,7 @@ void CL_ConsolePrint( const char *txt) {
 		switch (c) {
 		case '\n':
 			Con_Linefeed (skipnotify);
+			last = qtrue;
 			break;
 		case '\r':
 			con.x = 0;
@@ -437,6 +451,7 @@ void CL_ConsolePrint( const char *txt) {
 			}
 			break;
 		}
+		newString = last;
 	}
 
 
