@@ -6,9 +6,9 @@
  *****************************************************************************/
 
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
-#include "client/client.h"
+#include "../client/client.h"
 #include "files.h"
 
 #include "platform.h"
@@ -655,7 +655,7 @@ FS_FOpenFileWrite
 
 ===========
 */
-fileHandle_t FS_FOpenFileWrite( const char *filename ) {
+fileHandle_t FS_FOpenFileWrite( const char *qpath ) {
 	char			*ospath;
 	fileHandle_t	f;
 
@@ -666,7 +666,7 @@ fileHandle_t FS_FOpenFileWrite( const char *filename ) {
 	f = FS_HandleForFile();
 	fsh[f].zipFile = qfalse;
 
-	ospath = FS_BuildOSPath( fs_homepath->string, fs_gamedir, filename );
+	ospath = FS_BuildOSPath( fs_homepath->string, fs_gamedir, qpath );
 
 	if ( fs_debug->integer ) {
 		Com_Printf( "FS_FOpenFileWrite: %s\n", ospath );
@@ -681,7 +681,7 @@ fileHandle_t FS_FOpenFileWrite( const char *filename ) {
 	//Com_DPrintf( "writing to: %s\n", ospath );
 	fsh[f].handleFiles.file.o = fopen( ospath, "wb" );
 
-	Q_strncpyz( fsh[f].name, filename, sizeof( fsh[f].name ) );
+	Q_strncpyz( fsh[f].name, qpath, sizeof( fsh[f].name ) );
 
 	fsh[f].handleSync = qfalse;
 #ifdef USE_AIO
@@ -922,7 +922,7 @@ separate file or a ZIP file.
 */
 extern qboolean		com_fullyInitialized;
 
-int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueFILE ) {
+long FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueFILE ) {
 	searchpath_t	*search;
 	char			*netpath;
 	pack_t			*pak;
@@ -1619,7 +1619,7 @@ Filename are relative to the quake search path
 a null buffer will just return the file length without loading
 ============
 */
-int FS_ReadFile( const char *qpath, void **buffer ) {
+long FS_ReadFile( const char *qpath, void **buffer ) {
 	fileHandle_t	h;
 	byte*			buf;
 	qboolean		isConfig;
@@ -2950,7 +2950,6 @@ void FS_Startup( const char *gameName ) {
 	if (fs_basepath->string[0]) {
 		FS_AddGameDirectory( fs_basepath->string, gameName );
 	}
-	
 #ifdef MACOS_X
 	fs_apppath = Cvar_Get ("fs_apppath", Sys_DefaultAppPath(), CVAR_INIT|CVAR_PROTECTED );
 	// Make MacOSX also include the base path included with the .app bundle
@@ -2958,10 +2957,18 @@ void FS_Startup( const char *gameName ) {
 		FS_AddGameDirectory( fs_apppath->string, gameName );
 	}
 #endif
-
+#ifdef __ANDROID__
+	if (fs_homepath->string)
+		LOGI("fs_homepath->string == %s",fs_homepath->string);
+	if (fs_basepath->string)
+		LOGI("fs_basepath->string == %s",fs_basepath->string);
+#endif
 	// fs_homepath is somewhat particular to *nix systems, only add if relevant
 	// NOTE: same filtering below for mods and basegame
 	if (fs_homepath->string[0] && !Sys_PathCmp(fs_homepath->string, fs_basepath->string)) {
+#ifdef __ANDROID__
+		FS_CreatePath ( fs_homepath->string );
+#endif
 		FS_AddGameDirectory ( fs_homepath->string, gameName );
 	}
         

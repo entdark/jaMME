@@ -1,7 +1,7 @@
 // cvar.c -- dynamic variable tracking
 
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 #include "qcommon.h"
 #include <vector>
 #include <algorithm>
@@ -301,7 +301,7 @@ If the variable already exists, the value will not be set unless CVAR_ROM
 The flags will be or'ed in if the variable exists.
 ============
 */
-cvar_t *Cvar_Get( const char *var_name, const char *var_value, int flags ) {
+cvar_t *Cvar_Get( const char *var_name, const char *var_value, uint32_t flags ) {
 	cvar_t	*var;
 	long	hash;
 	int		index;
@@ -617,10 +617,9 @@ cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force ) {
 Cvar_Set
 ============
 */
-void Cvar_Set( const char *var_name, const char *value) {
-	Cvar_Set2 (var_name, value, qtrue);
+cvar_t *Cvar_Set(const char *var_name, const char *value) {
+	return Cvar_Set2 (var_name, value, qtrue);
 }
-
 /*
 ============
 Cvar_SetSafe
@@ -667,31 +666,26 @@ void Cvar_SetLatched( const char *var_name, const char *value) {
 Cvar_SetValue
 ============
 */
-void Cvar_SetValue( const char *var_name, float value) {
-	char	val[32];
-
-	if( Q_isintegral( value ) )
-		Com_sprintf (val, sizeof(val), "%i", (int)value);
+cvar_t *Cvar_SetValue(const char *var_name, float value) {
+	char val[32];
+	if(Q_isintegral(value))
+		Com_sprintf(val, sizeof(val), "%i", (int)value);
 	else
-		Com_sprintf (val, sizeof(val), "%f", value);
-	
-	Cvar_Set (var_name, val);
+		Com_sprintf(val, sizeof(val), "%f", value);
+	return Cvar_Set(var_name, val);
 }
-
 /*
 ============
 Cvar_SetValue2
 ============
 */
-void Cvar_SetValue2( const char *var_name, float value, qboolean force )
-{
-	char	val[32];
-
-	if( Q_isintegral( value ) )
-		Com_sprintf( val, sizeof(val), "%i", (int)value );
+void Cvar_SetValue2(const char *var_name, float value, qboolean force) {
+	char val[32];
+	if(Q_isintegral(value))
+		Com_sprintf(val, sizeof(val), "%i", (int)value);
 	else
-		Com_sprintf( val, sizeof(val), "%f", value );
-	Cvar_Set2( var_name, val, force );
+		Com_sprintf(val, sizeof(val), "%f", value);
+	Cvar_Set2(var_name, val, force);
 }
 
 /*

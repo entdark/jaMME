@@ -1,5 +1,5 @@
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
 // cl.input.c  -- builds an intended movement command to send to the server
 
@@ -906,35 +906,29 @@ void CL_KeyMove( usercmd_t *cmd ) {
 	cmd->rightmove = ClampChar( side );
 	cmd->upmove = ClampChar( up );
 }
-
 /*
 =================
 CL_MouseEvent
 =================
 */
-void CL_MouseEvent( int dx, int dy, int time ) {
-	if (g_clAutoMapMode && cgvm)
-	{ //automap input
+void CL_MouseEvent(int dx, int dy, int time) {
+	if (g_clAutoMapMode && cgvm) { //automap input
 		autoMapInput_t *data = (autoMapInput_t *)cl.mSharedMemory;
-
 		g_clAutoMapInput.yaw = dx;
 		g_clAutoMapInput.pitch = dy;
 		memcpy(data, &g_clAutoMapInput, sizeof(autoMapInput_t));
 		VM_Call(cgvm, CG_AUTOMAP_INPUT, 1);
-
 		g_clAutoMapInput.yaw = 0.0f;
 		g_clAutoMapInput.pitch = 0.0f;
-	}
-	else if ( Key_GetCatcher( ) & KEYCATCH_UI ) {
-		VM_Call( uivm, UI_MOUSE_EVENT, dx, dy );
-	} else if ( Key_GetCatcher( ) & KEYCATCH_CGAME ) {
+	} else if (Key_GetCatcher() & KEYCATCH_UI) {
+		VM_Call(uivm, UI_MOUSE_EVENT, dx, dy);
+	} else if (Key_GetCatcher() & KEYCATCH_CGAME) {
 		VM_Call (cgvm, CG_MOUSE_EVENT, dx, dy);
 	} else {
 		cl.mouseDx[cl.mouseIndex] += dx;
 		cl.mouseDy[cl.mouseIndex] += dy;
 	}
 }
-
 /*
 =================
 CL_JoystickEvent
@@ -948,7 +942,6 @@ void CL_JoystickEvent( int axis, int value, int time ) {
 	}
 	cl.joystickAxis[axis] = value;
 }
-
 /*
 =================
 CL_JoystickMove
@@ -1272,58 +1265,50 @@ void CL_FinishMove( usercmd_t *cmd ) {
 	//always needed in for the cl_crazyShipControls
 	VectorCopy( cl.viewangles, cl_lastViewAngles );
 }
-
+#ifdef __ANDROID__
+extern void CL_AndroidMove(usercmd_t *cmd);
+#endif
 /*
 =================
 CL_CreateCmd
 =================
 */
-usercmd_t CL_CreateCmd( void ) {
-	usercmd_t	cmd;
-	vec3_t		oldAngles;
-
-	VectorCopy( cl.viewangles, oldAngles );
-
+usercmd_t CL_CreateCmd(void) {
+	usercmd_t cmd;
+	vec3_t oldAngles;
+	VectorCopy(cl.viewangles, oldAngles);
 	// keyboard angle adjustment
-	CL_AdjustAngles ();
-	
-	Com_Memset( &cmd, 0, sizeof( cmd ) );
-
-	CL_CmdButtons( &cmd );
-
+	CL_AdjustAngles();
+	Com_Memset(&cmd, 0, sizeof(cmd));
+	CL_CmdButtons(&cmd);
 	// get basic movement from keyboard
-	CL_KeyMove( &cmd );
-
+	CL_KeyMove(&cmd);
 	// get basic movement from mouse
-	CL_MouseMove( &cmd );
-
+	CL_MouseMove(&cmd);
 	// get basic movement from joystick
-	CL_JoystickMove( &cmd );
-
+	CL_JoystickMove(&cmd);
+#ifdef __ANDROID__
+	CL_AndroidMove(&cmd);
+#endif
 	// check to make sure the angles haven't wrapped
-	if ( cl.viewangles[PITCH] - oldAngles[PITCH] > 90 ) {
+	if (cl.viewangles[PITCH] - oldAngles[PITCH] > 90) {
 		cl.viewangles[PITCH] = oldAngles[PITCH] + 90;
-	} else if ( oldAngles[PITCH] - cl.viewangles[PITCH] > 90 ) {
+	} else if (oldAngles[PITCH] - cl.viewangles[PITCH] > 90) {
 		cl.viewangles[PITCH] = oldAngles[PITCH] - 90;
-	} 
-
+	}
 	// store out the final values
-	CL_FinishMove( &cmd );
-
+	CL_FinishMove(&cmd);
 	// draw debug graphs of turning for mouse testing
-	if ( cl_debugMove->integer ) {
-		if ( cl_debugMove->integer == 1 ) {
-			SCR_DebugGraph( abs(cl.viewangles[YAW] - oldAngles[YAW]), 0 );
+	if (cl_debugMove->integer) {
+		if (cl_debugMove->integer == 1) {
+			SCR_DebugGraph(abs(cl.viewangles[YAW] - oldAngles[YAW]), 0);
 		}
-		if ( cl_debugMove->integer == 2 ) {
-			SCR_DebugGraph( abs(cl.viewangles[PITCH] - oldAngles[PITCH]), 0 );
+		if (cl_debugMove->integer == 2) {
+			SCR_DebugGraph(abs(cl.viewangles[PITCH] - oldAngles[PITCH]), 0);
 		}
 	}
-
 	return cmd;
 }
-
-
 /*
 =================
 CL_CreateNewCommands

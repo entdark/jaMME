@@ -1,11 +1,9 @@
 #pragma once
-
+#include "../qcommon/q_shared.h"
 // Filename:-	sstring.h
 //
 // Gil's string template, used to replace Microsoft's <string> vrsion which doesn't compile under certain stl map<>
-//	conditions...
-
-
+// conditions...
 template<int MaxSize>
 class sstring
 {

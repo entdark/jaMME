@@ -1,23 +1,24 @@
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
 // console.c
 
 #include "client.h"
-#include "qcommon/stringed_ingame.h"
-#include "qcommon/game_version.h"
+#include "../qcommon/stringed_ingame.h"
+#include "../qcommon/game_version.h"
 
 
 int g_console_field_width = 78;
 
-console_t	con;
+console_t con;
 
-cvar_t		*con_conspeed;
-cvar_t		*con_notifytime;
+cvar_t *con_conspeed;
+cvar_t *con_notifytime;
+cvar_t *con_timestamps;
 
-#define	DEFAULT_CONSOLE_WIDTH	78
+#define	DEFAULT_CONSOLE_WIDTH 78
 
-vec4_t	console_color = {1.0, 1.0, 1.0, 1.0};
+vec4_t console_color = {1.0, 1.0, 1.0, 1.0};
 
 
 /*
@@ -25,18 +26,26 @@ vec4_t	console_color = {1.0, 1.0, 1.0, 1.0};
 Con_ToggleConsole_f
 ================
 */
-void Con_ToggleConsole_f (void) {
+void Con_ToggleConsole_f(void) {
 	// closing a full screen console restarts the demo loop
-	if ( cls.state == CA_DISCONNECTED && Key_GetCatcher( ) == KEYCATCH_CONSOLE ) {
+	if (cls.state == CA_DISCONNECTED && Key_GetCatcher() == KEYCATCH_CONSOLE) {
 		CL_StartDemoLoop();
 		return;
 	}
-
-	Field_Clear( &kg.g_consoleField );
+	Field_Clear(&kg.g_consoleField);
 	kg.g_consoleField.widthInChars = g_console_field_width;
-
 	Con_ClearNotify ();
-	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_CONSOLE );
+#ifdef __ANDROID__
+	int state = con.state;
+	if (state == conFull || state == conHidden)
+#endif
+		Key_SetCatcher(Key_GetCatcher() ^ KEYCATCH_CONSOLE);
+#ifdef __ANDROID__
+	state++;
+	if (state == conMax)
+		state = conHidden;
+	con.state = (conState_t)state;
+#endif
 }
 
 /*
@@ -305,25 +314,23 @@ Con_Init
 ================
 */
 void Con_Init (void) {
-	int		i;
-
-	con_notifytime = Cvar_Get ("con_notifytime", "3", 0);
-	con_conspeed = Cvar_Get ("scr_conspeed", "3", 0);
-
-	Field_Clear( &kg.g_consoleField );
+	int i;
+	con_notifytime = Cvar_Get("con_notifytime", "3", 0);
+	con_timestamps = Cvar_Get("con_timestamps", "0", CVAR_ARCHIVE);
+	con_conspeed = Cvar_Get("scr_conspeed", "3", 0);
+	Field_Clear(&kg.g_consoleField);
 	kg.g_consoleField.widthInChars = g_console_field_width;
-	for ( i = 0 ; i < COMMAND_HISTORY ; i++ ) {
-		Field_Clear( &kg.historyEditLines[i] );
+	for (i = 0; i < COMMAND_HISTORY; i++) {
+		Field_Clear(&kg.historyEditLines[i]);
 		kg.historyEditLines[i].widthInChars = g_console_field_width;
 	}
-
-	Cmd_AddCommand ("toggleconsole", Con_ToggleConsole_f);
-	Cmd_AddCommand ("messagemode", Con_MessageMode_f);
-	Cmd_AddCommand ("messagemode2", Con_MessageMode2_f);
-	Cmd_AddCommand ("messagemode3", Con_MessageMode3_f);
-	Cmd_AddCommand ("messagemode4", Con_MessageMode4_f);
-	Cmd_AddCommand ("clear", Con_Clear_f);
-	Cmd_AddCommand ("condump", Con_Dump_f);
+	Cmd_AddCommand("toggleconsole", Con_ToggleConsole_f);
+	Cmd_AddCommand("messagemode", Con_MessageMode_f);
+	Cmd_AddCommand("messagemode2", Con_MessageMode2_f);
+	Cmd_AddCommand("messagemode3", Con_MessageMode3_f);
+	Cmd_AddCommand("messagemode4", Con_MessageMode4_f);
+	Cmd_AddCommand("clear", Con_Clear_f);
+	Cmd_AddCommand("condump", Con_Dump_f);
 }
 
 
@@ -380,7 +387,7 @@ void CL_ConsolePrint( const char *txt) {
 	}
 
 	// for some demos we don't want to ever show anything on the console
-	if ( cl_noprint && cl_noprint->integer ) {
+	if (cl_noprint && cl_noprint->integer) {
 		return;
 	}
 	
@@ -396,7 +403,7 @@ void CL_ConsolePrint( const char *txt) {
 
 	color = ColorIndex(COLOR_WHITE);
 	
-	if (newString) {
+	if (newString && con_timestamps && con_timestamps->integer) {
 		time_t rawtime;
 		char timeStr[32] = {0};
 		char *timedTxt;
@@ -827,74 +834,76 @@ void Con_DrawConsole( void ) {
 		}
 	}
 }
-
 //================================================================
-
 /*
 ==================
 Con_RunConsole
-
 Scroll it up or down
 ==================
 */
-void Con_RunConsole (void) {
+void Con_RunConsole(void) {
 	// decide on the destination height of the console
-	if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE )
-		con.finalFrac = 0.5;		// half screen
-	else
-		con.finalFrac = 0;				// none visible
-	
+	if (Key_GetCatcher( ) & KEYCATCH_CONSOLE) {
+#ifdef __ANDROID__
+		if (con.state == conShort) {
+			con.finalFrac = 0.25;
+		} else if (con.state == conFull) {
+			con.finalFrac = 1.0;
+		} else {
+			Com_Error(ERR_FATAL, "conHidden and KEYCATCH_CONSOLE are set together");
+		}
+#else
+		con.finalFrac = 0.5; // half screen
+#endif
+	} else {
+		con.finalFrac = 0; // none visible
+	}
 	// scroll towards the destination height
-	if (con.finalFrac < con.displayFrac)
-	{
+	if (con.finalFrac < con.displayFrac) {
 		con.displayFrac -= con_conspeed->value*(float)(cls.realFrametime*0.001);
 		if (con.finalFrac > con.displayFrac)
 			con.displayFrac = con.finalFrac;
 
-	}
-	else if (con.finalFrac > con.displayFrac)
-	{
+	} else if (con.finalFrac > con.displayFrac) {
 		con.displayFrac += con_conspeed->value*(float)(cls.realFrametime*0.001);
 		if (con.finalFrac < con.displayFrac)
 			con.displayFrac = con.finalFrac;
 	}
-
 }
-
-
-void Con_PageUp( void ) {
+void Con_PageUp(void) {
 	con.display -= 2;
-	if ( con.current - con.display >= con.totallines ) {
+	if (con.current - con.display >= con.totallines) {
 		con.display = con.current - con.totallines + 1;
 	}
 }
-
-void Con_PageDown( void ) {
+void Con_PageDown(void) {
 	con.display += 2;
 	if (con.display > con.current) {
 		con.display = con.current;
 	}
 }
-
-void Con_Top( void ) {
+void Con_Top(void) {
 	con.display = con.totallines;
-	if ( con.current - con.display >= con.totallines ) {
+	if (con.current - con.display >= con.totallines) {
 		con.display = con.current - con.totallines + 1;
 	}
 }
-
-void Con_Bottom( void ) {
+void Con_Bottom(void) {
 	con.display = con.current;
 }
-
-
-void Con_Close( void ) {
-	if ( !com_cl_running->integer ) {
+void Con_Close(void) {
+	if (!com_cl_running->integer) {
 		return;
 	}
-	Field_Clear( &kg.g_consoleField );
-	Con_ClearNotify ();
-	Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_CONSOLE );
+	Field_Clear(&kg.g_consoleField);
+	Con_ClearNotify();
+	Key_SetCatcher(Key_GetCatcher() & ~KEYCATCH_CONSOLE);
 	con.finalFrac = 0;				// none visible
 	con.displayFrac = 0;
+#ifdef __ANDROID__
+	if (Key_GetCatcher() & KEYCATCH_CONSOLE)
+		con.state = conFull;
+	else
+		con.state = conHidden;
+#endif
 }

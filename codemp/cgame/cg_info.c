@@ -421,10 +421,12 @@ void CG_DrawInformation( void ) {
 	default:
 		break;
 	}
-	UI_DrawProportionalString( 320, y, "YES MME IS LOADING!",
-			UI_CENTER|UI_INFOFONT|UI_DROPSHADOW, colorWhite );
-	y += iPropHeight;
-	CG_Tips();
+	if (cg.demoPlayback == 2) {
+		UI_DrawProportionalString( 320, y, "YES MME IS LOADING!",
+				UI_CENTER|UI_INFOFONT|UI_DROPSHADOW, colorWhite );
+		y += iPropHeight;
+		CG_Tips();
+	}
 }
 
 /*

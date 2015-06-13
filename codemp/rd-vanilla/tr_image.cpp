@@ -1,5 +1,5 @@
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
 // tr_image.c
 #define SUPPORT_PNG
@@ -2282,7 +2282,7 @@ int SaveJPG( int quality, int image_width, int image_height, mmeShotType_t image
 	#pragma warning( disable: 4611 )
 #endif
 
-int RE_SavePNG( char *filename, byte *buf, size_t width, size_t height, int byteDepth ) {
+int RE_SavePNG(const char *filename, byte *buf, size_t width, size_t height, int byteDepth ) {
 	int outSize = width * height * 4;
 	mmeShotType_t shotType;
 	byte *outBuf;

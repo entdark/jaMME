@@ -1,5 +1,5 @@
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
 /*****************************************************************************
  * name:		snd_mem.c
@@ -12,9 +12,10 @@
 #include "snd_local.h"
 
 #define HAVE_LIBMAD
+#ifndef __ANDROID__
 #define HAVE_LIBOGG
 #define HAVE_LIBFLAC
-
+#endif
 const char *ext[] = {
 	".wav",
 #ifdef HAVE_LIBMAD
@@ -366,6 +367,8 @@ static openSound_t * S_WavOpen( const char *fileName ) {
 #ifdef _WIN32
 #include "mad.h"
 #pragma comment (lib, "libmad.lib")
+#elif defined(__ANDROID__)
+#include "../libs/win32/include/mad.h"
 #else
 #include <mad.h>
 #endif

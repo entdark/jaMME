@@ -20,7 +20,7 @@ cvar_t	*mme_demoAutoQuit;
 cvar_t	*mme_demoRemove;
 cvar_t	*mme_demoPrecache;
 cvar_t	*mme_demoAutoNext;
-
+cvar_t	*mme_demoPaused;
 void CL_MME_CheckCvarChanges(void) {
 	if (cl_avidemo->modified) {
 		cl_avidemo->modified = qfalse;

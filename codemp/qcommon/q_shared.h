@@ -30,9 +30,9 @@
 					//	between base<->modbase clients and servers (mismatching events, powerups, etc)
 					// leave this defined to ensure compatibility
 
-#include "qcommon/disablewarnings.h"
+#include "disablewarnings.h"
 
-#include "game/teams.h" //npc team stuff
+#include "../game/teams.h" //npc team stuff
 
 #define MAX_WORLD_COORD		( 64 * 1024 )
 #define MIN_WORLD_COORD		( -64 * 1024 )
@@ -420,6 +420,17 @@ float FloatSwap( const float *f );
 	#define DLL_EXT ".so"
 
 #endif
+#if defined(__ANDROID__)
+	#define OS_STRING "android"
+	#define ARCH_STRING "arm"
+	#define ID_INLIDE inline
+	#define PATH_SEP '/'
+#if defined(Q3_BIG_ENDIAN)
+	#undef Q3_BIG_ENDIAN
+#endif
+	#define Q3_LITTLE_ENDIAN
+	#define DLL_EXT ".so"
+#endif
 // catch missing defines in above blocks
 #if !defined(OS_STRING)
 	#error "Operating system not supported"
@@ -468,24 +479,19 @@ float FloatSwap( const float *f );
 #else
 	#error "Endianness not defined"
 #endif
-
-
 // platform string
 #if defined(NDEBUG)
 	#define PLATFORM_STRING OS_STRING "-" ARCH_STRING
 #else
 	#define PLATFORM_STRING OS_STRING "-" ARCH_STRING "-debug"
 #endif
-
-#if defined(__linux__)
+#if defined(__linux__)&&!defined(__ANDROID__)
 	#define USE_AIO
 #endif
-
 #if defined(USE_AIO)
 	#include <aio.h>
 	#include <signal.h>
 #endif
-
 // ================================================================
 // TYPE DEFINITIONS
 // ================================================================
@@ -785,7 +791,7 @@ typedef vec_t vec4_t[4];
 typedef vec_t vec5_t[5];
 
 //rwwRMG - new vec types
-typedef vec3_t	vec3pair_t[2];
+typedef vec3_t	vec3pair_t[2], matrix3_t[3];;
 
 typedef int ivec3_t[3];
 typedef int ivec4_t[4];
@@ -1608,12 +1614,9 @@ typedef struct {
 		#define	SnapVector(v) {v[0]=((int)(v[0]));v[1]=((int)(v[1]));v[2]=((int)(v[2]));}
 	#endif // __LCC__ || MINGW32
 #endif // MACOS_X || __linux__
-
 unsigned ColorBytes3 (float r, float g, float b);
 unsigned ColorBytes4 (float r, float g, float b, float a);
-
 float NormalizeColor( const vec3_t in, vec3_t out );
-
 float RadiusFromBounds( const vec3_t mins, const vec3_t maxs );
 void ClearBounds( vec3_t mins, vec3_t maxs );
 vec_t DistanceHorizontal( const vec3_t p1, const vec3_t p2 );
@@ -1621,41 +1624,31 @@ vec_t DistanceHorizontalSquared( const vec3_t p1, const vec3_t p2 );
 void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs );
 void VectorRotate( const vec3_t in, const vec3_t matrix[3], vec3_t out );
 int Q_log2(int val);
-
+qboolean Q_isnan(float f);
 float Q_acos(float c);
 float Q_asin(float c);
-
-int		Q_rand( int *seed );
-float	Q_random( int *seed );
-float	Q_crandom( int *seed );
-
+int Q_rand( int *seed );
+float Q_random( int *seed );
+float Q_crandom( int *seed );
 #define random()	((rand () & 0x7fff) / ((float)0x7fff))
 #define crandom()	(2.0 * (random() - 0.5))
-
 void AxisToAngles( const vec3_t axis[3], vec3_t angles );
-
 void vectoangles( const vec3_t value1, vec3_t angles);
 void AnglesToAxis( const vec3_t angles, vec3_t axis[3] );
-
 void AxisClear( vec3_t axis[3] );
 void AxisCopy( vec3_t in[3], vec3_t out[3] );
-
 void SetPlaneSignbits( struct cplane_s *out );
 int BoxOnPlaneSide (vec3_t emins, vec3_t emaxs, struct cplane_s *plane);
-
-//double	fmod( double x, double y );
-float	AngleMod(float a);
-float	LerpAngle (float from, float to, float frac);
-float	AngleSubtract( float a1, float a2 );
-void	AnglesSubtract( vec3_t v1, vec3_t v2, vec3_t v3 );
-
+//double fmod( double x, double y );
+float AngleMod(float a);
+float LerpAngle (float from, float to, float frac);
+float AngleSubtract( float a1, float a2 );
+void AnglesSubtract( vec3_t v1, vec3_t v2, vec3_t v3 );
 float AngleNormalize360 ( float angle );
 float AngleNormalize180 ( float angle );
 float AngleDelta ( float angle1, float angle2 );
-
 void LerpOrigin( const vec3_t from, const vec3_t to, vec3_t out, float lerp );
 void LerpAngles( const vec3_t from, const vec3_t to, vec3_t out, float lerp );
-
 qboolean PlaneFromPoints( vec4_t plane, const vec3_t a, const vec3_t b, const vec3_t c );
 void ProjectPointOnPlane( vec3_t dst, const vec3_t p, const vec3_t normal );
 void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees );
@@ -1918,7 +1911,7 @@ COLLISION DETECTION
 ==============================================================
 */
 
-#include "game/surfaceflags.h"			// shared with the q3map utility
+#include "../game/surfaceflags.h"			// shared with the q3map utility
 
 // plane types are used to speed some tests
 // 0-2 are axial planes
@@ -3006,7 +2999,7 @@ Ghoul2 Insert End
 //
 #define TAGDEF(blah) TAG_ ## blah
 typedef enum {
-	#include "qcommon/tags.h"
+	#include "tags.h"
 } memtag;
 typedef char memtag_t;
 

@@ -1,10 +1,12 @@
 #pragma once
-
 // Copyright (C) 1999-2000 Id Software, Inc.
 //
-
 #define	MAX_DLIGHTS		32			// can't be increased, because bit flags are used on surfaces
+#ifdef __ANDROID__
+#define	REFENTITYNUM_BITS	11		// can't be increased without changing drawsurf bit packing
+#else
 #define	REFENTITYNUM_BITS	16		// can't be increased without changing drawsurf bit packing
+#endif
 #define	REFENTITYNUM_MASK	((1<<REFENTITYNUM_BITS) - 1)
 // the last N-bit number (2^REFENTITYNUM_BITS - 1) is reserved for the special world refentity,
 //  and this is reflected by the value of MAX_REFENTITIES (which therefore is not a power-of-2)
@@ -61,24 +63,20 @@
 
 #define RDF_AUTOMAP			32		//means this scene is to draw the automap -rww
 #define	RDF_NOFOG			64		//no global fog in this scene (but still brush fog) -rww
-
+#include "../qcommon/q_shared.h"
 extern int	skyboxportal;
 extern int	drawskyboxportal;
-
 typedef byte color4ub_t[4];
-
 typedef struct {
 	vec3_t		xyz;
 	float		st[2];
 	byte		modulate[4];
 } polyVert_t;
-
 typedef struct poly_s {
 	qhandle_t			hShader;
 	int					numVerts;
 	polyVert_t			*verts;
 } poly_t;
-
 typedef enum {
 	RT_MODEL,
 	RT_POLY,
@@ -92,13 +90,10 @@ typedef enum {
 	RT_ORIENTEDLINE,
 	RT_CYLINDER,
 	RT_ENT_CHAIN,
-
 	RT_MAX_REF_ENTITY_TYPE
 } refEntityType_t;
-
 #define BACKWARD_JAMP_COMPAT
-typedef struct miniRefEntity_s 
-{
+typedef struct miniRefEntity_s {
 	refEntityType_t		reType;
 	int					renderfx;
 
@@ -268,8 +263,8 @@ Ghoul2 Insert End
 Ghoul2 Insert Start
 */
 #define MDXABONEDEF
-#include "renderer/mdx_format.h"
-#include "qcommon/qfiles.h"
+#include "mdx_format.h"
+#include "../qcommon/qfiles.h"
 
 // skins allow models to be retextured without modifying the model file
 //Raz: this is a mock copy, renderers may have their own implementation.

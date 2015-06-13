@@ -2,14 +2,10 @@
 //
 // cg_draw.c -- draw all of the graphical elements during
 // active (after loading) gameplay
-
 #include "cg_local.h"
-
-#include "game/bg_saga.h"
-
-#include "ui/ui_shared.h"
-#include "ui/ui_public.h"
-
+#include "../game/bg_saga.h"
+#include "../ui/ui_shared.h"
+#include "../ui/ui_public.h"
 extern float CG_RadiusForCent( centity_t *cent );
 qboolean CG_WorldCoordToScreenCoordFloat(vec3_t worldCoord, float *x, float *y);
 qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle );
@@ -129,7 +125,7 @@ int CG_Text_Height(const char *text, float scale, int iMenuFont)
 	return trap_R_Font_HeightPixels(iFontIndex, scale);
 }
 
-#include "qcommon/qfiles.h"	// for STYLE_BLINK etc
+#include "../qcommon/qfiles.h"	// for STYLE_BLINK etc
 void CG_Text_Paint(float x, float y, float scale, vec4_t color, const char *text, float adjust, int limit, int style, int iMenuFont) 
 {
 	int iStyleOR = 0;
@@ -6859,13 +6855,11 @@ static void CG_DrawIntermission( void ) {
 CG_DrawFollow
 =================
 */
-static qboolean CG_DrawFollow( void ) {
-	char	*s;
-	
-	if (!(cg.snap->ps.pm_flags & PMF_FOLLOW)) {
+static qboolean CG_DrawFollow(void) {
+	char *s;
+	if (!(cg.snap->ps.pm_flags & PMF_FOLLOW) && !cg.demoPlayback) {
 		return qfalse;
 	}
-
 //	s = "following";
 	if (cgs.gametype == GT_POWERDUEL) {
 		clientInfo_t *ci = &cgs.clientinfo[ cg.snap->ps.clientNum ];
@@ -6881,13 +6875,13 @@ static qboolean CG_DrawFollow( void ) {
 		s = CG_GetStringEdString("MP_INGAME", "FOLLOWING");
 	}
 /*
-	CG_Text_Paint ( 320 - CG_Text_Width ( s, 1.0f, FONT_MEDIUM ) / 2, 60, 1.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM );
+	CG_Text_Paint (320 - CG_Text_Width (s, 1.0f, FONT_MEDIUM)/2, 60, 1.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM);
 
-	s = cgs.clientinfo[ cg.snap->ps.clientNum ].name;
-	CG_Text_Paint ( 320 - CG_Text_Width ( s, 2.0f, FONT_MEDIUM ) / 2, 80, 2.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM );
+	s = cgs.clientinfo[cg.snap->ps.clientNum].name;
+	CG_Text_Paint(320 - CG_Text_Width (s, 2.0f, FONT_MEDIUM)/2, 80, 2.0f, colorWhite, s, 0, 0, 0, FONT_MEDIUM);
 */
-	strcat( s, va(": %s", cgs.clientinfo[ cg.snap->ps.clientNum ].name));
-	CG_Text_Paint ( 320 - CG_Text_Width ( s, 0.7f, FONT_LARGE ) / 2, 1, 0.7f, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWED, FONT_LARGE );
+	strcat(s, va(": %s", cgs.clientinfo[cg.playerCent->currentState.clientNum].name));
+	CG_Text_Paint(320 - CG_Text_Width (s, 0.7f, FONT_LARGE)/2, 1, 0.7f, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWED, FONT_LARGE);
 	return qtrue;
 }
 
@@ -8228,6 +8222,7 @@ void CG_Draw2D (void) {
 		CG_UpdateFallVector();
 		CG_DrawVote();
 		CG_DrawUpperRight();
+		CG_DrawFollow();
 		CG_DrawTeamVote();
 		CG_DrawCenterString();
 		CG_ChatBox_DrawStrings();

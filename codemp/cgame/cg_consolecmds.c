@@ -4,8 +4,8 @@
 // executed by a key binding
 
 #include "cg_local.h"
-#include "ui/ui_shared.h"
-#include "game/bg_saga.h"
+#include "../ui/ui_shared.h"
+#include "../game/bg_saga.h"
 #include "cg_demos.h"
 extern menuDef_t *menuScoreboard;
 
@@ -296,12 +296,71 @@ static void CG_Camera_f( void ) {
 	}
 }
 */
-
+#ifdef __ANDROID__
+/*
+==================
+ConcatArgs
+==================
+*/
+char *ConcatArgs(int start) {
+	int i, c, tlen;
+	static char line[MAX_STRING_CHARS];
+	int len;
+	char arg[MAX_STRING_CHARS];
+	len = 0;
+	c = trap_Argc();
+	for (i = start; i < c; i++) {
+		trap_Argv(i, arg, sizeof(arg));
+		tlen = strlen(arg);
+		if (len + tlen >= MAX_STRING_CHARS - 1) {
+			break;
+		}
+		memcpy(line + len, arg, tlen);
+		len += tlen;
+		if (i != c - 1) {
+			line[len] = ' ';
+			len++;
+		}
+	}
+	line[len] = 0;
+	return line;
+}
+static void CG_TargetPrev_f(void) {
+	trap_SendConsoleCommand("followPrev");
+}
+static void CG_TargetNext_f(void) {
+	trap_SendConsoleCommand("followNext");
+}
+static void CG_Chase_f(void) {
+	const char *cmd = CG_Argv(1);
+	if (trap_Argc() < 2)
+		return;
+	if (!Q_stricmp("targetPrev",cmd))
+		CG_TargetPrev_f();
+	else if (!Q_stricmp("targetNext",cmd))
+		CG_TargetNext_f();
+}
+static void CG_Pause_f(void) {
+}
+static void CG_SayAlias_f(void) {
+	char *p = NULL;
+	if (trap_Argc () < 2)
+		return;
+	p = ConcatArgs(1);
+	trap_SendConsoleCommand(va("say %s", p));
+}
+static void CG_SayTeamAlias_f(void) {
+	char *p = NULL;
+	if (trap_Argc () < 2)
+		return;
+	p = ConcatArgs(1);
+	trap_SendConsoleCommand(va("say_team %s", p));
+}
+#endif
 typedef struct {
 	char	*cmd;
 	void	(*function)(void);
 } consoleCommand_t;
-
 static consoleCommand_t	commands[] = {
 	{ "testgun", CG_TestGun_f },
 	{ "testmodel", CG_TestModel_f },
@@ -337,6 +396,14 @@ static consoleCommand_t	commands[] = {
 	{ "siegeCvarUpdate", CG_SiegeCvarUpdate_f },
 	{ "siegeCompleteCvarUpdate", CG_SiegeCompleteCvarUpdate_f },
 	{ "clientlist", CG_ClientList_f },
+#ifdef __ANDROID__
+	{ "targetPrev", CG_TargetPrev_f },
+	{ "targetNext", CG_TargetNext_f },
+	{ "chase", CG_Chase_f },
+	{ "pause", CG_Pause_f },
+	{ "s", CG_SayAlias_f },
+	{ "st", CG_SayTeamAlias_f },
+#endif
 };
 
 static size_t numCommands = ARRAY_LEN( commands );

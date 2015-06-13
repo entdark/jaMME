@@ -6,8 +6,8 @@
 /*
 Ghoul2 Insert Start
 */
-#include "qcommon/q_shared.h"
-#include "ghoul2/G2.h"
+#include "../qcommon/q_shared.h"
+#include "../ghoul2/G2.h"
 /*
 Ghoul2 Insert end
 */
@@ -3257,21 +3257,21 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 	if ( cg.nextSnap ) {
 		nextStateTime = cg.nextSnap->serverTime;
 	}
-
 	// it would be an internal error to find an entity that interpolates without
 	// a snapshot ahead of the current one
 	if ( cg.nextSnap == NULL ) {
 		CG_Error( "CG_InterpoateEntityPosition: cg.nextSnap == NULL" );
 		return;
 	}
-
 	if ( cent->currentState.number == cg.predictedPlayerState.clientNum ) {
 		f = cg.playerInterpolation;
 	} else {
 		f = cg.frameInterpolation;
 	}
-
-	if ( cg_commandSmooth.integer > 1 && cent->currentState.number < MAX_CLIENTS && cent != &cg_entities[cg.snap->ps.clientNum] ) {
+	if ( cg_commandSmooth.integer > 1
+			&& cg.demoPlayback == 2
+			&& cent->currentState.number < MAX_CLIENTS
+			&& cent != &cg_entities[cg.snap->ps.clientNum] ) {
 		CG_ComputeCommandSmoothStates( cent, &curEsh, &nextEsh );
 		currentState = &curEsh->es;
 		currentStateTime = curEsh->time;
@@ -3307,24 +3307,22 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 		currentState = &cent->currentState;
 		nextState = &cent->nextState;
 	}
-
 	// this will linearize a sine or parabolic curve, but it is important
 	// to not extrapolate player positions if more recent data is available
-	BG_EvaluateTrajectory( &currentState->pos, currentStateTime, current );
-	BG_EvaluateTrajectory( &nextState->pos, nextStateTime, next );
-
-	cent->lerpOrigin[0] = current[0] + f * ( next[0] - current[0] );
-	cent->lerpOrigin[1] = current[1] + f * ( next[1] - current[1] );
-	cent->lerpOrigin[2] = current[2] + f * ( next[2] - current[2] );
-
-	BG_EvaluateTrajectory( &currentState->apos, currentStateTime, current );
-	BG_EvaluateTrajectory( &nextState->apos, nextStateTime, next );
-
-	cent->lerpAngles[0] = LerpAngle( current[0], next[0], f );
-	cent->lerpAngles[1] = LerpAngle( current[1], next[1], f );
-	cent->lerpAngles[2] = LerpAngle( current[2], next[2], f );
-
-	if ( cg_commandSmooth.integer > 1 && cent->currentState.number < MAX_CLIENTS && cent != &cg_entities[cg.snap->ps.clientNum] ) {
+	BG_EvaluateTrajectory(&currentState->pos, currentStateTime, current);
+	BG_EvaluateTrajectory(&nextState->pos, nextStateTime, next);
+	cent->lerpOrigin[0] = current[0] + f * (next[0] - current[0]);
+	cent->lerpOrigin[1] = current[1] + f * (next[1] - current[1]);
+	cent->lerpOrigin[2] = current[2] + f * (next[2] - current[2]);
+	BG_EvaluateTrajectory(&currentState->apos, currentStateTime, current);
+	BG_EvaluateTrajectory(&nextState->apos, nextStateTime, next);
+	cent->lerpAngles[0] = LerpAngle(current[0], next[0], f);
+	cent->lerpAngles[1] = LerpAngle(current[1], next[1], f);
+	cent->lerpAngles[2] = LerpAngle(current[2], next[2], f);
+	if ( cg_commandSmooth.integer > 1
+			&& cg.demoPlayback == 2
+			&& cent->currentState.number < MAX_CLIENTS
+			&& cent != &cg_entities[cg.snap->ps.clientNum] ) {
 		// adjust for the movement of the groundentity
 		// step 1: remove the delta introduced by cur->next origin interpolation
 		int curTime = curEsh->serverTime + (int) ( f * ( nextEsh->serverTime - curEsh->serverTime ) );
@@ -3347,8 +3345,10 @@ CG_CalcEntityLerpPositions
 void CG_CalcEntityLerpPositions( centity_t *cent ) {
 	qboolean goAway = qfalse;
 	entityState_t *currentState, *nextState;
-
-	if ( cg_commandSmooth.integer > 1 && cent->currentState.number < MAX_CLIENTS && cent != &cg_entities[cg.snap->ps.clientNum] ) {
+	if ( cg_commandSmooth.integer > 1
+			&& cg.demoPlayback == 2
+			&& cent->currentState.number < MAX_CLIENTS
+			&& cent != &cg_entities[cg.snap->ps.clientNum] ) {
 		timedEntityState_t *curEsh, *nextEsh;
 		CG_ComputeCommandSmoothStates( cent, &curEsh, &nextEsh );
 		currentState = &curEsh->es;
@@ -3357,7 +3357,6 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 		currentState = &cent->currentState;
 		nextState = &cent->nextState;
 	}
-
 	if (!currentState->apos.trTime) {
 		currentState->apos.trTime = cg.time - cg.time % 360;
 	}
@@ -3369,7 +3368,6 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 			if ( nextState != NULL ) nextState->pos.trType = TR_INTERPOLATE;
 		}
 	}
-
 	if (cg.predictedPlayerState.m_iVehicleNum &&
 		cg.predictedPlayerState.m_iVehicleNum == cent->currentState.number &&
 		cent->currentState.eType == ET_NPC && cent->currentState.NPC_class == CLASS_VEHICLE)
@@ -3383,27 +3381,20 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 			return;
 		}
 	}
-
 	if ( cent->interpolate && currentState->pos.trType == TR_INTERPOLATE ) {
 		CG_InterpolateEntityPosition( cent );
 		return;
 	}
-
 	// first see if we can interpolate between two snaps for
 	// linear extrapolated clients
 	if ( cent->interpolate && currentState->pos.trType == TR_LINEAR_STOP &&
 			(cent->currentState.number < MAX_CLIENTS || cent->currentState.eType == ET_NPC) ) {
 		CG_InterpolateEntityPosition( cent );
 		goAway = qtrue;
-	}
-	else if (cent->interpolate &&
-		currentState->eType == ET_NPC && currentState->NPC_class == CLASS_VEHICLE )
-	{
+	} else if (cent->interpolate && currentState->eType == ET_NPC && currentState->NPC_class == CLASS_VEHICLE ) {
 		CG_InterpolateEntityPosition( cent );
 		goAway = qtrue;
-	}
-	else
-	{
+	} else {
 		// just use the current frame and evaluate as best we can
 		demoNowTrajectory( &currentState->pos, cent->lerpOrigin );
 		demoNowTrajectory( &currentState->apos, cent->lerpAngles );
@@ -3467,10 +3458,8 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 		VectorAdd(cent->lerpOrigin, cent->lerpOriginOffset, cent->lerpOrigin);
 	}
 #endif
-
 	if (goAway)
 		return;
-
 	// adjust for riding a mover if it wasn't rolled into the predicted
 	// player state
 	if ( currentState->number != cg.predictedPlayerState.clientNum ) {

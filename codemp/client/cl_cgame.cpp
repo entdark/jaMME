@@ -1,34 +1,36 @@
 // cl_cgame.c  -- client system interaction with client game
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
-#include "RMG/RM_Headers.h"
+#include "../RMG/RM_Headers.h"
 #include "client.h"
-#include "botlib/botlib.h"
-#include "RMG/RM_Headers.h"
+#include "../botlib/botlib.h"
+#include "../RMG/RM_Headers.h"
 #include "FXExport.h"
 #include "FxUtil.h"
-#include "qcommon/RoffSystem.h"
+#include "../qcommon/RoffSystem.h"
 
 #ifdef _DONETPROFILE_
-#include "qcommon/INetProfile.h"
+#include "../qcommon/INetProfile.h"
 #endif
 
 #ifdef VV_LIGHTING
-#include "renderer/tr_lightmanager.h"
+#include "../renderer/tr_lightmanager.h"
 #endif
 
 /*
 Ghoul2 Insert Start
 */
 
-#include "qcommon/stringed_ingame.h"
-#include "ghoul2/G2_gore.h"
-
+#include "../qcommon/stringed_ingame.h"
+#include "../ghoul2/G2_gore.h"
+#ifndef __ANDROID__
 extern CMiniHeap *G2VertSpaceClient;
-
+#else
+extern IHeapAllocator *G2VertSpaceClient;
+#endif
 #include "snd_ambient.h"
-#include "qcommon/timing.h"
+#include "../qcommon/timing.h"
 
 //extern int contentOverride;
 
@@ -619,50 +621,48 @@ extern int CL_GetValueForHidden(const char *s); //cl_parse.cpp
 
 extern qboolean cl_bUseFighterPitch; //cl_input.cpp
 
-intptr_t CL_CgameSystemCalls( intptr_t *args ) {
-	switch( args[0] ) {
+intptr_t CL_CgameSystemCalls(intptr_t *args) {
+	switch(args[0]) {
 	//rww - alright, DO NOT EVER add a GAME/CGAME/UI generic call without adding a trap to match, and
 	//all of these traps must be shared and have cases in sv_game, cl_cgame, and cl_ui. They must also
 	//all be in the same order, and start at 100.
 	case TRAP_MEMSET:
-		Com_Memset( VMA(1), args[2], args[3] );
+		Com_Memset(VMA(1), args[2], args[3]);
 		return 0;
 	case TRAP_MEMCPY:
-		Com_Memcpy( VMA(1), VMA(2), args[3] );
+		Com_Memcpy(VMA(1), VMA(2), args[3]);
 		return 0;
 	case TRAP_STRNCPY:
-		return (intptr_t)strncpy( (char *)VMA(1), (const char *)VMA(2), args[3] );
+		return (intptr_t)strncpy((char *)VMA(1), (const char *)VMA(2), args[3]);
 	case TRAP_SIN:
-		return FloatAsInt( sin( VMF(1) ) );
+		return FloatAsInt(sin(VMF(1)));
 	case TRAP_COS:
-		return FloatAsInt( cos( VMF(1) ) );
+		return FloatAsInt(cos(VMF(1)));
 	case TRAP_ATAN2:
-		return FloatAsInt( atan2( VMF(1), VMF(2) ) );
+		return FloatAsInt(atan2(VMF(1), VMF(2)));
 	case TRAP_SQRT:
-		return FloatAsInt( sqrt( VMF(1) ) );
+		return FloatAsInt(sqrt(VMF(1)));
 	case TRAP_MATRIXMULTIPLY:
-		MatrixMultiply( (vec3_t *)VMA(1), (vec3_t *)VMA(2), (vec3_t *)VMA(3) );
+		MatrixMultiply((vec3_t *)VMA(1), (vec3_t *)VMA(2), (vec3_t *)VMA(3));
 		return 0;
 	case TRAP_ANGLEVECTORS:
-		AngleVectors( (const float *)VMA(1), (float *)VMA(2), (float *)VMA(3), (float *)VMA(4) );
+		AngleVectors((const float *)VMA(1), (float *)VMA(2), (float *)VMA(3), (float *)VMA(4));
 		return 0;
 	case TRAP_PERPENDICULARVECTOR:
-		PerpendicularVector( (float *)VMA(1), (const float *)VMA(2) );
+		PerpendicularVector((float *)VMA(1), (const float *)VMA(2));
 		return 0;
 	case TRAP_FLOOR:
-		return FloatAsInt( floor( VMF(1) ) );
+		return FloatAsInt(floor(VMF(1)));
 	case TRAP_CEIL:
-		return FloatAsInt( ceil( VMF(1) ) );
+		return FloatAsInt(ceil(VMF(1)));
 	case TRAP_TESTPRINTINT:
 		return 0;
 	case TRAP_TESTPRINTFLOAT:
 		return 0;
 	case TRAP_ACOS:
-		return FloatAsInt( Q_acos( VMF(1) ) );
+		return FloatAsInt(Q_acos(VMF(1)));
 	case TRAP_ASIN:
-		return FloatAsInt( Q_asin( VMF(1) ) );
-
-
+		return FloatAsInt(Q_asin(VMF(1)));
 	case CG_PRINT:
 		Com_Printf( "%s", (const char*)VMA(1) );
 		return 0;
@@ -785,12 +785,16 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_S_GETVOICEVOLUME:
 		return s_entityWavVol[args[1]];
 	case CG_S_MUTESOUND:
+#ifdef __ANDROID__
+		S_StopSound(args[1], args[2], args[3] );
+#else
 		{cvar_t *fs_game = Cvar_FindVar("fs_game");
 		if (fs_game && !Q_stricmpn(fs_game->string, "mme", 3)) {
 			S_StopSound(args[1], args[2], args[3] );
 		} else {
 			S_StopSound(args[1], args[2], -1 );
 		}}
+#endif
 		return 0;
 	case CG_S_STARTSOUND:
 		S_StartSound( (float *)VMA(1), args[2], args[3], -1, args[4] );
@@ -857,6 +861,9 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_R_FONT_STRHEIGHTPIXELS:
 		return re.Font_HeightPixels( args[1], VMF(2) );
 	case CG_R_FONT_DRAWSTRING:
+#ifdef __ANDROID__
+		re.Font_DrawString( VMF(1), VMF(2), (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );
+#else
 		{float ox, oy;
 		cvar_t *fs_game = Cvar_FindVar("fs_game");
 		if (fs_game && !Q_stricmpn(fs_game->string, "mme", 3)) {
@@ -865,6 +872,7 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 			ox = args[1]; oy = args[2];
 		}
 		re.Font_DrawString( ox, oy, (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );}
+#endif
 		return 0;
 	case CG_LANGUAGE_ISASIAN:
 		return re.Language_IsAsian();
@@ -975,24 +983,21 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return 0;
 	case CG_SETCLIENTTURNEXTENT:
 		return 0;
-
 	case CG_OPENUIMENU:
-		VM_Call( uivm, UI_SET_ACTIVE_MENU, args[1] );
+		VM_Call(uivm, UI_SET_ACTIVE_MENU, args[1]);
 		return 0;
-
 	case CG_MEMORY_REMAINING:
 		return Hunk_MemoryRemaining();
   case CG_KEY_ISDOWN:
-		return Key_IsDown( args[1] );
+		return Key_IsDown(args[1]);
   case CG_KEY_GETCATCHER:
 		return Key_GetCatcher();
   case CG_KEY_SETCATCHER:
 		// Don't allow the cgame module to close the console
-		Key_SetCatcher( args[1] | ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) );
-    return 0;
+		Key_SetCatcher(args[1] | (Key_GetCatcher() & KEYCATCH_CONSOLE));
+		return 0;
   case CG_KEY_GETKEY:
-		return Key_GetKey( (const char *)VMA(1) );
-
+		return Key_GetKey((const char *)VMA(1));
 	case CG_PC_ADD_GLOBAL_DEFINE:
 		return botlib_export->PC_AddGlobalDefine( (char *)VMA(1) );
 	case CG_PC_LOAD_SOURCE:
@@ -1008,17 +1013,14 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 	case CG_PC_REMOVE_ALL_GLOBAL_DEFINES:
 		botlib_export->PC_RemoveAllGlobalDefines ( );
 		return 0;
-
 	case CG_S_STOPBACKGROUNDTRACK:
 		S_StopBackgroundTrack();
 		return 0;
-
 	case CG_REAL_TIME:
 		return Com_RealTime( (struct qtime_s *)VMA(1) );
 	case CG_SNAPVECTOR:
 		Sys_SnapVector( (float *)VMA(1) );
 		return 0;
-
 	case CG_CIN_PLAYCINEMATIC:
 	  return CIN_PlayCinematic((const char *)VMA(1), args[2], args[3], args[4], args[5], args[6]);
 
@@ -1127,9 +1129,16 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		//( int id, vec3_t org, void *pGhoul2, const int boltNum, const int entNum, const int modelNum, int iLooptime, qboolean isRelative );
 		CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[3]);
 		int boltInfo=0;
+#ifdef __ANDROID__
+		if ( re.G2API_AttachEnt( &boltInfo, g2, args[6], args[4], args[5], args[6] ) )
+		{
+			FX_PlayBoltedEffectID(args[1], (float *)VMA(2), boltInfo, &g2, args[7], (qboolean)args[8] );
+
+#else
 		if ( re.G2API_AttachEnt( &boltInfo, &g2[args[6]], args[4], args[5], args[6] ) )
 		{
 			FX_PlayBoltedEffectID(args[1], (float *)VMA(2), boltInfo, g2.mItem, args[7], (qboolean)args[8] );
+#endif
 			return 1;
 		}
 		return 0;
@@ -1153,14 +1162,17 @@ intptr_t CL_CgameSystemCalls( intptr_t *args ) {
 		return FX_FreeSystem();
 
 	case CG_FX_ADJUST_TIME:
+#ifdef __ANDROID__
+		FX_AdjustTime(args[1], VMF(2), VMF(3));
+#else
 		{cvar_t *fs_game = Cvar_FindVar("fs_game");
 		if (fs_game && !Q_stricmpn(fs_game->string, "mme", 3)) {
 			FX_AdjustTime(args[1], VMF(2), VMF(3));
 		} else {
 			FX_AdjustTime(args[1], cls.frametime, 0.0f);
 		}}
+#endif
 		return 0;
-
 	case CG_FX_RESET:
 		FX_Free ( false );
 		return 0;
@@ -1336,8 +1348,11 @@ Ghoul2 Insert Start
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
 			int modelIndex = args[2];
-			
+#ifdef __ANDROID__
+			return re.G2API_SetSkin(g2, modelIndex, args[3], args[4]);
+#else
 			return re.G2API_SetSkin(&g2[modelIndex], args[3], args[4]);
+#endif
 		}
 
 	case CG_G2_COLLISIONDETECT:
@@ -1392,9 +1407,13 @@ Ghoul2 Insert Start
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
 			int modelIndex = args[10];
-
+#ifdef __ANDROID__
+			return re.G2API_GetBoneAnim(g2, modelIndex, (const char*)VMA(2), args[3], (float *)VMA(4), (int *)VMA(5),
+								(int *)VMA(6), (int *)VMA(7), (float *)VMA(8), (int *)VMA(9));
+#else
 			return re.G2API_GetBoneAnim(&g2[modelIndex], (const char*)VMA(2), args[3], (float *)VMA(4), (int *)VMA(5),
 								(int *)VMA(6), (int *)VMA(7), (float *)VMA(8), (int *)VMA(9));
+#endif
 		}
 
 	case CG_G2_GETBONEFRAME:
@@ -1403,9 +1422,13 @@ Ghoul2 Insert Start
 			int modelIndex = args[6];
 			int iDontCare1 = 0, iDontCare2 = 0, iDontCare3 = 0;
 			float fDontCare1 = 0;
-
+#ifdef __ANDROID__
+			return re.G2API_GetBoneAnim(g2, modelIndex, (const char*)VMA(2), args[3], (float *)VMA(4), &iDontCare1,
+								&iDontCare2, &iDontCare3, &fDontCare1, (int *)VMA(5));
+#else
 			return re.G2API_GetBoneAnim(&g2[modelIndex], (const char*)VMA(2), args[3], (float *)VMA(4), &iDontCare1,
 								&iDontCare2, &iDontCare3, &fDontCare1, (int *)VMA(5));
+#endif
 		}
 
 	case CG_G2_GETGLANAME:
@@ -1449,14 +1472,22 @@ Ghoul2 Insert Start
 	case CG_G2_SKINLESSMODEL:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
+#ifdef __ANDROID__
+			return re.G2API_SkinlessModel(g2, args[2]);
+#else
 			return re.G2API_SkinlessModel(&g2[args[2]]);
+#endif
 		}
 
 	case CG_G2_GETNUMGOREMARKS:
 #ifdef _G2_GORE
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
+#ifdef __ANDROID__
+			return re.G2API_GetNumGoreMarks(g2, args[2]);
+#else
 			return re.G2API_GetNumGoreMarks(&g2[args[2]]);
+#endif
 		}
 #endif
 		return 0;
@@ -1485,7 +1516,11 @@ Ghoul2 Insert Start
 //				G2API_AttachEnt(int *boltInfo, CGhoul2Info *ghlInfoTo, int toBoltIndex, int entNum, int toModelNum)
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[2]);
+#ifdef __ANDROID__
+			return	re.G2API_AttachEnt( (int*)VMA(1), g2, 0, args[3], args[4], args[5] );
+#else
 			return	re.G2API_AttachEnt( (int*)VMA(1), &g2[0], args[3], args[4], args[5] );
+#endif
 		}
 
 	case CG_G2_SETBOLTON:
@@ -1512,14 +1547,21 @@ Ghoul2 Insert End
 	case CG_G2_DOESBONEEXIST:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
+#ifdef __ANDROID__
+			return re.G2API_DoesBoneExist(g2, args[2], (const char *)VMA(3));
+#else
 			return re.G2API_DoesBoneExist(&g2[args[2]], (const char *)VMA(3));
+#endif
 		}
 
 	case CG_G2_GETSURFACERENDERSTATUS:
 	{
 		CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-
+#ifdef __ANDROID__
+		return re.G2API_GetSurfaceRenderStatus(g2, args[2], (const char *)VMA(3));
+#else
 		return re.G2API_GetSurfaceRenderStatus(&g2[args[2]], (const char *)VMA(3));
+#endif
 	}
 
 	case CG_G2_GETTIME:
@@ -1530,7 +1572,10 @@ Ghoul2 Insert End
 		return 0;
 
 	case CG_G2_SETTIMEFRACTION:
+//entTODO: add timefraction thing to another new G2API
+#ifndef __ANDROID__
 		re.G2API_SetTimeFraction(VMF(1));
+#endif
 		return 0;
 
 	case CG_G2_ABSURDSMOOTHING:
@@ -1622,8 +1667,11 @@ Ghoul2 Insert End
 	case CG_G2_REMOVEBONE:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-
+#ifdef __ANDROID__
+			return re.G2API_RemoveBone(g2, args[3], (const char *)VMA(2));
+#else
 			return re.G2API_RemoveBone(&g2[args[3]], (const char *)VMA(2));
+#endif
 		}
 
 	case CG_G2_ATTACHINSTANCETOENTNUM:
@@ -1640,7 +1688,11 @@ Ghoul2 Insert End
 	case CG_G2_OVERRIDESERVER:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
+#ifdef __ANDROID__
+			return re.G2API_OverrideServerWithClientData(g2, 0);
+#else
 			return re.G2API_OverrideServerWithClientData(&g2[0]);
+#endif
 		}
 
 	case CG_G2_GETSURFACENAME:
@@ -1650,8 +1702,11 @@ Ghoul2 Insert End
 			int modelindex = args[3];
 
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-
+#ifdef __ANDROID__
+			local = re.G2API_GetSurfaceName(g2, modelindex, args[2]);
+#else
 			local = re.G2API_GetSurfaceName(&g2[modelindex], args[2]);
+#endif
 			if (local)
 			{
 				strcpy(point, local);
@@ -1740,18 +1795,26 @@ Ghoul2 Insert End
 		Key_SetOverstrikeMode( (qboolean)args[1] );
 		return 0;
 	case CG_MME_CAPTURE:
+#ifndef __ANDROID__
 		re.Capture( (char *)VMA(1), VMF(2), VMF(3), VMF(4) );
 		re.CaptureStereo( (char *)VMA(1), VMF(2), VMF(3), VMF(4) );
 		S_MMERecord( (char *)VMA(1), 1.0f / VMF(2) );
+#endif
 		return 0;
 	case CG_MME_BLURINFO:
+#ifndef __ANDROID__
 		re.BlurInfo( (int *)VMA(1), (int *)VMA(2) );
+#endif
 		return 0;
 	case CG_MME_MUSIC:
+#ifndef __ANDROID__
 		S_MMEMusic( (const char *)VMA(1), VMF(2), VMF(3) );
+#endif
         return 0; 	
 	case CG_MME_TIMEFRACTION:
+#ifndef __ANDROID__
 		re.TimeFraction(VMF(1));
+#endif
 		return 0;
 	case CG_MME_NEWUAGCOLORS:
 		cls.uag.newColors = (qboolean)args[1];
@@ -1761,7 +1824,9 @@ Ghoul2 Insert End
 		re.FontRatioFix(VMF(1));
         return 0; 	
 	case CG_R_RANDOMSEED:
+#ifndef __ANDROID__
 		re.DemoRandomSeed( args[1], VMF(2) );
+#endif
         return 0; 
 	case CG_FX_RANDOMSEED:
 		FX_DemoRandomSeed( args[1], VMF(2) );
@@ -1774,6 +1839,11 @@ Ghoul2 Insert End
 		return 0;
 	case CG_R_ROTATEPIC2_RATIOFIX:
 		re.RotatePic2RatioFix(VMF(1));
+		return 0;
+	case CG_MME_VIBRATEFEEDBACK:
+#ifdef __ANDROID__
+		PortableVibrateFeedback(args[1]);
+#endif
 		return 0;
 	default:
 	        assert(0); // bk010102
@@ -1822,7 +1892,8 @@ void CL_InitCGame( void ) {
 	//ent, from q3mme: CaNaBiS, force a native binary first
 	interpret = VMI_NATIVE;
 
-	cgvm = VM_Create( "cgame", CL_CgameSystemCalls, interpret );
+//	cgvm = VM_Create("cgame", CL_CgameSystemCalls, interpret);
+	cgvm = VM_CreateLegacy(VM_CGAME, CL_CgameSystemCalls);
 	if ( !cgvm ) {
 		Com_Error( ERR_DROP, "VM_Create on cgame failed" );
 	}
@@ -1901,7 +1972,6 @@ void CL_CGameRendering( stereoFrame_t stereo ) {
 	} else {
 		VM_Call( cgvm, CG_DRAW_ACTIVE_FRAME, cl.serverTime, stereo, clc.demoplaying );
 	}
-	VM_Debug( 0 );
 }
 
 

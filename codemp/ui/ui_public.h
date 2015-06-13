@@ -190,7 +190,7 @@ Ghoul2 Insert Start
 Ghoul2 Insert End
 */
 	UI_MME_FONTRATIOFIX = 400,
-	
+	UI_MME_EDITINGFIELD,
 } uiImport_t;
 
 typedef enum {

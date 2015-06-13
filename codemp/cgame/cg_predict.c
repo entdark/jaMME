@@ -469,12 +469,10 @@ void CG_InterpolatePlayerState( qboolean grabAngles ) {
 	playerState_t	*curps = NULL, *nextps = NULL;
 	qboolean		nextPsTeleport = qfalse;
 	int				currentTime = 0, nextTime = 0, currentServerTime = 0, nextServerTime = 0;
-
 	out = &cg.predictedPlayerState;
 	prev = cg.snap;
 	next = cg.nextSnap;
-
-	if ( cg_commandSmooth.integer ) {
+	if (cg_commandSmooth.integer && cg.demoPlayback == 2) {
 		timedPlayerState_t *tps, *nexttps;
 		CG_ComputeCommandSmoothPlayerstates( &tps, &nexttps, &nextPsTeleport );
 		curps = &tps->ps;
@@ -523,36 +521,29 @@ void CG_InterpolatePlayerState( qboolean grabAngles ) {
 	} else {
 		f = 0;
 	}
-
 	*out = *curps;
 	out->stats[STAT_HEALTH] = cg.snap->ps.stats[STAT_HEALTH];
-
 	// if we are still allowing local input, short circuit the view angles
 	if ( grabAngles ) {
 		usercmd_t	cmd;
 		int			cmdNum;
-
 		cmdNum = trap_GetCurrentCmdNumber();
 		trap_GetUserCmd( cmdNum, &cmd );
 
 		PM_UpdateViewAngles( out, &cmd );
 	}
-
 	// if the next frame is a teleport, we can't lerp to it
 	if ( nextPsTeleport ) {
 		return;
 	}
-
 	/*if ( !next || next->serverTime <= prev->serverTime ) {
 		return;
 	}*/
-
 	i = nextps->bobCycle;
 	if ( i < curps->bobCycle ) {
 		i += 256;		// handle wraparound
 	}
 	out->bobCycle = curps->bobCycle + f * ( i - curps->bobCycle );
-
 	for ( i = 0 ; i < 3 ; i++ ) {
 		out->origin[i] = curps->origin[i] + f * ( nextps->origin[i] - curps->origin[i] );
 		if ( !grabAngles ) {
@@ -562,19 +553,18 @@ void CG_InterpolatePlayerState( qboolean grabAngles ) {
 		out->velocity[i] = curps->velocity[i] + 
 			f * (nextps->velocity[i] - curps->velocity[i] );
 	}
-
 	// requires commandSmooth 2, since it needs entity state history of the mover
-	if ( cg_commandSmooth.integer > 1 ) {
+	if (cg_commandSmooth.integer > 1 && cg.demoPlayback == 2) {
 		// adjust for the movement of the groundentity
 		// step 1: remove the delta introduced by cur->next origin interpolation
-		int curTime = currentServerTime + (int) ( f * ( nextServerTime - currentServerTime ) );
-		float curTimeFraction = ( f * ( nextServerTime - currentServerTime ) );
-		curTimeFraction -= (long) curTimeFraction;
-		CG_AdjustInterpolatedPositionForMover( out->origin,
-			curps->groundEntityNum, curTime, curTimeFraction, currentServerTime, 0, out->origin );
+		int curTime = currentServerTime + (int)(f * (nextServerTime - currentServerTime));
+		float curTimeFraction = (f * (nextServerTime - currentServerTime));
+		curTimeFraction -= (long)curTimeFraction;
+		CG_AdjustInterpolatedPositionForMover(out->origin,
+			curps->groundEntityNum, curTime, curTimeFraction, currentServerTime, 0, out->origin);
 		// step 2: mover state should now be what it was at currentServerTime, now redo calculation of mover effect to cg.time
-		CG_AdjustInterpolatedPositionForMover( out->origin,
-			curps->groundEntityNum, currentServerTime, 0, cg.time, cg.timeFraction, out->origin );
+		CG_AdjustInterpolatedPositionForMover(out->origin,
+			curps->groundEntityNum, currentServerTime, 0, cg.time, cg.timeFraction, out->origin);
 	}
 
 	curps->stats[STAT_HEALTH] = cg.snap->ps.stats[STAT_HEALTH];

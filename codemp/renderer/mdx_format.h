@@ -15,6 +15,8 @@
 //	- All offset fields are relative to the address of the structure they occur in
 //	- So far, the only external symbol needed is MAX_QPATH, plus the typedefs for vec3_t, vec2_t etc
 
+#include "../qcommon/q_shared.h"
+
 #define MDXM_IDENT			(('M'<<24)+('G'<<16)+('L'<<8)+'2')
 #define MDXA_IDENT			(('A'<<24)+('G'<<16)+('L'<<8)+'2')
 
@@ -124,7 +126,13 @@ typedef struct
 	// I'm defining this '<' operator so this struct can be used as an STL <map> key...
 	//
 	#ifdef __cplusplus
+#ifdef __ANDROID__
+	bool operator < (const  mdxaCompQuatBone_t & _Xv) const {
+		return (memcmp(Comp,_Xv.Comp,sizeof(Comp))<0);
+	}
+#else
 	bool operator < (const mdxaCompQuatBone_t& _X) const {return (memcmp(Comp,_X.Comp,sizeof(Comp))<0);}
+#endif
 	#endif
 }
 #ifndef __cplusplus
@@ -134,7 +142,7 @@ mdxaCompQuatBone_t
 
 
 #ifndef MDXABONEDEF
-typedef struct {
+typedef struct mdxaBone_s {
 	float matrix[3][4];			
 } mdxaBone_t;
 #endif
@@ -148,7 +156,7 @@ typedef struct {
 
 // mdxHeader_t  - this contains the header for the file, with sanity checking and version checking, plus number of lod's to be expected
 //
-typedef struct {
+typedef struct mdxmHeader_s {
 	// 
 	// ( first 3 fields are same format as MD3/MDR so we can apply easy model-format-type checks )
 	//
@@ -182,7 +190,7 @@ typedef struct {
 // {
 		// mdxmSurfHierarchy_t - contains hierarchical info for surfaces...
 
-		typedef struct {
+		typedef struct mdxmSurfHierarchy_s {
 			char		name[MAX_QPATH];
 			unsigned int flags;
 			char		shader[MAX_QPATH];
@@ -198,14 +206,14 @@ typedef struct {
 // {
 		// mdxLOD_t - this contains the header for this LOD. Contains num of surfaces, offset to surfaces and offset to next LOD. Surfaces are shader sorted, so each surface = 1 shader
 
-		typedef struct {
+		typedef struct mdxmLOD_s {
 			// (used to contain numSurface/ofsSurfaces fields, but these are same per LOD level now)
 			//
 			int			ofsEnd;				// offset to next LOD
 		} mdxmLOD_t;
 
 
-		typedef struct {	// added in GLM version 3 for ingame use at Jake's request
+		typedef struct mdxmLODSurfOffset_s {	// added in GLM version 3 for ingame use at Jake's request
 			int offsets[1];		// variable sized (mdxmHeader_t->numSurfaces), each offset points to surfaces below
 		} mdxmLODSurfOffset_t;
 
@@ -214,7 +222,7 @@ typedef struct {
 		// {
 				// mdxSurface_t - reuse of header format containing surface name, number of bones, offset to poly data and number of polys, offset to vertex information, and number of verts. NOTE offsets are relative to this header.
 
-				typedef struct {
+				typedef struct mdxmSurface_s {
 					int			ident;				// this one field at least should be kept, since the game-engine may switch-case (but currently=0 in carcass)
 
 					int			thisSurfaceIndex;	// 0...mdxmHeader_t->numSurfaces-1 (because of how ingame renderer works)
@@ -245,7 +253,7 @@ typedef struct {
 				// {
 						// mdxTriangle_t - contains indexes into verts. One struct entry per poly.
 
-						typedef struct {
+						typedef struct mdxmTriangle_s {
 							int			indexes[3];
 						} mdxmTriangle_t;
 				// }
@@ -255,7 +263,7 @@ typedef struct {
 				// {
 						// mdxVertex_t - this is an array with number of verts from the surface definition as its bounds. It contains normal info, texture coors and number of weightings for this bone
 						// (this is now kept at 32 bytes for cache-aligning)
-						typedef struct {
+						typedef struct mdxmVertex_s {
 							vec3_t			normal;
 							vec3_t			vertCoords;
 
@@ -316,7 +324,7 @@ static inline float G2_GetVertBoneWeight( const mdxmVertex_t *pVert, const int i
 				// {
 						// mdxVertex_t - this is an array with number of verts from the surface definition as its bounds. It contains normal info, texture coors and number of weightings for this bone
 
-						typedef struct {
+						typedef struct mdxmVertexTexCoord_s {
 							vec2_t			texCoords;
 						} mdxmVertexTexCoord_t;
 
@@ -335,7 +343,7 @@ static inline float G2_GetVertBoneWeight( const mdxmVertex_t *pVert, const int i
 
 // mdxaHeader_t  - this contains the header for the file, with sanity checking and version checking, plus number of lod's to be expected
 //
-typedef struct {
+typedef struct mdxaHeader_s {
 	// 
 	// ( first 3 fields are same format as MD3/MDR so we can apply easy model-format-type checks )
 	//
@@ -372,7 +380,7 @@ typedef struct {
 // {
 		// mdxaSkel_t - contains hierarchical info only...
 
-		typedef struct {
+		typedef struct mdxaSkel_s {
 			char		name[MAX_QPATH];	// name of bone
 			unsigned int flags;
 			int			parent;				// index of bone that is parent to this one, -1 = NULL/root

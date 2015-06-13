@@ -2,16 +2,14 @@
 #ifdef DEDICATED
 #include <sys/fcntl.h>
 #endif
-#include "qcommon/q_shared.h"
-#include "qcommon/qcommon.h"
-
+#include "../qcommon/q_shared.h"
+#include "../qcommon/qcommon.h"
 #include "sys_loadlib.h"
 #ifdef DEDICATED
 #include "unix_local.h"
 #else
 #include "sys_local.h"
 #endif
-
 #if defined(MACOS_X) || defined(__linux__) || defined(__FreeBSD_kernel__)
 	#include <unistd.h>
 #endif

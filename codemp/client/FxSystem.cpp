@@ -1,10 +1,10 @@
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 // this include must remain at the top of every CPP file
 #include "client.h"
 
 #include "FxScheduler.h"
-#include "ghoul2/G2.h"
+#include "../ghoul2/G2.h"
 
 cvar_t	*fx_debug;
 #ifdef _DEBUG
@@ -81,35 +81,34 @@ void SFxHelper::AdjustTime(int time, float frametime, float timeFraction)
 }
 
 //------------------------------------------------------
-void SFxHelper::CameraShake( vec3_t origin, float intensity, int radius, int time )
-{
+void SFxHelper::CameraShake(vec3_t origin, float intensity, int radius, int time) {
 	TCGCameraShake	*data = (TCGCameraShake *)cl.mSharedMemory;
-
 	VectorCopy(origin, data->mOrigin);
 	data->mIntensity = intensity;
 	data->mRadius = radius;
 	data->mTime = time;
-
-	VM_Call( cgvm, CG_FX_CAMERASHAKE ); 
+	VM_Call(cgvm, CG_FX_CAMERASHAKE); 
 }
 
 //------------------------------------------------------
-qboolean SFxHelper::GetOriginAxisFromBolt(CGhoul2Info_v *pGhoul2, int mEntNum, int modelNum, int boltNum, vec3_t /*out*/origin, vec3_t /*out*/axis[3])
-{
+qboolean SFxHelper::GetOriginAxisFromBolt(CGhoul2Info_v *pGhoul2, int mEntNum, int modelNum, int boltNum, vec3_t /*out*/origin, vec3_t /*out*/axis[3]) {
 	qboolean doesBoltExist;
-	mdxaBone_t 		boltMatrix;
-	TCGGetBoltData	*data = (TCGGetBoltData*)cl.mSharedMemory;
+	mdxaBone_t boltMatrix;
+	TCGGetBoltData *data = (TCGGetBoltData*)cl.mSharedMemory;
 	data->mEntityNum = mEntNum;
-	VM_Call( cgvm, CG_GET_LERP_DATA );//this func will zero out pitch and roll for players, and ridable vehicles
-
+	VM_Call(cgvm, CG_GET_LERP_DATA);//this func will zero out pitch and roll for players, and ridable vehicles
 	//Fixme: optimize these VM calls away by storing 
-
+#ifdef __ANDROID__
+	//WTF IS THIS, Crashes otherwise, FIX ME!
+	LOGI("GetOriginAxisFromBolt %x",pGhoul2);
+	if (!pGhoul2)
+		return qfalse;
+#endif
 	// go away and get me the bolt position for this frame please
 	doesBoltExist = re.G2API_GetBoltMatrix(*pGhoul2, modelNum, boltNum, 
 		&boltMatrix, data->mAngles, data->mOrigin, theFxHelper.mOldTime, 0, data->mScale);
-
-	if (doesBoltExist)
-	{	// set up the axis and origin we need for the actual effect spawning
+	if (doesBoltExist) {
+		// set up the axis and origin we need for the actual effect spawning
 	   	origin[0] = boltMatrix.matrix[0][3];
 		origin[1] = boltMatrix.matrix[1][3];
 		origin[2] = boltMatrix.matrix[2][3];

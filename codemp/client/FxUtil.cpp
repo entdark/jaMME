@@ -1,5 +1,5 @@
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 // this include must remain at the top of every CPP file
 #include "client.h"
 #include "FxScheduler.h"
@@ -93,9 +93,11 @@ int	FX_Init( refdef_t* refdef )
 	fx_debug = Cvar_Get("fx_debug", "0", CVAR_TEMP);
 	fx_countScale = Cvar_Get("fx_countScale", "1", CVAR_ARCHIVE);
 	fx_nearCull = Cvar_Get("fx_nearCull", "16", CVAR_ARCHIVE);
-
+	#ifdef __ANDROID__
+	fx_forcePhysics = Cvar_Get("fx_forcePhysics", "0", CVAR_ARCHIVE);
+#else
 	fx_forcePhysics = Cvar_Get("fx_forcePhysics", "13", CVAR_ARCHIVE);
-
+#endif
 	theFxHelper.ReInit(refdef);
 
 	return true;
@@ -245,9 +247,14 @@ CParticle *FX_AddParticle( vec3_t org, vec3_t vel, vec3_t accel, float size1, fl
 							float rotation, float rotationDelta,
 							vec3_t min, vec3_t max, float elasticity,
 							int deathID, int impactID,
-							int killTime, qhandle_t shader, int flags = 0, 
+							int killTime, qhandle_t shader, int flags, 
 							EMatImpactEffect matImpactFX /*MATIMPACTFX_NONE*/, int fxParm /*-1*/,
-							int iGhoul2/*0*/, int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/ )
+#ifdef __ANDROID__
+							CGhoul2Info_v *ghoul2/*0*/,
+#else
+							int iGhoul2/*0*/,
+#endif
+							int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/ )
 {
 	if ( theFxHelper.mFrameTime < 0 )
 	{ // disallow adding effects when the system is paused
@@ -258,12 +265,21 @@ CParticle *FX_AddParticle( vec3_t org, vec3_t vel, vec3_t accel, float size1, fl
 
 	if ( fx )
 	{
+#ifdef __ANDROID__
+		if (flags&FX_RELATIVE && ghoul2 != NULL)
+		{
+			fx->SetOrigin1( NULL );
+			fx->SetOrgOffset( org );
+			fx->SetBoltinfo( ghoul2, entNum, modelNum, boltNum );
+		}
+#else
 		if (flags&FX_RELATIVE && iGhoul2>0)
 		{
 			fx->SetOrigin1( NULL );
 			fx->SetOrgOffset( org );
 			fx->SetBoltinfo( iGhoul2, entNum, modelNum, boltNum );
 		}
+#endif
 		else
 		{
 			fx->SetOrigin1( org );
@@ -340,9 +356,14 @@ CParticle *FX_AddParticle( vec3_t org, vec3_t vel, vec3_t accel, float size1, fl
 CLine *FX_AddLine( vec3_t start, vec3_t end, float size1, float size2, float sizeParm,
 									float alpha1, float alpha2, float alphaParm,
 									vec3_t sRGB, vec3_t eRGB, float rgbParm,
-									int killTime, qhandle_t shader, int flags = 0, 
+									int killTime, qhandle_t shader, int flags, 
 									EMatImpactEffect matImpactFX /*MATIMPACTFX_NONE*/, int fxParm /*-1*/,
-									int iGhoul2/*0*/, int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/)
+#ifdef __ANDROID__
+								CGhoul2Info_v *ghoul2/*0*/,
+#else
+								int iGhoul2/*0*/,
+#endif
+								int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/ )
 {
 	if ( theFxHelper.mFrameTime < 0 )
 	{ // disallow adding new effects when the system is paused
@@ -353,6 +374,15 @@ CLine *FX_AddLine( vec3_t start, vec3_t end, float size1, float size2, float siz
 
 	if ( fx )
 	{
+#ifdef __ANDROID__
+		if (flags&FX_RELATIVE && ghoul2 != NULL)
+		{
+			fx->SetOrigin1( NULL );
+			fx->SetOrgOffset( start ); //offset from bolt pos
+			fx->SetVel( end );	//vel is the vector offset from bolt+orgOffset
+			fx->SetBoltinfo( ghoul2, entNum, modelNum, boltNum );
+		}
+#else
 		if (flags&FX_RELATIVE && iGhoul2>0)
 		{
 			fx->SetOrigin1( NULL );
@@ -360,6 +390,7 @@ CLine *FX_AddLine( vec3_t start, vec3_t end, float size1, float size2, float siz
 			fx->SetVel( end );	//vel is the vector offset from bolt+orgOffset
 			fx->SetBoltinfo( iGhoul2, entNum, modelNum, boltNum );
 		}
+#endif
 		else
 		{
 			fx->SetOrigin1( start );
@@ -426,9 +457,14 @@ CLine *FX_AddLine( vec3_t start, vec3_t end, float size1, float size2, float siz
 CElectricity *FX_AddElectricity( vec3_t start, vec3_t end, float size1, float size2, float sizeParm,
 								float alpha1, float alpha2, float alphaParm,
 								vec3_t sRGB, vec3_t eRGB, float rgbParm,
-								float chaos, int killTime, qhandle_t shader, int flags = 0, 
+								float chaos, int killTime, qhandle_t shader, int flags, 
 								EMatImpactEffect matImpactFX /*MATIMPACTFX_NONE*/, int fxParm /*-1*/,
-								int iGhoul2/*0*/, int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/ )
+#ifdef __ANDROID__
+								CGhoul2Info_v *ghoul2/*0*/,
+#else
+								int iGhoul2/*0*/,
+#endif
+								int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/ )
 {
 	if ( theFxHelper.mFrameTime < 0 )
 	{ // disallow adding new effects when the system is paused
@@ -439,13 +475,23 @@ CElectricity *FX_AddElectricity( vec3_t start, vec3_t end, float size1, float si
 
 	if ( fx )
 	{
+#ifdef __ANDROID__
+		if (flags&FX_RELATIVE && ghoul2 != NULL)
+		{
+			fx->SetOrigin1( NULL );
+			fx->SetOrgOffset( start ); //offset from bolt pos
+			fx->SetVel( end );	//vel is the vector offset from bolt+orgOffset
+			fx->SetBoltinfo( ghoul2, entNum, modelNum, boltNum );
+		}
+#else
 		if (flags&FX_RELATIVE && iGhoul2>0)
 		{
 			fx->SetOrigin1( NULL );
-			fx->SetOrgOffset( start );//offset
+			fx->SetOrgOffset( start ); //offset from bolt pos
 			fx->SetVel( end );	//vel is the vector offset from bolt+orgOffset
 			fx->SetBoltinfo( iGhoul2, entNum, modelNum, boltNum );
 		}
+#endif
 		else
 		{
 			fx->SetOrigin1( start );
@@ -522,9 +568,14 @@ CTail *FX_AddTail( vec3_t org, vec3_t vel, vec3_t accel,
 							vec3_t sRGB, vec3_t eRGB, float rgbParm,
 							vec3_t min, vec3_t max, float elasticity, 
 							int deathID, int impactID,
-							int killTime, qhandle_t shader, int flags = 0, 
+							int killTime, qhandle_t shader, int flags, 
 							EMatImpactEffect matImpactFX /*MATIMPACTFX_NONE*/, int fxParm /*-1*/,
-							int iGhoul2/*0*/, int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/ )
+#ifdef __ANDROID__
+							CGhoul2Info_v *ghoul2/*0*/,
+#else
+							int iGhoul2/*0*/,
+#endif
+							int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/ )
 {
 	if ( theFxHelper.mFrameTime < 0 )
 	{ // disallow adding effects when the system is paused
@@ -535,12 +586,21 @@ CTail *FX_AddTail( vec3_t org, vec3_t vel, vec3_t accel,
 
 	if ( fx )
 	{
+#ifdef __ANDROID__
+		if (flags&FX_RELATIVE && ghoul2 != NULL)
+		{
+			fx->SetOrigin1( NULL );
+			fx->SetOrgOffset( org );
+			fx->SetBoltinfo( ghoul2, entNum, modelNum, boltNum );
+		}
+#else
 		if (flags&FX_RELATIVE && iGhoul2>0)
 		{
 			fx->SetOrigin1( NULL );
 			fx->SetOrgOffset( org );
 			fx->SetBoltinfo( iGhoul2, entNum, modelNum, boltNum );
 		}
+#endif
 		else
 		{
 			fx->SetOrigin1( org );
@@ -630,7 +690,12 @@ CCylinder *FX_AddCylinder( vec3_t start, vec3_t normal,
 							vec3_t rgb1, vec3_t rgb2, float rgbParm,
 							int killTime, qhandle_t shader, int flags, 
 							EMatImpactEffect matImpactFX /*MATIMPACTFX_NONE*/, int fxParm /*-1*/,
-							int iGhoul2/*0*/, int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/,
+#ifdef __ANDROID__
+							CGhoul2Info_v *ghoul2/*0*/,
+#else
+							int iGhoul2/*0*/,
+#endif
+							int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/,
 							qboolean traceEnd)
 {
 	if ( theFxHelper.mFrameTime < 0 )
@@ -642,12 +707,21 @@ CCylinder *FX_AddCylinder( vec3_t start, vec3_t normal,
 
 	if ( fx )
 	{
+#ifdef __ANDROID__
+		if (flags&FX_RELATIVE && ghoul2 != NULL)
+		{
+			fx->SetOrigin1( NULL );
+			fx->SetOrgOffset( start );//offset
+			fx->SetBoltinfo( ghoul2, entNum, modelNum, boltNum );
+		}
+#else
 		if (flags&FX_RELATIVE && iGhoul2>0)
 		{
 			fx->SetOrigin1( NULL );
 			fx->SetOrgOffset( start );//offset
 			fx->SetBoltinfo( iGhoul2, entNum, modelNum, boltNum );
 		}
+#endif
 		else
 		{
 			fx->SetOrigin1( start );
@@ -745,9 +819,14 @@ CEmitter *FX_AddEmitter( vec3_t org, vec3_t vel, vec3_t accel,
 								vec3_t min, vec3_t max, float elasticity, 
 								int deathID, int impactID, int emitterID,
 								float density, float variance,
-								int killTime, qhandle_t model, int flags = 0, 
+								int killTime, qhandle_t model, int flags, 
 								EMatImpactEffect matImpactFX /*MATIMPACTFX_NONE*/, int fxParm /*-1*/,
-								int iGhoul2/*0*/, int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/ )
+#ifdef __ANDROID__
+								CGhoul2Info_v *ghoul2/*0*/,
+#else
+								int iGhoul2/*0*/,
+#endif
+								int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/ )
 {
 	if ( theFxHelper.mFrameTime < 0 )
 	{ // disallow adding effects when the system is paused
@@ -758,11 +837,19 @@ CEmitter *FX_AddEmitter( vec3_t org, vec3_t vel, vec3_t accel,
 
 	if ( fx )
 	{
+#ifdef __ANDROID__
+		if (flags&FX_RELATIVE && ghoul2 != NULL)
+		{
+			assert(0);//not done
+//			fx->SetBoltinfo( ghoul2, entNum, modelNum, boltNum );
+		}
+#else
 		if (flags&FX_RELATIVE && iGhoul2>0)
 		{
 			assert(0);//not done
 //			fx->SetBoltinfo( iGhoul2, entNum, modelNum, boltNum );
 		}
+#endif
 		fx->SetMatImpactFX(matImpactFX);
 		fx->SetMatImpactParm(fxParm);
 		fx->SetOrigin1( org );
@@ -837,9 +924,14 @@ CEmitter *FX_AddEmitter( vec3_t org, vec3_t vel, vec3_t accel,
 //-------------------------
 CLight *FX_AddLight( vec3_t org, float size1, float size2, float sizeParm,
 							vec3_t rgb1, vec3_t rgb2, float rgbParm,
-							int killTime, int flags = 0, 
+							int killTime, int flags, 
 							EMatImpactEffect matImpactFX /*MATIMPACTFX_NONE*/, int fxParm /*-1*/,
-							int iGhoul2/*0*/, int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/)
+#ifdef __ANDROID__
+							CGhoul2Info_v *ghoul2/*0*/,
+#else
+							int iGhoul2/*0*/,
+#endif
+							int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/ )
 {
 	if ( theFxHelper.mFrameTime < 0 )
 	{ // disallow adding effects when the system is paused
@@ -850,12 +942,21 @@ CLight *FX_AddLight( vec3_t org, float size1, float size2, float sizeParm,
 
 	if ( fx )
 	{
+#ifdef __ANDROID__
+		if (flags&FX_RELATIVE && ghoul2 != NULL)
+		{
+			fx->SetOrigin1( NULL );
+			fx->SetOrgOffset( org );//offset
+			fx->SetBoltinfo( ghoul2, entNum, modelNum, boltNum );
+		}
+#else
 		if (flags&FX_RELATIVE && iGhoul2>0)
 		{
 			fx->SetOrigin1( NULL );
 			fx->SetOrgOffset( org );//offset
 			fx->SetBoltinfo( iGhoul2, entNum, modelNum, boltNum );
 		}
+#endif
 		else
 		{
 			fx->SetOrigin1( org );
@@ -910,9 +1011,14 @@ COrientedParticle *FX_AddOrientedParticle( vec3_t org, vec3_t norm, vec3_t vel, 
 						float rotation, float rotationDelta,
 						vec3_t min, vec3_t max, float bounce,
 						int deathID, int impactID,
-						int killTime, qhandle_t shader, int flags = 0, 
+						int killTime, qhandle_t shader, int flags, 
 						EMatImpactEffect matImpactFX /*MATIMPACTFX_NONE*/, int fxParm /*-1*/,
-						int iGhoul2/*0*/, int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/ )
+#ifdef __ANDROID__
+						CGhoul2Info_v *ghoul2/*0*/,
+#else
+						int iGhoul2/*0*/,
+#endif
+						int entNum/*-1*/, int modelNum/*-1*/, int boltNum/*-1*/ )
 {
 	if ( theFxHelper.mFrameTime < 0 )
 	{ // disallow adding effects when the system is paused
@@ -923,12 +1029,21 @@ COrientedParticle *FX_AddOrientedParticle( vec3_t org, vec3_t norm, vec3_t vel, 
 
 	if ( fx )
 	{
+#ifdef __ANDROID__
+		if (flags&FX_RELATIVE && ghoul2 != NULL)
+		{
+			fx->SetOrigin1( NULL );
+			fx->SetOrgOffset( org );//offset
+			fx->SetBoltinfo( ghoul2, entNum, modelNum, boltNum );
+		}
+#else
 		if (flags&FX_RELATIVE && iGhoul2>0)
 		{
 			fx->SetOrigin1( NULL );
 			fx->SetOrgOffset( org );//offset
 			fx->SetBoltinfo( iGhoul2, entNum, modelNum, boltNum );
 		}
+#endif
 		else
 		{
 			fx->SetOrigin1( org );

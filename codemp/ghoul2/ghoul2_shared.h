@@ -3,20 +3,24 @@
 /*
 Ghoul2 Insert Start
 */
+#ifdef _MSC_VER
 #pragma warning (push, 3)	//go back down to 3 for the stl include
+#endif
 #include <vector>
 #include <map>
+#ifdef _MSC_VER
 #pragma warning (pop)
+#endif
 using namespace std;
 /*
 Ghoul2 Insert End
 */
 
 #define MDXABONEDEF
-#include "renderer/mdx_format.h"
-#include "renderer/tr_types.h"
-#include "qcommon/matcomp.h"
-#include "ghoul2/G2_gore.h"
+#include "../renderer/mdx_format.h"
+#include "../renderer/tr_types.h"
+#include "../qcommon/matcomp.h"
+#include "G2_gore.h"
 
 struct model_s;
 
@@ -282,38 +286,36 @@ public:
 	mCustomShader(0),
 	mCustomSkin(0),
 	mModelBoltLink(0),
-	mModel(0),
 	mSurfaceRoot(0),
+	mLodBias(0),
+	mNewOrigin(-1),
+#ifdef _G2_GORE
+	mGoreSetTag(0),
+#endif
+	mModel(0),
 	mAnimFrameDefault(0),
 	mSkelFrameNum(-1),
 	mMeshFrameNum(-1),
 	mFlags(0),
 	mTransformedVertsArray(0),
-	mLodBias(0),
-	mSkin(0),
-	mNewOrigin(-1),
-#ifdef _G2_GORE
-	mGoreSetTag(0),
-#endif
 	mBoneCache(0),
+	mSkin(0),
+	mValid(false),
 	currentModel(0),
 	currentModelSize(0),
 	animModel(0),
 	currentAnimModelSize(0),
-	aHeader(0),
+	aHeader(0)
 #ifdef _G2_LISTEN_SERVER_OPT
-	entityNum(ENTITYNUM_NONE),
+	, entityNum(ENTITYNUM_NONE),
 #endif
-	mValid(false)
 	{
 		mFileName[0] = 0;
 	}
 }; 
-
+#ifndef __ANDROID__
 class CGhoul2Info_v;
-
-class IGhoul2InfoArray
-{
+class IGhoul2InfoArray {
 public:
 	virtual int New()=0;
 	virtual void Delete(int handle)=0;
@@ -321,74 +323,56 @@ public:
 	virtual vector<CGhoul2Info> &Get(int handle)=0;
 	virtual const vector<CGhoul2Info> &Get(int handle) const=0;
 };
-
 //Raz: externing this out of headers for re access :/
 IGhoul2InfoArray &_TheGhoul2InfoArray();
-
-class CGhoul2Info_v
-{
-	IGhoul2InfoArray &InfoArray() const
-	{
+class CGhoul2Info_v {
+	IGhoul2InfoArray &InfoArray() const {
 		return _TheGhoul2InfoArray();
 	}
-
-	void Alloc()
-	{
+	void Alloc() {
 		assert(!mItem); //already alloced
 		mItem=InfoArray().New();
 		assert(!Array().size());
 	}
-	void Free()
-	{
-		if (mItem)
-		{
+	void Free() {
+		if (mItem) {
 			assert(InfoArray().IsValid(mItem));
 			InfoArray().Delete(mItem);
 			mItem=0;
 		}
 	}
-	vector<CGhoul2Info> &Array()
-	{
+	vector<CGhoul2Info> &Array() {
 		assert(InfoArray().IsValid(mItem));
 		return InfoArray().Get(mItem);
 	}
-	const vector<CGhoul2Info> &Array() const
-	{
+	const vector<CGhoul2Info> &Array() const {
 		assert(InfoArray().IsValid(mItem));
 		return InfoArray().Get(mItem);
 	}
 public:
 	int mItem;	//dont' be bad and muck with this
-	CGhoul2Info_v()
-	{
+	CGhoul2Info_v() {
 		mItem=0;
 	}
-	CGhoul2Info_v(const int item)
-	{	//be VERY carefull with what you pass in here
+	CGhoul2Info_v(const int item) {	//be VERY carefull with what you pass in here
 		mItem=item;
 	}
-	~CGhoul2Info_v()
-	{
+	~CGhoul2Info_v() {
 		Free(); //this had better be taken care of via the clean ghoul2 models call
 	}
-	void operator=(const CGhoul2Info_v &other)
-	{
+	void operator=(const CGhoul2Info_v &other) {
 		mItem=other.mItem;
 	}
-	void operator=(const int otherItem)	//assigning one from the VM side item number
-	{
+	void operator=(const int otherItem) { //assigning one from the VM side item number
 		mItem=otherItem;
 	}
-	void DeepCopy(const CGhoul2Info_v &other)
-	{
+	void DeepCopy(const CGhoul2Info_v &other) {
 		Free();
-		if (other.mItem)
-		{
+		if (other.mItem) {
 			Alloc();
 			Array()=other.Array();
 			int i;
-			for (i=0;i<size();i++)
-			{
+			for (i=0;i<size();i++) {
 				Array()[i].mBoneCache=0;
 				Array()[i].mTransformedVertsArray=0;
 				Array()[i].mSkelFrameNum=0;
@@ -396,71 +380,58 @@ public:
 			}
 		}
 	}
-	CGhoul2Info &operator[](int idx)
-	{
+	CGhoul2Info &operator[](int idx) {
 		assert(mItem);
 		assert(idx>=0&&idx<size());
 		return Array()[idx];
 	}
-	const CGhoul2Info &operator[](int idx) const
-	{
+	const CGhoul2Info &operator[](int idx) const {
 		assert(mItem);
 		assert(idx>=0&&idx<size());
 		return Array()[idx];
 	}
-	void resize(int num)
-	{
+	void resize(int num) {
 		assert(num>=0);
-		if (num)
-		{
-			if (!mItem)
-			{
+		if (num) {
+			if (!mItem) {
 				Alloc();
 			}
 		}
-		if (mItem||num)
-		{
+		if (mItem||num) {
 			Array().resize(num);
 		}
 	}
-	void clear()
-	{
+	void clear() {
 		Free();
 	}
-	void push_back(const CGhoul2Info &model)
-	{
-		if (!mItem)
-		{
+	void push_back(const CGhoul2Info &model) {
+		if (!mItem) {
 			Alloc();
 		}
 		Array().push_back(model);
 	}
-	int size() const
-	{
-		if (!IsValid())
-		{
+	int size() const {
+		if (!IsValid()) {
 			return 0;
 		}
 		return Array().size();
 	}
-	bool IsValid() const
-	{
+	bool IsValid() const {
 		return InfoArray().IsValid(mItem);
 	}
-	void kill()
-	{
+	void kill() {
 		// this scary method zeros the infovector handle without actually freeing it
 		// it is used for some places where a copy is made, but we don't want to go through the trouble
 		// of making a deep copy
 		mItem=0;
 	}
 };
-
+#else
+class CGhoul2Info_v;
+#endif
 // collision detection stuff
 #define G2_FRONTFACE 1
 #define	G2_BACKFACE	 0
-
-
 // calling defines for the trace function
 enum EG2_Collision
 {
@@ -468,6 +439,4 @@ enum EG2_Collision
 	G2_COLLIDE,
 	G2_RETURNONHIT
 };
-
-
 //====================================================================

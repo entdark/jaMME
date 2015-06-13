@@ -1,18 +1,15 @@
-#include "qcommon/q_shared.h"
-
+#include "../../qcommon/q_shared.h"
 #pragma warning( disable : 4018)
 #pragma warning( disable : 4245)
 #pragma warning( disable : 4284)
 #pragma warning( disable : 4512)
 #pragma warning( disable : 4786)
-
 #pragma warning ( disable : 4663 )	//spcialize class
 #pragma warning( push, 3 )
 #include <algorithm>
 #pragma warning (pop)
-
 #include "navigator.h"
-#include "game/g_nav.h"
+#include "../../game/g_nav.h"
 #include <time.h>
 #ifdef __linux__
 DWORD timeGetTime(void);

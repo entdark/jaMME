@@ -3,7 +3,7 @@
 // cg_main.c -- initialization and primary entry point for cgame
 #include "cg_local.h"
 
-#include "ui/ui_shared.h"
+#include "../ui/ui_shared.h"
 // display context for new ui stuff
 displayContextDef_t cgDC;
 
@@ -168,11 +168,10 @@ This must be the very first function compiled into the .q3vm file
 */
 extern void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView );
 extern qboolean CG_DemosConsoleCommand( void );
-Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11  ) {
-
-	switch ( command ) {
+Q_EXPORT intptr_t vmMain(int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11) {
+	switch (command) {
 	case CG_INIT:
-		CG_Init( arg0, arg1, arg2 );
+		CG_Init(arg0, arg1, arg2);
 		return 0;
 	case CG_SHUTDOWN:
 		CG_Shutdown();
@@ -184,9 +183,9 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 			return CG_ConsoleCommand();
 	case CG_DRAW_ACTIVE_FRAME:
 		if (arg2 == 2) {
-			CG_DemosDrawActiveFrame( arg0, arg1 );
+			CG_DemosDrawActiveFrame(arg0, arg1);
 		} else {
-			CG_DrawActiveFrame( arg0, arg1, arg2 );
+			CG_DrawActiveFrame(arg0, arg1, arg2);
 		}
 		return 0;
 	case CG_CROSSHAIR_PLAYER:
@@ -196,37 +195,32 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 	case CG_KEY_EVENT:
 		return CG_KeyEvent(arg0, arg1);
 	case CG_MOUSE_EVENT:
-//		cgDC.cursorx = cgs.cursorX;
-//		cgDC.cursory = cgs.cursorY;
+#ifdef __ANDROID__
+		cgDC.cursorx = cgs.cursorX;
+		cgDC.cursory = cgs.cursorY;
+#endif
 		CG_MouseEvent(arg0, arg1);
 		return 0;
 	case CG_EVENT_HANDLING:
 		CG_EventHandling(arg0);
 		return 0;
-
 	case CG_POINT_CONTENTS:
 		return C_PointContents();
-
 	case CG_GET_LERP_ORIGIN:
 		C_GetLerpOrigin();
 		return 0;
-
 	case CG_GET_LERP_DATA:
 		C_GetLerpData();
 		return 0;
-
 	case CG_GET_GHOUL2:
 		return (int)cg_entities[arg0].ghoul2; //NOTE: This is used by the effect bolting which is actually not used at all.
 											  //I'm fairly sure if you try to use it with vm's it will just give you total
 											  //garbage. In other words, use at your own risk.
-
 	case CG_GET_MODEL_LIST:
 		return (int)cgs.gameModels;
-
 	case CG_CALC_LERP_POSITIONS:
-		CG_CalcEntityLerpPositions( &cg_entities[arg0] );
+		CG_CalcEntityLerpPositions(&cg_entities[arg0]);
 		return 0;
-
 	case CG_TRACE:
 		C_Trace();
 		return 0;
@@ -235,14 +229,11 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 	case CG_G2TRACE:
 		C_G2Trace();
 		return 0;
-
 	case CG_G2MARK:
 		C_G2Mark();
 		return 0;
-
 	case CG_RAG_CALLBACK:
 		return CG_RagCallback(arg0);
-
 	case CG_INCOMING_CONSOLE_COMMAND:
 		//rww - let mod authors filter client console messages so they can cut them off if they want.
 		//return 1 if the command is ok. Otherwise, you can set char 0 on the command str to 0 and return
@@ -251,73 +242,56 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 #if 0
 		{
 			TCGIncomingConsoleCommand	*icc = (TCGIncomingConsoleCommand *)cg.sharedBuffer;
-			if (strstr(icc->conCommand, "wait"))
-			{ //filter out commands contaning wait
+			if (strstr(icc->conCommand, "wait")) {
+			//filter out commands contaning wait
 				Com_Printf("You can't use commands containing the string wait with MyMod v1.0\n");
 				icc->conCommand[0] = 0;
 				return 0;
-			}
-			else if (strstr(icc->conCommand, "blah"))
-			{ //any command containing the string "blah" is redirected to "quit"
+			} else if (strstr(icc->conCommand, "blah")) {
+			//any command containing the string "blah" is redirected to "quit"
 				strcpy(icc->conCommand, "quit");
 				return 0;
 			}
 		}
 #endif
 		return 1;
-
 	case CG_GET_USEABLE_FORCE:
 		return CG_NoUseableForce();
-
 	case CG_GET_ORIGIN:
 		VectorCopy(cg_entities[arg0].currentState.pos.trBase, (float *)arg1);
 		return 0;
-
 	case CG_GET_ANGLES:
 		VectorCopy(cg_entities[arg0].currentState.apos.trBase, (float *)arg1);
 		return 0;
-
 	case CG_GET_ORIGIN_TRAJECTORY:
 		return (int)&cg_entities[arg0].nextState.pos;
-
 	case CG_GET_ANGLE_TRAJECTORY:
 		return (int)&cg_entities[arg0].nextState.apos;
-
 	case CG_ROFF_NOTETRACK_CALLBACK:
-		CG_ROFF_NotetrackCallback( &cg_entities[arg0], (const char *)arg1 );
+		CG_ROFF_NotetrackCallback(&cg_entities[arg0], (const char *)arg1);
 		return 0;
-
 	case CG_IMPACT_MARK:
 		C_ImpactMark();
 		return 0;
-
 	case CG_MAP_CHANGE:
 		// this trap map be called more than once for a given map change, as the
 		// server is going to attempt to send out multiple broadcasts in hopes that
 		// the client will receive one of them
 		cg.mMapChange = qtrue;
 		return 0;
-
 	case CG_AUTOMAP_INPUT:
 		//special input during automap mode -rww
 		{
 			autoMapInput_t *autoInput = (autoMapInput_t *)cg.sharedBuffer;
-
 			memcpy(&cg_autoMapInput, autoInput, sizeof(autoMapInput_t));
-
-			if (!arg0)
-			{ //if this is non-0, it's actually a one-frame mouse event
+			if (!arg0) {
+			//if this is non-0, it's actually a one-frame mouse event
 				cg_autoMapInputTime = cg.time + 1000;
-			}
-			else
-			{
-				if (cg_autoMapInput.yaw)
-				{
+			} else {
+				if (cg_autoMapInput.yaw) {
 					cg_autoMapAngle[YAW] += cg_autoMapInput.yaw;
 				}
-
-				if (cg_autoMapInput.pitch)
-				{
+				if (cg_autoMapInput.pitch) {
 					cg_autoMapAngle[PITCH] += cg_autoMapInput.pitch;
 				}
 				cg_autoMapInput.yaw = 0.0f;
@@ -325,21 +299,17 @@ Q_EXPORT intptr_t vmMain( int command, int arg0, int arg1, int arg2, int arg3, i
 			}
 		}
 		return 0;
-
 	case CG_MISC_ENT:
 		CG_MiscEnt();
 		return 0;
-
 	case CG_FX_CAMERASHAKE:
 		{
-			TCGCameraShake	*data = (TCGCameraShake *)cg.sharedBuffer;
-			
-			CG_DoCameraShake( data->mOrigin, data->mIntensity, data->mRadius, data->mTime );
+			TCGCameraShake *data = (TCGCameraShake *)cg.sharedBuffer;
+			CG_DoCameraShake(data->mOrigin, data->mIntensity, data->mRadius, data->mTime);
 		}
 		return 0;
-
 	default:
-		CG_Error( "vmMain: unknown command %i", command );
+		CG_Error("vmMain: unknown command %i", command);
 		break;
 	}
 	return -1;

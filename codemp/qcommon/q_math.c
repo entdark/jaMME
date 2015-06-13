@@ -1214,31 +1214,26 @@ float Q_powf ( float x, int y )
 	return x;
 #endif
 }
-
+qboolean Q_isnan(float f) {
+	return (qboolean)(isnan(f) != 0);
+}
 /*
 -------------------------
 DotProductNormalize
 -------------------------
 */
-
-float DotProductNormalize( const vec3_t inVec1, const vec3_t inVec2 )
-{
-	vec3_t	v1, v2;
-
-	VectorNormalize2( inVec1, v1 );
-	VectorNormalize2( inVec2, v2 );
-
+float DotProductNormalize(const vec3_t inVec1, const vec3_t inVec2) {
+	vec3_t v1, v2;
+	VectorNormalize2(inVec1, v1);
+	VectorNormalize2(inVec2, v2);
 	return DotProduct(v1, v2);
 }
-
 /*
 -------------------------
 G_FindClosestPointOnLineSegment
 -------------------------
 */
-
-qboolean G_FindClosestPointOnLineSegment( const vec3_t start, const vec3_t end, const vec3_t from, vec3_t result )
-{
+qboolean G_FindClosestPointOnLineSegment(const vec3_t start, const vec3_t end, const vec3_t from, vec3_t result) {
 	vec3_t	vecStart2From, vecStart2End, vecEnd2Start, vecEnd2From;
 	float	distEnd2From, distEnd2Result, theta, cos_theta, dot;
 

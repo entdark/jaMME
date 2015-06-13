@@ -1,6 +1,6 @@
 #pragma once
 
-#include "qcommon/q_shared.h"
+#include "../qcommon/q_shared.h"
 
 //
 // qfiles.h: quake file formats

@@ -2,7 +2,7 @@
 
 #include "cg_demos.h"
 #include "cg_lights.h"
-#include "game/bg_saga.h"
+#include "../game/bg_saga.h"
 
 demoMain_t demo;
 
@@ -34,6 +34,7 @@ extern void trap_R_RandomSeed( int time, float timeFraction );
 extern void trap_FX_RandomSeed( int time, float timeFraction );
 extern void trap_S_UpdateScale( float scale );
 extern void trap_CIN_AdjustTime( int time );
+extern void trap_MME_VibrateFeedback( int time );
 int lastMusicStart;
 
 static void demoSynchMusic( int start, float length ) {
@@ -105,28 +106,28 @@ static void CG_DemosUpdatePlayer( void ) {
 #define RADIUS_LIMIT 701.0f
 #define EFFECT_LENGTH 400.0f //msec
 
-static void VibrateView( const float range, const int eventTime, const float fxTime, const float wc, float scale, vec3_t origin, vec3_t angles) {
+static void VibrateView(const float range, const int eventTime, const int eventOldTime, const float fxTime, const float wc, float scale, vec3_t origin, vec3_t angles) {
 	float shadingTime;
 	int sign;
-
 	if (range > 1 || range < 0) {
 		return;
 	}
+	//new event happened
+	if (eventTime != eventOldTime && wc > 0.16f) {
+		trap_MME_VibrateFeedback(wc*wc*range*(EFFECT_LENGTH/5.0f));
+	}
 	scale *= fx_Vibrate.value * 100.0f * wc * range;
-
 	shadingTime = (fxTime - (float)EFFECT_LENGTH) / 1000.0f;
-
 	if (shadingTime < -(float)EFFECT_LENGTH / 1000.0f)
 		shadingTime = -(float)EFFECT_LENGTH / 1000.0f;
 	else if (shadingTime > 0)
 		shadingTime = 0;
-
 	sign = fxRandomSign(eventTime);
 	origin[2] += shadingTime * shadingTime * sinf(shadingTime * M_PI * 23.0f) * scale;
 	angles[ROLL] += shadingTime * shadingTime * sinf(shadingTime * M_PI * 1.642f) * scale * 0.7f * sign;
 }
 
-static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
+void FX_VibrateView(const float scale, vec3_t origin, vec3_t angles) {
 	float range = 1.0f - (cg.eventRadius / RADIUS_LIMIT);
 	float oldRange = 1.0f - (cg.eventOldRadius / RADIUS_LIMIT);
 	if (cg.eventRadius > cg.eventOldRadius
@@ -140,7 +141,7 @@ static void FX_VibrateView( const float scale, vec3_t origin, vec3_t angles ) {
 	if ((cg.time >= cg.eventTime) && (cg.time < (cg.eventTime + EFFECT_LENGTH))) {
 		float fxTime = (cg.time - cg.eventTime) + cg.timeFraction;
 		range = 1.0f - (cg.eventRadius / RADIUS_LIMIT);
-		VibrateView(range, cg.eventTime, fxTime, cg.eventCoeff, scale, origin, angles);
+		VibrateView(range, cg.eventTime, cg.eventOldTime, fxTime, cg.eventCoeff, scale, origin, angles);
 		cg.eventOldRadius = cg.eventRadius;
 		cg.eventOldTime = cg.eventTime;
 		cg.eventOldCoeff = cg.eventCoeff;
@@ -1218,8 +1219,13 @@ void demoPlaybackInit(void) {
 	demo.line.points = 0;
 
 	demo.loop.total = 0;
-
+//we don't make movies on android
+#ifdef __ANDROID__
+	demo.editType = editNone;
+	demo.seekEnabled = qtrue;
+#else
 	demo.editType = editCamera;
+#endif
 	demo.viewType = viewChase;
 
 	demo.camera.flags = CAM_ORIGIN | CAM_ANGLES;
@@ -1394,6 +1400,8 @@ qboolean CG_DemosConsoleCommand( void ) {
 		CG_DemosAddLog("Play speed %f", demo.play.speed );
 	} else if (!Q_stricmp(cmd, "pause")) {
 		demo.play.paused = !demo.play.paused;
+		//to make the engine know that we paused
+		trap_Cvar_Set("mme_demoPaused", va("%i", demo.play.paused));
 		if ( demo.play.paused )
 			demo.find = findNone;
 	} else if (!Q_stricmp(cmd, "dof")) {

@@ -9,8 +9,8 @@
 #include "snd_mix.h"
 #include "client.h"
 
+static void S_Mute_f(void);
 static void S_Play_f(void);
-static void S_SoundList_f(void);
 static void S_Music_f(void);
 
 void S_StopAllSounds(void);
@@ -39,7 +39,8 @@ loopQueue_t		s_loopQueue[MAX_LOOPQUEUE];
 int				s_loopQueueCount;
 
 static int	s_soundStarted;
-static qboolean s_soundMuted;
+static qboolean s_soundInitMuted;
+qboolean	s_soundMuted;
 int			s_listenNumber;
 vec3_t		s_listenOrigin;
 vec3_t		s_listenVelocity;
@@ -73,14 +74,13 @@ int			s_entityWavVol[MAX_GENTITIES];
 // ====================================================================
 
 void S_SoundInfo_f(void) {	
-	Com_Printf("----- Sound Info -----\n" );
+	Com_Printf("----- Sound Info -----\n");
 	if (!s_soundStarted) {
-		Com_Printf ("sound system not started\n");
+		Com_Printf("sound system not started\n");
 	} else {
-		if ( s_soundMuted ) {
-			Com_Printf ("sound system is muted\n");
+		if (s_soundInitMuted) {
+			Com_Printf("sound system is muted\n");
 		}
-
 		Com_Printf("%5d stereo\n", dma.channels - 1);
 		Com_Printf("%5d samples\n", dma.samples);
 		Com_Printf("%5d samplebits\n", dma.samplebits);
@@ -88,12 +88,12 @@ void S_SoundInfo_f(void) {
 		Com_Printf("%5d speed\n", dma.speed);
 		Com_Printf("0x%x dma buffer\n", dma.buffer);
 		if ( s_background.playing ) {
-			Com_Printf("Background file: %s\n", s_background.loopName );
+			Com_Printf("Background file: %s\n", s_background.loopName);
 		} else {
-			Com_Printf("No background file.\n" );
+			Com_Printf("No background file.\n");
 		}
 	}
-	Com_Printf("----------------------\n" );
+	Com_Printf("----------------------\n");
 }
 
 
@@ -103,7 +103,7 @@ void S_SoundInfo_f(void) {
 S_Init
 ================
 */
-void S_Init( void ) {
+void S_Init(void) {
 	cvar_t	*cv;
 	
 	Com_Printf("\n------- sound initialization -------\n");
@@ -135,9 +135,9 @@ void S_Init( void ) {
 		return;
 	}
 
+	Cmd_AddCommand("mute", S_Mute_f);
 	Cmd_AddCommand("play", S_Play_f);
 	Cmd_AddCommand("music", S_Music_f);
-	Cmd_AddCommand("soundlist", S_SoundList_f);
 	Cmd_AddCommand("soundinfo", S_SoundInfo_f);
 	Cmd_AddCommand("soundstop", S_StopAllSounds);
 	
@@ -146,7 +146,8 @@ void S_Init( void ) {
 	S_DMAInit();
 		
 	s_soundStarted = 1;
-	s_soundMuted = qtrue;
+	s_soundInitMuted = qtrue;
+	s_soundMuted = qfalse;
 	S_StopAllSounds ();
 	S_SoundInfo_f();
 	s_underWater = qfalse;
@@ -170,9 +171,9 @@ void S_Shutdown( void ) {
 
 	s_soundStarted = 0;
 
+	Cmd_RemoveCommand("mute");
 	Cmd_RemoveCommand("play");
 	Cmd_RemoveCommand("music");
-	Cmd_RemoveCommand("soundlist");
 	Cmd_RemoveCommand("soundinfo");
 	Cmd_RemoveCommand("soundstop");
 	AS_Free();
@@ -190,7 +191,7 @@ are no longer valid.
 */
 void S_DisableSounds( void ) {
 	S_StopAllSounds();
-	s_soundMuted = qtrue;
+	s_soundInitMuted = qtrue;
 }
 
 /*
@@ -200,7 +201,7 @@ S_BeginRegistration
 =====================
 */
 void S_BeginRegistration( void ) {
-	s_soundMuted = qfalse;		// we can play again
+	s_soundInitMuted = qfalse;		// we can play again
 
 	/* Skip the first sound for 0 handle */
 	Com_Memset(sfxHash, 0, sizeof(sfxHash));
@@ -320,7 +321,7 @@ Entchannel 0 will never override a playing sound
 void S_StartSound(const vec3_t origin, int entityNum, int entchannel, unsigned char volume, sfxHandle_t sfxHandle ) {
 	channelQueue_t *q;
 
-	if ( !s_soundStarted || s_soundMuted ) {
+	if ( !s_soundStarted || s_soundInitMuted ) {
 		return;
 	}
 	if ( !origin && ( entityNum < 0 || entityNum > MAX_GENTITIES ) ) {
@@ -354,7 +355,7 @@ S_StartLocalSound
 ==================
 */
 void S_StartLocalSound( sfxHandle_t sfxHandle, int channelNum ) {
-	if ( !s_soundStarted || s_soundMuted ) {
+	if ( !s_soundStarted || s_soundInitMuted ) {
 		return;
 	}
 
@@ -371,7 +372,7 @@ so sound doesn't stutter.
 ==================
 */
 void S_ClearSoundBuffer( void ) {
-	if ( !s_soundStarted || s_soundMuted ) {
+	if ( !s_soundStarted || s_soundInitMuted ) {
 		return;
 	}
 
@@ -429,7 +430,7 @@ Include velocity in case I get around to doing doppler...
 void S_AddLoopingSound( const void *parent, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfxHandle, int volume ) {
 	loopQueue_t *lq;
 
-	if ( !s_soundStarted || s_soundMuted ) {
+	if ( !s_soundStarted || s_soundInitMuted ) {
 		return;
 	}
 
@@ -530,8 +531,8 @@ Called once each time through the main loop
 ============
 */
 void S_Update( void ) {
-	float		scale;
-	if ( !s_soundStarted || s_soundMuted ) {
+	float scale;
+	if ( !s_soundStarted || s_soundInitMuted ) {
 		Com_DPrintf ("not started or muted\n");
 		s_channelQueueCount = 0;
 		s_loopQueueCount = 0;
@@ -560,66 +561,53 @@ console functions
 
 ===============================================================================
 */
-
-static void S_Play_f( void ) {
-	int 	i;
+static void S_Mute_f(void) {
+	s_soundMuted = (qboolean)(!s_soundMuted);
+	if (s_soundMuted)
+		Com_Printf("Sound muted\n");
+	else
+		Com_Printf("Sound unmuted\n");
+}
+static void S_Play_f(void) {
+	int i;
 	sfxHandle_t	h;
 	char name[256];
 	
 	i = 1;
-	while ( i<Cmd_Argc() ) {
-		if ( !strrchr(Cmd_Argv(i), '.') ) {
-			Com_sprintf( name, sizeof(name), "%s.wav", Cmd_Argv(1) );
+	while (i<Cmd_Argc()) {
+		if ( !strrchr(Cmd_Argv(i), '.')) {
+			Com_sprintf(name, sizeof(name), "%s.wav", Cmd_Argv(1));
 		} else {
-			Q_strncpyz( name, Cmd_Argv(i), sizeof(name) );
+			Q_strncpyz(name, Cmd_Argv(i), sizeof(name));
 		}
-		h = S_RegisterSound( name );
-		if( h ) {
-			S_StartLocalSound( h, CHAN_LOCAL_SOUND );
+		h = S_RegisterSound(name);
+		if(h) {
+			S_StartLocalSound(h, CHAN_LOCAL_SOUND);
 		}
 		i++;
 	}
 }
-
-static void S_Music_f( void ) {
-	int		c;
-
-	if ( s_background.override ) {
-		Com_Printf( "Can't start music in mme player mode" );
+static void S_Music_f(void) {
+	int c;
+	if (s_background.override) {
+		Com_Printf("Can't start music in mme player mode");
 		return;
 	}
 	c = Cmd_Argc();
-
-	if ( c == 2 ) {
-		S_StartBackgroundTrack( Cmd_Argv(1), Cmd_Argv(1), qfalse );
-	} else if ( c == 3 ) {
-		S_StartBackgroundTrack( Cmd_Argv(1), Cmd_Argv(2), qfalse );		
+	if (c == 2) {
+		S_StartBackgroundTrack(Cmd_Argv(1), Cmd_Argv(1), qfalse);
+	} else if (c == 3) {
+		S_StartBackgroundTrack(Cmd_Argv(1), Cmd_Argv(2), qfalse);		
 	} else {
-		Com_Printf ("music <musicfile> [loopfile]\n");
+		Com_Printf("music <musicfile> [loopfile]\n");
 		return;
 	}
 }
-
-void S_SoundList_f( void ) {
-	
-}
-
-
 /*
 ===============================================================================
-
 background music functions
-
 ===============================================================================
 */
-
-// Basic logic here is to see if the intro file specified actually exists, and if so, then it's not dynamic music,
-//	When called by the cgame start it loads up, then stops the playback (because of stutter issues), so that when the
-//	actual snapshot is received and the real play request is processed the data has already been loaded so will be quicker.
-//
-// to be honest, although the code still plays WAVs some of the file-check logic only works for MP3s, so if you ever want
-//	to use WAV music you'll have to do some tweaking below (but I've got other things to do so it'll have to wait - Ste)
-//
 void S_StartBackgroundTrack( const char *intro, const char *loop, int bCalledByCGameStart ) {
 	qboolean soundExists;
 	if ( !intro || !intro[0] || s_background.override )

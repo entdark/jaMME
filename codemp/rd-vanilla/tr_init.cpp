@@ -1,13 +1,13 @@
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
 // tr_init.c -- functions that are not called every frame
 
 #include "tr_local.h"
 #include "tr_WorldEffects.h"
 #include "tr_font.h"
-#include "qcommon/MiniHeap.h"
-#include "qcommon/qcommon.h"
+#include "../qcommon/MiniHeap.h"
+#include "../qcommon/qcommon.h"
 #include "G2_local.h"
 #include "libpng/png.h"
 //#include "zlib/zlib.h" // used for old mme stuff

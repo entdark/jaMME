@@ -1,8 +1,8 @@
 #include <SDL.h>
-#include "qcommon/qcommon.h"
-#include "qcommon/q_shared.h"
-#include "client/client.h"
-#include "sys/sys_local.h"
+#include "../qcommon/qcommon.h"
+#include "../qcommon/q_shared.h"
+#include "../client/client.h"
+#include "../sys/sys_local.h"
 
 static cvar_t *in_keyboardDebug     = NULL;
 
@@ -501,159 +501,148 @@ void IN_Init( void *windowData )
 	IN_InitJoystick( );
 	Com_DPrintf( "------------------------------------\n" );
 }
-
 /*
 ===============
 IN_ProcessEvents
 ===============
 */
-static void IN_ProcessEvents( void )
-{
+extern void SNDDMA_Activate( qboolean activate );
+static void IN_ProcessEvents( void ) {
 	SDL_Event e;
 	fakeAscii_t key = A_NULL;
 	static fakeAscii_t lastKeyDown = A_NULL;
-
-	if( !SDL_WasInit( SDL_INIT_VIDEO ) )
+	if(!SDL_WasInit(SDL_INIT_VIDEO))
 			return;
-
-	while( SDL_PollEvent( &e ) )
-	{
-		switch( e.type )
-		{
+	while(SDL_PollEvent(&e)) {
+		switch(e.type) {
 			case SDL_KEYDOWN:
 				if( e.key.keysym.sym == SDLK_BACKSPACE )
 					Sys_QueEvent( 0, SE_CHAR, e.key.keysym.sym, qtrue, 0, NULL );
 				else if( ( key = IN_TranslateSDLToJKKey( &e.key.keysym, qtrue ) ) )
 					Sys_QueEvent( 0, SE_KEY, key, qtrue, 0, NULL );
-
 				lastKeyDown = key;
 				break;
-
 			case SDL_KEYUP:
 				if( ( key = IN_TranslateSDLToJKKey( &e.key.keysym, qfalse ) ) )
 					Sys_QueEvent( 0, SE_KEY, key, qfalse, 0, NULL );
-
 				lastKeyDown = A_NULL;
 				break;
-
 			case SDL_TEXTINPUT:
-				if( lastKeyDown != A_CONSOLE )
-				{
+				if(lastKeyDown != A_CONSOLE) {
 					char *c = e.text.text;
-
 					// Quick and dirty UTF-8 to UTF-32 conversion
-					while( *c )
-					{
+					while(*c) {
 						int utf32 = 0;
-
-						if( ( *c & 0x80 ) == 0 )
+						if((*c & 0x80) == 0) {
 							utf32 = *c++;
-						else if( ( *c & 0xE0 ) == 0xC0 ) // 110x xxxx
-						{
-							utf32 |= ( *c++ & 0x1F ) << 6;
-							utf32 |= ( *c++ & 0x3F );
-						}
-						else if( ( *c & 0xF0 ) == 0xE0 ) // 1110 xxxx
-						{
-							utf32 |= ( *c++ & 0x0F ) << 12;
-							utf32 |= ( *c++ & 0x3F ) << 6;
-							utf32 |= ( *c++ & 0x3F );
-						}
-						else if( ( *c & 0xF8 ) == 0xF0 ) // 1111 0xxx
-						{
-							utf32 |= ( *c++ & 0x07 ) << 18;
-							utf32 |= ( *c++ & 0x3F ) << 6;
-							utf32 |= ( *c++ & 0x3F ) << 6;
-							utf32 |= ( *c++ & 0x3F );
-						}
-						else
-						{
-							Com_DPrintf( "Unrecognised UTF-8 lead byte: 0x%x\n", (unsigned int)*c );
+						} else if((*c & 0xE0) == 0xC0) { // 110x xxxx
+							utf32 |= (*c++ & 0x1F) << 6;
+							utf32 |= (*c++ & 0x3F);
+						} else if((*c & 0xF0) == 0xE0) { // 1110 xxxx
+							utf32 |= (*c++ & 0x0F) << 12;
+							utf32 |= (*c++ & 0x3F) << 6;
+							utf32 |= (*c++ & 0x3F);
+						} else if((*c & 0xF8) == 0xF0) { // 1111 0xxx
+							utf32 |= (*c++ & 0x07) << 18;
+							utf32 |= (*c++ & 0x3F) << 6;
+							utf32 |= (*c++ & 0x3F) << 6;
+							utf32 |= (*c++ & 0x3F);
+						} else {
+							Com_DPrintf("Unrecognised UTF-8 lead byte: 0x%x\n", (unsigned int)*c);
 							c++;
 						}
-
-						if( utf32 != 0 )
-						{
-							if( IN_IsConsoleKey( A_NULL, utf32 ) )
-							{
-								Sys_QueEvent( 0, SE_KEY, A_CONSOLE, qtrue, 0, NULL );
-								Sys_QueEvent( 0, SE_KEY, A_CONSOLE, qfalse, 0, NULL );
+						if(utf32 != 0) {
+							if(IN_IsConsoleKey(A_NULL, utf32)) {
+								Sys_QueEvent(0, SE_KEY, A_CONSOLE, qtrue, 0, NULL);
+								Sys_QueEvent(0, SE_KEY, A_CONSOLE, qfalse, 0, NULL);
+							} else {
+								Sys_QueEvent(0, SE_CHAR, utf32, 0, 0, NULL);
 							}
-							else
-								Sys_QueEvent( 0, SE_CHAR, utf32, 0, 0, NULL );
 						}
 					}
 				}
 				break;
-
 			case SDL_MOUSEMOTION:
-				if( mouseActive )
-					Sys_QueEvent( 0, SE_MOUSE, e.motion.xrel, e.motion.yrel, 0, NULL );
+				if(mouseActive)
+					Sys_QueEvent(0, SE_MOUSE, e.motion.xrel, e.motion.yrel, 0, NULL);
 				break;
-
 			case SDL_MOUSEBUTTONDOWN:
-			case SDL_MOUSEBUTTONUP:
-				{
-					unsigned char b;
-					switch( e.button.button )
-					{
-						case 1:   b = A_MOUSE1;     break;
-						case 2:   b = A_MOUSE3;     break;
-						case 3:   b = A_MOUSE2;     break;
-						case 4:   b = A_MOUSE4;     break;
-						case 5:   b = A_MOUSE5;     break;
-						default:  b = A_AUX1 + ( e.button.button - 8 ) % 16; break;
-					}
-					Sys_QueEvent( 0, SE_KEY, b,
-						( e.type == SDL_MOUSEBUTTONDOWN ? qtrue : qfalse ), 0, NULL );
+			case SDL_MOUSEBUTTONUP: {
+				unsigned short b;
+				switch(e.button.button) {
+					case SDL_BUTTON_LEFT:	b = A_MOUSE1;     break;
+					case SDL_BUTTON_MIDDLE:	b = A_MOUSE3;     break;
+					case SDL_BUTTON_RIGHT:	b = A_MOUSE2;     break;
+					case SDL_BUTTON_X1:		b = A_MOUSE4;     break;
+					case SDL_BUTTON_X2:		b = A_MOUSE5;     break;
+					default: b = A_AUX0 + (e.button.button - 6) % 32; break;
+				}
+				Sys_QueEvent(0, SE_KEY, b, (e.type == SDL_MOUSEBUTTONDOWN ? qtrue : qfalse), 0, NULL);
+				break;
+			}
+			case SDL_MOUSEWHEEL:
+				if(e.wheel.y > 0) {
+					Sys_QueEvent(0, SE_KEY, A_MWHEELUP, qtrue, 0, NULL);
+					Sys_QueEvent(0, SE_KEY, A_MWHEELUP, qfalse, 0, NULL);
+				} else {
+					Sys_QueEvent(0, SE_KEY, A_MWHEELDOWN, qtrue, 0, NULL);
+					Sys_QueEvent(0, SE_KEY, A_MWHEELDOWN, qfalse, 0, NULL);
 				}
 				break;
-
-			case SDL_MOUSEWHEEL:
-				if( e.wheel.y > 0 )
-					Sys_QueEvent( 0, SE_KEY, A_MWHEELUP, qtrue, 0, NULL );
-				else
-					Sys_QueEvent( 0, SE_KEY, A_MWHEELDOWN, qtrue, 0, NULL );
-				break;
-
 			case SDL_QUIT:
 				Cbuf_ExecuteText(EXEC_NOW, "quit Closed window\n");
 				break;
-
 			case SDL_WINDOWEVENT:
-				switch( e.window.event )
-				{
-					case SDL_WINDOWEVENT_RESIZED:
-						{
+				switch(e.window.event) {
+					case SDL_WINDOWEVENT_RESIZED: {
 							char width[32], height[32];
 							if (!Cvar_VariableIntegerValue("r_restartOnResize"))
 								break;
-							Com_sprintf( width, sizeof( width ), "%d", e.window.data1 );
-							Com_sprintf( height, sizeof( height ), "%d", e.window.data2 );
-							Cvar_Set( "r_customwidth", width );
-							Cvar_Set( "r_customheight", height );
-							Cvar_Set( "r_mode", "-1" );
-
+							Com_sprintf(width, sizeof(width), "%d", e.window.data1);
+							Com_sprintf(height, sizeof(height), "%d", e.window.data2);
+							Cvar_Set("r_customwidth", width);
+							Cvar_Set("r_customheight", height);
+							Cvar_Set("r_mode", "-1");
 							// Wait until user stops dragging for 1 second, so
 							// we aren't constantly recreating the GL context while
 							// he tries to drag...
-							vidRestartTime = Sys_Milliseconds( ) + Cvar_VariableIntegerValue("r_resizeDelay");
+							vidRestartTime = Sys_Milliseconds() + Cvar_VariableIntegerValue("r_resizeDelay");
 						}
 						break;
-
-					case SDL_WINDOWEVENT_MINIMIZED:    Cvar_SetValue( "com_minimized", 1 ); break;
-					case SDL_WINDOWEVENT_MAXIMIZED:    Cvar_SetValue( "com_minimized", 0 ); break;
-					case SDL_WINDOWEVENT_FOCUS_LOST:   Cvar_SetValue( "com_unfocused", 1 ); break;
-					case SDL_WINDOWEVENT_FOCUS_GAINED: Cvar_SetValue( "com_unfocused", 0 ); break;
+					case SDL_WINDOWEVENT_MINIMIZED: Cvar_SetValue("com_minimized", 1); break;
+					case SDL_WINDOWEVENT_RESTORED:
+					case SDL_WINDOWEVENT_MAXIMIZED: Cvar_SetValue("com_minimized", 0); break;
+					case SDL_WINDOWEVENT_FOCUS_LOST: {
+						Cvar_SetValue("com_unfocused", 1);
+						SNDDMA_Activate(qfalse);
+						break;
+					}
+					case SDL_WINDOWEVENT_FOCUS_GAINED: {
+						Cvar_SetValue("com_unfocused", 0);
+						SNDDMA_Activate(qtrue);
+						break;
+					}
 				}
 				break;
-
+			case SDL_APP_DIDENTERBACKGROUND: {
+				LOGI("SDL_APP_DIDENTERBACKGROUND");
+				Cvar_SetValue("com_minimized", 1);
+				Cvar_SetValue("com_unfocused", 1);
+				SNDDMA_Activate(qfalse);
+				break;
+			}
+			case SDL_APP_DIDENTERFOREGROUND: {
+				LOGI("SDL_APP_DIDENTERFOREGROUND");
+				Cvar_SetValue("com_minimized", 0);
+				Cvar_SetValue("com_unfocused", 0);
+				SNDDMA_Activate(qtrue);
+				break;
+			}
 			default:
 				break;
 		}
 	}
 }
-
 /*
 ===============
 IN_JoyMove

@@ -1,13 +1,13 @@
 // common.c -- misc functions used in client and server
 
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
 #include "GenericParser2.h"
 #include "stringed_ingame.h"
-#include "qcommon/game_version.h"
+#include "../qcommon/game_version.h"
 #ifndef __linux__
-#include "qcommon/platform.h"
+#include "../qcommon/platform.h"
 #endif
 
 #include "../server/NPCNav/navigator.h"
@@ -255,7 +255,7 @@ void QDECL Com_OPrintf( const char *fmt, ...)
 	va_end (argptr);
 #ifdef _WIN32
 	OutputDebugString(msg);
-#else
+#elif !defined(__ANDROID__)
 	printf(msg);
 #endif
 }
@@ -1236,75 +1236,53 @@ static void Com_SetProcessCoresAffinity() {
 	}
 #endif
 }
-
 /*
 =================
 Com_Init
 =================
 */
-void Com_Init( char *commandLine ) {
-	char	*s;
-
-	Com_Printf( "%s %s %s\n", JK_VERSION, PLATFORM_STRING, __DATE__ );
-
-	try
-	{
+void Com_Init(char *commandLine) {
+	char *s;
+	Com_Printf("%s %s %s\n", JK_VERSION, PLATFORM_STRING, __DATE__);
+	try {
 #ifdef USE_AIO
 		{
 			pthread_mutexattr_t attr;
-
-			pthread_mutexattr_init( &attr );
-			pthread_mutexattr_settype( &attr, PTHREAD_MUTEX_RECURSIVE );
-			pthread_mutex_init( &printfLock, &attr );
-			pthread_mutex_init( &pushLock, &attr );
+			pthread_mutexattr_init(&attr);
+			pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+			pthread_mutex_init(&printfLock, &attr);
+			pthread_mutex_init(&pushLock, &attr);
 		}
 #endif
-
 		// bk001129 - do this before anything else decides to push events
 		Com_InitPushEvent();
-
-		Cvar_Init ();
-
+		Cvar_Init();
 		navigator.Init();
-
 		// prepare enough of the subsystems to handle
 		// cvar and command buffer management
-		Com_ParseCommandLine( commandLine );
-
-	//	Swap_Init ();
-		Cbuf_Init ();
-
+		Com_ParseCommandLine(commandLine);
+	//	Swap_Init();
+		Cbuf_Init();
 		Com_InitZoneMemory();
-
-		Cmd_Init ();
-
+		Cmd_Init();
 		// override anything from the config files with command line args
-		Com_StartupVariable( NULL );
-
+		Com_StartupVariable(NULL);
 		// Seed the random number generator
 		Rand_Init(Sys_Milliseconds(true));
-
 		// get the developer cvar set as early as possible
 		com_developer = Cvar_Get("developer", "0", CVAR_TEMP);
-
 		// done early so bind command exists
 		CL_InitKeyCommands();
-
 		com_homepath = Cvar_Get("com_homepath", "", CVAR_INIT);
-
-		FS_InitFilesystem ();
-
+		FS_InitFilesystem();
 		Com_InitJournaling();
-
 		Com_ExecuteCfg();
-
 		// override anything from the config files with command line args
-		Com_StartupVariable( NULL );
-
+		Com_StartupVariable(NULL);
 	  // get dedicated here for proper hunk megs initialization
 	#ifdef DEDICATED
 		com_dedicated = Cvar_Get ("dedicated", "2", CVAR_ROM);
-		Cvar_CheckRange( com_dedicated, 1, 2, qtrue );
+		Cvar_CheckRange(com_dedicated, 1, 2, qtrue);
 	#else
 		//OJKFIXME: Temporarily disabled dedicated server when not using the dedicated server binary.
 		//			Issue is the server not having a renderer when not using ^^^^^
@@ -1313,124 +1291,95 @@ void Com_Init( char *commandLine ) {
 		//				will not have dedicated support capabilities.
 		//			Use the dedicated server package.
 		com_dedicated = Cvar_Get ("_dedicated", "0", CVAR_ROM|CVAR_INIT|CVAR_PROTECTED);
-	//	Cvar_CheckRange( com_dedicated, 0, 2, qtrue );
+	//	Cvar_CheckRange(com_dedicated, 0, 2, qtrue);
 	#endif
 		// allocate the stack based hunk allocator
 		Com_InitHunkMemory();
-
 		// if any archived cvars are modified after this, we will trigger a writing
 		// of the config file
 		cvar_modifiedFlags &= ~CVAR_ARCHIVE;
-
 		//
 		// init commands and vars
 		//
-		com_maxfps = Cvar_Get ("com_maxfps", "125", CVAR_ARCHIVE);
-
-		com_vmdebug = Cvar_Get ("vmdebug", "0", CVAR_TEMP );
-		com_logfile = Cvar_Get ("logfile", "0", CVAR_TEMP );
-
-		com_timescale = Cvar_Get ("timescale", "1", CVAR_CHEAT | CVAR_SYSTEMINFO );
-		com_fixedtime = Cvar_Get ("fixedtime", "0", CVAR_CHEAT);
-		com_showtrace = Cvar_Get ("com_showtrace", "0", CVAR_CHEAT);
-
-		com_terrainPhysics = Cvar_Get ("com_terrainPhysics", "1", CVAR_CHEAT);
-
-		com_dropsim = Cvar_Get ("com_dropsim", "0", CVAR_CHEAT);
-		com_viewlog = Cvar_Get( "viewlog", "0", 0 );
-		com_speeds = Cvar_Get ("com_speeds", "0", 0);
-		com_timedemo = Cvar_Get ("timedemo", "0", 0);
-		com_cameraMode = Cvar_Get ("com_cameraMode", "0", CVAR_CHEAT);
-
-		com_unfocused = Cvar_Get( "com_unfocused", "0", CVAR_ROM );
-		com_minimized = Cvar_Get( "com_minimized", "0", CVAR_ROM );
-
+		com_maxfps = Cvar_Get("com_maxfps", "125", CVAR_ARCHIVE);
+		com_vmdebug = Cvar_Get("vmdebug", "0", CVAR_TEMP);
+		com_logfile = Cvar_Get("logfile", "0", CVAR_TEMP);
+		com_timescale = Cvar_Get("timescale", "1", CVAR_CHEAT | CVAR_SYSTEMINFO);
+		com_fixedtime = Cvar_Get("fixedtime", "0", CVAR_CHEAT);
+		com_showtrace = Cvar_Get("com_showtrace", "0", CVAR_CHEAT);
+		com_terrainPhysics = Cvar_Get("com_terrainPhysics", "1", CVAR_CHEAT);
+		com_dropsim = Cvar_Get("com_dropsim", "0", CVAR_CHEAT);
+		com_viewlog = Cvar_Get("viewlog", "0", 0);
+		com_speeds = Cvar_Get("com_speeds", "0", 0);
+		com_timedemo = Cvar_Get("timedemo", "0", 0);
+		com_cameraMode = Cvar_Get("com_cameraMode", "0", CVAR_CHEAT);
+		com_unfocused = Cvar_Get("com_unfocused", "0", CVAR_ROM);
+		com_minimized = Cvar_Get("com_minimized", "0", CVAR_ROM);
 		com_optvehtrace = Cvar_Get("com_optvehtrace", "0", 0);
-
-		cl_paused = Cvar_Get ("cl_paused", "0", CVAR_ROM);
-		sv_paused = Cvar_Get ("sv_paused", "0", CVAR_ROM);
-		com_sv_running = Cvar_Get ("sv_running", "0", CVAR_ROM);
-		com_cl_running = Cvar_Get ("cl_running", "0", CVAR_ROM);
-		com_buildScript = Cvar_Get( "com_buildScript", "0", 0 );
-
+		cl_paused = Cvar_Get("cl_paused", "0", CVAR_ROM);
+		sv_paused = Cvar_Get("sv_paused", "0", CVAR_ROM);
+		com_sv_running = Cvar_Get("sv_running", "0", CVAR_ROM);
+		com_cl_running = Cvar_Get("cl_running", "0", CVAR_ROM);
+		com_buildScript = Cvar_Get( "com_buildScript", "0", 0);
 #ifdef G2_PERFORMANCE_ANALYSIS
 		com_G2Report = Cvar_Get("com_G2Report", "0", 0);
 #endif
-
 		com_RMG = Cvar_Get("RMG", "0", 0);
-
-		Cvar_Get ("RMG_seed", "0", 0);
-		Cvar_Get ("RMG_time", "day", 0);
-		Cvar_Get ("RMG_soundset", "", 0);
-
-		Cvar_Get ("RMG_textseed", "0", CVAR_SYSTEMINFO|CVAR_ARCHIVE);
-		Cvar_Get ("RMG_map", "small", CVAR_ARCHIVE|CVAR_SYSTEMINFO);
-		Cvar_Get ("RMG_timefile", "day", CVAR_ARCHIVE);
-		Cvar_Get ("RMG_terrain", "grassyhills", CVAR_ARCHIVE);
-
-		Cvar_Get ("RMG_sky", "", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_fog", "", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_weather", "", CVAR_SYSTEMINFO|CVAR_SERVERINFO|CVAR_CHEAT );
-		Cvar_Get ("RMG_instances", "colombia", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_miscents", "deciduous", 0);
-		Cvar_Get ("RMG_music", "music/dm_kam1", 0);
-		Cvar_Get ("RMG_mission", "ctf", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_course", "standard", CVAR_SYSTEMINFO );
-		Cvar_Get ("RMG_distancecull", "5000", CVAR_CHEAT );
-
-		com_introPlayed = Cvar_Get( "com_introplayed", "0", CVAR_ARCHIVE);
-
+		Cvar_Get("RMG_seed", "0", 0);
+		Cvar_Get("RMG_time", "day", 0);
+		Cvar_Get("RMG_soundset", "", 0);
+		Cvar_Get("RMG_textseed", "0", CVAR_SYSTEMINFO|CVAR_ARCHIVE);
+		Cvar_Get("RMG_map", "small", CVAR_ARCHIVE|CVAR_SYSTEMINFO);
+		Cvar_Get("RMG_timefile", "day", CVAR_ARCHIVE);
+		Cvar_Get("RMG_terrain", "grassyhills", CVAR_ARCHIVE);
+		Cvar_Get("RMG_sky", "", CVAR_SYSTEMINFO);
+		Cvar_Get("RMG_fog", "", CVAR_SYSTEMINFO);
+		Cvar_Get("RMG_weather", "", CVAR_SYSTEMINFO|CVAR_SERVERINFO|CVAR_CHEAT);
+		Cvar_Get("RMG_instances", "colombia", CVAR_SYSTEMINFO);
+		Cvar_Get("RMG_miscents", "deciduous", 0);
+		Cvar_Get("RMG_music", "music/dm_kam1", 0);
+		Cvar_Get("RMG_mission", "ctf", CVAR_SYSTEMINFO);
+		Cvar_Get("RMG_course", "standard", CVAR_SYSTEMINFO);
+		Cvar_Get("RMG_distancecull", "5000", CVAR_CHEAT );
+		com_introPlayed = Cvar_Get("com_introplayed", "0", CVAR_ARCHIVE);
 	#if defined(_WIN32) && defined(_DEBUG)
-		com_noErrorInterrupt = Cvar_Get( "com_noErrorInterrupt", "0", 0 );
+		com_noErrorInterrupt = Cvar_Get("com_noErrorInterrupt", "0", 0);
 	#endif
-
-		com_affinity = Cvar_Get ("com_affinity", "1", CVAR_ARCHIVE);
-
-		if ( com_dedicated->integer ) {
-			if ( !com_viewlog->integer ) {
-				Cvar_Set( "viewlog", "1" );
+		com_affinity = Cvar_Get("com_affinity", "1", CVAR_ARCHIVE);
+		if (com_dedicated->integer) {
+			if (!com_viewlog->integer) {
+				Cvar_Set("viewlog", "1");
 			}
 		}
-
-		if ( com_developer && com_developer->integer ) {
-			Cmd_AddCommand ("error", Com_Error_f);
-			Cmd_AddCommand ("crash", Com_Crash_f );
-			Cmd_AddCommand ("freeze", Com_Freeze_f);
+		if (com_developer && com_developer->integer) {
+			Cmd_AddCommand("error", Com_Error_f);
+			Cmd_AddCommand("crash", Com_Crash_f);
+			Cmd_AddCommand("freeze", Com_Freeze_f);
 		}
-		Cmd_AddCommand ("quit", Com_Quit_f);
-		Cmd_AddCommand ("changeVectors", MSG_ReportChangeVectors_f );
-		Cmd_AddCommand ("writeconfig", Com_WriteConfig_f );
-
-		s = va("%s %s %s", JK_VERSION, PLATFORM_STRING, __DATE__ );
-		com_version = Cvar_Get ("version", s, CVAR_ROM | CVAR_SERVERINFO );
-
+		Cmd_AddCommand("quit", Com_Quit_f);
+		Cmd_AddCommand("changeVectors", MSG_ReportChangeVectors_f);
+		Cmd_AddCommand("writeconfig", Com_WriteConfig_f);
+		s = va("%s %s %s", JK_VERSION, PLATFORM_STRING, __DATE__);
+		com_version = Cvar_Get("version", s, CVAR_ROM | CVAR_SERVERINFO);
 		Com_SetProcessCoresAffinity();
-
 		SE_Init();
-
 		Sys_Init();
-		Netchan_Init( Com_Milliseconds() & 0xffff );	// pick a port value that should be nice and random
+		Netchan_Init(Com_Milliseconds() & 0xffff);	// pick a port value that should be nice and random
 		VM_Init();
 		SV_Init();
-
 		com_dedicated->modified = qfalse;
-		if ( !com_dedicated->integer ) {
+		if (!com_dedicated->integer) {
 			CL_Init();
-			Sys_ShowConsole( com_viewlog->integer, qfalse );
+			Sys_ShowConsole(com_viewlog->integer, qfalse);
 		}
-
 		// set com_frameTime so that if a map is started on the
 		// command line it will still be able to count on com_frameTime
 		// being random enough for a serverid
 		com_frameTime = Com_Milliseconds();
-
-
 		// add + commands from command line
-		if ( !Com_AddStartupCommands() ) 
-		{
+		if (!Com_AddStartupCommands()) {
 			// if the user didn't give any commands, run default action
-			if ( !com_dedicated->integer ) 
-			{
+			if (!com_dedicated->integer) {
 #ifndef _DEBUG
 //				Cbuf_AddText ("cinematic openinglogos.roq\n");
 #endif
@@ -1441,53 +1390,37 @@ void Com_Init( char *commandLine ) {
 //				}
 			}
 		}
-
 		// start in full screen ui mode
 		Cvar_Set("r_uiFullScreen", "1");
-
 		CL_StartHunkUsers();
-
 		// make sure single player is off by default
 		Cvar_Set("ui_singlePlayerActive", "0");
-
 #ifdef MEM_DEBUG
 		SH_Register();
 #endif
-
 		com_fullyInitialized = qtrue;
-		Com_Printf ("--- Common Initialization Complete ---\n");	
-
-	}
-
-	catch ( int code )
-	{
+		Com_Printf("--- Common Initialization Complete ---\n");
+	} catch (int code) {
 		Com_CatchError (code);
-		Sys_Error ("Error during initialization: %s", Com_ErrorString (code));
+		Sys_Error("Error during initialization: %s", Com_ErrorString(code));
 	}
 }
-
 //==================================================================
-
-void Com_WriteConfigToFile( const char *filename ) {
-	fileHandle_t	f;
-
-	f = FS_FOpenFileWrite( filename );
-	if ( !f ) {
-		Com_Printf ("Couldn't write %s.\n", filename );
+void Com_WriteConfigToFile(const char *filename) {
+	fileHandle_t f;
+	f = FS_FOpenFileWrite(filename);
+	if (!f) {
+		Com_Printf ("Couldn't write %s.\n", filename);
 		return;
 	}
-
-	FS_Printf (f, "// generated by Star Wars Jedi Academy MP, do not modify\n");
-	Key_WriteBindings (f);
-	Cvar_WriteVariables (f);
-	FS_FCloseFile( f );
+	FS_Printf(f, "// generated by Star Wars Jedi Academy MP, do not modify\n");
+	Key_WriteBindings(f);
+	Cvar_WriteVariables(f);
+	FS_FCloseFile(f);
 }
-
-
 /*
 ===============
 Com_WriteConfiguration
-
 Writes key bindings and archived cvars to config file if modified
 ===============
 */
@@ -1587,7 +1520,7 @@ int Com_ModifyMsec( int msec ) {
 }
 
 #ifdef G2_PERFORMANCE_ANALYSIS
-#include "qcommon/timing.h"
+#include "../qcommon/timing.h"
 void G2Time_ResetTimers(void);
 void G2Time_ReportTimers(void);
 extern timing_c G2PerformanceTimer_PreciseFrame;

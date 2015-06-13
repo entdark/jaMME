@@ -1,5 +1,5 @@
 #include "cg_local.h"
-#include "ui/ui_shared.h"
+#include "../ui/ui_shared.h"
 
 extern displayContextDef_t cgDC;
 
@@ -722,29 +722,25 @@ void CG_OwnerDraw(float x, float y, float w, float h, float text_x, float text_y
   }
 #endif
 }
-/*
+#ifdef __ANDROID__
 void CG_MouseEvent(int x, int y) {
 	int n;
-
 	/* Raz: Enable cgame key catcher
 	if ( (cg.predictedPlayerState.pm_type == PM_NORMAL || cg.predictedPlayerState.pm_type == PM_JETPACK || cg.predictedPlayerState.pm_type == PM_FLOAT || cg.predictedPlayerState.pm_type == PM_SPECTATOR) && cg.showScores == qfalse) {
 		trap_Key_SetCatcher(0);
 		return;
 	}
 	*/
-/*
 	cgs.cursorX+= x;
 	if (cgs.cursorX < 0)
 		cgs.cursorX = 0;
 	else if (cgs.cursorX > 640)
 		cgs.cursorX = 640;
-
 	cgs.cursorY += y;
 	if (cgs.cursorY < 0)
 		cgs.cursorY = 0;
 	else if (cgs.cursorY > 480)
 		cgs.cursorY = 480;
-
 	n = Display_CursorType(cgs.cursorX, cgs.cursorY);
 	cgs.activeCursor = 0;
 	if (n == CURSOR_ARROW) {
@@ -752,15 +748,13 @@ void CG_MouseEvent(int x, int y) {
 	} else if (n == CURSOR_SIZER) {
 		cgs.activeCursor = cgs.media.sizeCursor;
 	}
-
 	if (cgs.capturedItem) {
 		Display_MouseMove(cgs.capturedItem, x, y);
 	} else {
 		Display_MouseMove(NULL, cgs.cursorX, cgs.cursorY);
 	}
-
 }
-*/
+#endif
 /*
 ==================
 CG_HideTeamMenus
@@ -804,40 +798,33 @@ void CG_EventHandling(int type) {
 	}
 
 }
-
-
-/*
-void CG_KeyEvent(int key, qboolean down) {
-
+#ifdef __ANDROID__
+qboolean CG_KeyEvent(int key, qboolean down) {
 	if (!down) {
-		return;
+		return qfalse;
 	}
-
-	if ( cg.predictedPlayerState.pm_type == PM_NORMAL || cg.predictedPlayerState.pm_type == PM_JETPACK || cg.predictedPlayerState.pm_type == PM_NORMAL || (cg.predictedPlayerState.pm_type == PM_SPECTATOR && cg.showScores == qfalse)) {
+	if (cg.predictedPlayerState.pm_type == PM_NORMAL || cg.predictedPlayerState.pm_type == PM_JETPACK || cg.predictedPlayerState.pm_type == PM_NORMAL || (cg.predictedPlayerState.pm_type == PM_SPECTATOR && cg.showScores == qfalse)) {
 		CG_EventHandling(CGAME_EVENT_NONE);
 		trap_Key_SetCatcher(0);
-		return;
+		return qfalse;
 	}
-
 	//if (key == trap_Key_GetKey("teamMenu") || !Display_CaptureItem(cgs.cursorX, cgs.cursorY)) {
 	// if we see this then we should always be visible
 	//  CG_EventHandling(CGAME_EVENT_NONE);
 	//  trap_Key_SetCatcher(0);
 	//}
-
-
-
 	Display_HandleKey(key, down, cgs.cursorX, cgs.cursorY);
-
 	if (cgs.capturedItem) {
 		cgs.capturedItem = NULL;
-	}	else {
+	} else {
 		if (key == A_MOUSE2 && down) {
 			cgs.capturedItem = Display_CaptureItem(cgs.cursorX, cgs.cursorY);
+			return qtrue;
 		}
 	}
+	return qfalse;
 }
-*/
+#endif
 int CG_ClientNumFromName(const char *p) {
 	int i;
 	for (i = 0; i < cgs.maxclients; i++) {

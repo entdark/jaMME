@@ -1,28 +1,31 @@
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
 // cl_main.c  -- client main loop
 
-#include "qcommon/qcommon.h"
+#include "../qcommon/qcommon.h"
 
 #include "client.h"
-#include "qcommon/stringed_ingame.h"
+#include "../qcommon/stringed_ingame.h"
 #include <limits.h>
 #include "snd_local.h"
 
 //rwwRMG - added:
-#include "qcommon/cm_local.h"
-#include "qcommon/cm_landscape.h"
-#include "ghoul2/G2.h"
-#include "qcommon/MiniHeap.h"
-
+#include "../qcommon/cm_local.h"
+#include "../qcommon/cm_landscape.h"
+#include "../ghoul2/G2.h"
+#ifndef __ANDROID__
+#include "../qcommon/MiniHeap.h"
+#else
+#include "../rd-gles/miniheap.h"
+#endif
 #ifdef _DONETPROFILE_
-#include "qcommon/INetProfile.h"
+#include "../qcommon/INetProfile.h"
 #endif
 
 #ifndef _WIN32
-#include "sys/sys_loadlib.h"
-#include "sys/sys_local.h"
+#include "../sys/sys_loadlib.h"
+#include "../sys/sys_local.h"
 #endif
 
 cvar_t	*cl_renderer;
@@ -98,12 +101,12 @@ netadr_t rcon_address;
 // Structure containing functions exported from refresh DLL
 refexport_t	re = {0};
 static void	*rendererLib = NULL;
-
+#ifndef __ANDROID__
 //RAZFIXME: BAD BAD, maybe? had to move it out of ghoul2_shared.h -> CGhoul2Info_v at the least..
 IGhoul2InfoArray &_TheGhoul2InfoArray( void ) {
 	return re.TheGhoul2InfoArray();
 }
-
+#endif
 ping_t	cl_pinglist[MAX_PINGREQUESTS];
 
 typedef struct serverStatus_s
@@ -118,9 +121,11 @@ typedef struct serverStatus_s
 
 serverStatus_t cl_serverStatusList[MAX_SERVERSTATUSREQUESTS];
 int serverStatusCount;
-
+#ifndef __ANDROID__
 CMiniHeap *G2VertSpaceClient = 0;
-
+#else
+IHeapAllocator *G2VertSpaceClient = 0;
+#endif
 #if defined __USEA3D && defined __A3D_GEOM
 	void hA3Dg_ExportRenderGeom (refexport_t *incoming_re);
 #endif
@@ -538,9 +543,13 @@ void CL_PlayDemo_f( void ) {
 	fs_game = Cvar_FindVar ("fs_game" );
 	if (!fs_game)
 		return;
+#ifdef __ANDROID__
+	haveConvert = (qboolean)(mme_demoConvert->integer);
+#else
 	demoCommandSmoothingEnable(qfalse);
 	haveConvert = (qboolean)(mme_demoConvert->integer && !Q_stricmpn( fs_game->string, "mme", 3 ));
 	if (!Q_stricmp( fs_game->string, "mme"))
+#endif
 		demoCommandSmoothingEnable(qtrue);
 	// make sure a local server is killed
 	// 2 means don't force disconnect of local client
@@ -656,29 +665,29 @@ void CL_NextDemo( void ) {
 CL_ShutdownAll
 =====================
 */
-void CL_ShutdownAll( qboolean shutdownRef ) {
+void CL_ShutdownAll(qboolean shutdownRef) {
 	if(clc.demorecording)
 		CL_StopRecord_f();
-
 #if 0 //rwwFIXMEFIXME: Disable this before release!!!!!! I am just trying to find a crash bug.
 	//so it doesn't barf on shutdown saying refentities belong to each other
 	tr.refdef.num_entities = 0;
 #endif
-
 	// clear sounds
 	S_DisableSounds();
 	// shutdown CGame
 	CL_ShutdownCGame();
 	// shutdown UI
 	CL_ShutdownUI();
-
 	// shutdown the renderer
 	if(shutdownRef)
 		CL_ShutdownRef();
-	if ( re.Shutdown ) {
-		re.Shutdown( qfalse );		// don't destroy window or context
+	if (re.Shutdown) {
+#ifdef __ANDROID__
+		re.Shutdown(qfalse, qfalse); // don't destroy window or context
+#else
+		re.Shutdown(qfalse); // don't destroy window or context
+#endif
 	}
-
 	cls.uiStarted = qfalse;
 	cls.cgameStarted = qfalse;
 	cls.rendererStarted = qfalse;
@@ -783,73 +792,56 @@ Sends a disconnect message to the server
 This is also called on Com_Error and Com_Quit, so it shouldn't cause any errors
 =====================
 */
-void CL_Disconnect( qboolean showMainMenu ) {
-	if ( !com_cl_running || !com_cl_running->integer ) {
+void CL_Disconnect(qboolean showMainMenu) {
+	if (!com_cl_running || !com_cl_running->integer) {
 		return;
 	}
-
 	// shutting down the client so enter full screen ui mode
 	Cvar_Set("r_uiFullScreen", "1");
-
-	if ( clc.demorecording ) {
+	if (clc.demorecording) {
 		CL_StopRecord_f ();
 	}
-
 	if (clc.download) {
-		FS_FCloseFile( clc.download );
+		FS_FCloseFile(clc.download);
 		clc.download = 0;
 	}
 	*clc.downloadTempName = *clc.downloadName = 0;
-	Cvar_Set( "cl_downloadName", "" );
-
-	if ( clc.demofile ) {
-		FS_FCloseFile( clc.demofile );
+	Cvar_Set("cl_downloadName", "");
+	if (clc.demofile) {
+		FS_FCloseFile(clc.demofile);
 		clc.demofile = 0;
 	}
-
 	if (clc.newDemoPlayer) {
-		demoStop( );
+		demoStop();
 	}
-
-	if ( uivm && showMainMenu ) {
-		VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_NONE );
+	if (uivm && showMainMenu) {
+		VM_Call(uivm, UI_SET_ACTIVE_MENU, UIMENU_NONE);
 	}
-
 	SCR_StopCinematic ();
-
 	S_MMEWavClose();
-
 	S_ClearSoundBuffer();
-
 	// send a disconnect message to the server
 	// send it a few times in case one is dropped
-	if ( cls.state >= CA_CONNECTED ) {
-		CL_AddReliableCommand( "disconnect", qtrue );
+	if (cls.state >= CA_CONNECTED) {
+		CL_AddReliableCommand("disconnect", qtrue);
 		CL_WritePacket();
 		CL_WritePacket();
 		CL_WritePacket();
 	}
-
 	CL_ClearState ();
-
 	// wipe the client connection
-	Com_Memset( &clc, 0, sizeof( clc ) );
-
+	Com_Memset(&clc, 0, sizeof(clc));
+	Cvar_Set("mme_demoPaused", "0");
 	cls.state = CA_DISCONNECTED;
-	
 	cls.uag.newColors = qfalse;
-
 	// allow cheats locally
-	Cvar_Set( "sv_cheats", "1" );
-
+	Cvar_Set("sv_cheats", "1");
 	// not connected to a pure server anymore
 	cl_connectedToPureServer = qfalse;
 	cl_connectedGAME = 0;
 	cl_connectedCGAME = 0;
 	cl_connectedUI = 0;
 }
-
-
 /*
 ===================
 CL_ForwardCommandToServer
@@ -2088,23 +2080,19 @@ CL_Frame
 static unsigned int frameCount;
 static float avgFrametime=0.0;
 extern void SE_CheckForLanguageUpdates(void);
-void SCR_DrawScreenField( stereoFrame_t stereoFrame, qboolean useCenter );
-void CL_Frame ( int msec ) {
-
-	if ( !com_cl_running->integer ) {
+void CL_Frame(int msec) {
+	if (!com_cl_running->integer) {
 		return;
 	}
-
 	SE_CheckForLanguageUpdates();	// will take zero time to execute unless language changes, then will reload strings.
 									//	of course this still doesn't work for menus...
-
-	if ( cls.state == CA_DISCONNECTED && !( Key_GetCatcher( ) & KEYCATCH_UI )
+	if (cls.state == CA_DISCONNECTED && !(Key_GetCatcher() & KEYCATCH_UI)
 		&& !com_sv_running->integer && uivm ) {
 		// if disconnected, bring up the menu
 		S_StopAllSounds();
-		VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
+		VM_Call(uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN);
 	}
-
+#ifndef __ANDROID__
 	if (cl_avidemo->integer > 0 && msec) {
 		// save the current screen
 		if (cls.state == CA_ACTIVE || cl_forceavidemo->integer) {
@@ -2133,14 +2121,13 @@ void CL_Frame ( int msec ) {
 			S_MMERecord(shotName, 1.0f / fps);
 		}
 	}
-	
+#endif
 	if (cl_autoDemo->integer && !clc.demoplaying) {
 		if (cls.state != CA_ACTIVE && clc.demorecording)
 			demoAutoComplete();
 		else if (cls.state == CA_ACTIVE && !clc.demorecording)
 			demoAutoRecord();
 	}
-
 	// save the msec before checking pause
 	cls.realFrametime = msec;
 
@@ -2216,13 +2203,10 @@ void CL_Frame ( int msec ) {
 
 	cls.framecount++;
 }
-
 //============================================================================
-
 /*
 ================
 CL_RefPrintf
-
 DLL glue
 ================
 */
@@ -2243,42 +2227,39 @@ void QDECL CL_RefPrintf( int print_level, const char *fmt, ...) {
 		Com_DPrintf (S_COLOR_RED "%s", msg);		// red
 	}
 }
-
-
-
 /*
 ============
 CL_ShutdownRef
 ============
 */
-void CL_ShutdownRef( void ) {
-	if ( !re.Shutdown ) {
+void CL_ShutdownRef(void) {
+	if (!re.Shutdown) {
 		return;
 	}
-	re.Shutdown( qtrue );
-	Com_Memset( &re, 0, sizeof( re ) );
+#ifndef __ANDROID__
+	re.Shutdown(qtrue);
+#else
+	re.Shutdown(qtrue, qfalse);
+#endif
+	Com_Memset(&re, 0, sizeof(re));
 }
-
 /*
 ============
 CL_InitRenderer
 ============
 */
-void CL_InitRenderer( void ) {
+void CL_InitRenderer(void) {
 	// this sets up the renderer and calls R_Init
-	re.BeginRegistration( &cls.glconfig );
-
+	re.BeginRegistration(&cls.glconfig);
 	// load character sets
 	cls.charSetShader = re.RegisterShaderNoMip("gfx/2d/charsgrid_med");
-
-	cls.whiteShader = re.RegisterShader( "white" );
-	cls.consoleShader = re.RegisterShader( "console" );
+	cls.whiteShader = re.RegisterShader("white");
+	cls.consoleShader = re.RegisterShader("console");
 	cls.recordingShader = re.RegisterShaderNoMip("gfx/hud/message_on");
 	cls.ratioFix = (float)(SCREEN_WIDTH * cls.glconfig.vidHeight) / (float)(SCREEN_HEIGHT * cls.glconfig.vidWidth);
 	g_console_field_width = cls.glconfig.vidWidth / SMALLCHAR_WIDTH - 2;
 	kg.g_consoleField.widthInChars = g_console_field_width;
 }
-
 /*
 ============================
 CL_StartHunkUsers
@@ -2325,7 +2306,6 @@ CL_InitRef
 qboolean Com_TheHunkMarkHasBeenMade(void);
 
 //qcommon/vm.cpp
-extern vm_t *currentVM;
 #ifdef _WIN32
 	//win32/win_main.cpp
 	#include "win32/win_local.h"
@@ -2346,21 +2326,31 @@ static void CM_SetCachedMapDiskImage( void *ptr ) { gpvCachedMapDiskImage = ptr;
 static void CM_SetUsingCache( qboolean usingCache ) { gbUsingCachedMapDataRightNow = usingCache; }
 
 // for listen servers
-extern vm_t *currentVM;
 extern vm_t *gvm;
 static vm_t *GetGameVM( void ) { return gvm; }
 extern void SV_GetConfigstring( int index, char *buffer, int bufferSize );
 extern void SV_SetConfigstring( int index, const char *val );
 
 #define G2_VERT_SPACE_SERVER_SIZE 256
+#ifdef __ANDROID__
+IHeapAllocator *G2VertSpaceServer = NULL;
+#else
 CMiniHeap *G2VertSpaceServer = NULL;
+#endif
 CMiniHeap CMiniHeap_singleton(G2_VERT_SPACE_SERVER_SIZE * 1024);
-
-static CMiniHeap *GetG2VertSpaceServer( void ) {
+#ifdef __ANDROID__
+static IHeapAllocator *GetG2VertSpaceServer(void) {
+#else
+static CMiniHeap *GetG2VertSpaceServer(void) {
+#endif
 	return G2VertSpaceServer;
 }
 void CL_InitRef( void ) {
+#ifdef __ANDROID__
+	static refimport_t	ri;
+#else
 	refimport_t	ri = {0};
+#endif
 	refexport_t	*ret;
 	GetRefAPI_t	GetRefAPI;
 	char		dllName[MAX_OSPATH];
@@ -2383,7 +2373,9 @@ void CL_InitRef( void ) {
 	if ( !rendererLib ) {
 		Com_Error( ERR_FATAL, "Failed to load renderer" );
 	}
-
+#ifdef __ANDROID__
+	memset( &ri, 0, sizeof( ri ) );
+#endif
 	GetRefAPI = (GetRefAPI_t)Sys_LoadFunction( rendererLib, "GetRefAPI" );
 	if ( !GetRefAPI )
 		Com_Error( ERR_FATAL, "Can't load symbol GetRefAPI: '%s'", Sys_LibraryError() );
@@ -2478,12 +2470,14 @@ void CL_InitRef( void ) {
 	//RAZFIXME: Might have to do something about this...
 	ri.GetG2VertSpaceServer = GetG2VertSpaceServer;
 	G2VertSpaceServer = &CMiniHeap_singleton;
-
+#ifdef __ANDROID__
+	ri.PD_Store = PD_Store;
+	ri.PD_Load = PD_Load;
+#else
 	//mme
 	ri.S_MMEAviImport = S_MMEAviImport;
-
+#endif
 	ret = GetRefAPI( REF_API_VERSION, &ri );
-
 #if defined __USEA3D && defined __A3D_GEOM
 	hA3Dg_ExportRenderGeom (ret);
 #endif
@@ -2683,44 +2677,48 @@ void CL_Init( void ) {
 	mme_demoFileName = Cvar_Get ("mme_demoFileName", "", CVAR_TEMP | CVAR_NORESTART );
 	mme_demoStartProject = Cvar_Get ("mme_demoStartProject", "", CVAR_TEMP );
 	mme_demoAutoQuit = Cvar_Get ("mme_demoAutoQuit", "0", CVAR_ARCHIVE );
+#ifdef __ANDORID__
+	mme_demoRemove = Cvar_Get ("mme_demoRemove", "1", CVAR_ARCHIVE );
+#else
 	mme_demoRemove = Cvar_Get ("mme_demoRemove", "0", CVAR_ARCHIVE );
+#endif
 	mme_demoPrecache = Cvar_Get ("mme_demoPrecache", "0", CVAR_ARCHIVE );
 	mme_demoAutoNext = Cvar_Get ("mme_demoAutoNext", "1", CVAR_ARCHIVE );
-
+	mme_demoPaused = Cvar_Get ("mme_demoPaused", "0", CVAR_INTERNAL );
 	//
 	// register our commands
 	//
-	Cmd_AddCommand ("cmd", CL_ForwardToServer_f);
-	Cmd_AddCommand ("globalservers", CL_GlobalServers_f);
-	Cmd_AddCommand ("record", CL_Record_f);
-	Cmd_AddCommand ("demo", CL_PlayDemo_f);
-	Cmd_AddCommand ("stoprecord", CL_StopRecord_f);
-	Cmd_AddCommand ("configstrings", CL_Configstrings_f);
-	Cmd_AddCommand ("clientinfo", CL_Clientinfo_f);
-	Cmd_AddCommand ("snd_restart", CL_Snd_Restart_f);
-	Cmd_AddCommand ("vid_restart", CL_Vid_Restart_f);
-	Cmd_AddCommand ("disconnect", CL_Disconnect_f);
-	Cmd_AddCommand ("cinematic", CL_PlayCinematic_f);
+	Cmd_AddCommand("cmd", CL_ForwardToServer_f);
+	Cmd_AddCommand("globalservers", CL_GlobalServers_f);
+	Cmd_AddCommand("record", CL_Record_f);
+	Cmd_AddCommand("demo", CL_PlayDemo_f);
+	Cmd_AddCommand("stoprecord", CL_StopRecord_f);
+	Cmd_AddCommand("configstrings", CL_Configstrings_f);
+	Cmd_AddCommand("clientinfo", CL_Clientinfo_f);
+	Cmd_AddCommand("snd_restart", CL_Snd_Restart_f);
+	Cmd_AddCommand("vid_restart", CL_Vid_Restart_f);
+	Cmd_AddCommand("disconnect", CL_Disconnect_f);
+	Cmd_AddCommand("cinematic", CL_PlayCinematic_f);
 	cvar_t *fs_game = Cvar_FindVar("fs_game");
 	if (!(fs_game && !Q_stricmpn(fs_game->string, "mme", 3)))
-		Cmd_AddCommand ("connect", CL_Connect_f);
-	Cmd_AddCommand ("reconnect", CL_Reconnect_f);
-	Cmd_AddCommand ("localservers", CL_LocalServers_f);
-	Cmd_AddCommand ("rcon", CL_Rcon_f);
-	Cmd_AddCommand ("ping", CL_Ping_f );
-	Cmd_AddCommand ("serverstatus", CL_ServerStatus_f );
-	Cmd_AddCommand ("showip", CL_ShowIP_f );
-	Cmd_AddCommand ("fs_openedList", CL_OpenedPK3List_f );
-	Cmd_AddCommand ("fs_referencedList", CL_ReferencedPK3List_f );
-	Cmd_AddCommand ("model", CL_SetModel_f );
-	Cmd_AddCommand ("forcepowers", CL_SetForcePowers_f );
-
+		Cmd_AddCommand("connect", CL_Connect_f);
+	Cmd_AddCommand("reconnect", CL_Reconnect_f);
+	Cmd_AddCommand("localservers", CL_LocalServers_f);
+	Cmd_AddCommand("rcon", CL_Rcon_f);
+	Cmd_AddCommand("ping", CL_Ping_f);
+	Cmd_AddCommand("serverstatus", CL_ServerStatus_f);
+	Cmd_AddCommand("showip", CL_ShowIP_f);
+	Cmd_AddCommand("fs_openedList", CL_OpenedPK3List_f);
+	Cmd_AddCommand("fs_referencedList", CL_ReferencedPK3List_f);
+	Cmd_AddCommand("model", CL_SetModel_f);
+	Cmd_AddCommand("forcepowers", CL_SetForcePowers_f);
 	// MME commands
-//	Cmd_AddCommand ("csList", CL_CSList_f);
-	Cmd_AddCommand ("mmeDemo", CL_MMEDemo_f);
-	Cmd_AddCommand ("demoList", CL_DemoList_f);
-	Cmd_AddCommand ("demoListNext", CL_DemoListNext_f );
-
+//	Cmd_AddCommand("csList", CL_CSList_f);
+	Cmd_AddCommand("mmeDemo", CL_MMEDemo_f);
+	Cmd_AddCommand("demoList", CL_DemoList_f);
+	Cmd_AddCommand("demoListNext", CL_DemoListNext_f);
+	Cmd_AddCommand("demoListNext", CL_DemoListNext_f);
+	Cmd_AddCommand("pause", NULL);
 	CL_InitRef();
 
 	SCR_Init ();

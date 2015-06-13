@@ -4,6 +4,7 @@
 #define		DMA_SNDCHANNELS		128
 #define		DMA_LOOPCHANNELS	128
 
+extern qboolean s_soundMuted;
 dma_t		dma;
 
 static mixBackground_t	dmaBackground;
@@ -114,18 +115,21 @@ void S_DMA_Update( float scale ) {
 	speed = (scale * (MIX_SPEED << MIX_SHIFT)) / dma.speed;
 
 	/* Make sure that the speed will always go forward for very small scales */
-	if ( speed == 0 && scale )
+	if (speed == 0 && scale)
 		speed = 1;
 
 	/* Mix sound or fill with silence depending on speed */
-	if ( speed > 0 ) {
+	if (speed > 0) {
 		/* mix the background track or init the buffer with silence */
 		S_MixBackground(&dmaBackground, speed, count, buf);
 		S_MixChannels(dmaChannels, DMA_SNDCHANNELS, speed, count, buf);
 		S_MixLoops(dmaLoops, DMA_LOOPCHANNELS, speed, count, buf);
 		S_MixEffects(&dmaEffect, speed, count, buf);
+		/* We have to process all sounds and then fill with silence if muted */
+		if (s_soundMuted)
+			Com_Memset(buf, 0, sizeof(buf[0]) * count * 2);
 	} else {
-		Com_Memset(buf, 0, sizeof( buf[0] ) * count * 2);
+		Com_Memset(buf, 0, sizeof(buf[0]) * count * 2);
 	}
 	/* Lock dma buffer and copy/clip the final data */
 	SNDDMA_BeginPainting ();

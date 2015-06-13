@@ -10,21 +10,16 @@
 #include <pwd.h>
 #include <libgen.h>
 #include <sched.h>
-
-#include "qcommon/qcommon.h"
-#include "qcommon/q_shared.h"
+#include "../qcommon/qcommon.h"
+#include "../qcommon/q_shared.h"
 #include "sys_local.h"
-
 #ifndef DEDICATED
 	#include <SDL.h>
 #endif
-
 #define	MAX_QUED_EVENTS		256
-#define	MASK_QUED_EVENTS	( MAX_QUED_EVENTS - 1 )
-
+#define	MASK_QUED_EVENTS	(MAX_QUED_EVENTS - 1)
 qboolean stdin_active = qtrue;
 qboolean stdinIsATTY = qfalse;
-
 // Used to determine where to store user-specific files
 static char homePath[ MAX_OSPATH ] = { 0 };
 
@@ -211,71 +206,58 @@ const char *Sys_Dirname( char *path )
 
 /*
 ========================================================================
-
 EVENT LOOP
-
 ========================================================================
 */
-
 #define	MAX_QUED_EVENTS		256
-#define	MASK_QUED_EVENTS	( MAX_QUED_EVENTS - 1 )
+#define	MASK_QUED_EVENTS	(MAX_QUED_EVENTS - 1)
 
 sysEvent_t	eventQue[MAX_QUED_EVENTS];
 int			eventHead, eventTail;
 byte		sys_packetReceived[MAX_MSGLEN];
 
-sysEvent_t Sys_GetEvent( void ) {
-	sysEvent_t	ev;
-	char		*s;
-	msg_t		netmsg;
-	netadr_t	adr;
-
+sysEvent_t Sys_GetEvent(void) {
+	sysEvent_t ev;
+	char *s;
+	msg_t netmsg;
+	netadr_t adr;
 	// return if we have data
-	if ( eventHead > eventTail ) {
+	if (eventHead > eventTail) {
 		eventTail++;
-		return eventQue[ ( eventTail - 1 ) & MASK_QUED_EVENTS ];
+		return eventQue[(eventTail - 1) & MASK_QUED_EVENTS];
 	}
-
 	// check for console commands
 	s = Sys_ConsoleInput();
-	if ( s ) {
-		char	*b;
-		int		len;
-
-		len = strlen( s ) + 1;
-		b = (char *)Z_Malloc( len,TAG_EVENT,qfalse );
-		strcpy( b, s );
-		Sys_QueEvent( 0, SE_CONSOLE, 0, 0, len, b );
+	if (s) {
+		char *b;
+		int len;
+		len = strlen(s) + 1;
+		b = (char *)Z_Malloc(len,TAG_EVENT,qfalse);
+		strcpy(b, s);
+		Sys_QueEvent(0, SE_CONSOLE, 0, 0, len, b);
 	}
-
 	// check for network packets
-	MSG_Init( &netmsg, sys_packetReceived, sizeof( sys_packetReceived ) );
-	if ( Sys_GetPacket ( &adr, &netmsg ) ) {
-		netadr_t		*buf;
-		int				len;
-
+	MSG_Init(&netmsg, sys_packetReceived, sizeof(sys_packetReceived));
+	if (Sys_GetPacket(&adr, &netmsg)) {
+		netadr_t *buf;
+		int len;
 		// copy out to a seperate buffer for qeueing
-		len = sizeof( netadr_t ) + netmsg.cursize;
-		buf = (netadr_t *)Z_Malloc( len,TAG_EVENT,qfalse );
+		len = sizeof(netadr_t) + netmsg.cursize;
+		buf = (netadr_t *)Z_Malloc(len,TAG_EVENT,qfalse);
 		*buf = adr;
-		memcpy( buf+1, netmsg.data, netmsg.cursize );
-		Sys_QueEvent( 0, SE_PACKET, 0, 0, len, buf );
+		memcpy(buf+1, netmsg.data, netmsg.cursize);
+		Sys_QueEvent(0, SE_PACKET, 0, 0, len, buf);
 	}
-
 	// return if we have data
-	if ( eventHead > eventTail ) {
+	if (eventHead > eventTail) {
 		eventTail++;
-		return eventQue[ ( eventTail - 1 ) & MASK_QUED_EVENTS ];
+		return eventQue[(eventTail - 1) & MASK_QUED_EVENTS];
 	}
-
 	// create an empty event to return
-
-	memset( &ev, 0, sizeof( ev ) );
+	memset(&ev, 0, sizeof(ev));
 	ev.evTime = Sys_Milliseconds();
-
 	return ev;
 }
-
 /*
 ==============================================================
 
@@ -520,23 +502,38 @@ char *Sys_Cwd( void )
 /* Resolves path names and determines if they are the same */
 /* For use with full OS paths not quake paths */
 /* Returns true if resulting paths are valid and the same, otherwise false */
-bool Sys_PathCmp( const char *path1, const char *path2 )
-{
-	char *r1, *r2;
+bool Sys_PathCmp(const char *path1, const char *path2) {
+#ifdef __ANDROID__
+	if (!path1 || ! path2)
+		return false;
+	LOGI("Sys_PathCmp p1 = %s, p2 = %s",path1,path2);
 
-	r1 = realpath(path1, NULL);
-	r2 = realpath(path2, NULL);
+	char r1[PATH_MAX], r2[PATH_MAX];
+
+	 realpath(path1, r1);
+	 realpath(path2, r2);
 
 	if(r1 && r2 && !Q_stricmp(r1, r2))
 	{
+
+		return true;
+	}
+
+
+	return false;
+#else
+	char *r1, *r2;
+	r1 = realpath(path1, NULL);
+	r2 = realpath(path2, NULL);
+	if(r1 && r2 && !Q_stricmp(r1, r2)) {
 		free(r1);
 		free(r2);
 		return true;
 	}
-
 	free(r1);
 	free(r2);
 	return false;
+#endif
 }
 
 void Sys_ShowConsole( int visLevel, qboolean quitOnClose )
@@ -576,8 +573,17 @@ char *Sys_DefaultHomePath(void)
 	return homePath;
 }
 #else
+#ifdef __ANDROID__
+extern "C" {
+	extern const char * getGamePath();
+}
+#endif
 char *Sys_DefaultHomePath(void)
 {
+#ifdef __ANDROID__
+	Com_sprintf(homePath, sizeof(homePath), "%s", getGamePath());
+	return homePath;
+#endif
 	char *p;
 
 	if( !*homePath && com_homepath != NULL )
@@ -681,7 +687,7 @@ void Sys_QueEvent( int time, sysEventType_t type, int value, int value2, int ptr
 }
 
 void Sys_SetProcessorAffinity( void ) {
-#if defined(__linux__)
+#if defined(__linux__) && !defined(__ANDROID__)
 	uint32_t cores;
 
 	if ( sscanf( com_affinity->string, "%X", &cores ) != 1 )

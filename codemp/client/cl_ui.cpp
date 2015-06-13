@@ -1,23 +1,23 @@
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
 #include "client.h"
 
-#include "botlib/botlib.h"
-#include "qcommon/stringed_ingame.h"
+#include "../botlib/botlib.h"
+#include "../qcommon/stringed_ingame.h"
 
 /*
 Ghoul2 Insert Start
 */
 
-#include "ghoul2/G2.h"
+#include "../ghoul2/G2.h"
 
 /*
 Ghoul2 Insert End
 */
 
 #ifdef VV_LIGHTING
-#include "renderer/tr_lightmanager.h"
+#include "../renderer/tr_lightmanager.h"
 #endif
 
 extern	botlib_export_t	*botlib_export;
@@ -666,7 +666,7 @@ static int GetConfigString(int index, char *buf, int size)
 	return qtrue;
 }
 
-static int	FloatAsInt( float f ) {
+static int FloatAsInt(float f) {
 	floatint_t fi;
 	fi.f = f;
 	return fi.i;
@@ -679,50 +679,48 @@ CL_UISystemCalls
 The ui module is making a system call
 ====================
 */
-intptr_t CL_UISystemCalls( intptr_t *args ) {
-	switch( args[0] ) {
+intptr_t CL_UISystemCalls(intptr_t *args) {
+	switch(args[0]) {
 	//rww - alright, DO NOT EVER add a GAME/CGAME/UI generic call without adding a trap to match, and
 	//all of these traps must be shared and have cases in sv_game, cl_cgame, and cl_ui. They must also
 	//all be in the same order, and start at 100.
 	case TRAP_MEMSET:
-		Com_Memset( VMA(1), args[2], args[3] );
+		Com_Memset(VMA(1), args[2], args[3]);
 		return 0;
 	case TRAP_MEMCPY:
-		Com_Memcpy( VMA(1), VMA(2), args[3] );
+		Com_Memcpy(VMA(1), VMA(2), args[3]);
 		return 0;
 	case TRAP_STRNCPY:
-		return (intptr_t)strncpy( (char *)VMA(1), (const char *)VMA(2), args[3] );
+		return (intptr_t)strncpy((char *)VMA(1), (const char *)VMA(2), args[3]);
 	case TRAP_SIN:
-		return FloatAsInt( sin( VMF(1) ) );
+		return FloatAsInt(sin(VMF(1)));
 	case TRAP_COS:
-		return FloatAsInt( cos( VMF(1) ) );
+		return FloatAsInt(cos(VMF(1)));
 	case TRAP_ATAN2:
-		return FloatAsInt( atan2( VMF(1), VMF(2) ) );
+		return FloatAsInt(atan2(VMF(1), VMF(2)));
 	case TRAP_SQRT:
-		return FloatAsInt( sqrt( VMF(1) ) );
+		return FloatAsInt(sqrt(VMF(1)));
 	case TRAP_MATRIXMULTIPLY:
-		MatrixMultiply( (vec3_t *)VMA(1), (vec3_t *)VMA(2), (vec3_t *)VMA(3) );
+		MatrixMultiply((vec3_t *)VMA(1), (vec3_t *)VMA(2), (vec3_t *)VMA(3));
 		return 0;
 	case TRAP_ANGLEVECTORS:
-		AngleVectors( (const float *)VMA(1), (float *)VMA(2), (float *)VMA(3), (float *)VMA(4) );
+		AngleVectors((const float *)VMA(1), (float *)VMA(2), (float *)VMA(3), (float *)VMA(4));
 		return 0;
 	case TRAP_PERPENDICULARVECTOR:
-		PerpendicularVector( (float *)VMA(1), (const float *)VMA(2) );
+		PerpendicularVector((float *)VMA(1), (const float *)VMA(2));
 		return 0;
 	case TRAP_FLOOR:
-		return FloatAsInt( floor( VMF(1) ) );
+		return FloatAsInt(floor(VMF(1)));
 	case TRAP_CEIL:
-		return FloatAsInt( ceil( VMF(1) ) );
+		return FloatAsInt(ceil(VMF(1)));
 	case TRAP_TESTPRINTINT:
 		return 0;
 	case TRAP_TESTPRINTFLOAT:
 		return 0;
 	case TRAP_ACOS:
-		return FloatAsInt( Q_acos( VMF(1) ) );
+		return FloatAsInt(Q_acos(VMF(1)));
 	case TRAP_ASIN:
-		return FloatAsInt( Q_asin( VMF(1) ) );
-
-
+		return FloatAsInt(Q_asin(VMF(1)));
 	case UI_ERROR:
 		Com_Error( ERR_DROP, "%s", VMA(1) );
 		return 0;
@@ -1002,6 +1000,9 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		return re.Font_HeightPixels( args[1], VMF(2) );
 
 	case UI_R_FONT_DRAWSTRING:
+#ifdef __ANDROID__
+		re.Font_DrawString( VMF(1), VMF(2), (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );
+#else
 		{float ox, oy;
 		cvar_t *fs_game = Cvar_FindVar("fs_game");
 		if (fs_game && !Q_stricmpn(fs_game->string, "mme", 3)) {
@@ -1011,7 +1012,7 @@ intptr_t CL_UISystemCalls( intptr_t *args ) {
 		}
 		re.Font_DrawString( ox, oy, (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );}
 		return 0;
-
+#endif
 	case UI_LANGUAGE_ISASIAN:
 		return re.Language_IsAsian();
 
@@ -1157,9 +1158,13 @@ Ghoul2 Insert Start
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
 			int modelIndex = args[10];
-
+#ifdef __ANDROID__
+			return re.G2API_GetBoneAnim(g2, modelIndex, (const char*)VMA(2), args[3], (float *)VMA(4), (int *)VMA(5),
+								(int *)VMA(6), (int *)VMA(7), (float *)VMA(8), (int *)VMA(9));
+#else
 			return re.G2API_GetBoneAnim(&g2[modelIndex], (const char*)VMA(2), args[3], (float *)VMA(4), (int *)VMA(5),
 								(int *)VMA(6), (int *)VMA(7), (float *)VMA(8), (int *)VMA(9));
+#endif
 		}
 
 	case UI_G2_GETBONEFRAME:
@@ -1168,9 +1173,13 @@ Ghoul2 Insert Start
 			int modelIndex = args[6];
 			int iDontCare1 = 0, iDontCare2 = 0, iDontCare3 = 0;
 			float fDontCare1 = 0;
-
+#ifdef __ANDROID__
+			return re.G2API_GetBoneAnim(g2, modelIndex, (const char*)VMA(2), args[3], (float *)VMA(4), &iDontCare1,
+								&iDontCare2, &iDontCare3, &fDontCare1, (int *)VMA(5));
+#else
 			return re.G2API_GetBoneAnim(&g2[modelIndex], (const char*)VMA(2), args[3], (float *)VMA(4), &iDontCare1,
 								&iDontCare2, &iDontCare3, &fDontCare1, (int *)VMA(5));
+#endif
 		}
 
 	case UI_G2_GETGLANAME:
@@ -1262,25 +1271,28 @@ Ghoul2 Insert End
 			char *point = ((char *)VMA(4));
 			char *local;
 			int modelindex = args[3];
-
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-
+#ifdef __ANDROID__
+			local = re.G2API_GetSurfaceName(g2, modelindex, args[2]);
+#else
 			local = re.G2API_GetSurfaceName(&g2[modelindex], args[2]);
+#endif
 			if (local)
 			{
 				strcpy(point, local);
 			}
 		}
-
 		return 0;
 	case UI_G2_SETSKIN:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
 			int modelIndex = args[2];
-			
+#ifdef __ANDROID__
+			return re.G2API_SetSkin(g2, modelIndex, args[3], args[4]);
+#else
 			return re.G2API_SetSkin(&g2[modelIndex], args[3], args[4]);
+#endif
 		}
-
 	case UI_G2_ATTACHG2MODEL:
 		{
 			CGhoul2Info_v *g2From = ((CGhoul2Info_v *)args[1]);
@@ -1293,7 +1305,10 @@ Ghoul2 Insert End
 */
 	case UI_MME_FONTRATIOFIX:
 		re.FontRatioFix(VMF(1));
-        return 0; 	
+        return 0; 
+	case UI_MME_EDITINGFIELD:
+		cls.uiEditingField = (qboolean)args[1];
+        return 0;	
 	default:
 		Com_Error( ERR_DROP, "Bad UI system trap: %ld", (long int) args[0] );
 
@@ -1307,28 +1322,25 @@ Ghoul2 Insert End
 CL_ShutdownUI
 ====================
 */
-void CL_ShutdownUI( void ) {
-	Key_SetCatcher( Key_GetCatcher( ) & ~KEYCATCH_UI );
+void CL_ShutdownUI(void) {
+	Key_SetCatcher(Key_GetCatcher() & ~KEYCATCH_UI);
 	cls.uiStarted = qfalse;
-	if ( !uivm ) {
+	if (!uivm) {
 		return;
 	}
-	VM_Call( uivm, UI_SHUTDOWN );
-	VM_Call( uivm, UI_MENU_RESET );
-	VM_Free( uivm );
+	VM_Call(uivm, UI_SHUTDOWN);
+	VM_Call(uivm, UI_MENU_RESET);
+	VM_Free(uivm);
 	uivm = NULL;
 }
-
 /*
 ====================
 CL_InitUI
 ====================
 */
-
-void CL_InitUI( void ) {
-	int		v;
-	vmInterpret_t		interpret;
-
+void CL_InitUI(void) {
+	int v;
+	vmInterpret_t interpret;
 	// load the dll or bytecode
 	if ( cl_connectedToPureServer != 0 ) {
 #if 0
@@ -1337,32 +1349,29 @@ void CL_InitUI( void ) {
 #else //load the module type based on what the server is doing -rww
 		interpret = (vmInterpret_t)cl_connectedUI;
 #endif
-	}
-	else {
-		interpret = (vmInterpret_t)(int)Cvar_VariableValue( "vm_ui" );
+	} else {
+		interpret = (vmInterpret_t)(int)Cvar_VariableValue("vm_ui");
 	}
 	//ent, from q3mme: CaNaBiS, force a native binary first
 	interpret = VMI_NATIVE;
-	uivm = VM_Create( "ui", CL_UISystemCalls, interpret );
-	if ( !uivm ) {
-		Com_Error( ERR_FATAL, "VM_Create on UI failed" );
+//	uivm = VM_Create("ui", CL_UISystemCalls, interpret);
+	uivm = VM_CreateLegacy(VM_UI, CL_UISystemCalls);
+	if (!uivm) {
+		Com_Error(ERR_FATAL, "VM_Create on UI failed");
 	}
-
 	// sanity check
-	v = VM_Call( uivm, UI_GETAPIVERSION );
+	v = VM_Call(uivm, UI_GETAPIVERSION);
 	if (v != UI_API_VERSION) {
-		Com_Error( ERR_DROP, "User Interface is version %d, expected %d", v, UI_API_VERSION );
+		Com_Error(ERR_DROP, "User Interface is version %d, expected %d", v, UI_API_VERSION);
 		cls.uiStarted = qfalse;
-	}
-	else {
+	} else {
 		// init for this gamestate
 		//rww - changed to <= CA_ACTIVE, because that is the state when we did a vid_restart
 		//ingame (was just < CA_ACTIVE before, resulting in ingame menus getting wiped and
 		//not reloaded on vid restart from ingame menu)
-		VM_Call( uivm, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state <= CA_ACTIVE) );
+		VM_Call(uivm, UI_INIT, (cls.state >= CA_AUTHORIZING && cls.state <= CA_ACTIVE));
 	}
 }
-
 /*
 ====================
 UI_GameCommand
@@ -1370,10 +1379,9 @@ UI_GameCommand
 See if the current console command is claimed by the ui
 ====================
 */
-qboolean UI_GameCommand( void ) {
-	if ( !uivm ) {
+qboolean UI_GameCommand(void) {
+	if (!uivm) {
 		return qfalse;
 	}
-
-	return (qboolean)VM_Call( uivm, UI_CONSOLE_COMMAND, cls.realtime );
+	return (qboolean)VM_Call(uivm, UI_CONSOLE_COMMAND, cls.realtime);
 }

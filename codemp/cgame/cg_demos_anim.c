@@ -4,7 +4,7 @@
 // cg_demos_anim.c -- Creating player model's custom animation
 
 #include "cg_demos.h" 
-#include "ghoul2/G2.h"
+#include "../ghoul2/G2.h"
 
 #ifdef DEMO_ANIM
 

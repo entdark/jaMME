@@ -1,7 +1,7 @@
 // cmd.c -- Quake script command processing module
 
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
 
 #define	MAX_CMD_BUFFER	128*1024
@@ -67,21 +67,16 @@ Cbuf_AddText
 Adds command text at the end of the buffer, does NOT add a final \n
 ============
 */
-void Cbuf_AddText( const char *text ) {
-	int		l;
-	
-	l = strlen (text);
-
-	if (cmd_text.cursize + l >= cmd_text.maxsize)
-	{
-		Com_Printf ("Cbuf_AddText: overflow\n");
+void Cbuf_AddText(const char *text) {
+	int l;
+	l = strlen(text);
+	if (cmd_text.cursize + l >= cmd_text.maxsize) {
+		Com_Printf("Cbuf_AddText: overflow\n");
 		return;
 	}
 	Com_Memcpy(&cmd_text.data[cmd_text.cursize], text, l);
 	cmd_text.cursize += l;
 }
-
-
 /*
 ============
 Cbuf_InsertText

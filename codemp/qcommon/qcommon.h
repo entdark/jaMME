@@ -1,12 +1,15 @@
 #pragma once
-
 // qcommon.h -- definitions common between client and server, but not game.or ref modules
-
-#include "qcommon/cm_public.h"
-#include "qcommon/q_shared.h"
-
+#ifdef __ANDROID__
+#include <android/log.h>
+#define LOGTAG "jaMME"
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO,LOGTAG, __VA_ARGS__))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN,LOGTAG, __VA_ARGS__))
+#define LOGE(...) ((void)__android_log_print(ANDROID_LOG_ERROR,LOGTAG, __VA_ARGS__))
+#endif
+#include "../qcommon/cm_public.h"
+#include "../qcommon/q_shared.h"
 //============================================================================
-
 //
 // msg.c
 //
@@ -254,7 +257,32 @@ VIRTUAL MACHINE
 ==============================================================
 */
 
-typedef struct vm_s vm_t;
+typedef enum vmSlots_e {
+	VM_GAME=0,
+	VM_CGAME,
+	VM_UI,
+	MAX_VM
+} vmSlots_t;
+
+typedef struct vm_s {
+	vmSlots_t	slot; // VM_GAME, VM_CGAME, VM_UI
+    char		name[MAX_QPATH];
+	void		*dllHandle;
+	qboolean	isLegacy; // uses the legacy syscall/vm_call api, is set by VM_CreateLegacy
+
+	// fill the import/export tables
+	void *		(*GetModuleAPI)( int apiVersion, ... );
+
+	// legacy stuff
+	struct {
+		intptr_t	(QDECL *main)( int callNum, ... );		// module vmMain
+		intptr_t	(QDECL *syscall)( intptr_t *parms );	// engine syscall handler
+	} legacy;
+} vm_t;
+
+extern vm_t *currentVM;
+
+extern const char *vmStrs[MAX_VM];
 
 typedef enum {
 	VMI_NATIVE,
@@ -283,28 +311,19 @@ typedef enum {
 	TRAP_ASIN
 } sharedTraps_t;
 
-void	VM_Init( void );
-vm_t	*VM_Create( const char *module, intptr_t (*systemCalls)(intptr_t *), 
-				   vmInterpret_t interpret );
-// module should be bare: "cgame", not "cgame.dll" or "vm/cgame.qvm"
-
-void	VM_Free( vm_t *vm );
-void	VM_Clear(void);
-vm_t	*VM_Restart( vm_t *vm );
-
-intptr_t		QDECL VM_Call( vm_t *vm, int callNum, ... );
-
-void	VM_Debug( int level );
-
-void	VM_Shifted_Alloc(void **ptr, int size);
-void	VM_Shifted_Free(void **ptr);
-
-void	*VM_ArgPtr( intptr_t intValue );
-void	*VM_ExplicitArgPtr( vm_t *vm, intptr_t intValue );
-
+void VM_Init( void );
+vm_t *VM_CreateLegacy( vmSlots_t vmSlot, intptr_t (*systemCalls)(intptr_t *) );
+vm_t *VM_Create( vmSlots_t vmSlot );
+void VM_Free( vm_t *vm );
+void VM_Clear(void);
+vm_t *VM_Restart( vm_t *vm );
+intptr_t QDECL VM_Call( vm_t *vm, int callNum, ... );
+void VM_Shifted_Alloc(void **ptr, int size);
+void VM_Shifted_Free(void **ptr);
+void *VM_ArgPtr( intptr_t intValue );
+void *VM_ExplicitArgPtr( vm_t *vm, intptr_t intValue );
 #define	VMA(x) VM_ArgPtr(args[x])
-static ID_INLINE float _vmf(intptr_t x)
-{
+static ID_INLINE float _vmf(intptr_t x) {
 	floatint_t fi;
 	fi.i = (int) x;
 	return fi.f;
@@ -420,7 +439,7 @@ modules of the program.
 
 */
 
-cvar_t *Cvar_Get( const char *var_name, const char *value, int flags );
+cvar_t *Cvar_Get( const char *var_name, const char *value, uint32_t flags );
 // creates the variable if it doesn't exist, or returns the existing one
 // if it exists, the value will not be changed, but flags will be ORed in
 // that allows variables to be unarchived without needing bitflags
@@ -432,7 +451,7 @@ void	Cvar_Register( vmCvar_t *vmCvar, const char *varName, const char *defaultVa
 void	Cvar_Update( vmCvar_t *vmCvar );
 // updates an interpreted modules' version of a cvar
 
-void 	Cvar_Set( const char *var_name, const char *value );
+cvar_t	*Cvar_Set( const char *var_name, const char *value );
 // will create the variable with no flags if it doesn't exist
 
 cvar_t	*Cvar_Set2(const char *var_name, const char *value, qboolean force);
@@ -448,7 +467,7 @@ cvar_t	*Cvar_Set2Safe( const char *var_name, const char *value, qboolean force )
 void Cvar_SetLatched( const char *var_name, const char *value);
 // don't set the cvar immediately
 
-void	Cvar_SetValue( const char *var_name, float value );
+cvar_t	*Cvar_SetValue( const char *var_name, float value );
 void	Cvar_SetValueSafe( const char *var_name, float value );
 // expands value to a string and calls Cvar_Set/Cvar_SetSafe
 
@@ -579,7 +598,7 @@ int		FS_filelength( fileHandle_t f );
 fileHandle_t FS_SV_FOpenFileWrite( const char *filename );
 int		FS_SV_FOpenFileRead( const char *filename, fileHandle_t *fp );
 void	FS_SV_Rename( const char *from, const char *to );
-int		FS_FOpenFileRead( const char *qpath, fileHandle_t *file, qboolean uniqueFILE );
+long	FS_FOpenFileRead( const char *qpath, fileHandle_t *file, qboolean uniqueFILE );
 // if uniqueFILE is true, then a new FILE will be fopened even if the file
 // is found in an already open pak file.  If uniqueFILE is false, you must call
 // FS_FCloseFile instead of fclose, otherwise the pak FILE would be improperly closed
@@ -600,7 +619,7 @@ int		FS_Read( void *buffer, int len, fileHandle_t f );
 void	FS_FCloseFile( fileHandle_t f );
 // note: you can't just fclose from another DLL, due to MS libc issues
 
-int		FS_ReadFile( const char *qpath, void **buffer );
+long	FS_ReadFile( const char *qpath, void **buffer );
 // returns the length of the file
 // a null buffer will just return the file length without loading
 // as a quick check for existance. -1 length == not present
@@ -982,7 +1001,8 @@ void	Sys_Init (void);
 
 // general development dll loading for virtual machine testing
 void	* QDECL Sys_LoadDll(const char *name, qboolean useSystemLib);
-void	* QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) );
+void	* QDECL Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) );
+void	* QDECL Sys_LoadGameDll( const char *name, void *(QDECL **moduleAPI)(int, ...) );
 void	Sys_UnloadDll( void *dllHandle );
 
 void	Sys_UnloadGame( void );
@@ -1088,12 +1108,10 @@ typedef struct {
 	node_t		nodeList[768];
 	node_t*		nodePtrs[768];
 } huff_t;
-
 typedef struct {
 	huff_t		compressor;
 	huff_t		decompressor;
 } huffman_t;
-
 void	Huff_Compress(msg_t *buf, int offset);
 void	Huff_Decompress(msg_t *buf, int offset);
 void	Huff_Init(huffman_t *huff);
@@ -1104,15 +1122,16 @@ void	Huff_offsetReceive (node_t *node, int *ch, byte *fin, int *offset);
 void	Huff_offsetTransmit (huff_t *huff, int ch, byte *fout, int *offset);
 void	Huff_putBit( int bit, byte *fout, int *offset);
 int		Huff_getBit( byte *fout, int *offset);
-
 extern huffman_t clientHuffTables;
-
 #define	SV_ENCODE_START		4
 #define SV_DECODE_START		12
 #define	CL_ENCODE_START		12
 #define CL_DECODE_START		4
-
-inline int Round(float value)
-{
+inline int Round(float value) {
 	return((int)floorf(value + 0.5f));
 }
+#ifdef __ANDROID__
+// Persistent data store API
+bool PD_Store ( const char *name, const void *data, size_t size );
+const void *PD_Load ( const char *name, size_t *size );
+#endif

@@ -2,15 +2,17 @@
 
 // client.h -- primary header for client
 
-#include "qcommon/q_shared.h"
-#include "qcommon/qcommon.h"
-#include "ui/ui_public.h"
-#include "renderer/tr_public.h"
+#include "../qcommon/q_shared.h"
+#include "../qcommon/qcommon.h"
+#include "../ui/ui_public.h"
+#include "../renderer/tr_public.h"
 #include "keys.h"
 #include "snd_public.h"
-#include "cgame/cg_public.h"
-#include "game/bg_public.h"
-
+#include "../cgame/cg_public.h"
+#include "../game/bg_public.h"
+#ifdef __ANDROID__
+#include "../android/in_android.h"
+#endif
 #define	RETRANSMIT_TIMEOUT	3000	// time between connection packet retransmits
 
 // Wind
@@ -292,36 +294,34 @@ typedef struct {
 	// additional global servers
 	int			numGlobalServerAddresses;
 	netadr_t		globalServerAddresses[MAX_GLOBAL_SERVERS];
-
 	int			numfavoriteservers;
 	serverInfo_t	favoriteServers[MAX_OTHER_SERVERS];
-
-	int pingUpdateSource;		// source currently pinging or updating
-
+	int pingUpdateSource; // source currently pinging or updating
 	// update server info
 	netadr_t	updateServer;
 	char		updateChallenge[MAX_TOKEN_CHARS];
 	char		updateInfoString[MAX_INFO_STRING];
-
 	netadr_t	authorizeServer;
-
 	// rendering info
 	glconfig_t	glconfig;
 	qhandle_t	charSetShader;
 	qhandle_t	whiteShader;
 	qhandle_t	consoleShader;
 	qhandle_t	recordingShader;
-
 	float		ratioFix;
-
+	qboolean	uiEditingField;
 	struct {
 		qboolean		newColors;
 	} uag;
 } clientStatic_t;
-
 #define	CON_TEXTSIZE	0x30000 //was 32768
 #define	NUM_CON_TIMES	4
-
+typedef enum {
+	conHidden,
+	conShort,
+	conFull,
+	conMax,
+} conState_t;
 typedef struct {
 	qboolean	initialized;
 
@@ -344,6 +344,7 @@ typedef struct {
 	int		times[NUM_CON_TIMES];	// cls.realtime time the line was generated
 								// for transparent notify lines
 	vec4_t	color;
+	conState_t state;
 } console_t;
 
 extern	clientStatic_t		cls;
@@ -420,7 +421,7 @@ extern	cvar_t	*mme_demoAutoQuit;
 extern	cvar_t	*mme_demoRemove;
 extern	cvar_t	*mme_demoPrecache;
 extern	cvar_t	*mme_demoAutoNext;
-
+extern	cvar_t	*mme_demoPaused;
 //=================================================
 // cl_demos
 void CL_MMEDemo_f( void );

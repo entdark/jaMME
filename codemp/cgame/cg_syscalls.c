@@ -1287,3 +1287,6 @@ void trap_CIN_AdjustTime( int time ) {
 void trap_R_RotatePic2RatioFix( float ratio ) {
 	Q_syscall( CG_R_ROTATEPIC2_RATIOFIX, PASSFLOAT(ratio) );
 }
+void trap_MME_VibrateFeedback( int time ) {
+	Q_syscall( CG_MME_VIBRATEFEEDBACK, time );
+}

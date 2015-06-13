@@ -762,10 +762,10 @@ static void hudDrawItem( hudItem_t *item ) {
 void hudDraw( void ) {
 	int i;int logIndex;
 	hudItem_t *item;
-
+#ifndef __ANDROID__
 	if (demo.editType == editNone)
 		return;
-
+#endif
 	switch (demo.editType) {
 	case editCamera:
 		hud.showMask = MASK_CAM;
@@ -1000,13 +1000,13 @@ void hudInitTables(void) {
 	int i;
 	memset( hudItems, 0, sizeof( hudItems ));
 	hudItemsUsed = 0;
-
+#ifndef __ANDROID__
 	/* Setup the hudItems */
 	hudAddHandler(   0,  0,  0, "Time:", hudPlayTime );
 	hudAddValue(     0,  1,  0, "Speed:", &demo.play.speed );
 	hudAddHandler(   0,  2,  0, "View:", hudViewName );
 	hudAddHandler(   0,  3,  0, "Edit:", hudEditName );
-
+#endif
 	for (i = 0; i < LOGLINES; i++) 
 		hudAddHandler(   0,  25+i, 0, 0, hudLogBase+i );
 
@@ -1134,7 +1134,7 @@ static void hudEditItem( hudItem_t *item, const char *buf ) {
 		break;
 */	}
 }
-
+#ifndef __ANDROID__
 qboolean CG_KeyEvent(int key, qboolean down) {
 	int catchMask;
 	int len;
@@ -1244,7 +1244,6 @@ qboolean CG_KeyEvent(int key, qboolean down) {
 	}
 	return qtrue;
 }
-
 void CG_MouseEvent(int dx, int dy) {
 	// update mouse screen position
 	hud.cursorX += dx*cgs.widthRatioCoef;
@@ -1252,10 +1251,10 @@ void CG_MouseEvent(int dx, int dy) {
 		hud.cursorX = 0;
 	else if (hud.cursorX > SCREEN_WIDTH)
 		hud.cursorX = SCREEN_WIDTH;
-
 	hud.cursorY += dy;
 	if (hud.cursorY < 0)
 		hud.cursorY = 0;
 	else if (hud.cursorY > SCREEN_HEIGHT)
 		hud.cursorY = SCREEN_HEIGHT;
 }
+#endif

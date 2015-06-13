@@ -1,11 +1,13 @@
 #pragma once
-
-#include "renderer/tr_types.h"
-#include "qcommon/MiniHeap.h"
-#include "ghoul2/ghoul2_shared.h"
-
-#define	REF_API_VERSION 1
-
+#include "../qcommon/qcommon.h"
+#include "../renderer/tr_types.h"
+#ifndef __ANDROID__
+#include "../qcommon/MiniHeap.h"
+#else
+#include "../rd-gles/miniheap.h"
+#endif
+#include "../ghoul2/ghoul2_shared.h"
+#define	REF_API_VERSION 2
 //
 // these are the functions exported by the refresh module
 //
@@ -14,8 +16,11 @@ typedef struct {
 	// called before the library is unloaded
 	// if the system is just reconfiguring, pass destroyWindow = qfalse,
 	// which will keep the screen from flashing to the desktop.
+#ifdef __ANDROID__
+	void				(*Shutdown)								( qboolean destroyWindow, qboolean restarting );
+#else
 	void				(*Shutdown)								( qboolean destroyWindow );
-
+#endif
 	// All data that will be used in a level should be
 	// registered before rendering any frames to prevent disk hits,
 	// but they can still be registered at a later time
@@ -128,7 +133,11 @@ typedef struct {
 	int					(*G2API_AddBoltSurfNum)					( CGhoul2Info *ghlInfo, const int surfIndex );
 	int					(*G2API_AddSurface)						( CGhoul2Info *ghlInfo, int surfaceNumber, int polyNumber, float BarycentricI, float BarycentricJ, int lod );
 	void				(*G2API_AnimateG2ModelsRag)				( CGhoul2Info_v &ghoul2, int AcurrentTime, CRagDollUpdateParams *params );
+#ifdef __ANDROID__
+	qboolean			(*G2API_AttachEnt)						( int *boltInfo, CGhoul2Info_v& ghoul2, int modelIndex, int toBoltIndex, int entNum, int toModelNum );
+#else
 	qboolean			(*G2API_AttachEnt)						( int *boltInfo, CGhoul2Info *ghlInfoTo, int toBoltIndex, int entNum, int toModelNum );
+#endif
 	qboolean			(*G2API_AttachG2Model)					( CGhoul2Info_v &ghoul2From, int modelFrom, CGhoul2Info_v &ghoul2To, int toBoltIndex, int toModel );
 	void				(*G2API_AttachInstanceToEntNum)			( CGhoul2Info_v &ghoul2, int entityNum, qboolean server );
 	void				(*G2API_AbsurdSmoothing)				( CGhoul2Info_v &ghoul2, qboolean status );
@@ -137,28 +146,52 @@ typedef struct {
 	void				(*G2API_CleanEntAttachments)			( void );
 	void				(*G2API_CleanGhoul2Models)				( CGhoul2Info_v **ghoul2Ptr );
 	void				(*G2API_ClearAttachedInstance)			( int entityNum );
+#ifdef __ANDROID__
+	void				(*G2API_CollisionDetect)				( CollisionRecord_t *collRecMap, CGhoul2Info_v &ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, IHeapAllocator *G2VertSpace, int traceFlags, int useLod, float fRadius );
+	void				(*G2API_CollisionDetectCache)			( CollisionRecord_t *collRecMap, CGhoul2Info_v &ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, IHeapAllocator *G2VertSpace, int traceFlags, int useLod, float fRadius );
+#else
 	void				(*G2API_CollisionDetect)				( CollisionRecord_t *collRecMap, CGhoul2Info_v &ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, CMiniHeap *G2VertSpace, int traceFlags, int useLod, float fRadius );
 	void				(*G2API_CollisionDetectCache)			( CollisionRecord_t *collRecMap, CGhoul2Info_v &ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, CMiniHeap *G2VertSpace, int traceFlags, int useLod, float fRadius );
+#endif
 	int					(*G2API_CopyGhoul2Instance)				( CGhoul2Info_v &g2From, CGhoul2Info_v &g2To, int modelIndex );
 	void				(*G2API_CopySpecificG2Model)			( CGhoul2Info_v &ghoul2From, int modelFrom, CGhoul2Info_v &ghoul2To, int modelTo );
 	qboolean			(*G2API_DetachG2Model)					( CGhoul2Info *ghlInfo );
+#ifdef __ANDROID__
+	qboolean			(*G2API_DoesBoneExist)					( CGhoul2Info_v& ghoul2, int modelIndex, const char *boneName );
+#else
 	qboolean			(*G2API_DoesBoneExist)					( CGhoul2Info *ghlInfo, const char *boneName );
+#endif
 	void				(*G2API_DuplicateGhoul2Instance)		( CGhoul2Info_v &g2From, CGhoul2Info_v **g2To );
 	void				(*G2API_FreeSaveBuffer)					( char *buffer );
 	qboolean			(*G2API_GetAnimFileName)				( CGhoul2Info *ghlInfo, char **filename );
 	char *				(*G2API_GetAnimFileNameIndex)			( qhandle_t modelIndex );
 	qboolean			(*G2API_GetAnimRange)					( CGhoul2Info *ghlInfo, const char *boneName, int *startFrame, int *endFrame );
 	qboolean			(*G2API_GetBoltMatrix)					( CGhoul2Info_v &ghoul2, const int modelIndex, const int boltIndex, mdxaBone_t *matrix, const vec3_t angles, const vec3_t position, const int frameNum, qhandle_t *modelList, vec3_t scale );
+#ifdef __ANDROID__
+	qboolean			(*G2API_GetBoneAnim)					( CGhoul2Info_v& ghoul2, int modelIndex, const char *boneName, const int currentTime, float *currentFrame, int *startFrame, int *endFrame, int *flags, float *animSpeed, qhandle_t *modelList );
+#else
 	qboolean			(*G2API_GetBoneAnim)					( CGhoul2Info *ghlInfo, const char *boneName, const int currentTime, float *currentFrame, int *startFrame, int *endFrame, int *flags, float *animSpeed, qhandle_t *modelList );
+#endif
 	int					(*G2API_GetBoneIndex)					( CGhoul2Info *ghlInfo, const char *boneName );
 	int					(*G2API_GetGhoul2ModelFlags)			( CGhoul2Info *ghlInfo );
 	char *				(*G2API_GetGLAName)						( CGhoul2Info_v &ghoul2, int modelIndex );
+#ifdef __ANDROID__
+	const char *		(*G2API_GetModelName)					( CGhoul2Info_v& ghoul2, int modelIndex );
+#endif
 	int					(*G2API_GetParentSurface)				( CGhoul2Info *ghlInfo, const int index );
 	qboolean			(*G2API_GetRagBonePos)					( CGhoul2Info_v &ghoul2, const char *boneName, vec3_t pos, vec3_t entAngles, vec3_t entPos, vec3_t entScale );
 	int					(*G2API_GetSurfaceIndex)				( CGhoul2Info *ghlInfo, const char *surfaceName );
+#ifdef __ANDROID__
+	char *				(*G2API_GetSurfaceName)					( CGhoul2Info_v& ghlInfo, int modelIndex, int surfNumber );
+#else
 	char *				(*G2API_GetSurfaceName)					( CGhoul2Info *ghlInfo, int surfNumber );
+#endif
 	int					(*G2API_GetSurfaceOnOff)				( CGhoul2Info *ghlInfo, const char *surfaceName );
+#ifdef __ANDROID__
+	int					(*G2API_GetSurfaceRenderStatus)			( CGhoul2Info_v& ghoul2, int modelIndex, const char *surfaceName );
+#else
 	int					(*G2API_GetSurfaceRenderStatus)			( CGhoul2Info *ghlInfo, const char *surfaceName );
+#endif
 	int					(*G2API_GetTime)						( int argTime );
 	int					(*G2API_Ghoul2Size)						( CGhoul2Info_v &ghoul2 );
 	void				(*G2API_GiveMeVectorFromMatrix)			( mdxaBone_t *boltMatrix, Eorientations flags, vec3_t vec );
@@ -166,12 +199,19 @@ typedef struct {
 	qboolean			(*G2API_HaveWeGhoul2Models)				( CGhoul2Info_v &ghoul2 );
 	qboolean			(*G2API_IKMove)							( CGhoul2Info_v &ghoul2, int time, sharedIKMoveParams_t *params );
 	int					(*G2API_InitGhoul2Model)				( CGhoul2Info_v **ghoul2Ptr, const char *fileName, int modelIndex, qhandle_t customSkin, qhandle_t customShader, int modelFlags, int lodBias );
+#ifdef __ANDROID__
+	qboolean			(*G2API_IsGhoul2InfovValid)				( CGhoul2Info_v& ghoul2 );
+#endif
 	qboolean			(*G2API_IsPaused)						( CGhoul2Info *ghlInfo, const char *boneName );
 	void				(*G2API_ListBones)						( CGhoul2Info *ghlInfo, int frame );
 	void				(*G2API_ListSurfaces)					( CGhoul2Info *ghlInfo );
 	void				(*G2API_LoadGhoul2Models)				( CGhoul2Info_v &ghoul2, char *buffer );
 	void				(*G2API_LoadSaveCodeDestructGhoul2Info)	( CGhoul2Info_v &ghoul2 );
+#ifdef __ANDROID__
+	qboolean			(*G2API_OverrideServerWithClientData)	( CGhoul2Info_v& serverInstance, int modelIndex );
+#else
 	qboolean			(*G2API_OverrideServerWithClientData)	( CGhoul2Info *serverInstance );
+#endif
 	qboolean			(*G2API_PauseBoneAnim)					( CGhoul2Info *ghlInfo, const char *boneName, const int currentTime );
 	qhandle_t			(*G2API_PrecacheGhoul2Model)			( const char *fileName );
 	qboolean			(*G2API_RagEffectorGoal)				( CGhoul2Info_v &ghoul2, const char *boneName, vec3_t pos );
@@ -180,7 +220,11 @@ typedef struct {
 	qboolean			(*G2API_RagPCJConstraint)				( CGhoul2Info_v &ghoul2, const char *boneName, vec3_t min, vec3_t max );
 	qboolean			(*G2API_RagPCJGradientSpeed)			( CGhoul2Info_v &ghoul2, const char *boneName, const float speed );
 	qboolean			(*G2API_RemoveBolt)						( CGhoul2Info *ghlInfo, const int index );
+#ifdef __ANDROID__
+	qboolean			(*G2API_RemoveBone)						( CGhoul2Info_v& ghoul2, int modelIndex, const char *boneName );
+#else
 	qboolean			(*G2API_RemoveBone)						( CGhoul2Info *ghlInfo, const char *boneName );
+#endif
 	qboolean			(*G2API_RemoveGhoul2Model)				( CGhoul2Info_v **ghlRemove, const int modelIndex );
 	qboolean			(*G2API_RemoveGhoul2Models)				( CGhoul2Info_v **ghlRemove );
 	qboolean			(*G2API_RemoveSurface)					( CGhoul2Info *ghlInfo, const int index );
@@ -194,25 +238,37 @@ typedef struct {
 	qboolean			(*G2API_SetBoneAnim)					( CGhoul2Info_v &ghoul2, const int modelIndex, const char *boneName, const int startFrame, const int endFrame, const int flags, const float animSpeed, const int currentTime, const float setFrame /*= -1*/, const int blendTime /*= -1*/ );
 	qboolean			(*G2API_SetBoneAnimIndex)				( CGhoul2Info *ghlInfo, const int index, const int startFrame, const int endFrame, const int flags, const float animSpeed, const int currentTime, const float setFrame, const int blendTime );
 	qboolean			(*G2API_SetBoneIKState)					( CGhoul2Info_v &ghoul2, int time, const char *boneName, int ikState, sharedSetBoneIKStateParams_t *params );
-	void				(*G2API_SetGhoul2ModelIndexes)			( CGhoul2Info_v &ghoul2, qhandle_t *modelList, qhandle_t *skinList );
 	qboolean			(*G2API_SetGhoul2ModelFlags)			( CGhoul2Info *ghlInfo, const int flags );
+	void				(*G2API_SetGhoul2ModelIndexes)			( CGhoul2Info_v &ghoul2, qhandle_t *modelList, qhandle_t *skinList );
 	qboolean			(*G2API_SetLodBias)						( CGhoul2Info *ghlInfo, int lodBias );
 	qboolean			(*G2API_SetNewOrigin)					( CGhoul2Info_v &ghoul2, const int boltIndex );
 	void				(*G2API_SetRagDoll)						( CGhoul2Info_v &ghoul2, CRagDollParams *parms );
 	qboolean			(*G2API_SetRootSurface)					( CGhoul2Info_v &ghoul2, const int modelIndex, const char *surfaceName );
 	qboolean			(*G2API_SetShader)						( CGhoul2Info *ghlInfo, qhandle_t customShader );
+#ifdef __ANDROID__
+	qboolean			(*G2API_SetSkin)						( CGhoul2Info_v& ghoul2, int modelIndex, qhandle_t customSkin, qhandle_t renderSkin );
+#else
 	qboolean			(*G2API_SetSkin)						( CGhoul2Info *ghlInfo, qhandle_t customSkin, qhandle_t renderSkin );
+#endif
 	qboolean			(*G2API_SetSurfaceOnOff)				( CGhoul2Info_v &ghoul2, const char *surfaceName, const int flags );
 	void				(*G2API_SetTime)						( int currentTime, int clock );
+#ifdef __ANDROID__
+	qboolean			(*G2API_SkinlessModel)					( CGhoul2Info_v& ghoul2, int modelIndex );
+#else
 	void				(*G2API_SetTimeFraction)				( float timeFraction );
 	qboolean			(*G2API_SkinlessModel)					( CGhoul2Info *g2 );
+#endif
 	qboolean			(*G2API_StopBoneAngles)					( CGhoul2Info *ghlInfo, const char *boneName );
 	qboolean			(*G2API_StopBoneAnglesIndex)			( CGhoul2Info *ghlInfo, const int index );
 	qboolean			(*G2API_StopBoneAnim)					( CGhoul2Info *ghlInfo, const char *boneName );
 	qboolean			(*G2API_StopBoneAnimIndex)				( CGhoul2Info *ghlInfo, const int index );
 
 	#ifdef _G2_GORE
+#ifdef __ANDROID__
+	int					(*G2API_GetNumGoreMarks)				( CGhoul2Info_v& ghoul2, int modelIndex );
+#else
 	int					(*G2API_GetNumGoreMarks)				( CGhoul2Info *g2 );
+#endif
 	void				(*G2API_AddSkinGore)					( CGhoul2Info_v &ghoul2, SSkinGoreData &gore );
 	void				(*G2API_ClearSkinGore)					( CGhoul2Info_v &ghoul2 );
 	#endif // _SOF2
@@ -221,18 +277,22 @@ typedef struct {
 	void				(*LoadDataImage)						( const char *name, byte **pic, int *width, int *height );
 	void				(*InvertImage)							( byte *data, int width, int height, int depth );
 	void				(*Resample)								( byte *source, int swidth, int sheight, byte *dest, int dwidth, int dheight, int components );
+#ifdef __ANDROID__
+	void				(*LoadImageJA)							( const char *name, byte **pic, int *width, int *height );
+#else
 	void				(*LoadImageJA)							( const char *name, byte **pic, int *width, int *height, int *format );
+#endif
 	void				(*CreateAutomapImage)					( const char *name, const byte *pic, int width, int height, qboolean mipmap, qboolean allowPicmip, qboolean allowTC, int glWrapClampMode );
-	int					(*SavePNG)								( char *filename, byte *buf, size_t width, size_t height, int byteDepth );
-
+	int					(*SavePNG)								( const char *filename, byte *buf, size_t width, size_t height, int byteDepth );
+#ifndef __ANDROID__
 	IGhoul2InfoArray &	(*TheGhoul2InfoArray)					( void );
-
 	//mme
 	void				(*Capture)								( const char *baseName, float fps, float focus, float radius );
 	void				(*CaptureStereo)						( const char *baseName, float fps, float focus, float radius );
 	void				(*BlurInfo)								( int* total, int* index );
 	void				(*TimeFraction)							( float timeFraction );
 	void				(*DemoRandomSeed)						( int time, float timeFraction );
+#endif
 	void				(*NewUAGColors)							( qboolean newUAGColors );
 	void				(*FontRatioFix)							( float ratio );
 	void				(*RotatePic2RatioFix)					( float ratio );
@@ -241,7 +301,7 @@ typedef struct {
 //
 // these are the functions imported by the refresh module
 //
-typedef struct {
+typedef struct refimport_s {
 	void			(QDECL *Printf)						( int printLevel, const char *fmt, ...) __attribute__ ((format (printf, 2, 3)));
 	void			(QDECL *Error)						( int errorLevel, const char *fmt, ...) __attribute__ ((noreturn, format (printf, 2, 3)));
 	void			(QDECL *OPrintf)					( const char *fmt, ...) __attribute__ ((format (printf, 1, 2)));
@@ -265,9 +325,9 @@ typedef struct {
 	void			(*Cmd_ArgsBuffer)					( char *buffer, int bufferLength );
 	void			(*Cmd_AddCommand)					( const char *cmd_name, xcommand_t function );
 	void			(*Cmd_RemoveCommand)				( const char *cmd_name );
-	void			(*Cvar_Set)							( const char *var_name, const char *value );
-	cvar_t *		(*Cvar_Get)							( const char *var_name, const char *value, int flags );
-	void			(*Cvar_SetValue)					( const char *name, float value );
+	cvar_t *		(*Cvar_Set)							( const char *var_name, const char *value );
+	cvar_t *		(*Cvar_Get)							( const char *var_name, const char *value, uint32_t flags );
+	cvar_t *		(*Cvar_SetValue)					( const char *name, float value );
 	void			(*Cvar_CheckRange)					( cvar_t *cv, float minVal, float maxVal, qboolean shouldBeIntegral );
 	void			(*Cvar_VariableStringBuffer)		( const char *var_name, char *buffer, int bufsize );
 	char *			(*Cvar_VariableString)				( const char *var_name );
@@ -278,9 +338,9 @@ typedef struct {
 	void			(*FS_FreeFile)						( void *buffer );
 	void			(*FS_FreeFileList)					( char **fileList );
 	int				(*FS_Read)							( void *buffer, int len, fileHandle_t f );
-	int				(*FS_ReadFile)						( const char *qpath, void **buffer );
+	long			(*FS_ReadFile)						( const char *qpath, void **buffer );
 	void			(*FS_FCloseFile)					( fileHandle_t f );
-	int				(*FS_FOpenFileRead)					( const char *qpath, fileHandle_t *file, qboolean uniqueFILE );
+	long			(*FS_FOpenFileRead)					( const char *qpath, fileHandle_t *file, qboolean uniqueFILE );
 #ifdef USE_AIO
 	fileHandle_t	(*FS_FOpenFileWriteAsync)			( const char *qpath );
 #endif
@@ -338,8 +398,15 @@ typedef struct {
 
 	// even the server will have this, which is a singleton
 	// so before assigning to this in R_Init, check if it's NULL!
+#ifdef __ANDROID__
+	IHeapAllocator *		(*GetG2VertSpaceServer)				( void );
+	// Persistent data store
+	bool			(*PD_Store)							( const char *name, const void *data, size_t size );
+	const void *	(*PD_Load)							( const char *name, size_t *size );
+#else
 	CMiniHeap *		(*GetG2VertSpaceServer)				( void );
 	qboolean		(*S_MMEAviImport)					(byte *out, int *size);
+#endif
 } refimport_t;
 
 // this is the only function actually exported at the linker level

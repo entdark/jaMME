@@ -1,29 +1,25 @@
 #pragma once
-
-#include "qcommon/qcommon.h"
-
+#ifndef __ANDROID__
+#include "../qcommon/qcommon.h"
+#else
+#include "ghoul2_shared.h"
+#include "../qcommon/q_shared.h"
+#endif
 #ifdef _G2_GORE
-
 #define MAX_LODS (8)
-struct GoreTextureCoordinates
-{
+struct GoreTextureCoordinates {
 	float *tex[MAX_LODS];
-
-	GoreTextureCoordinates()
-	{
+#ifndef __ANDROID__
+	GoreTextureCoordinates() {
 		int i;
-		for (i=0;i<MAX_LODS;i++)
-		{
+		for (i=0;i<MAX_LODS;i++) {
 			tex[i]=0;
 		}
 	}
-	~GoreTextureCoordinates()
-	{
+	~GoreTextureCoordinates() {
 		int i;
-		for (i=0;i<MAX_LODS;i++)
-		{
-			if ( tex[i] )
-			{
+		for (i=0;i<MAX_LODS;i++) {
+			if (tex[i]) {
 #ifdef _DEBUG
 				extern int g_goreTexAllocs;
 				g_goreTexAllocs--;
@@ -33,6 +29,10 @@ struct GoreTextureCoordinates
 			}
 		}
 	}
+#else
+	GoreTextureCoordinates();
+	~GoreTextureCoordinates();
+#endif
 };
 
 int AllocGoreRecord();
@@ -73,9 +73,9 @@ void		DeleteGoreSet(int goreSetTag);
 //rww - RAGDOLL_BEGIN
 
 /// ragdoll stuff
-
+#ifdef _MSC_VER
 #pragma warning(disable: 4512)
-
+#endif
 struct SRagDollEffectorCollision
 {
 	vec3_t			effectorPosition;

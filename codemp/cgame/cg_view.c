@@ -3,7 +3,7 @@
 // cg_view.c -- setup all the parameters (position, angle, etc)
 // for a 3D rendering
 #include "cg_local.h"
-#include "game/bg_saga.h"
+#include "../game/bg_saga.h"
 #include "cg_lights.h"
 
 #define MASK_CAMERACLIP (MASK_SOLID|CONTENTS_PLAYERCLIP)
@@ -2875,7 +2875,7 @@ extern qboolean PM_InKnockDown( playerState_t *ps );
 //extern void CG_ActualLoadDeferredPlayers( void );	//->cg_local.h
 
 int cg_siegeClassIndex = -2;
-
+extern void FX_VibrateView(const float scale, vec3_t origin, vec3_t angles);
 extern void CG_SetPredictedThirdPerson(void);
 extern void trap_S_UpdateScale( float scale );
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayback ) {
@@ -3054,6 +3054,9 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 
 	// build cg.refdef
 	inwater = CG_CalcViewValues();
+	if (fx_Vibrate.value > 0.0f) {
+		FX_VibrateView(1.0f, cg.refdef.vieworg, cg.refdef.viewangles);
+	}
 	CG_SetupFrustum();
 	
 	cg.fallingToDeath = cg.snap->ps.fallingToDeath;

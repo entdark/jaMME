@@ -1,8 +1,8 @@
 #pragma once
 
-#include "qcommon/qfiles.h"
-#include "qcommon/q_shared.h"
-#include "renderer/tr_public.h"
+#include "../qcommon/qfiles.h"
+#include "../qcommon/q_shared.h"
+#include "../renderer/tr_public.h"
 
 #ifdef _WIN32
 	#include "qgl.h"
@@ -12,13 +12,13 @@
 	#include <emmintrin.h>
 #endif
 
-#include "ghoul2/ghoul2_shared.h" //rwwRMG - added
+#include "../ghoul2/ghoul2_shared.h" //rwwRMG - added
 
 #define GL_INDEX_TYPE		GL_UNSIGNED_INT
 typedef unsigned int glIndex_t;
 
 #ifndef _WIN32
-	#include "qcommon/platform.h"
+	#include "../qcommon/platform.h"
 #endif
 
 //for 3d textures -rww
@@ -2014,7 +2014,7 @@ void RE_RotatePic2RatioFix ( float ratio );
 void RE_BeginFrame( stereoFrame_t stereoFrame );
 void RE_EndFrame( int *frontEndMsec, int *backEndMsec );
 
-int RE_SavePNG( char *filename, byte *buf, size_t width, size_t height, int byteDepth );
+int RE_SavePNG(const char *filename, byte *buf, size_t width, size_t height, int byteDepth );
 
 /*
 Ghoul2 Insert Start

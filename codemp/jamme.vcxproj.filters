@@ -376,12 +376,6 @@
     <ClCompile Include="qcommon\vm.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="qcommon\vm_x86.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
-    <ClCompile Include="qcommon\vm_interpreted.cpp">
-      <Filter>Common</Filter>
-    </ClCompile>
     <ClCompile Include="win32\win_input.cpp">
       <Filter>win32</Filter>
     </ClCompile>
@@ -788,9 +782,6 @@
     </ClInclude>
     <ClInclude Include="Ratl\vector_vs.h">
       <Filter>Ratl</Filter>
-    </ClInclude>
-    <ClInclude Include="qcommon\vm_local.h">
-      <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="win32\win_local.h">
       <Filter>win32</Filter>

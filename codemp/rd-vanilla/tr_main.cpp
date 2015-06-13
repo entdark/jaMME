@@ -1,6 +1,6 @@
 // tr_main.c -- main control flow for each frame
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
 #include "tr_local.h"
 #include "G2_local.h"

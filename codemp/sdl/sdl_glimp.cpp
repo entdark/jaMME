@@ -1,8 +1,12 @@
 #include <SDL.h>
-#include "qcommon/qcommon.h"
+#include "../qcommon/qcommon.h"
+#ifdef __ANDROID
+#include "../rd-gles/tr_local.h"
+#else
 #include "../rd-vanilla/tr_local.h"
+#endif
 #include "sdl_qgl.h"
-#include "sys/sys_local.h"
+#include "../sys/sys_local.h"
 
 static SDL_Window *window = NULL;
 

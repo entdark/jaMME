@@ -86,3 +86,5 @@ typedef struct {
 	} play;
 } demo_t;
 
+extern int demoLength(void);
+extern int demoTime(void);

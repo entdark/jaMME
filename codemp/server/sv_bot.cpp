@@ -1,9 +1,9 @@
 // sv_bot.c
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
 #include "server.h"
-#include "botlib/botlib.h"
+#include "../botlib/botlib.h"
 
 typedef struct bot_debugpoly_s
 {
@@ -57,22 +57,14 @@ int SV_OrgVisibleBox(vec3_t org1, vec3_t mins, vec3_t maxs, vec3_t org2, int ign
 
 	return 0;
 }
-
-void *BotVMShift( int ptr );
-
-void SV_BotWaypointReception(int wpnum, wpobject_t **wps)
-{
+void SV_BotWaypointReception(int wpnum, wpobject_t **wps) {
 	int i = 0;
-
 	gWPNum = wpnum;
-
-	while (i < gWPNum)
-	{
-		gWPArray[i] = (wpobject_t *)BotVMShift((intptr_t)wps[i]);
+	while (i < gWPNum) {
+		gWPArray[i] = wps[i];
 		i++;
 	}
 }
-
 /*
 ==================
 SV_BotCalculatePaths

@@ -336,7 +336,6 @@
     <ClInclude Include="qcommon\tags.h" />
     <ClInclude Include="qcommon\timing.h" />
     <ClInclude Include="qcommon\unzip.h" />
-    <ClInclude Include="qcommon\vm_local.h" />
     <ClInclude Include="win32\glw_win.h" />
     <ClInclude Include="win32\win_local.h" />
     <ClInclude Include="server\server.h" />
@@ -482,8 +481,6 @@
     <ClCompile Include="qcommon\stringed_interface.cpp" />
     <ClCompile Include="qcommon\unzip.cpp" />
     <ClCompile Include="qcommon\vm.cpp" />
-    <ClCompile Include="qcommon\vm_interpreted.cpp" />
-    <ClCompile Include="qcommon\vm_x86.cpp" />
     <ClCompile Include="qcommon\z_memman_pc.cpp" />
     <ClCompile Include="sys\snapvector.cpp" />
     <ClCompile Include="win32\win_input.cpp" />

@@ -1,9 +1,9 @@
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
 #include "client.h"
 #include "FxScheduler.h"
-#include "qcommon/q_shared.h"
+#include "../qcommon/q_shared.h"
 
 #ifndef _WIN32
 #include <algorithm>
@@ -31,8 +31,11 @@ CFxScheduler::CFxScheduler()
 	memset( &mEffectTemplates, 0, sizeof( mEffectTemplates ));
 	memset( &mLoopedEffectArray, 0, sizeof( mLoopedEffectArray ));
 }
-
+#ifdef __ANDROID__
+int CFxScheduler::ScheduleLoopedEffect( int id, int boltInfo, CGhoul2Info_v *ghoul2, bool isPortal, int iLoopTime, bool isRelative  )
+#else
 int CFxScheduler::ScheduleLoopedEffect( int id, int boltInfo, int iGhoul2, bool isPortal, int iLoopTime, bool isRelative  )
+#endif
 {
 	int i;
 	
@@ -72,7 +75,11 @@ int CFxScheduler::ScheduleLoopedEffect( int id, int boltInfo, int iGhoul2, bool 
 	}
 	mLoopedEffectArray[i].mId = id;
 	mLoopedEffectArray[i].mBoltInfo = boltInfo;
+#ifdef __ANDROID__
+	mLoopedEffectArray[i].mGhoul2  = ghoul2;
+#else
 	mLoopedEffectArray[i].mGhoul2  = iGhoul2;
+#endif
 	mLoopedEffectArray[i].mPortalEffect = isPortal;
 	mLoopedEffectArray[i].mIsRelative = isRelative;
 	mLoopedEffectArray[i].mNextTime = theFxHelper.mTime + mEffectTemplates[id].mRepeatDelay ;
@@ -126,8 +133,11 @@ void CFxScheduler::AddLoopedEffects()
 
 			data->mEntityNum = entNum;
 			VM_Call( cgvm, CG_GET_LERP_ORIGIN );
-
+#ifdef __ANDROID__
+			PlayEffect( mLoopedEffectArray[i].mId, data->mPoint, 0, mLoopedEffectArray[i].mBoltInfo, mLoopedEffectArray[i].mGhoul2, -1, mLoopedEffectArray[i].mPortalEffect, false, mLoopedEffectArray[i].mIsRelative );	//very important to send FALSE to not recursively add me!
+#else
 			PlayEffect( mLoopedEffectArray[i].mId, data->mPoint, 0, mLoopedEffectArray[i].mBoltInfo, mLoopedEffectArray[i].mGhoul2.mItem, -1, mLoopedEffectArray[i].mPortalEffect, false, mLoopedEffectArray[i].mIsRelative );	//very important to send FALSE to not recursively add me!
+#endif
 			mLoopedEffectArray[i].mNextTime = theFxHelper.mTime + mEffectTemplates[mLoopedEffectArray[i].mId].mRepeatDelay;
 			if (mLoopedEffectArray[i].mLoopStopTime && mLoopedEffectArray[i].mLoopStopTime < theFxHelper.mTime)	//time's up
 			{//kill this entry
@@ -749,8 +759,13 @@ void CFxScheduler::PlayEffect( int id, vec3_t origin, vec3_t forward, int vol, i
 // Return:
 //	none
 //------------------------------------------------------
+#ifdef __ANDROID__
+void CFxScheduler::PlayEffect( const char *file, vec3_t origin, matrix3_t axis, const int boltInfo, CGhoul2Info_v *ghoul2,
+							  int fxParm /*-1*/, int vol, int rad, int iLoopTime, bool isRelative )
+#else
 void CFxScheduler::PlayEffect( const char *file, vec3_t origin, vec3_t axis[3], const int boltInfo, int iGhoul2,
 							  int fxParm /*-1*/, int vol, int rad, int iLoopTime, bool isRelative )
+#endif
 {
 	char	sfile[MAX_QPATH];
 
@@ -764,8 +779,11 @@ void CFxScheduler::PlayEffect( const char *file, vec3_t origin, vec3_t axis[3], 
 		return;
 	}
 #endif
-
+#ifdef __ANDROID__
+	PlayEffect( mEffectIDs[sfile], origin, axis, boltInfo, ghoul2, fxParm, vol, rad, qfalse, iLoopTime, isRelative );
+#else
 	PlayEffect( mEffectIDs[sfile], origin, axis, boltInfo, iGhoul2, fxParm, vol, rad, qfalse, iLoopTime, isRelative );
+#endif
 }
 
 int	totalPrimitives = 0;
@@ -802,7 +820,11 @@ void GetRGB_Colors( CPrimitiveTemplate *fx, vec3_t outStartRGB, vec3_t outEndRGB
 // Return:
 //	none
 //------------------------------------------------------
+#ifdef __ANDROID__
+void CFxScheduler::PlayEffect( int id, vec3_t origin, matrix3_t axis, const int boltInfo, CGhoul2Info_v *ghoul2, int fxParm /*-1*/, int vol, int rad, bool isPortal/*false*/, int iLoopTime/*0*/,  bool isRelative )
+#else
 void CFxScheduler::PlayEffect( int id, vec3_t origin, vec3_t axis[3], const int boltInfo, int iGhoul2, int fxParm /*-1*/, int vol, int rad, bool isPortal/*false*/, int iLoopTime/*0*/,  bool isRelative )
+#endif
 {
 	SEffectTemplate			*fx;
 	CPrimitiveTemplate		*prim;
@@ -843,7 +865,11 @@ void CFxScheduler::PlayEffect( int id, vec3_t origin, vec3_t axis[3], const int 
 
 		if (iLoopTime)//0 = not looping, 1 for infinite, else duration
 		{//store off the id to reschedule every frame
+#ifdef __ANDROID__
+			ScheduleLoopedEffect(id, boltInfo, ghoul2, !!isPortal, iLoopTime, isRelative);
+#else
 			ScheduleLoopedEffect(id, boltInfo, iGhoul2, !!isPortal, iLoopTime, isRelative);
+#endif
 		}
 	}
 
@@ -953,7 +979,11 @@ void CFxScheduler::PlayEffect( int id, vec3_t origin, vec3_t axis[3], const int 
 
 				if ( boltInfo == -1 )
 				{
+#ifdef __ANDROID__
+					sfx->ghoul2 = NULL;
+#else
 					sfx->iGhoul2 = 0;
+#endif
 					if ( entityNum == -1 )
 					{
 						// we aren't bolting, so make sure the spawn system knows this by putting -1's in these fields
@@ -988,8 +1018,11 @@ void CFxScheduler::PlayEffect( int id, vec3_t origin, vec3_t axis[3], const int 
 					sfx->mBoltNum = boltNum;
 					sfx->mEntNum = entityNum;
 					sfx->mModelNum = modelNum;
+#ifdef __ANDROID__
+					sfx->ghoul2 = ghoul2;
+#else
 					sfx->iGhoul2 = iGhoul2;
-
+#endif
 					// Also, the ghoul bolt may not be around yet, so delay the creation one frame
 					sfx->mStartTime++;
 				}
@@ -1126,9 +1159,13 @@ void CFxScheduler::AddScheduledEffects( bool portal )
 						oldModelNum = (*itr)->mModelNum;
 						oldEntNum = (*itr)->mEntNum;
 						oldBoltIndex = (*itr)->mBoltNum;
+#ifdef __ANDROID__
+						doesBoltExist = theFxHelper.GetOriginAxisFromBolt((*itr)->ghoul2, (*itr)->mEntNum, (*itr)->mModelNum, (*itr)->mBoltNum, origin, axis);
+#else
 						CGhoul2Info_v Ghoul2((*itr)->iGhoul2);
 						doesBoltExist = theFxHelper.GetOriginAxisFromBolt(&Ghoul2, (*itr)->mEntNum, (*itr)->mModelNum, (*itr)->mBoltNum, origin, axis);
 						Ghoul2.kill();	//remove the model ref without actually deleting it
+#endif
 					}
 
 					// only do this if we found the bolt
@@ -1136,9 +1173,15 @@ void CFxScheduler::AddScheduledEffects( bool portal )
 					{
 						if ((*itr)->mIsRelative )
 						{
+#ifdef __ANDROID__
+							CreateEffect( (*itr)->mpTemplate, 
+										origin, axis, 0, -1, 
+										(*itr)->ghoul2, (*itr)->mEntNum, (*itr)->mModelNum, (*itr)->mBoltNum );
+#else
 							CreateEffect( (*itr)->mpTemplate, 
 										origin, axis, 0, -1, 
 										(*itr)->iGhoul2, (*itr)->mEntNum, (*itr)->mModelNum, (*itr)->mBoltNum );
+#endif
 						}
 						else
 						{
@@ -1219,7 +1262,11 @@ void CFxScheduler::Draw2DEffects(float screenXScale, float screenYScale)
 // Return:
 //	none
 //------------------------------------------------------
+#ifdef __ANDROID__
+void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, matrix3_t axis, int lateTime, int fxParm /*-1*/, CGhoul2Info_v *ghoul2, int entNum, int modelNum, int boltNum  )
+#else
 void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, vec3_t axis[3], float lateTime, int fxParm /*-1*/, int iGhoul2, int entNum, int modelNum, int boltNum  )
+#endif
 {
 	vec3_t	org, org2, temp,
 				vel, accel,
@@ -1233,7 +1280,11 @@ void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, ve
 	AxisCopy( axis, ax );
 
 	int flags = fx->mFlags;
+#ifdef __ANDROID__
+	if (ghoul2 != NULL && modelNum>=0 && boltNum>=0)
+#else
 	if (iGhoul2>0 && modelNum>=0 && boltNum>=0)
+#endif
 	{//since you passed in these values, mark as relative to use them if it is supported
 		switch( fx->mType )
 		{
@@ -1483,7 +1534,12 @@ void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, ve
 						fx->mMin, fx->mMax, fx->mElasticity.GetVal(), 
 						fx->mDeathFxHandles.GetHandle(), fx->mImpactFxHandles.GetHandle(),
 						fx->mLife.GetVal(), fx->mMediaHandles.GetHandle(), flags, fx->mMatImpactFX, fxParm,
-						iGhoul2, entNum, modelNum, boltNum );
+#ifdef __ANDROID__
+						ghoul2,
+#else
+						iGhoul2,
+#endif
+						entNum, modelNum, boltNum );
 		break;
 
 	//---------
@@ -1495,7 +1551,12 @@ void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, ve
 						fx->mAlphaStart.GetVal(), fx->mAlphaEnd.GetVal(), fx->mAlphaParm.GetVal(),
 						sRGB, eRGB, fx->mRGBParm.GetVal(),
 						fx->mLife.GetVal(), fx->mMediaHandles.GetHandle(), flags, fx->mMatImpactFX, fxParm,
-						iGhoul2, entNum, modelNum, boltNum);
+#ifdef __ANDROID__
+						ghoul2,
+#else
+						iGhoul2,
+#endif
+						entNum, modelNum, boltNum );
 		break;
 
 	//---------
@@ -1510,7 +1571,12 @@ void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, ve
 						fx->mMin, fx->mMax, fx->mElasticity.GetVal(), 
 						fx->mDeathFxHandles.GetHandle(), fx->mImpactFxHandles.GetHandle(),
 						fx->mLife.GetVal(), fx->mMediaHandles.GetHandle(), flags, fx->mMatImpactFX, fxParm,
-						iGhoul2, entNum, modelNum, boltNum);
+#ifdef __ANDROID__
+						ghoul2,
+#else
+						iGhoul2,
+#endif
+						entNum, modelNum, boltNum );
 		break;
 
 	//----------------
@@ -1523,7 +1589,12 @@ void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, ve
 						sRGB, eRGB, fx->mRGBParm.GetVal(),
 						fx->mElasticity.GetVal(), fx->mLife.GetVal(), fx->mMediaHandles.GetHandle(), flags,
 						fx->mMatImpactFX, fxParm,
-						iGhoul2, entNum, modelNum, boltNum);
+#ifdef __ANDROID__
+						ghoul2,
+#else
+						iGhoul2,
+#endif
+						entNum, modelNum, boltNum );
 		break;
 
 	//---------
@@ -1537,7 +1608,12 @@ void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, ve
 						fx->mAlphaStart.GetVal(), fx->mAlphaEnd.GetVal(), fx->mAlphaParm.GetVal(),
 						sRGB, eRGB, fx->mRGBParm.GetVal(),
 						fx->mLife.GetVal(), fx->mMediaHandles.GetHandle(), flags, fx->mMatImpactFX, fxParm,
-						iGhoul2, entNum, modelNum, boltNum,
+#ifdef __ANDROID__
+						ghoul2,
+#else
+						iGhoul2,
+#endif
+						entNum, modelNum, boltNum,
 						(qboolean)( fx->mSpawnFlags & FX_ORG2_FROM_TRACE ));
 		break;
 
@@ -1660,7 +1736,12 @@ void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, ve
 					fx->mMin, fx->mMax, fx->mElasticity.GetVal(),
 					fx->mDeathFxHandles.GetHandle(), fx->mImpactFxHandles.GetHandle(),
 					fx->mLife.GetVal(), fx->mMediaHandles.GetHandle(), flags, fx->mMatImpactFX, fxParm,
-					iGhoul2, entNum, modelNum, boltNum);
+#ifdef __ANDROID__
+					ghoul2,
+#else
+					iGhoul2,
+#endif
+					entNum, modelNum, boltNum );
 		break;
 
 	//---------
@@ -1690,7 +1771,12 @@ void CFxScheduler::CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, ve
 		FX_AddLight( org, fx->mSizeStart.GetVal(), fx->mSizeEnd.GetVal(), fx->mSizeParm.GetVal(),
 						sRGB, eRGB, fx->mRGBParm.GetVal(),
 						fx->mLife.GetVal(), flags, fx->mMatImpactFX, fxParm,
-						iGhoul2, entNum, modelNum, boltNum);
+#ifdef __ANDROID__
+						ghoul2,
+#else
+						iGhoul2,
+#endif
+						entNum, modelNum, boltNum );
 		break;
 
 	//---------

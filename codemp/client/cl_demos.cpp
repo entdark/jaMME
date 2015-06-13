@@ -5,7 +5,7 @@
 #include "client.h"
 #include "../server/server.h"
 #include "cl_demos.h"
-#include "qcommon/game_version.h"
+#include "../qcommon/game_version.h"
 
 #define DEMOLISTSIZE 1024
 
@@ -849,15 +849,13 @@ static void demoPlaySetIndex( demoPlay_t *play, int index ) {
 	if (!demoCommandSmoothing)
 		play->frameNumber = play->fileIndex[index].frame;
 }
-
-static int demoPlaySeek( demoPlay_t *play, int seekTime ) {
+static int demoSeekTime = 0;
+static int demoPlaySeek(demoPlay_t *play, int seekTime) {
 	int i;
-
+	demoSeekTime = seekTime;
 	seekTime += play->startTime;
-
-	if ( seekTime < 0)
+	if (seekTime < 0)
 		seekTime = 0;
-	
 	if (seekTime < play->frame->serverTime || (seekTime > play->frame->serverTime + 1000)) {
 		for (i=0;i<(play->fileIndexCount-1);i++) {
 			if (play->fileIndex[i].time <= seekTime && 
@@ -866,14 +864,27 @@ static int demoPlaySeek( demoPlay_t *play, int seekTime ) {
 		}
 		i = play->fileIndexCount-1;
 foundit:
-		demoPlaySetIndex( play, i);
+		demoPlaySetIndex(play, i);
 	}
-	while (!play->lastFrame && (demoCommandSmoothing ? ( seekTime >= play->frame->serverTime) : ( seekTime > play->nextFrame->serverTime))) {
-		demoPlayForwardFrame( play  );
+	while (!play->lastFrame && (demoCommandSmoothing ? (seekTime >= play->frame->serverTime) : (seekTime > play->nextFrame->serverTime))) {
+		demoPlayForwardFrame(play);
 	}
 	return seekTime;
 }
-
+int demoLength(void) {
+	demoPlay_t *play = demo.play.handle;
+	if (!play)
+		return 0;
+	return play->endTime - play->startTime;
+}
+int demoTime(void) {
+	demoPlay_t *play = demo.play.handle;
+	if (!play)
+		return 0;
+	if (demoSeekTime < 0)
+		demoSeekTime = 0;
+	return demoSeekTime;
+}
 static int demoFindNext(const char *fileName) {
 	int i;
 	const int len = strlen(fileName);

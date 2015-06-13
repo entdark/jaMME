@@ -392,8 +392,9 @@ qboolean UI_ConsoleCommand( int realTime ) {
 		//UI_TeamOrdersMenu_f();
 		return qtrue;
 	}
-
-
+	if ( Q_stricmp (cmd, "pause") == 0 ) {
+		return qtrue;
+	}
 	return qfalse;
 }
 

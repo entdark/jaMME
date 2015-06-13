@@ -22,13 +22,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include <stdlib.h>
 #include <stdio.h>
-
 #include <SDL.h>
-
-#include "qcommon/q_shared.h"
-#include "client/client.h"
-#include "client/snd_local.h"
-
+#include "../qcommon/q_shared.h"
+#include "../client/client.h"
+#include "../client/snd_local.h"
 extern dma_t		dma;
 qboolean snd_inited = qfalse;
 
@@ -216,49 +213,41 @@ qboolean SNDDMA_Init(void)
 	if (!tmp)
 		tmp = (obtained.samples * obtained.channels) * 10;
 
-	if (tmp & (tmp - 1))  // not a power of two? Seems to confuse something.
-	{
+	if (tmp & (tmp - 1)) { // not a power of two? Seems to confuse something.
 		int val = 1;
 		while (val < tmp)
 			val <<= 1;
 
 		tmp = val;
 	}
-
 	dmapos = 0;
-	dma.samplebits = obtained.format & 0xFF;  // first byte of format is bits.
+	dma.samplebits = obtained.format & 0xFF; // first byte of format is bits.
 	dma.channels = obtained.channels;
 	dma.samples = tmp;
 	dma.submission_chunk = 1;
 	dma.speed = obtained.freq;
 	dmasize = (dma.samples * (dma.samplebits/8));
 	dma.buffer = (byte *)calloc(1, dmasize);
-
 	Com_Printf("Starting SDL audio callback...\n");
-	SDL_PauseAudio(0);  // start callback.
-
+	SDL_PauseAudio(0); // start callback.
 	Com_Printf("SDL audio initialized.\n");
 	snd_inited = qtrue;
 	return qtrue;
 }
-
 /*
 ===============
 SNDDMA_GetDMAPos
 ===============
 */
-int SNDDMA_GetDMAPos(void)
-{
+int SNDDMA_GetDMAPos(void) {
 	return dmapos;
 }
-
 /*
 ===============
 SNDDMA_Shutdown
 ===============
 */
-void SNDDMA_Shutdown(void)
-{
+void SNDDMA_Shutdown(void) {
 	Com_Printf("Closing SDL audio device...\n");
 	SDL_PauseAudio(1);
 	SDL_CloseAudio();
@@ -269,25 +258,24 @@ void SNDDMA_Shutdown(void)
 	snd_inited = qfalse;
 	Com_Printf("SDL audio device shut down.\n");
 }
-
 /*
 ===============
 SNDDMA_Submit
-
 Send sound to device if buffer isn't really the dma buffer
 ===============
 */
-void SNDDMA_Submit(void)
-{
+void SNDDMA_Submit(void) {
 	SDL_UnlockAudio();
 }
-
 /*
 ===============
 SNDDMA_BeginPainting
 ===============
 */
-void SNDDMA_BeginPainting (void)
-{
+void SNDDMA_BeginPainting (void) {
 	SDL_LockAudio();
+}
+// (De)activates sound playback
+void SNDDMA_Activate(qboolean activate) {
+	SDL_PauseAudio(!activate);
 }

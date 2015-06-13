@@ -1,14 +1,13 @@
 //Anything above this #include will be ignored by the compiler
-#include "qcommon/exe_headers.h"
+#include "../qcommon/exe_headers.h"
 
 #include "cm_local.h"
 #include "cm_patch.h"
 #include "cm_landscape.h"
-#include "qcommon/GenericParser2.h"
+#include "../qcommon/GenericParser2.h"
 #include "cm_terrainmap.h"
 #include "cm_draw.h"
-#include "png/rpng.h"
-#include "client/client.h" // good enough for now
+#include "../client/client.h" // good enough for now
 
 static CTerrainMap	*TerrainMap = 0;
 
@@ -66,13 +65,19 @@ CTerrainMap::CTerrainMap(CCMLandScape *landscape) :
 
 			draw.PutPix(x, y, cp);
 		}
-
 	// Load icons for symbols on map
+#ifdef __ANDROID__
+	re.LoadImageJA("gfx/menus/rmg/start", (byte**)&mSymStart, &mSymStartWidth, &mSymStartHeight);
+	re.LoadImageJA("gfx/menus/rmg/end", (byte**)&mSymEnd, &mSymEndWidth, &mSymEndHeight);
+	re.LoadImageJA("gfx/menus/rmg/objective", (byte**)&mSymObjective, &mSymObjectiveWidth, &mSymObjectiveHeight);
+	re.LoadImageJA("gfx/menus/rmg/building", (byte**)&mSymBld, &mSymBldWidth, &mSymBldHeight);
+#else
 	int	format;
 	re.LoadImageJA("gfx/menus/rmg/start", (byte**)&mSymStart, &mSymStartWidth, &mSymStartHeight, &format);
 	re.LoadImageJA("gfx/menus/rmg/end", (byte**)&mSymEnd, &mSymEndWidth, &mSymEndHeight, &format);
 	re.LoadImageJA("gfx/menus/rmg/objective", (byte**)&mSymObjective, &mSymObjectiveWidth, &mSymObjectiveHeight, &format);
 	re.LoadImageJA("gfx/menus/rmg/building", (byte**)&mSymBld, &mSymBldWidth, &mSymBldHeight, &format);
+#endif
 }
 
 CTerrainMap::~CTerrainMap()
@@ -115,9 +120,17 @@ void CTerrainMap::ApplyBackground(void)
 	int	format;
 
 	memset(mImage, 255, sizeof(mBufImage));
-//	R_LoadImage("textures\\kamchatka\\ice", &backgroundImage, &backgroundWidth, &backgroundHeight, &format);0
+//#ifdef __ANDROID__
+//	R_LoadImage("textures\\kamchatka\\ice", &backgroundImage, &backgroundWidth, &backgroundHeight);
+//#else
+//	R_LoadImage("textures\\kamchatka\\ice", &backgroundImage, &backgroundWidth, &backgroundHeight, &format);
+//#endif
 	backgroundDepth = 4;
+#ifdef __ANDROID__
+	re.LoadImageJA("gfx\\menus\\rmg\\01_bg", &backgroundImage, &backgroundWidth, &backgroundHeight);
+#else
 	re.LoadImageJA("gfx\\menus\\rmg\\01_bg", &backgroundImage, &backgroundWidth, &backgroundHeight, &format);
+#endif
 	if (backgroundImage)
 	{
 		outPos = (byte *)mBufImage;

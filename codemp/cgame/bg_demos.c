@@ -1,5 +1,5 @@
 #include "bg_demos.h"
-#include "game/g_local.h"
+#include "../game/g_local.h"
 
 void demoCommandValue( const char *cmd, float * oldVal ) {
 	if (!cmd[0])

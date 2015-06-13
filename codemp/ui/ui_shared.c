@@ -6,9 +6,9 @@
 #endif
 
 #include "ui_shared.h"
-#include "game/bg_public.h"
-#include "game/anims.h"
-#include "ghoul2/G2.h"
+#include "../game/bg_public.h"
+#include "../game/anims.h"
+#include "../ghoul2/G2.h"
 extern stringID_table_t animTable [MAX_ANIMATIONS+1];
 extern void UI_UpdateCharacterSkin( void );
 
@@ -63,10 +63,17 @@ static void *captureData = NULL;
 static itemDef_t *itemCapture = NULL;   // item that has the mouse captured ( if any )
 
 displayContextDef_t *DC = NULL;
-
+#ifndef CGAME
+extern void trap_MME_SetUIEditingField(qboolean v);
+#endif
 static qboolean g_waitingForKey = qfalse;
 static qboolean g_editingField = qfalse;
-
+static qboolean setEditingField(qboolean v) {
+	g_editingField = v;
+#ifndef CGAME
+	trap_MME_SetUIEditingField(v);
+#endif
+}
 static itemDef_t *g_bindItem = NULL;
 static itemDef_t *g_editItem = NULL;
 
@@ -577,6 +584,7 @@ qboolean PC_String_Parse(int handle, const char **out)
 	{
 		return qfalse;
 	}
+#ifndef __ANDROID__
 	if (!Q_stricmp(token.string, "@MENUS_PLAY")
 		|| !Q_stricmp(token.string, "@MENUS_NEW")) {
 		strcpy(token.string, "@MENUS_DEMOS");
@@ -585,6 +593,7 @@ qboolean PC_String_Parse(int handle, const char **out)
 	} else if (!Q_stricmp(token.string, "@MENUS_BACK")) {
 		isBack = qtrue;
 	}
+#endif
 	// Save some memory by not return the end squiggy as an allocated string
 	if ( !Q_stricmp ( token.string, "}" ) )
 	{
@@ -619,12 +628,14 @@ qboolean PC_Script_Parse(int handle, const char **out) {
 	while ( 1 ) {
 		if (!trap_PC_ReadToken(handle, &token))
 			return qfalse;
+#ifndef __ANDROID__
 		if (!Q_stricmp(token.string, "multiplayermenu") && isBack) {
 			strcpy(token.string, "mainMenu");
 			isBack = qfalse;
 		} else if (!Q_stricmp(token.string, "multiplayermenu")) {
 			strcpy(token.string, "demo");
 		}
+#endif
 		if (Q_stricmp(token.string, "}") == 0) {
 			*out = String_Alloc(script);
 			return qtrue;
@@ -3664,12 +3675,12 @@ qboolean Item_TextField_HandleKey(itemDef_t *item, int key) {
 		{
 			// switching fields so reset printed text of edit field
 			Leaving_EditField(item);
-			g_editingField = qfalse;
+			setEditingField(qfalse);
 			newItem = Menu_SetNextCursorItem((menuDef_t *) item->parent);
 			if (newItem && (newItem->type == ITEM_TYPE_EDITFIELD || newItem->type == ITEM_TYPE_NUMERICFIELD))
 			{
 				g_editItem = newItem;
-				g_editingField = qtrue;
+				setEditingField(qtrue);
 			}
 		}
 
@@ -3677,13 +3688,12 @@ qboolean Item_TextField_HandleKey(itemDef_t *item, int key) {
 		{
 			// switching fields so reset printed text of edit field
 			Leaving_EditField(item);
-
-			g_editingField = qfalse;
+			setEditingField(qfalse);
 			newItem = Menu_SetPrevCursorItem((menuDef_t *) item->parent);
 			if (newItem && (newItem->type == ITEM_TYPE_EDITFIELD || newItem->type == ITEM_TYPE_NUMERICFIELD))
 			{
 				g_editItem = newItem;
-				g_editingField = qtrue;
+				setEditingField(qtrue);
 			}
 		}
 
@@ -4285,7 +4295,7 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down) {
 	{
 		if (!Item_TextField_HandleKey(g_editItem, key)) 
 		{
-			g_editingField = qfalse;
+			setEditingField(qfalse);
 			g_editItem = NULL;
 			inHandler = qfalse;
 			return;
@@ -4294,7 +4304,7 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down) {
 		{
 			// switching fields so reset printed text of edit field
 			Leaving_EditField(g_editItem);
-			g_editingField = qfalse;
+			setEditingField(qfalse);
 			g_editItem = NULL;
 			Display_MouseMove(NULL, DC->cursorx, DC->cursory);
 		} 
@@ -4399,7 +4409,7 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down) {
 					{	
 						Item_Action(item);
 						item->cursorPos = 0;
-						g_editingField = qtrue;
+						setEditingField(qtrue);
 						g_editItem = item;
 						DC->setOverstrikeMode(qtrue);
 					}
@@ -4468,7 +4478,7 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down) {
 			if (item) {
 				if (item->type == ITEM_TYPE_EDITFIELD || item->type == ITEM_TYPE_NUMERICFIELD) {
 					item->cursorPos = 0;
-					g_editingField = qtrue;
+					setEditingField(qtrue);
 					g_editItem = item;
 					DC->setOverstrikeMode(qtrue);
 				} else {
