@@ -2316,6 +2316,13 @@ void Item_RunScript(itemDef_t *item, const char *s)
 			if (!bRan) 
 			{
 				DC->runScript(&p);
+				//the easiest hack to autorefresh server when we open server browser
+				//since UpdateFilter is called only from one place
+				//it mays work wrong with customs menus that have several UpdateFilter
+				if (strstr(script, "UpdateFilter")) {
+					char *c = "RefreshServers";
+					DC->runScript(&c);
+				}
 			}
 		}
 	}
