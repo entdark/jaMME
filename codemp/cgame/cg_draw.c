@@ -1279,7 +1279,7 @@ void CG_DrawHUD(centity_t	*cent)
 			{
 				trap_R_SetColor( colorTable[CT_WHITE] );	
 				CG_DrawPic( 
-					focusItem->window.rect.x, 
+					focusItem->window.rect.x*cgs.widthRatioCoef, 
 					focusItem->window.rect.y, 
 					focusItem->window.rect.w*cgs.widthRatioCoef, 
 					focusItem->window.rect.h, 
@@ -1293,7 +1293,7 @@ void CG_DrawHUD(centity_t	*cent)
 			{
 				trap_R_SetColor( colorTable[CT_WHITE] );	
 				CG_DrawPic( 
-					focusItem->window.rect.x, 
+					focusItem->window.rect.x*cgs.widthRatioCoef, 
 					focusItem->window.rect.y, 
 					focusItem->window.rect.w*cgs.widthRatioCoef, 
 					focusItem->window.rect.h, 
@@ -1374,7 +1374,7 @@ void CG_DrawHUD(centity_t	*cent)
 			{
 				trap_R_SetColor( colorTable[CT_WHITE] );	
 				CG_DrawPic( 
-					focusItem->window.rect.x, 
+					SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef, 
 					focusItem->window.rect.y, 
 					focusItem->window.rect.w*cgs.widthRatioCoef, 
 					focusItem->window.rect.h, 
@@ -1387,7 +1387,7 @@ void CG_DrawHUD(centity_t	*cent)
 			{
 				trap_R_SetColor( colorTable[CT_WHITE] );	
 				CG_DrawPic( 
-					focusItem->window.rect.x, 
+					SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef, 
 					focusItem->window.rect.y, 
 					focusItem->window.rect.w*cgs.widthRatioCoef, 
 					focusItem->window.rect.h, 
