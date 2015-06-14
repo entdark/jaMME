@@ -500,11 +500,13 @@ public class jaMME extends Activity {
 				return;
 			int l = ss.length();
 			if (l < prevLength && l >= 0) {
-				int d = prevLength - l;
-				for (int i = d; i > 0; i--) {
+//				int d = prevLength - l;
+//				for (int i = d; i > 0; i--) {
 					keypress(1, jk_keycodes.A_BACKSPACE.ordinal(), 0);
 					keypress(0, jk_keycodes.A_BACKSPACE.ordinal(), 0);
-				}
+//				}
+				prevLength = 0;
+				s.replace(0, s.length(), "");
 			} else if (l > 0) {
 				int d = l - prevLength;
 				for (int i = d; i > 0; i--) {
@@ -512,8 +514,8 @@ public class jaMME extends Activity {
 					keypress(1, mapKey(0, ch), ch);
 					keypress(0, mapKey(0, ch), ch);
 				}
+				prevLength = l;
 			}
-			prevLength = l;
 		}
     }
     class jaMMERenderer implements GLSurfaceView.Renderer {
