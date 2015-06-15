@@ -1397,13 +1397,19 @@ qboolean CG_DemosConsoleCommand( void ) {
 		if (cmd[0]) {
 			demo.play.speed = atof(cmd);
 		}
-		CG_DemosAddLog("Play speed %f", demo.play.speed );
+		CG_DemosAddLog("Play speed %f", demo.play.speed);
 	} else if (!Q_stricmp(cmd, "pause")) {
 		demo.play.paused = !demo.play.paused;
 		//to make the engine know that we paused
 		trap_Cvar_Set("mme_demoPaused", va("%i", demo.play.paused));
-		if ( demo.play.paused )
+		if (demo.play.paused)
 			demo.find = findNone;
+#ifdef __ANDROID__
+		if (demo.play.paused)
+			CG_DemosAddLog("Paused");
+		else
+			CG_DemosAddLog("Unpaused");
+#endif
 	} else if (!Q_stricmp(cmd, "dof")) {
 		demoDofCommand_f();
 	} else if (!Q_stricmp(cmd, "chase")) {
