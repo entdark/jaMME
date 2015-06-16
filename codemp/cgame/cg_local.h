@@ -1096,6 +1096,22 @@ Ghoul2 Insert End
 	} uag;
 	struct {
 		qboolean		detected;
+		qboolean		statsGenerated;
+		struct {
+			team_t		team;
+			char		name[64];
+			int			score;
+			int			captures;
+			int			assist;
+			int			defend;
+			byte		accuracy;
+			int			time;
+			int			flagCarrierKills;
+			int			flagReturns;
+			int			flagHold;
+			int			teamHeals;
+			int			teamEnergizes;
+		} stats[MAX_CLIENTS];
 	} enhanced;
 	
 	int					chargeTime;
@@ -2136,8 +2152,9 @@ void CG_DrawOldTourneyScoreboard( void );
 //
 // cg_consolecmds.c
 //
-qboolean CG_ConsoleCommand( void );
-void CG_InitConsoleCommands( void );
+qboolean CG_ConsoleCommand(void);
+void CG_InitConsoleCommands(void);
+void CG_EnhancedStatistics_f(void);
 
 //
 // cg_servercmds.c

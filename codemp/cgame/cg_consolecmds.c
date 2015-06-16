@@ -296,6 +296,84 @@ static void CG_Camera_f( void ) {
 	}
 }
 */
+static void CG_DisplayTeamStat(team_t t) {
+	int i, nameLenMax = 0;
+	for (i = 0; i < cg.numScores; i++) {
+		if (!(cg.enhanced.stats[i].team == TEAM_RED
+			|| cg.enhanced.stats[i].team == TEAM_BLUE))
+			continue;
+		int nameLen = Q_PrintStrlen(cg.enhanced.stats[i].name);
+		if (nameLen > nameLenMax)
+			nameLenMax = nameLen;
+	}
+	if (nameLenMax < 4)
+		nameLenMax = 4;
+	CG_Printf(S_COLOR_CYAN"TEAM NAME");
+	for (i = 0; i < nameLenMax-4; i++)
+		CG_Printf(" ");
+	CG_Printf(S_COLOR_CYAN" SCORE CAPS ASSIST DEF  ACC TIME ");
+	CG_Printf(S_COLOR_RED "FCKILLS FLAGRETS FLAGHOLD  TH/TE\n");
+	CG_Printf(S_COLOR_CYAN"---- ");
+	for (i = 0; i < nameLenMax; i++)
+		CG_Printf(S_COLOR_CYAN"-");
+	CG_Printf(S_COLOR_CYAN" ----- ---- ------ --- ---- ---- ");
+	CG_Printf(S_COLOR_CYAN"------- -------- -------- ------\n");
+	for (i = 0; i < cg.numScores; i++) {
+		int nameLen;
+		if (cg.enhanced.stats[i].team != t)
+			continue;
+		if (t == TEAM_RED)
+			CG_Printf(S_COLOR_RED"RED  ");
+		else if (t == TEAM_BLUE)
+			CG_Printf(S_COLOR_BLUE"BLUE ");
+		nameLen = Q_PrintStrlen(cg.enhanced.stats[i].name);
+		CG_Printf(S_COLOR_WHITE"%s", cg.enhanced.stats[i].name);
+		if (nameLen < nameLenMax) {
+			int j, d = nameLenMax - nameLen;
+			for (j = 0; j < d; j++)
+				CG_Printf(" ");
+		}
+		CG_Printf(" ");
+		CG_Printf(S_COLOR_WHITE);
+		CG_Printf("%5d ", cg.enhanced.stats[i].score);
+		CG_Printf("%4d ", cg.enhanced.stats[i].captures);
+		CG_Printf("%6d ", cg.enhanced.stats[i].assist);
+		CG_Printf("%3d ", cg.enhanced.stats[i].defend);
+		CG_Printf("%3d%% ", cg.enhanced.stats[i].accuracy);
+		CG_Printf("%4d ", cg.enhanced.stats[i].time);
+		CG_Printf("%7d ", cg.enhanced.stats[i].flagCarrierKills);
+		CG_Printf("%8d ", cg.enhanced.stats[i].flagReturns);
+		{char flagHold[17];
+		int secs = (cg.enhanced.stats[i].flagHold / 1000);
+		int mins = (secs / 60);
+		if (cg.enhanced.stats[i].flagHold >= 60000) {
+			secs %= 60;
+			Com_sprintf(flagHold, sizeof(flagHold), "%d:%02d", mins, secs);
+		} else {
+			Com_sprintf(flagHold, sizeof(flagHold), "%d", secs);
+		}
+		CG_Printf("%8s ", flagHold);}
+		CG_Printf("%3d/%d", cg.enhanced.stats[i].teamHeals, cg.enhanced.stats[i].teamEnergizes);
+		CG_Printf("\n");
+	}
+}
+void CG_EnhancedStatistics_f(void) {
+	if (!cg.enhanced.detected || cgs.gametype != GT_CTF)
+		return;
+	if (!cg.enhanced.statsGenerated) {
+		CG_Printf(S_COLOR_RED"Failed to load statistics. Try to refresh scoreboard\n");
+		return;
+	}
+	CG_Printf("\n");
+	CG_Printf(S_COLOR_CYAN"TEAM SCORE\n");
+	CG_Printf(S_COLOR_RED"RED "S_COLOR_WHITE"%d "S_COLOR_BLUE"BLUE "S_COLOR_WHITE"%d\n", cg.teamScores[0], cg.teamScores[1]);
+	CG_Printf("\n");
+	CG_DisplayTeamStat(TEAM_RED);
+	CG_Printf("\n");
+	CG_DisplayTeamStat(TEAM_BLUE);
+	CG_Printf("\n");
+	CG_Printf(S_COLOR_CYAN"Stats generated.\n");
+}
 #ifdef __ANDROID__
 /*
 ==================
@@ -396,6 +474,7 @@ static consoleCommand_t	commands[] = {
 	{ "siegeCvarUpdate", CG_SiegeCvarUpdate_f },
 	{ "siegeCompleteCvarUpdate", CG_SiegeCompleteCvarUpdate_f },
 	{ "clientlist", CG_ClientList_f },
+	{ "sm_stats", CG_EnhancedStatistics_f },
 #ifdef __ANDROID__
 	{ "targetPrev", CG_TargetPrev_f },
 	{ "targetNext", CG_TargetNext_f },

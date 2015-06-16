@@ -974,6 +974,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		for (i = 0; i < MAX_GENTITIES; i++)
 			CG_S_StopLoopingSound(i, -1);
 		intermission = qtrue;
+		CG_EnhancedStatistics_f();
 	}
 	if (cg.predictedPlayerState.pm_type != PM_INTERMISSION) {
 		intermission = qfalse;

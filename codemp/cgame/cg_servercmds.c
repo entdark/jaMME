@@ -102,7 +102,9 @@ static void CG_ParseScores( void ) {
 		cg.teamScores[0] = atoi( CG_Argv( 2 ) );
 		cg.teamScores[1] = atoi( CG_Argv( 3 ) );
 
-		memset( cg.scores, 0, sizeof( cg.scores ) );
+		memset(cg.scores, 0, sizeof(cg.scores));
+		if (cg.enhanced.detected)
+			memset(cg.enhanced.stats, 0, sizeof(cg.enhanced.stats));
 		for ( i = 0 ; i < readScores ; i++ ) {
 			//
 			cg.scores[i].client = atoi( CG_Argv( i * 14 + 4 ) );
@@ -119,15 +121,30 @@ static void CG_ParseScores( void ) {
 			cg.scores[i].assistCount = atoi(CG_Argv(i * 14 + 15));
 			cg.scores[i].perfect = atoi(CG_Argv(i * 14 + 16));
 			cg.scores[i].captures = atoi(CG_Argv(i * 14 + 17));
-
 			if ( cg.scores[i].client < 0 || cg.scores[i].client >= MAX_CLIENTS ) {
 				cg.scores[i].client = 0;
 			}
 			cgs.clientinfo[ cg.scores[i].client ].score = cg.scores[i].score;
 			cgs.clientinfo[ cg.scores[i].client ].powerups = powerups;
-
 			cg.scores[i].team = cgs.clientinfo[cg.scores[i].client].team;
+			if (cg.enhanced.detected) {
+				cg.enhanced.stats[i].team = cg.scores[i].team;
+				Com_sprintf(cg.enhanced.stats[i].name, sizeof(cg.enhanced.stats[i].name), cgs.clientinfo[cg.scores[i].client].name);
+				cg.enhanced.stats[i].score = cg.scores[i].score;
+				cg.enhanced.stats[i].captures = cg.scores[i].captures;
+				cg.enhanced.stats[i].assist = cg.scores[i].assistCount;
+				cg.enhanced.stats[i].defend = cg.scores[i].defendCount;
+				cg.enhanced.stats[i].accuracy = cg.scores[i].accuracy;
+				cg.enhanced.stats[i].time = cg.scores[i].time;
+				cg.enhanced.stats[i].flagCarrierKills = cg.scores[i].impressiveCount;
+				cg.enhanced.stats[i].flagHold = cg.scores[i].excellentCount;
+				cg.enhanced.stats[i].flagReturns = cg.scores[i].guantletCount;
+				cg.enhanced.stats[i].teamHeals = cg.scores[i].perfect & 0xFFFF;
+				cg.enhanced.stats[i].teamEnergizes = (cg.scores[i].perfect >> 16) & 0xFFFF;
+			}
 		}
+		if (cg.enhanced.detected && readScores)
+			cg.enhanced.statsGenerated = qtrue;
 		CG_SetScoreSelection(NULL);
 	}
 }

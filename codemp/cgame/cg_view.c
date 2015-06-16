@@ -2879,12 +2879,13 @@ extern void FX_VibrateView(const float scale, vec3_t origin, vec3_t angles);
 extern void CG_SetPredictedThirdPerson(void);
 extern void trap_S_UpdateScale( float scale );
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayback ) {
-	int		inwater;
+	int inwater;
 	const char *cstr;
 	float mSensitivity = cg.zoomSensitivity;
 	float mPitchOverride = 0.0f;
 	float mYawOverride = 0.0f;
 	static centity_t *veh = NULL;
+	static qboolean intermission = qfalse;
 #ifdef VEH_CONTROL_SCHEME_4
 	float mSensitivityOverride = 0.0f;
 	qboolean bUseFighterPitch = qfalse;
@@ -3171,6 +3172,18 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 
 	// actually issue the rendering calls
 	CG_DrawActive( stereoView );
+	
+	//those looping sounds in intermission are annoying
+	if (cg.predictedPlayerState.pm_type == PM_INTERMISSION && !intermission) {
+		int i;
+		for (i = 0; i < MAX_GENTITIES; i++)
+			CG_S_StopLoopingSound(i, -1);
+		intermission = qtrue;
+		CG_EnhancedStatistics_f();
+	}
+	if (cg.predictedPlayerState.pm_type != PM_INTERMISSION) {
+		intermission = qfalse;
+	}
 
 	CG_DrawAutoMap();
 
