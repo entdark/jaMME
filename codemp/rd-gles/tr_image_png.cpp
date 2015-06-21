@@ -1,6 +1,6 @@
 #include "../renderer/tr_common.h"
 #include "../libpng/png.h"
-
+#include "tr_local.h"
 void user_write_data( png_structp png_ptr, png_bytep data, png_size_t length ) {
 	fileHandle_t fp = *(fileHandle_t*)png_get_io_ptr( png_ptr );
 	ri->FS_Write( data, length, fp );
@@ -8,95 +8,218 @@ void user_write_data( png_structp png_ptr, png_bytep data, png_size_t length ) {
 void user_flush_data( png_structp png_ptr ) {
 	//TODO: ri->FS_Flush?
 }
-
-int RE_SavePNG( const char *filename, byte *buf, size_t width, size_t height, int byteDepth ) {
-	fileHandle_t fp;
-	png_structp png_ptr = NULL;
-	png_infop info_ptr = NULL;
-	unsigned int x, y;
-	png_byte ** row_pointers = NULL;
-	/* "status" contains the return value of this function. At first
-	it is set to a value which means 'failure'. When the routine
-	has finished its work, it is set to a value which means
-	'success'. */
-	int status = -1;
-	/* The following number is set by trial and error only. I cannot
-	see where it it is documented in the libpng manual.
-	*/
-	int depth = 8;
-
-	fp = ri->FS_FOpenFileWrite( filename );
-	if ( !fp ) {
-		goto fopen_failed;
+//int RE_SavePNG( const char *filename, byte *buf, size_t width, size_t height, int byteDepth ) {
+//	fileHandle_t fp;
+//	png_structp png_ptr = NULL;
+//	png_infop info_ptr = NULL;
+//	unsigned int x, y;
+//	png_byte ** row_pointers = NULL;
+//	/* "status" contains the return value of this function. At first
+//	it is set to a value which means 'failure'. When the routine
+//	has finished its work, it is set to a value which means
+//	'success'. */
+//	int status = -1;
+//	/* The following number is set by trial and error only. I cannot
+//	see where it it is documented in the libpng manual.
+//	*/
+//	int depth = 8;
+//
+//	fp = ri->FS_FOpenFileWrite( filename );
+//	if ( !fp ) {
+//		goto fopen_failed;
+//	}
+//
+//	png_ptr = png_create_write_struct (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+//	if (png_ptr == NULL) {
+//		goto png_create_write_struct_failed;
+//	}
+//
+//	info_ptr = png_create_info_struct (png_ptr);
+//	if (info_ptr == NULL) {
+//		goto png_create_info_struct_failed;
+//	}
+//
+//	/* Set up error handling. */
+//
+//	if (setjmp (png_jmpbuf (png_ptr))) {
+//		goto png_failure;
+//	}
+//
+//	/* Set image attributes. */
+//
+//	png_set_IHDR (png_ptr,
+//		info_ptr,
+//		width,
+//		height,
+//		depth,
+//		PNG_COLOR_TYPE_RGB,
+//		PNG_INTERLACE_NONE,
+//		PNG_COMPRESSION_TYPE_DEFAULT,
+//		PNG_FILTER_TYPE_DEFAULT);
+//
+//	/* Initialize rows of PNG. */
+//
+//	row_pointers = (png_byte **)png_malloc (png_ptr, height * sizeof (png_byte *));
+//	for ( y=0; y<height; ++y ) {
+//		png_byte *row = (png_byte *)png_malloc (png_ptr, sizeof (uint8_t) * width * byteDepth);
+//		row_pointers[height-y-1] = row;
+//		for (x = 0; x < width; ++x) {
+//			byte *px = buf + (width * y + x)*3;
+//			*row++ = px[0];
+//			*row++ = px[1];
+//			*row++ = px[2];
+//		}
+//	}
+//
+//	/* Write the image data to "fp". */
+//
+////	png_init_io (png_ptr, fp);
+//	png_set_write_fn( png_ptr, (png_voidp)&fp, user_write_data, user_flush_data );
+//	png_set_rows (png_ptr, info_ptr, row_pointers);
+//	png_write_png (png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+//
+//	/* The routine has successfully written the file, so we set
+//	"status" to a value which indicates success. */
+//
+//	status = 0;
+//
+//	for (y = 0; y < height; y++) {
+//		png_free (png_ptr, row_pointers[y]);
+//	}
+//	png_free (png_ptr, row_pointers);
+//
+//png_failure:
+//png_create_info_struct_failed:
+//	png_destroy_write_struct (&png_ptr, &info_ptr);
+//png_create_write_struct_failed:
+//	ri->FS_FCloseFile( fp );
+//fopen_failed:
+//	return status;
+//}
+#define SUPPORT_PNG
+#ifdef SUPPORT_PNG
+//#include "../libpng/png.h"
+#include "../zlib/zlib.h"
+#endif
+#ifdef _MSC_VER
+	#pragma warning( push )
+	#pragma warning( disable: 4611 )
+#endif
+int RE_SavePNG(const char *filename, byte *buf, size_t width, size_t height, int byteDepth) {
+	int outSize = width * height * 4;
+	mmeShotType_t shotType;
+	byte *outBuf;
+	switch (byteDepth) {
+	default:
+	case 3:
+		shotType = mmeShotTypeRGB;
+		break;
+	case 4:
+		shotType = mmeShotTypeRGBA;
+		break;
 	}
-
-	png_ptr = png_create_write_struct (PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if (png_ptr == NULL) {
-		goto png_create_write_struct_failed;
+	outSize = SavePNG(mme_pngCompression->integer, width, height, mmeShotTypeRGB, buf, outBuf, outSize);
+	if (outSize) {
+		ri->FS_WriteFile(filename, outBuf, outSize);
+		return 0;
 	}
-
-	info_ptr = png_create_info_struct (png_ptr);
-	if (info_ptr == NULL) {
-		goto png_create_info_struct_failed;
-	}
-
-	/* Set up error handling. */
-
-	if (setjmp (png_jmpbuf (png_ptr))) {
-		goto png_failure;
-	}
-
-	/* Set image attributes. */
-
-	png_set_IHDR (png_ptr,
-		info_ptr,
-		width,
-		height,
-		depth,
-		PNG_COLOR_TYPE_RGB,
-		PNG_INTERLACE_NONE,
-		PNG_COMPRESSION_TYPE_DEFAULT,
-		PNG_FILTER_TYPE_DEFAULT);
-
-	/* Initialize rows of PNG. */
-
-	row_pointers = (png_byte **)png_malloc (png_ptr, height * sizeof (png_byte *));
-	for ( y=0; y<height; ++y ) {
-		png_byte *row = (png_byte *)png_malloc (png_ptr, sizeof (uint8_t) * width * byteDepth);
-		row_pointers[height-y-1] = row;
-		for (x = 0; x < width; ++x) {
-			byte *px = buf + (width * y + x)*3;
-			*row++ = px[0];
-			*row++ = px[1];
-			*row++ = px[2];
-		}
-	}
-
-	/* Write the image data to "fp". */
-
-//	png_init_io (png_ptr, fp);
-	png_set_write_fn( png_ptr, (png_voidp)&fp, user_write_data, user_flush_data );
-	png_set_rows (png_ptr, info_ptr, row_pointers);
-	png_write_png (png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
-
-	/* The routine has successfully written the file, so we set
-	"status" to a value which indicates success. */
-
-	status = 0;
-
-	for (y = 0; y < height; y++) {
-		png_free (png_ptr, row_pointers[y]);
-	}
-	png_free (png_ptr, row_pointers);
-
-png_failure:
-png_create_info_struct_failed:
-	png_destroy_write_struct (&png_ptr, &info_ptr);
-png_create_write_struct_failed:
-	ri->FS_FCloseFile( fp );
-fopen_failed:
-	return status;
+	return -1;
 }
+#ifdef _MSC_VER
+	#pragma warning( pop )
+#endif
+#ifdef SUPPORT_PNG
+typedef struct {
+	char *buffer;
+	unsigned int bufferSize;
+	unsigned int bufferUsed;
+} PNGWriteData_t;
+
+static void PNG_write_data(png_structp png_ptr, png_bytep data, png_size_t length) {
+	PNGWriteData_t *ioData = (PNGWriteData_t *)png_get_io_ptr( png_ptr );
+	if ( ioData->bufferUsed + length < ioData->bufferSize) {
+		Com_Memcpy( ioData->buffer + ioData->bufferUsed, data, length );
+		ioData->bufferUsed += length;
+	}
+}
+
+static void PNG_flush_data(png_structp png_ptr) {
+
+}
+
+/* Save PNG */
+int SavePNG( int compresslevel, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size ) {
+	png_structp png_ptr = 0;
+	png_infop info_ptr = 0;
+	png_bytep *row_pointers = 0;
+	PNGWriteData_t writeData;
+	int i, rowSize;
+
+	writeData.bufferUsed = 0;
+	writeData.bufferSize = out_size;
+	writeData.buffer = (char *)out_buffer;
+	if (!writeData.buffer)
+		goto skip_shot;
+	png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,NULL, NULL);
+	if (!png_ptr)
+		goto skip_shot;
+	info_ptr = png_create_info_struct(png_ptr);
+	if (!info_ptr)
+		goto skip_shot;
+
+	/* Finalize the initing of png library */
+    png_set_write_fn(png_ptr, &writeData, PNG_write_data, PNG_flush_data );
+	if (compresslevel < 0 || compresslevel > Z_BEST_COMPRESSION)
+		compresslevel = Z_DEFAULT_COMPRESSION;
+	png_set_compression_level(png_ptr, compresslevel );
+	
+	/* set other zlib parameters */
+	png_set_compression_mem_level(png_ptr, 8);
+	png_set_compression_strategy(png_ptr,Z_DEFAULT_STRATEGY);
+	png_set_compression_window_bits(png_ptr, 15);
+	png_set_compression_method(png_ptr, 8);
+	png_set_compression_buffer_size(png_ptr, 8192);
+	if ( image_type == mmeShotTypeRGB ) {
+		rowSize = image_width*3;
+		png_set_IHDR(png_ptr, info_ptr, image_width, image_height, 8, 
+			PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
+			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+		png_write_info(png_ptr, info_ptr );
+	} else if ( image_type == mmeShotTypeRGBA ) {
+		rowSize = image_width*4;
+		png_set_IHDR(png_ptr, info_ptr, image_width, image_height, 8, 
+			PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE,
+			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+		png_write_info(png_ptr, info_ptr );
+	} else if ( image_type == mmeShotTypeGray ) {
+		rowSize = image_width*1;
+		png_set_IHDR(png_ptr, info_ptr, image_width, image_height, 8, 
+			PNG_COLOR_TYPE_GRAY, PNG_INTERLACE_NONE,
+			PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+		png_write_info(png_ptr, info_ptr );
+	}
+	/*Allocate an array of scanline pointers*/
+	row_pointers=(png_bytep*)malloc(image_height*sizeof(png_bytep));
+	for (i=0;i<image_height;i++) {
+		row_pointers[i]=(image_buffer+(image_height -1 - i )*rowSize );
+	}
+	/*tell the png library what to encode.*/
+	png_write_image(png_ptr, row_pointers);
+	png_write_end(png_ptr, 0);
+
+	//PNG_TRANSFORM_PACKSWAP | PNG_TRANSFORM_STRIP_FILLER
+skip_shot:
+	if (png_ptr)
+		png_destroy_write_struct(&png_ptr, &info_ptr);
+	if (row_pointers)
+		free(row_pointers);
+	return writeData.bufferUsed;
+}
+#else
+void SavePNG(const char * filename, const int compresslevel, const int image_width, const int image_height, const byte *image_buffer, const int image_hasalpha) {
+
+}
+#endif
 
 void user_read_data( png_structp png_ptr, png_bytep data, png_size_t length );
 void png_print_error ( png_structp png_ptr, png_const_charp err )

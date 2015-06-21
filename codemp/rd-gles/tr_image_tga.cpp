@@ -431,4 +431,252 @@ TGADone:
 		Com_Error( ERR_DROP, "%s( File: \"%s\" )\n",sErrorString,name);
 	}
 }
+/*
+============================================================================
+MME additions
+============================================================================
+*/
+static int SaveTGA_RLERGBA(byte *out, const int image_width, const int image_height, const void* image_buffer ) {
+	int y;
+	const unsigned int *inBuf = ( const unsigned int*)image_buffer;
+	int dataSize = 0;
+	
+	for (y=0; y < image_height;y++) {
+		int left = image_width;
+		/* Prepare for the first block and write the first pixel */
+		while ( left > 0 ) {
+			/* Search for a block of similar pixels */
+			int i, block = left > 128 ? 128 : left;
+			unsigned int pixel = inBuf[0];
+			/* Check for rle pixels */
+			for ( i = 1;i < block;i++) {
+				if ( inBuf[i] != pixel)
+					break;
+			}
+			if ( i > 1  ) {
+				out[dataSize++] = 0x80 | ( i - 1);
+				out[dataSize++] = pixel >> 16;
+				out[dataSize++] = pixel >> 8;
+				out[dataSize++] = pixel >> 0;
+				out[dataSize++] = pixel >> 24;
+			} else {
+				int blockStart = dataSize++;
+				/* Write some raw pixels no matter what*/
+				out[dataSize++] = pixel >> 16;
+				out[dataSize++] = pixel >> 8;
+				out[dataSize++] = pixel >> 0;
+				out[dataSize++] = pixel >> 24;
+				pixel = inBuf[1];
+				for ( i = 1;i < block;i++) {
+					if ( inBuf[i+1] == pixel)
+						break;
+					out[dataSize++] = pixel >> 16;
+					out[dataSize++] = pixel >> 8;
+					out[dataSize++] = pixel >> 0;
+					out[dataSize++] = pixel >> 24;
+					pixel = inBuf[i+1];
+				}
+				out[blockStart] = i - 1;
+			}
+			inBuf += i;
+			left -= i;
+		}
+	}
+	return dataSize;
+}
+static int SaveTGA_RLERGB(byte *out, const int image_width, const int image_height, const void* image_buffer ) {
+	int y;
+	const byte *inBuf = ( const byte*)image_buffer;
+	int dataSize = 0;
+	
+	for (y=0; y < image_height;y++) {
+		int left = image_width;
+		/* Prepare for the first block and write the first pixel */
+		while ( left > 0 ) {
+			/* Search for a block of similar pixels */
+			int i, block = left > 128 ? 128 : left;
+			unsigned int pixel = inBuf[0] | (inBuf[1] << 8) | (inBuf[2] << 16);
+			/* Check for rle pixels */
+			for ( i = 1;i < block;i++) {
+				unsigned int testPixel = inBuf[i*3+0] | (inBuf[i*3+1] << 8) | (inBuf[i*3+2] << 16);
+				if ( testPixel != pixel)
+					break;
+			}
+			if ( i > 1  ) {
+				out[dataSize++] = 0x80 | ( i - 1);
+				out[dataSize++] = pixel >> 16;
+				out[dataSize++] = pixel >> 8;
+				out[dataSize++] = pixel >> 0;
+			} else {
+				int blockStart = dataSize++;
+				/* Write some raw pixels no matter what*/
+				out[dataSize++] = pixel >> 16;
+				out[dataSize++] = pixel >> 8;
+				out[dataSize++] = pixel >> 0;
+				pixel = inBuf[3] | (inBuf[4] << 8) | (inBuf[5] << 16);
+				for ( i = 1;i < block;i++) {
+					unsigned int testPixel = inBuf[i*3+3] | (inBuf[i*3+4] << 8) | (inBuf[i*3+5] << 16);
+					if ( testPixel == pixel)
+						break;
+					out[dataSize++] = pixel >> 16;
+					out[dataSize++] = pixel >> 8;
+					out[dataSize++] = pixel >> 0;
+					pixel = testPixel;
+				}
+				out[blockStart] = i - 1;
+			}
+			inBuf += i*3;
+			left -= i;
+		}
+	}
+	return dataSize;
+}
+static int SaveTGA_RLEGray(byte *out, const int image_width, const int image_height, const void* image_buffer ) {
+	int y;
+	unsigned char *inBuf = (unsigned char*)image_buffer;
 
+	int dataSize = 0;
+
+	for (y=0; y < image_height;y++) {
+		int left = image_width;
+		int diffIndex, diff;
+		unsigned char lastPixel, nextPixel;
+		lastPixel = *inBuf++;
+
+		diff = 0;
+		while (left > 0 ) {
+			int c, n;
+			if (left >= 2) {
+				nextPixel = *inBuf++;
+				if (lastPixel == nextPixel) {
+					if (diff) {
+						out[diffIndex] = diff - 1;
+						diff = 0;
+					}
+					left -= 2;
+					c = left > 126 ? 126 : left;
+					n = 0;
+
+					while (c) {
+						nextPixel = *inBuf++;
+						if (lastPixel != nextPixel)
+							break;
+						c--; n++;
+					}
+					left -= n;
+					out[dataSize++] = 0x80 | (n + 1);
+					out[dataSize++] = lastPixel;
+					lastPixel = nextPixel;
+				} else {
+finalDiff:
+					left--;
+					if (!diff) {
+						diff = 1;
+						diffIndex = dataSize++;
+					} else if (++diff >= 128) {
+						out[diffIndex] = diff - 1;
+						diff = 0;
+					}
+					out[dataSize++] = lastPixel;
+					lastPixel = nextPixel;
+				}
+			} else {
+				goto finalDiff;
+			}
+		}
+		if (diff) {
+			out[diffIndex] = diff - 1;
+		}
+	}
+	return dataSize;
+}
+/*
+===============
+SaveTGA
+===============
+*/
+int SaveTGA( int image_compressed, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size ) {
+	int i;
+	int imagePixels = image_height * image_width;
+	int filesize = 18;	// header is here by default
+	int bitDepth;
+	byte tgaFormat;
+
+	// Fill in the header
+	switch (image_type) {
+	case mmeShotTypeGray:
+		tgaFormat = 3;
+		bitDepth = 8;
+		break;
+	case mmeShotTypeRGB:
+		bitDepth = 24;
+		tgaFormat = 2;
+		break;
+	case mmeShotTypeRGBA:
+		bitDepth = 32;
+		tgaFormat = 2;
+		break;
+	default:
+		return 0;
+	}
+	if (image_compressed)
+		tgaFormat += 8;
+
+	/* Clear the header */
+	Com_Memset( out_buffer, 0, filesize );
+
+	out_buffer[2] = tgaFormat;
+	out_buffer[12] = image_width & 255;
+	out_buffer[13] = image_width >> 8;
+	out_buffer[14] = image_height & 255;
+	out_buffer[15] = image_height >> 8;
+	out_buffer[16] = bitDepth;
+	//Alpha/Attribute bits whatever
+	out_buffer[17] = bitDepth == 32 ? 8 : 0;
+
+	// Fill output buffer
+	if (!image_compressed) { // Plain memcpy
+		byte *buftemp = out_buffer+filesize;
+		switch (image_type) {
+		case mmeShotTypeRGBA:
+			for (i = 0; i < imagePixels; i++ ) {
+				/* Also handle the RGBA to BGRA conversion here */
+				*buftemp++ = image_buffer[2];
+				*buftemp++ = image_buffer[1];
+				*buftemp++ = image_buffer[0];
+				*buftemp++ = image_buffer[3];
+				image_buffer += 4;
+			}
+			filesize += image_width*image_height*4;
+			break;
+		case mmeShotTypeRGB:
+			for (i = 0; i < imagePixels; i++ ) {
+				/* Also handle the RGB to BGR conversion here */
+				*buftemp++ = image_buffer[2];
+				*buftemp++ = image_buffer[1];
+				*buftemp++ = image_buffer[0];
+				image_buffer += 3;
+			}
+			filesize += image_width*image_height*3;
+			break;
+		case mmeShotTypeGray:
+			/* Stupid copying of data here but oh well */
+			Com_Memcpy( buftemp, image_buffer, image_width*image_height );
+			filesize += image_width*image_height;
+			break;
+		}
+	} else {
+		switch (image_type) {
+		case mmeShotTypeRGB:
+			filesize += SaveTGA_RLERGB(out_buffer+filesize, image_width, image_height, image_buffer );
+			break;
+		case mmeShotTypeRGBA:
+			filesize += SaveTGA_RLERGBA(out_buffer+filesize, image_width, image_height, image_buffer );
+			break;
+		case mmeShotTypeGray:
+			filesize += SaveTGA_RLEGray(out_buffer+filesize, image_width, image_height, image_buffer );
+			break;
+		}
+	}
+	return filesize;
+}

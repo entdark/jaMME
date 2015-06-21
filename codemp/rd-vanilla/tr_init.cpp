@@ -610,83 +610,68 @@ static void R_LevelShot( void ) {
 
 	Com_Printf ("Wrote %s\n", checkname );
 }
-
-void R_ScreenShot( const char *shotName, mmeShotFormat_t shotFormat ) {
+void R_ScreenShot(const char *shotName, mmeShotFormat_t shotFormat) {
 	screenShotCommand_t *cmd;
-	
-	if ( !tr.registered ) {
+	if (!tr.registered) {
 		return;
 	}
-	cmd = (screenShotCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );
-	if ( !cmd ) {
+	cmd = (screenShotCommand_t *)R_GetCommandBuffer(sizeof(*cmd));
+	if (!cmd) {
 		return;
 	}
 	cmd->commandId = RC_SCREENSHOT;
-	Q_strncpyz( cmd->name, shotName, sizeof( cmd->name ));
+	Q_strncpyz(cmd->name, shotName, sizeof(cmd->name));
 	cmd->format = shotFormat;
 }
-
-
 /* 
 ================== 
-R_ScreenShotTGA_f
-
+R_ScreenShot_f
 screenshot
 screenshot [silent]
 screenshot [levelshot]
 screenshot [filename]
-
 Doesn't print the pacifier message if there is a second arg
 ================== 
 */
-
-static qboolean R_ScreenShotName( const char *start, const char *ext, char *fileName) {
+static qboolean R_ScreenShotName(const char *start, const char *ext, char *fileName) {
 	int i;
 	for (i=0;i<1000;i++) {
-		Com_sprintf( fileName, MAX_OSPATH, "screenshots/%s.%04d.%s", 
-			start, i, ext );
-		if (!ri.FS_FileExists( fileName))
+		Com_sprintf(fileName, MAX_OSPATH, "screenshots/%s.%04d.%s", 
+			start, i, ext);
+		if (!ri.FS_FileExists(fileName))
 			return qtrue;
 	}
 	Com_Printf("Screenshot limit reached\n");
 	return qtrue;
 }
-
-static void R_ScreenShot_f (const char *ext, mmeShotFormat_t shotFormat) {
-	char	fileName[MAX_OSPATH];
-	const char	*cmd = ri.Cmd_Argv(1);
+static void R_ScreenShot_f(const char *ext, mmeShotFormat_t shotFormat) {
+	char fileName[MAX_OSPATH];
+	const char *cmd = ri.Cmd_Argv(1);
 	qboolean silent = qfalse;
-
-	if ( !strcmp( ri.Cmd_Argv(1), "levelshot" ) && shotFormat != mmeShotFormatPNG ) {
+	if (!strcmp(ri.Cmd_Argv(1), "levelshot")) {
 		R_LevelShot();
 		return;
 	}
-	if (!strcmp( cmd, "silent" ) )
+	if (!strcmp(cmd, "silent"))
 		silent = qtrue;
 	if (!cmd[0] || silent)
 		cmd = "shot";	
-		
-	if (R_ScreenShotName( cmd, ext, fileName)) {
+	if (R_ScreenShotName(cmd, ext, fileName)) {
 		if (!silent)
-			ri.Printf( PRINT_ALL, "Saving shot %s\n", fileName );
-		R_ScreenShot( fileName, shotFormat );
+			ri.Printf(PRINT_ALL, "Saving shot %s\n", fileName);
+		R_ScreenShot(fileName, shotFormat);
 	}
 } 
-
-static void R_ScreenShotTGA_f (void) {
-	R_ScreenShot_f("tga", mmeShotFormatTGA );
+static void R_ScreenShotTGA_f(void) {
+	R_ScreenShot_f("tga", mmeShotFormatTGA);
 } 
-
-static void R_ScreenShotJPEG_f (void) {
-	R_ScreenShot_f("jpg", mmeShotFormatJPG );
+static void R_ScreenShotJPEG_f(void) {
+	R_ScreenShot_f("jpg", mmeShotFormatJPG);
 } 
-
-static void R_ScreenShotPNG_f (void) {
-	R_ScreenShot_f("png", mmeShotFormatPNG );
+static void R_ScreenShotPNG_f(void) {
+	R_ScreenShot_f("png", mmeShotFormatPNG);
 } 
-
 //============================================================================
-
 /*
 ** GL_SetDefaultState
 */

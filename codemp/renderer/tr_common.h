@@ -80,4 +80,8 @@ void R_InvertImage( byte *data, int width, int height, int depth );
 // Resize an image by resampling the image.
 void R_Resample( byte *source, int swidth, int sheight, byte *dest, int dwidth, int dheight, int components );
 
+//mme
+int SaveJPG( int quality, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size );
+int SaveTGA( int image_compressed, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size );
+int SavePNG( int compresslevel, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size );
 #endif

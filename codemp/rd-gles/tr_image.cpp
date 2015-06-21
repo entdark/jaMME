@@ -26,11 +26,18 @@ int		gl_filter_max = GL_LINEAR;
 /*
 ** R_GammaCorrect
 */
-void R_GammaCorrect( byte *buffer, int bufSize ) {
+void R_GammaCorrect(byte *buffer, int bufSize) {
 	int i;
-
+/*
 	for ( i = 0; i < bufSize; i++ ) {
 		buffer[i] = s_gammatable[buffer[i]];
+	}
+*/
+	for ( i = 0; i < bufSize/4; i++ ) {
+		buffer[i*4+0] = s_gammatable[buffer[i*4+0]];
+		buffer[i*4+1] = s_gammatable[buffer[i*4+1]];
+		buffer[i*4+2] = s_gammatable[buffer[i*4+2]];
+		buffer[i*4+3] = s_gammatable[buffer[i*4+3]];
 	}
 }
 

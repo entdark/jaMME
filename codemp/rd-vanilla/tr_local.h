@@ -1917,15 +1917,6 @@ typedef struct {
 	drawSurf_t *drawSurfs;
 	int		numDrawSurfs;
 } drawSurfsCommand_t;
- 
-typedef struct { 
-	int            commandId; 
-	int            width; 
-	int            height; 
-	byte          *captureBuffer; 
-	byte          *encodeBuffer; 
-	qboolean      motionJpeg; 
-} videoFrameCommand_t;
 
 typedef struct {
 	int		commandId;

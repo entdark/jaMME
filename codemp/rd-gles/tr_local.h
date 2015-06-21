@@ -1235,7 +1235,34 @@ extern	cvar_t	*r_showImages;
 extern	cvar_t	*r_debugSort;
 
 extern	cvar_t	*r_marksOnTriangleMeshes;
-
+//extern	cvar_t	*mme_aviFormat;
+//extern	cvar_t	*mme_screenshotName;
+//extern cvar_t	*mme_screenShotFormat;
+extern cvar_t	*mme_screenShotGamma;
+//extern cvar_t	*mme_screenShotAlpha;
+extern cvar_t	*mme_jpegQuality;
+extern cvar_t	*mme_jpegDownsampleChroma;
+extern cvar_t	*mme_jpegOptimizeHuffman;
+extern cvar_t	*mme_tgaCompression;
+extern cvar_t	*mme_pngCompression;
+//extern cvar_t	*mme_skykey;
+//extern cvar_t	*mme_worldShader;
+//extern cvar_t	*mme_pip;
+//extern cvar_t	*mme_renderWidth;
+//extern cvar_t	*mme_renderHeight;
+//extern cvar_t	*mme_blurFrames;
+//extern cvar_t	*mme_blurType;
+//extern cvar_t	*mme_blurOverlap;
+//extern cvar_t	*mme_blurGamma;
+//extern cvar_t	*mme_cpuSSE2;
+//extern cvar_t	*mme_pbo;
+//extern cvar_t	*mme_workMegs;
+//extern cvar_t	*mme_depthRange;
+//extern cvar_t	*mme_depthFocus;
+//extern cvar_t	*mme_saveOverwrite;
+//extern cvar_t	*mme_saveStencil;
+//extern cvar_t	*mme_saveShot;
+//extern cvar_t	*mme_saveDepth;
 /*
 Ghoul2 Insert Start
 */
@@ -1371,6 +1398,7 @@ void		R_GammaCorrect( byte *buffer, int bufSize );
 void	R_ImageList_f( void );
 void	R_SkinList_f( void );
 void	R_FontList_f( void );
+const void *RB_ScreenShotCmd( const void *data );
 
 void	R_InitFogTable( void );
 float	R_FogFactor( float s, float t );
@@ -1810,6 +1838,12 @@ typedef struct drawSurfsCommand_s {
 	int		numDrawSurfs;
 } drawSurfsCommand_t;
 
+typedef struct {
+	int		commandId;
+	char	name[MAX_OSPATH];
+	mmeShotFormat_t format;
+} screenShotCommand_t;
+
 typedef enum {
 	RC_END_OF_LIST=0,
 	RC_SET_COLOR,
@@ -1821,6 +1855,7 @@ typedef enum {
 	RC_SWAP_BUFFERS,
 	RC_WORLD_EFFECTS,
 	RC_AUTO_MAP,
+	RC_SCREENSHOT,
 	RC_ROTATE_PIC2_RATIOFIX,
 } renderCommand_t;
 

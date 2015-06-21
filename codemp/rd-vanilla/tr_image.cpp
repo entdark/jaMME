@@ -2282,7 +2282,7 @@ int SaveJPG( int quality, int image_width, int image_height, mmeShotType_t image
 	#pragma warning( disable: 4611 )
 #endif
 
-int RE_SavePNG(const char *filename, byte *buf, size_t width, size_t height, int byteDepth ) {
+int RE_SavePNG(const char *filename, byte *buf, size_t width, size_t height, int byteDepth) {
 	int outSize = width * height * 4;
 	mmeShotType_t shotType;
 	byte *outBuf;
@@ -2295,14 +2295,13 @@ int RE_SavePNG(const char *filename, byte *buf, size_t width, size_t height, int
 		shotType = mmeShotTypeRGBA;
 		break;
 	}
-	outSize = SavePNG( mme_pngCompression->integer, width, height, mmeShotTypeRGB, buf, outBuf, outSize );
+	outSize = SavePNG(mme_pngCompression->integer, width, height, mmeShotTypeRGB, buf, outBuf, outSize);
 	if (outSize) {
-		ri.FS_WriteFile( filename, outBuf, outSize );
+		ri.FS_WriteFile(filename, outBuf, outSize);
 		return 0;
 	}
 	return -1;
 }
-
 #ifdef _MSC_VER
 	#pragma warning( pop )
 #endif
@@ -3442,15 +3441,11 @@ void	R_SkinList_f( void ) {
 	}
 	Com_Printf ( "------------------\n");
 }
-
 /*
 ============================================================================
-
 MME additions
-
 ============================================================================
 */
-
 static int SaveTGA_RLERGBA(byte *out, const int image_width, const int image_height, const void* image_buffer ) {
 	int y;
 	const unsigned int *inBuf = ( const unsigned int*)image_buffer;
@@ -3499,7 +3494,6 @@ static int SaveTGA_RLERGBA(byte *out, const int image_width, const int image_hei
 	}
 	return dataSize;
 }
-
 static int SaveTGA_RLERGB(byte *out, const int image_width, const int image_height, const void* image_buffer ) {
 	int y;
 	const byte *inBuf = ( const byte*)image_buffer;
@@ -3547,7 +3541,6 @@ static int SaveTGA_RLERGB(byte *out, const int image_width, const int image_heig
 	}
 	return dataSize;
 }
-
 static int SaveTGA_RLEGray(byte *out, const int image_width, const int image_height, const void* image_buffer ) {
 	int y;
 	unsigned char *inBuf = (unsigned char*)image_buffer;
@@ -3607,8 +3600,6 @@ finalDiff:
 	}
 	return dataSize;
 }
-
-
 /*
 ===============
 SaveTGA
