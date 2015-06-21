@@ -368,29 +368,44 @@ If no console is visible, the text will appear at the top of the game window
 ================
 */
 static qboolean newString = qtrue;
-void CL_ConsolePrint( const char *txt) {
-	int		y;
-	int		c, l;
-	int		color;
-	qboolean skipnotify = qfalse;		// NERVE - SMF
-	int prev;							// NERVE - SMF
-
+const char *CL_ConsolePrintTimeStamp(const char *txt) {
+	int c = (unsigned char)*txt;
+	if (c == 0)
+		return txt;
+	if (!con_timestamps)
+		return txt;
+	if (!con_timestamps->integer)
+		return txt;
+	if (newString) {
+		time_t rawtime;
+		char timeStr[32] = {0};
+		newString = qfalse;
+		time(&rawtime);
+		strftime(timeStr,sizeof(timeStr),"[%H:%M:%S]",localtime(&rawtime));
+		return va("%s %s", timeStr, txt);
+	}
+	return txt;
+}
+void CL_ConsolePrint(const char *txt) {
+	int y;
+	int c, l;
+	int color;
+	qboolean skipnotify = qfalse;	// NERVE - SMF
+	int prev;						// NERVE - SMF
 	// TTimo - prefix for text that shows up in console but not in notify
 	// backported from RTCW
-	if ( !Q_strncmp( txt, "[skipnotify]", 12 ) ) {
+	if ( !Q_strncmp(txt, "[skipnotify]", 12)) {
 		skipnotify = qtrue;
 		txt += 12;
 	}
-	if ( txt[0] == '*' ) {
+	if (txt[0] == '*') {
 		skipnotify = qtrue;
 		txt += 1;
 	}
-
 	// for some demos we don't want to ever show anything on the console
 	if (cl_noprint && cl_noprint->integer) {
 		return;
 	}
-	
 	if (!con.initialized) {
 		con.color[0] = 
 		con.color[1] = 
@@ -400,81 +415,60 @@ void CL_ConsolePrint( const char *txt) {
 		Con_CheckResize ();
 		con.initialized = qtrue;
 	}
-
 	color = ColorIndex(COLOR_WHITE);
-	
-	if (newString && con_timestamps && con_timestamps->integer) {
-		time_t rawtime;
-		char timeStr[32] = {0};
-		char *timedTxt;
-		time(&rawtime);
-		strftime(timeStr,sizeof(timeStr),"[%H:%M:%S]",localtime(&rawtime));
-		timedTxt = va("%s %s" , timeStr, txt);
-		txt = timedTxt;
-	}
-
-	qboolean last = qfalse;
-	while ( (c = (unsigned char) *txt) != 0 ) {
-		newString = last = qfalse;
-		if ( cls.uag.newColors && Q_IsColorStringUAG( (unsigned char*) txt ) ) {
-			color = ColorIndexUAG( *(txt+1) );
+	txt = CL_ConsolePrintTimeStamp(txt);
+	while ((c = (unsigned char)*txt) != 0) {
+		if (cls.uag.newColors && Q_IsColorStringUAG((unsigned char*)txt)) {
+			color = ColorIndexUAG(*(txt+1));
 			txt += 2;
 			continue;
-		} else if ( Q_IsColorString( (unsigned char*) txt ) ) {
-			color = ColorIndex( *(txt+1) );
+		} else if (Q_IsColorString((unsigned char*)txt)) {
+			color = ColorIndex(*(txt+1));
 			txt += 2;
 			continue;
 		}
-
 		// count word length
-		for (l=0 ; l< con.linewidth ; l++) {
-			if ( txt[l] <= ' ') {
+		for (l=0; l<con.linewidth; l++) {
+			if (txt[l] <= ' ') {
 				break;
 			}
 		}
-
 		// word wrap
-		if (l != con.linewidth && (con.x + l >= con.linewidth) ) {
+		if (l != con.linewidth && (con.x + l >= con.linewidth)) {
 			Con_Linefeed(skipnotify);
-
 		}
-
 		txt++;
-
 		switch (c) {
 		case '\n':
-			Con_Linefeed (skipnotify);
-			last = qtrue;
+			Con_Linefeed(skipnotify);
+			newString = qtrue;
 			break;
 		case '\r':
 			con.x = 0;
 			break;
 		default:	// display character and advance
 			y = con.current % con.totallines;
-			con.text[y*con.linewidth+con.x] = (short) ((color << 8) | c);
+			con.text[y*con.linewidth+con.x] = (short)((color << 8) | c);
 			con.x++;
 			if (con.x >= con.linewidth) {
 				Con_Linefeed(skipnotify);
 			}
 			break;
 		}
-		newString = last;
+		txt = CL_ConsolePrintTimeStamp(txt);
 	}
-
-
 	// mark time for transparent overlay
-
-	if (con.current >= 0 ) {
+	if (con.current >= 0) {
 		// NERVE - SMF
-		if ( skipnotify ) {
+		if (skipnotify) {
 			prev = con.current % NUM_CON_TIMES - 1;
-			if ( prev < 0 )
+			if (prev < 0)
 				prev = NUM_CON_TIMES - 1;
 			con.times[prev] = 0;
-		}
-		else
+		} else {
 		// -NERVE - SMF
 			con.times[con.current % NUM_CON_TIMES] = cls.realtime;
+		}
 	}
 }
 
