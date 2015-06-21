@@ -1104,7 +1104,7 @@ Ghoul2 Insert End
 			int			captures;
 			int			assist;
 			int			defend;
-			byte		accuracy;
+			int			accuracy;
 			int			time;
 			int			flagCarrierKills;
 			int			flagReturns;

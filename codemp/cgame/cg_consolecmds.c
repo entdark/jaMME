@@ -296,15 +296,48 @@ static void CG_Camera_f( void ) {
 	}
 }
 */
+//keep all stats since score ints!!!!!
+typedef struct {
+	team_t		team;
+	char		name[64];
+	int			score;
+	int			captures;
+	int			assist;
+	int			defend;
+	int			accuracy;
+	int			time;
+	int			flagCarrierKills;
+	int			flagReturns;
+	int			flagHold;
+	int			teamHeals;
+	int			teamEnergizes;
+} stats;
+static void CG_PrintfStats(const char *printStats, const int stats, const int maxStats) {
+	if (stats == maxStats && maxStats != 0)
+		CG_Printf("%s%s", S_COLOR_GREEN, va(printStats, stats));
+	else
+		CG_Printf("%s%s", S_COLOR_WHITE, va(printStats, stats));
+}
 static void CG_DisplayTeamStat(team_t t) {
 	int i, nameLenMax = 0;
+	stats max;
+	memset(&max, 0, sizeof(max));
 	for (i = 0; i < cg.numScores; i++) {
+		int *enhancedStats = &(cg.enhanced.stats[i].score);
+		int *maxStats = &(max.score);
+		int j;
 		if (!(cg.enhanced.stats[i].team == TEAM_RED
 			|| cg.enhanced.stats[i].team == TEAM_BLUE))
 			continue;
 		int nameLen = Q_PrintStrlen(cg.enhanced.stats[i].name);
 		if (nameLen > nameLenMax)
 			nameLenMax = nameLen;
+		if (cg.enhanced.stats[i].team != t)
+			continue;
+		for (j = 0; j < 11; j++, enhancedStats++, maxStats++) {
+			if (*enhancedStats > *maxStats)
+				*maxStats = *enhancedStats;
+		}
 	}
 	if (nameLenMax < 4)
 		nameLenMax = 4;
@@ -335,25 +368,32 @@ static void CG_DisplayTeamStat(team_t t) {
 		}
 		CG_Printf(" ");
 		CG_Printf(S_COLOR_WHITE);
-		CG_Printf("%5d ", cg.enhanced.stats[i].score);
-		CG_Printf("%4d ", cg.enhanced.stats[i].captures);
-		CG_Printf("%6d ", cg.enhanced.stats[i].assist);
-		CG_Printf("%3d ", cg.enhanced.stats[i].defend);
-		CG_Printf("%3d%% ", cg.enhanced.stats[i].accuracy);
-		CG_Printf("%4d ", cg.enhanced.stats[i].time);
-		CG_Printf("%7d ", cg.enhanced.stats[i].flagCarrierKills);
-		CG_Printf("%8d ", cg.enhanced.stats[i].flagReturns);
+		CG_PrintfStats("%5d ", cg.enhanced.stats[i].score, max.score);
+		CG_PrintfStats("%4d ", cg.enhanced.stats[i].captures, max.captures);
+		CG_PrintfStats("%6d ", cg.enhanced.stats[i].assist, max.assist);
+		CG_PrintfStats("%3d ", cg.enhanced.stats[i].defend, max.defend);
+		CG_PrintfStats("%3d%% ", cg.enhanced.stats[i].accuracy, max.accuracy);
+		CG_Printf(S_COLOR_WHITE"%4d ", cg.enhanced.stats[i].time);
+		CG_PrintfStats("%7d ", cg.enhanced.stats[i].flagCarrierKills, max.flagCarrierKills);
+		CG_PrintfStats("%8d ", cg.enhanced.stats[i].flagReturns, max.flagReturns);
 		{char flagHold[17];
 		int secs = (cg.enhanced.stats[i].flagHold / 1000);
 		int mins = (secs / 60);
 		if (cg.enhanced.stats[i].flagHold >= 60000) {
 			secs %= 60;
-			Com_sprintf(flagHold, sizeof(flagHold), "%d:%02d", mins, secs);
+//			Com_sprintf(flagHold, sizeof(flagHold), "%d:%02d", mins, secs);
+			Com_sprintf(flagHold, sizeof(flagHold), "%dm %02ds", mins, secs);
 		} else {
-			Com_sprintf(flagHold, sizeof(flagHold), "%d", secs);
+//			Com_sprintf(flagHold, sizeof(flagHold), "%d", secs);
+			Com_sprintf(flagHold, sizeof(flagHold), "%ds", secs);
 		}
-		CG_Printf("%8s ", flagHold);}
-		CG_Printf("%3d/%d", cg.enhanced.stats[i].teamHeals, cg.enhanced.stats[i].teamEnergizes);
+		if (cg.enhanced.stats[i].flagHold == max.flagHold && max.flagHold != 0)
+			CG_Printf(S_COLOR_GREEN"%8s ", flagHold);
+		else
+			CG_Printf(S_COLOR_WHITE"%8s ", flagHold);}
+		CG_PrintfStats("%3d", cg.enhanced.stats[i].teamHeals, max.teamHeals);
+		CG_Printf(S_COLOR_WHITE"/");
+		CG_PrintfStats("%d", cg.enhanced.stats[i].teamEnergizes, max.teamEnergizes);
 		CG_Printf("\n");
 	}
 }
@@ -425,14 +465,14 @@ static void CG_SayAlias_f(void) {
 	if (trap_Argc () < 2)
 		return;
 	p = ConcatArgs(1);
-	trap_SendConsoleCommand(va("say %s", p));
+	trap_SendConsoleCommand(va("cmd say %s", p));
 }
 static void CG_SayTeamAlias_f(void) {
 	char *p = NULL;
 	if (trap_Argc () < 2)
 		return;
 	p = ConcatArgs(1);
-	trap_SendConsoleCommand(va("say_team %s", p));
+	trap_SendConsoleCommand(va("cmd say_team %s", p));
 }
 #endif
 typedef struct {
