@@ -375,7 +375,7 @@ then searches for a command or variable that matches the first token.
 typedef void (*xcommand_t) (void);
 
 typedef void ( *callbackFunc_t )( const char *s );
-
+qboolean Cmd_CommandExists(const char *cmd_name);
 void	Cmd_Init (void);
 
 void	Cmd_AddCommand( const char *cmd_name, xcommand_t function );

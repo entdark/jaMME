@@ -777,14 +777,16 @@ void CompleteCommand( void )
 		edit->cursor = strlen( edit->buffer );
 		return;
 	}
-
 	// multiple matches, complete to shortest
 	Com_sprintf( edit->buffer, sizeof( edit->buffer ), "\\%s", shortestMatch );
 	edit->cursor = strlen( edit->buffer );
 	ConcatRemaining( temp.buffer, completionString );
-
+#ifdef __ANDROID__
+	if (Cmd_CommandExists(shortestMatch)) {
+		return;
+	}
+#endif
 	Com_Printf( "]%s\n", edit->buffer );
-
 	// run through again, printing matches
 	Cmd_CommandCompletion( PrintMatches );
 	Cvar_CommandCompletion( PrintMatches );
@@ -820,9 +822,7 @@ void Console_Key (int key) {
 		{	// Added this to automatically make explicit commands not need slashes.
 			CompleteCommand();
 		}
-
 		Com_Printf ( "]%s\n", kg.g_consoleField.buffer );
-
 		// leading slash is an explicit command
 		if ( kg.g_consoleField.buffer[0] == '\\' || kg.g_consoleField.buffer[0] == '/' ) {
 			if (cgvm && cl.mSharedMemory)
