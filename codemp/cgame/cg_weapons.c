@@ -370,20 +370,96 @@ static void CG_LightningBolt( centity_t *cent, vec3_t origin ) {
 CG_AddWeaponWithPowerups
 ========================
 */
-static void CG_AddWeaponWithPowerups( refEntity_t *gun, int powerups ) {
+static void CG_AddWeaponWithPowerups(refEntity_t *gun, int powerups, centity_t *cent) {
 	// add powerup effects
-	trap_R_AddRefEntityToScene( gun );
-
+	trap_R_AddRefEntityToScene(gun);
 	//use cent->currentState.emplacedOwner for non-predicted clients?
 	//add electrocution shell
 	if (cg.predictedPlayerState.electrifyTime > cg.time && cg.playerPredicted) {
 		int preShader = gun->customShader;
-		if ( rand() & 1 )
+		if (rand() & 1)
 			gun->customShader = cgs.media.electricBodyShader;	
 		else
 			gun->customShader = cgs.media.electricBody2Shader;
-		trap_R_AddRefEntityToScene( gun );
+		trap_R_AddRefEntityToScene(gun);
 		gun->customShader = preShader; //set back just to be safe
+	}
+	if (cg.renderingThirdPerson || cg.trueView
+		|| !mov_fpForceShader.integer
+		|| cg.playerCent != cent)
+		return;
+	if (cent->currentState.forcePowersActive & (1 << FP_RAGE)) {
+		//gun->customShader = cgs.media.rageShader;
+		gun->renderfx &= ~RF_FORCE_ENT_ALPHA;
+		gun->renderfx &= ~RF_MINLIGHT;
+		gun->renderfx |= RF_RGB_TINT;
+		if (mov_rageColour.string[0] == '0') {
+			gun->shaderRGBA[0] = 255;
+			gun->shaderRGBA[1] = gun->shaderRGBA[2] = 0;
+			gun->shaderRGBA[3] = 255;
+		} else {
+			vec3_t color;
+			Q_parseColor(mov_rageColour.string, defaultColors, color);
+			gun->shaderRGBA[0] = color[0] * 255;
+			gun->shaderRGBA[1] = color[1] * 255;
+			gun->shaderRGBA[2] = color[2] * 255;
+			gun->shaderRGBA[3] = 255;
+		}
+		if (rand() & 1) {
+			gun->customShader = cgs.media.electricBodyShader;	
+		} else {
+			gun->customShader = cgs.media.electricBody2Shader;
+		}
+		trap_R_AddRefEntityToScene(gun);
+	}
+	if (cent->currentState.forcePowersActive & (1<<FP_PROTECT)) {
+		//aborb is represented by green..
+		refEntity_t prot;
+		memcpy(&prot, gun, sizeof(prot));
+		if (mov_protectColour.string[0] == '0') {
+			prot.shaderRGBA[0] = 0;
+			prot.shaderRGBA[1] = 128;
+			prot.shaderRGBA[2] = 0;
+			prot.shaderRGBA[3] = 254;
+		} else {
+			vec3_t color;
+			Q_parseColor(mov_protectColour.string, defaultColors, color);
+			prot.shaderRGBA[0] = color[0] * 255;
+			prot.shaderRGBA[1] = color[1] * 255;
+			prot.shaderRGBA[2] = color[2] * 255;
+			prot.shaderRGBA[3] = 255;
+		}
+		prot.renderfx &= ~RF_RGB_TINT;
+		prot.renderfx &= ~RF_FORCE_ENT_ALPHA;
+		prot.customShader = cgs.media.protectShader;
+		trap_R_AddRefEntityToScene(&prot);
+	}
+	if ((!cg.renderingThirdPerson) && !cg.trueView
+		&& (mov_fpForceShader.integer)
+		&& (cg.playerCent == cent)
+		&& (cent->currentState.forcePowersActive & (1<<FP_ABSORB))) {
+		//absorb is represented by blue..
+		if (mov_absorbColour.string[0] == '0') {
+			gun->shaderRGBA[0] = 0;
+			gun->shaderRGBA[1] = 0;
+			gun->shaderRGBA[2] = 255;
+			gun->shaderRGBA[3] = 254;
+		} else {
+			vec3_t color;
+			Q_parseColor(mov_absorbColour.string, defaultColors, color);
+			gun->shaderRGBA[0] = color[0] * 255;
+			gun->shaderRGBA[1] = color[1] * 255;
+			gun->shaderRGBA[2] = color[2] * 255;
+			gun->shaderRGBA[3] = 255;
+		}
+		gun->renderfx &= ~RF_RGB_TINT;
+		gun->renderfx &= ~RF_FORCE_ENT_ALPHA;
+		if (mov_absorbShader.integer) {
+			gun->customShader = cgs.media.protectShader;
+		} else {
+			gun->customShader = cgs.media.playerShieldDamage;
+		}
+		trap_R_AddRefEntityToScene(gun);
 	}
 }
 
@@ -471,7 +547,7 @@ Ghoul2 Insert Start
 			if (cg.zoomMode)
 				goto getFlash;
 
-			CG_AddWeaponWithPowerups( &gun, cent->currentState.powerups ); //don't draw the weapon if the player is invisible
+			CG_AddWeaponWithPowerups(&gun, cent->currentState.powerups, cent); //don't draw the weapon if the player is invisible
 			/*
 			if ( weaponNum == WP_STUN_BATON )
 			{
@@ -529,7 +605,7 @@ Ghoul2 Insert Start
 				if (cg.zoomMode)
 					goto getFlash;
 
-				CG_AddWeaponWithPowerups( &barrel, cent->currentState.powerups );
+				CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups, cent);
 
 				i++;
 			}
@@ -555,7 +631,7 @@ Ghoul2 Insert Start
 				if (cg.zoomMode)
 					goto getFlash;
 
-				CG_AddWeaponWithPowerups( &barrel, cent->currentState.powerups );
+				CG_AddWeaponWithPowerups(&barrel, cent->currentState.powerups, cent);
 			}
 		}
 	}
