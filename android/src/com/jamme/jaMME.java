@@ -686,7 +686,7 @@ public class jaMME extends Activity {
 			if ((flags & CONSOLE_ACTIVE) == 0 && (flags & CONSOLE_ACTIVE_FULLSCREEN) == 0) {
 				mouseMove(deltaX*1.7f*d, deltaY*1.7f*d);
 			} else {
-				touchYtotal += deltaY*23*d;
+				touchYtotal += deltaY*23*d*2;
 				int tYt = (int)Math.abs(touchYtotal);
 				if (tYt > 1) {
 					int qkey = 0;

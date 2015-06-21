@@ -871,13 +871,21 @@ void Con_RunConsole(void) {
 	}
 }
 void Con_PageUp(void) {
+#ifdef __ANDROID__
+	con.display -= 1;
+#else
 	con.display -= 2;
+#endif
 	if (con.current - con.display >= con.totallines) {
 		con.display = con.current - con.totallines + 1;
 	}
 }
 void Con_PageDown(void) {
+#ifdef __ANDROID__
+	con.display += 1;
+#else
 	con.display += 2;
+#endif
 	if (con.display > con.current) {
 		con.display = con.current;
 	}
