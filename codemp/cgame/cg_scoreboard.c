@@ -63,8 +63,25 @@ static int SB_NAME_X = (SB_SCORELINE_X_CONST + .48 * SB_SCORELINE_WIDTH_CONST);
 
 static qboolean localClient; // true if local client has been displayed
 
-
-							 /*
+static void CG_DrawSpectated(float x, float y, score_t *score, float scale) {
+	int i, client;
+	qboolean samePingFound = qfalse;
+	if (score->team != TEAM_SPECTATOR)
+		return;
+	for (i = 0; i < cg.numScores; i++) {
+		if (cg.scores[i].team == TEAM_SPECTATOR)
+			continue;
+		if (cg.scores[i].ping == score->ping) {
+			if (samePingFound)
+				return;
+			samePingFound = qtrue;
+			client = cg.scores[i].client;
+		}
+	}
+	if (samePingFound)
+		CG_Text_Paint(x, y, 1.0f*scale, colorWhite, va("@ %s", cgs.clientinfo[client].name), 0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_SMALL);
+}
+/*
 =================
 CG_DrawScoreboard
 =================
@@ -232,6 +249,7 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 
 		CG_Text_Paint (SB_PING_X - CG_Text_Width( va("%i", score->ping), 1.0f * scale, FONT_SMALL ) / 2, y, 1.0f * scale, colorWhite, va("%i", score->ping),0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_SMALL );	
 		CG_Text_Paint (SB_TIME_X - CG_Text_Width( va("%i", score->time), 1.0f * scale, FONT_SMALL ) / 2, y, 1.0f * scale, colorWhite, va("%i", score->time),0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_SMALL );		
+		CG_DrawSpectated(320 + (SB_SCORELINE_X / 2), y, score, scale);
 	}
 	else
 	{
