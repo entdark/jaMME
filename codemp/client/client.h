@@ -427,6 +427,7 @@ extern	cvar_t	*mme_demoPaused;
 void CL_MMEDemo_f( void );
 void CL_DemoList_f( void );
 void CL_DemoListNext_f( void );
+void CL_DemoCut_f( void );
 //void CL_DemoShutDown( void );
 void CL_DemoSetCGameTime( void );
 void demoConvert( const char *oldName, const char *newName, qboolean smoothen );
@@ -466,10 +467,6 @@ void CL_InitRef( void );
 int CL_ServerStatus( char *serverAddress, char *serverStatusString, int maxLen );
 
 qboolean CL_CheckPaused(void);
-
-void CL_WriteAudio( const byte *pcmBuffer, int size );
-
-void CL_CaptureStereo ( const char *shotName, float fps, float focus );
 
 //
 // cl_input

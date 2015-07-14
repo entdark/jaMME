@@ -2716,6 +2716,7 @@ void CL_Init( void ) {
 //	Cmd_AddCommand("csList", CL_CSList_f);
 	Cmd_AddCommand("mmeDemo", CL_MMEDemo_f);
 	Cmd_AddCommand("demoList", CL_DemoList_f);
+	Cmd_AddCommand("demoCut", CL_DemoCut_f);
 	Cmd_AddCommand("demoListNext", CL_DemoListNext_f);
 	Cmd_AddCommand("demoListNext", CL_DemoListNext_f);
 	Cmd_AddCommand("pause", NULL);

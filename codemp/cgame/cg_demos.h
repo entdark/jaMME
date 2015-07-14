@@ -160,6 +160,9 @@ typedef struct demoMain_s {
 		float		range;
 		qboolean	active, back;
 	} rain;
+	struct {
+		int			start, end;
+	} cut;
 	vec3_t			viewOrigin, viewAngles;
 	demoViewType_t	viewType;
 	vec_t			viewFov;
@@ -280,6 +283,8 @@ qboolean weatherParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fr
 void weatherSave( fileHandle_t fileHandle );
 void demoSunCommand_f(void);
 void demoRainCommand_f(void);
+
+void demoCutCommand_f(void);
 
 #define CAM_ORIGIN	0x001
 #define CAM_ANGLES	0x002
