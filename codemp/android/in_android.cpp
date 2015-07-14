@@ -326,7 +326,23 @@ void PortableAction(int state, int action/*,int param*/) {
 		break;*/
 	}
 }
-
+qboolean portableTextPaste = qfalse;
+static char textClipboard[256];
+char *PortableGetClipboardText(void) {
+	return textClipboard;
+}
+void PortableSetClipboardText(const char *txt) {
+	memset(&textClipboard, 0, sizeof(textClipboard));
+	Q_strncpyz(textClipboard, txt, sizeof(textClipboard));
+	portableTextPaste = qtrue;
+}
+void PortableTextPaste(const char *paste) {
+	PortableSetClipboardText(paste);
+	PortableKeyEvent(1,A_SHIFT,0);
+	PortableKeyEvent(1,A_INSERT,0);
+	PortableKeyEvent(0,A_INSERT,0);
+	PortableKeyEvent(0,A_SHIFT,0);
+}
 int mdx=0,mdy=0;
 void PortableMouse(float dx,float dy) {
 	//LOGI("dx = %f, dy = %f",dx,dy);

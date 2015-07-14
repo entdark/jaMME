@@ -152,20 +152,32 @@ char *Sys_GetCurrentUser( void )
 Sys_GetClipboardData
 ==================
 */
-char *Sys_GetClipboardData( void ) {
+#ifdef __ANDROID__
+extern qboolean portableTextPaste;
+extern char *PortableGetClipboardText(void);
+#endif
+char *Sys_GetClipboardData(void) {
 #ifdef DEDICATED
 	return NULL;
-#else
-	if ( !SDL_HasClipboardText() )
+#elif defined __ANDROID__
+	if (!portableTextPaste) {
 		return NULL;
-
+	}
+	char *cbText = PortableGetClipboardText();
+	size_t len = strlen(cbText) + 1;
+	char *buf = (char *)Z_Malloc(len, TAG_CLIPBOARD);
+	Q_strncpyz(buf, cbText, len);
+	portableTextPaste = qfalse;
+	return buf;
+#else
+	if (!SDL_HasClipboardText()) {
+		return NULL;
+	}
 	char *cbText = SDL_GetClipboardText();
-	size_t len = strlen( cbText ) + 1;
-
-	char *buf = (char *)Z_Malloc( len, TAG_CLIPBOARD );
-	Q_strncpyz( buf, cbText, len );
-
-	SDL_free( cbText );
+	size_t len = strlen(cbText) + 1;
+	char *buf = (char *)Z_Malloc(len, TAG_CLIPBOARD);
+	Q_strncpyz(buf, cbText, len);
+	SDL_free(cbText);
 	return buf;
 #endif
 }

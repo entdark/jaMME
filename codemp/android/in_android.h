@@ -5,6 +5,7 @@ extern "C"
 {
 #endif
 int PortableKeyEvent(int state, int code ,int unitcode);
+void PortableTextPaste(const char *paste);
 void PortableAction(int state, int action/*,int param = 0*/);
 void PortableMove(float fwd, float strafe);
 void PortableMoveFwd(float fwd);

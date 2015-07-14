@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -25,6 +27,9 @@ import android.app.AlertDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.content.ClipData;
+import android.content.ClipDescription;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -90,6 +95,7 @@ public class jaMME extends Activity {
 	public static native void setScreenSize(int width, int height);	
 	public static native int frame();
 	public static native void keypress(int down, int qkey, int unicode);
+	public static native void textPaste(byte []paste);
 	public static native void doAction(int state, int action);
 	public static native void analogPitch(int mode,float v);
 	public static native void analogYaw(int mode,float v);
@@ -756,12 +762,45 @@ public class jaMME extends Activity {
 		}
 		return true;
 	}
+	private String PasteFromClipboard() {
+		ClipboardManager clipboard = (ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
+		String paste = null;
+		if (clipboard != null
+				&& clipboard.hasPrimaryClip()
+				&& clipboard.getPrimaryClipDescription() != null
+				&& clipboard.getPrimaryClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)
+				&& clipboard.getPrimaryClip() != null
+				&& clipboard.getPrimaryClip().getItemAt(0) != null) {
+		    ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+		    paste = (String)item.getText();
+		}
+		return paste;
+	}
 	public static int LONG_PRESS_TIME = 717;
 	final Handler _handler = new Handler(); 
 	Runnable _longPressed = new Runnable() { 
 	    public void run() {
 	    	if ((flags & DEMO_PLAYBACK) != 0/* && twoFingers*/) {
 	    		quickCommand("cut it");
+	    	} else if (!textPasted && ((flags & CONSOLE_ACTIVE) != 0
+	    			|| (flags & UI_EDITINGFIELD) != 0
+	    			|| (flags & CHAT_SAY) != 0
+	    			|| (flags & CHAT_SAY_TEAM) != 0)) {
+				String paste = PasteFromClipboard();
+				if (paste != null) {
+					try {
+						textPaste(paste.getBytes("US-ASCII"));
+						textPasted = true;
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+				}
+/*			} else if ((flags & DEMO_PAUSED) != 0) {
+				if (demoCutting) {
+					demoCutting = false;
+				} else {
+					demoCutting = true;
+				}*/
 			} else if (flags == 0) {
 	    		quickCommand("+scores");
 			}
@@ -855,6 +894,7 @@ public class jaMME extends Activity {
 				quickCommand("-scores");
 			touchMotion = false;
 			longPress = false;
+			textPasted = false;
 //			twoFingers = false;
 			touchYtotal = 0;
 	        _handler.removeCallbacks(_longPressed);
