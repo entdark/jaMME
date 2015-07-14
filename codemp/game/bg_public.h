@@ -53,7 +53,7 @@
 #define CROUCH_VIEWHEIGHT	(CROUCH_MAXS_2+STANDARD_VIEWHEIGHT_OFFSET)//12
 #define	DEAD_VIEWHEIGHT		-16
 
-#define MAX_CLIENT_SCORE_SEND 20
+#define MAX_CLIENT_SCORE_SEND 32 //20
 
 //
 // config strings are a general means of communicating variable length strings

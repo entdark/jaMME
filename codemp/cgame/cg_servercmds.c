@@ -223,9 +223,8 @@ void CG_ParseServerinfo( void ) {
 	if ( cgs.timelimit != i )
 		cg.timelimitWarnings &= ~(1|2);
 	cgs.timelimit = i;
-
 	cgs.maxclients = Com_Clampi( 0, MAX_CLIENTS, atoi( Info_ValueForKey( info, "sv_maxclients" ) ) );
-
+	cgs.privateclients = Com_Clampi( 0, MAX_CLIENTS, atoi( Info_ValueForKey( info, "sv_privateClients" ) ) );
 	CG_Printf("\n");
 	gamename = Info_ValueForKey(info, "gamename");
 	if (!Q_stricmpn(gamename, "JA+ Mod", 7)) {

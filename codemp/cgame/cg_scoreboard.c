@@ -415,6 +415,7 @@ qboolean CG_DrawOldScoreboard( void ) {
 	int lineHeight;
 	int topBorderSize, bottomBorderSize;
 	float	mySBScale;
+	int totalClients = 0, totalPrivate = 0;
 
 	// don't draw amuthing if the menu or console is up
 	if ( cl_paused.integer ) {
@@ -669,6 +670,15 @@ qboolean CG_DrawOldScoreboard( void ) {
 		
 		n1 = CG_TeamScoreboard( y, TEAM_SPECTATOR, fade, maxClients, lineHeight, qfalse );
 		//y += (n1 * lineHeight) + BIGCHAR_HEIGHT;
+		for (i = 0; i < MAX_CLIENTS; i++) {
+			if (cgs.clientinfo[i].infoValid) {
+				if (i < cgs.privateclients)
+					totalPrivate++;
+				else
+					totalClients++;
+			}
+		}
+		CG_Text_Paint(SB_SCORELINE_X, y+(((float)n1+0.7f)*lineHeight), ((lineHeight == SB_NORMAL_HEIGHT)?(1.0f):(0.75f)), colorWhite, va("Players: %d/%d (Private: %d/%d)", totalClients, cgs.maxclients-cgs.privateclients, totalPrivate, cgs.privateclients),0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_SMALL);
 		
 		SB_SCORELINE_X = 320 + (SB_SCORELINE_X / 2);
 		/*SB_NAME_X = (SB_SCORELINE_X);
@@ -799,7 +809,6 @@ qboolean CG_DrawOldScoreboard( void ) {
 		n2 = CG_TeamScoreboard( y, TEAM_SPECTATOR, fade, maxClients - n1, lineHeight, qfalse );
 		y += (n2 * lineHeight) + BIGCHAR_HEIGHT;
 	}
-
 	if (!localClient) {
 		// draw local client at the bottom
 		for ( i = 0 ; i < cg.numScores ; i++ ) {

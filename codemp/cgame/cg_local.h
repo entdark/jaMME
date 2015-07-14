@@ -1719,6 +1719,7 @@ typedef struct {
 	int				capturelimit;
 	int				timelimit;
 	int				maxclients;
+	int				privateclients;
 	qboolean		needpass;
 	qboolean		jediVmerc;
 	int				wDisable;
@@ -1798,7 +1799,6 @@ typedef struct {
 	cg_staticmodel_t	miscStaticModels[MAX_STATIC_MODELS];
 
 	float widthRatioCoef;	//to make 2Ds be not stretched
-
 } cgs_t;
 
 typedef struct siegeExtended_s
