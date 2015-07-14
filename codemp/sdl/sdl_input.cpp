@@ -532,31 +532,14 @@ static void IN_ProcessEvents( void ) {
 					char *c = e.text.text;
 					// Quick and dirty UTF-8 to UTF-32 conversion
 					while(*c) {
-						int utf32 = 0;
-						if((*c & 0x80) == 0) {
-							utf32 = *c++;
-						} else if((*c & 0xE0) == 0xC0) { // 110x xxxx
-							utf32 |= (*c++ & 0x1F) << 6;
-							utf32 |= (*c++ & 0x3F);
-						} else if((*c & 0xF0) == 0xE0) { // 1110 xxxx
-							utf32 |= (*c++ & 0x0F) << 12;
-							utf32 |= (*c++ & 0x3F) << 6;
-							utf32 |= (*c++ & 0x3F);
-						} else if((*c & 0xF8) == 0xF0) { // 1111 0xxx
-							utf32 |= (*c++ & 0x07) << 18;
-							utf32 |= (*c++ & 0x3F) << 6;
-							utf32 |= (*c++ & 0x3F) << 6;
-							utf32 |= (*c++ & 0x3F);
-						} else {
-							Com_DPrintf("Unrecognised UTF-8 lead byte: 0x%x\n", (unsigned int)*c);
-							c++;
-						}
+						uint32_t utf32 = ConvertUTF8ToUTF32( c, &c );
 						if(utf32 != 0) {
 							if(IN_IsConsoleKey(A_NULL, utf32)) {
 								Sys_QueEvent(0, SE_KEY, A_CONSOLE, qtrue, 0, NULL);
 								Sys_QueEvent(0, SE_KEY, A_CONSOLE, qfalse, 0, NULL);
 							} else {
-								Sys_QueEvent(0, SE_CHAR, utf32, 0, 0, NULL);
+								uint8_t encoded = ConvertUTF32ToExpectedCharset(utf32);
+								Sys_QueEvent(0, SE_CHAR, encoded, 0, 0, NULL);
 							}
 						}
 					}

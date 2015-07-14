@@ -31,38 +31,27 @@ extern int Key_GetCatcher( void );
 // FIFO STUFF ////////////////////
 // Copied from FTEQW, I don't know if this is thread safe, but it's safe enough for a game :)
 #define EVENTQUEUELENGTH 128
-struct eventlist_s
-{
-
-	int scancode, unicode,state;
-
+struct eventlist_s {
+	int scancode, unicode, state;
 } eventlist[EVENTQUEUELENGTH];
-
 volatile int events_avail; /*volatile to make sure the cc doesn't try leaving these cached in a register*/
 volatile int events_used;
-
-static struct eventlist_s *in_newevent(void)
-{
+static struct eventlist_s *in_newevent(void) {
 	if (events_avail >= events_used + EVENTQUEUELENGTH)
 		return 0;
 	return &eventlist[events_avail & (EVENTQUEUELENGTH-1)];
 }
-
-static void in_finishevent(void)
-{
+static void in_finishevent(void) {
 	events_avail++;
 }
 ///////////////////////
 int android_look_scale;
-int PortableLookScale()
-{
+int PortableLookScale() {
 	if (!android_look_scale)
 		android_look_scale = 1;
-
 	return android_look_scale;
 }
-
-int PortableKeyEvent(int state, int code, int unicode){
+int PortableKeyEvent(int state, int code, int unicode) {
 	LOGI("PortableKeyEvent state = %d, code =  %d, unicode = %d",state,code,unicode);
 	struct eventlist_s *ev = in_newevent();
 	if (!ev)
@@ -75,28 +64,20 @@ int PortableKeyEvent(int state, int code, int unicode){
 	in_finishevent();
 	return 0;
 }
-
-
 //extern void KeyDownPort( kbutton_t *b );
 //extern void KeyUpPort( kbutton_t *b );
-
-void KeyUpPort (kbutton_t *b)
-{
+void KeyUpPort(kbutton_t *b) {
 	b->active = qfalse;
 }
-void KeyDownPort (kbutton_t *b)
-{
+void KeyDownPort(kbutton_t *b) {
 	b->active = qtrue;
 	b->wasPressed = qtrue;
 }
-
 char createCommand[256];
 const char* postedCommand = 0;
-void postCommand(const char * cmd)
-{
+void postCommand(const char * cmd) {
 	postedCommand = cmd;
 }
-
 #define PORT_ACT_LEFT       1
 #define PORT_ACT_RIGHT      2
 #define PORT_ACT_FWD        3
@@ -148,7 +129,7 @@ extern kbutton_t	in_left, in_right, in_forward, in_back;
 extern kbutton_t	in_lookup, in_lookdown, in_moveleft, in_moveright;
 extern kbutton_t	in_strafe, in_speed;
 extern kbutton_t	in_up, in_down;
-extern  kbutton_t	in_buttons[8];
+extern kbutton_t	in_buttons[8];
 
 void PortableAction(int state, int action/*,int param*/) {
 	LOGI("PortableAction %d   %d",state,action);
@@ -462,43 +443,33 @@ void PortablePrint(char *msg) {
 	LOGI("%s", msg);
 }
 
-void pumpEvents(void)
-{
+void pumpEvents(void) {
 	struct eventlist_s *ev;
 
-	if (events_used != events_avail)
-	{
+	if (events_used != events_avail) {
 		ev = &eventlist[events_used & (EVENTQUEUELENGTH-1)];
-
 		LOGI("Queue event");
-		Sys_QueEvent( 0, SE_KEY, ev->scancode, ev->state?qtrue:qfalse, 0, NULL );
-
-		if( ev->unicode &&  ev->state)
-			Sys_QueEvent( 0, SE_CHAR,ev->unicode, 0, 0, NULL );
-
+		Sys_QueEvent(0, SE_KEY, ev->scancode, ev->state?qtrue:qfalse, 0, NULL);
+		if(ev->unicode &&  ev->state) {
+			uint8_t encoded = ConvertUTF32ToExpectedCharset(ev->unicode);
+			Sys_QueEvent(0, SE_CHAR, encoded, 0, 0, NULL);
+		}
 		events_used++;
 	}
-
 	//Ok so can not issue commands more than 60 times/sec, who cares!
 	if (postedCommand) {
 		Cbuf_AddText(postedCommand);
 		postedCommand = 0;
 	}
-
-
 	if (mdx || mdy)
-		Sys_QueEvent( 0, SE_MOUSE, mdx, mdy, 0, NULL );
+		Sys_QueEvent(0, SE_MOUSE, mdx, mdy, 0, NULL);
 	mdx=mdy=0;
-
-
 	/*
 	if (absx || absy)
 		Sys_QueEvent( 0, SE_MOUSE_ABS, absx, absy, 0, NULL );
 	absx = 0;
 	absy = 0;
 	 */
-
-
 }
 
 void CL_AndroidMove( usercmd_t *cmd )
