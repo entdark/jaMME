@@ -1465,6 +1465,7 @@ const void *RB_RotatePic ( const void *data )
 		qglPushMatrix();
 
 		qglTranslatef(cmd->x+cmd->w,cmd->y,0);
+		qglScalef((640.0f * glConfig.vidHeight) / (480.0f * glConfig.vidWidth), 1.0, 1.0); 
 		qglRotatef(cmd->a, 0.0, 0.0, 1.0);
 
 		GL_Bind( image );
