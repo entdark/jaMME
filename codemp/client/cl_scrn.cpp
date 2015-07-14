@@ -236,7 +236,7 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 	}
 	re.SetColor( NULL );
 }
-static void SCR_DrawStringExt2( float x, float y, float charWidth, float charHeight, const char *string, float *setColor, qboolean forceColor, qboolean noColorEscape ) {
+void SCR_DrawStringExt2( float x, float y, float charWidth, float charHeight, const char *string, float *setColor, qboolean forceColor, qboolean noColorEscape ) {
 	vec4_t		color;
 	const char	*s;
 	float		xx;

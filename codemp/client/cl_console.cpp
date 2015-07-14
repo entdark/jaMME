@@ -53,11 +53,12 @@ void Con_ToggleConsole_f(void) {
 Con_MessageMode_f
 ================
 */
-void Con_MessageMode_f (void) {	//yell
+void Con_MessageMode_f(void) {	//yell
+	float ratio = (cls.ratioFix ? cls.ratioFix : 1.0f);
 	chat_playerNum = -1;
 	chat_team = qfalse;
 	Field_Clear( &chatField );
-	chatField.widthInChars = 30;
+	chatField.widthInChars = 30 / ratio;
 
 	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );
 }
@@ -67,11 +68,12 @@ void Con_MessageMode_f (void) {	//yell
 Con_MessageMode2_f
 ================
 */
-void Con_MessageMode2_f (void) {	//team chat
+void Con_MessageMode2_f(void) {	//team chat
+	float ratio = (cls.ratioFix ? cls.ratioFix : 1.0f);
 	chat_playerNum = -1;
 	chat_team = qtrue;
 	Field_Clear( &chatField );
-	chatField.widthInChars = 25;
+	chatField.widthInChars = 25 / ratio;
 	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );
 }
 
@@ -80,14 +82,12 @@ void Con_MessageMode2_f (void) {	//team chat
 Con_MessageMode3_f
 ================
 */
-void Con_MessageMode3_f (void)
-{		//target chat
-	if (!cgvm)
-	{
+void Con_MessageMode3_f(void) {		//target chat
+	float ratio = (cls.ratioFix ? cls.ratioFix : 1.0f);
+	if (!cgvm) {
 		assert(!"null cgvm");
 		return;
 	}
-
 	chat_playerNum = VM_Call( cgvm, CG_CROSSHAIR_PLAYER );
 	if ( chat_playerNum < 0 || chat_playerNum >= MAX_CLIENTS ) {
 		chat_playerNum = -1;
@@ -95,7 +95,7 @@ void Con_MessageMode3_f (void)
 	}
 	chat_team = qfalse;
 	Field_Clear( &chatField );
-	chatField.widthInChars = 30;
+	chatField.widthInChars = 30 / ratio;
 	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );
 }
 
@@ -104,14 +104,12 @@ void Con_MessageMode3_f (void)
 Con_MessageMode4_f
 ================
 */
-void Con_MessageMode4_f (void)
-{	//attacker
-	if (!cgvm)
-	{
+void Con_MessageMode4_f(void) {	//attacker
+	float ratio = (cls.ratioFix ? cls.ratioFix : 1.0f);
+	if (!cgvm) {
 		assert(!"null cgvm");
 		return;
 	}
-
 	chat_playerNum = VM_Call( cgvm, CG_LAST_ATTACKER );
 	if ( chat_playerNum < 0 || chat_playerNum >= MAX_CLIENTS ) {
 		chat_playerNum = -1;
@@ -119,7 +117,7 @@ void Con_MessageMode4_f (void)
 	}
 	chat_team = qfalse;
 	Field_Clear( &chatField );
-	chatField.widthInChars = 30;
+	chatField.widthInChars = 30 / ratio;
 	Key_SetCatcher( Key_GetCatcher( ) ^ KEYCATCH_MESSAGE );
 }
 
@@ -509,6 +507,7 @@ void Con_DrawInput (void) {
 
 
 
+float chatColour[4] = {1.0f,1.0f,1.0f,1.0f};
 /*
 ================
 Con_DrawNotify
@@ -591,11 +590,10 @@ void Con_DrawNotify (void) {
 					currentColor = (text[x]>>8)&7;
 					re.SetColor( g_color_table[currentColor] );
 				}
-				if (!cl_conXOffset)
-				{
+				if (!cl_conXOffset) {
 					cl_conXOffset = Cvar_Get ("cl_conXOffset", "0", 0);
 				}
-				SCR_DrawSmallChar( (int)(cl_conXOffset->integer + con.xadjust + (x+1)*SMALLCHAR_WIDTH), v, text[x] & 0xff );
+				SCR_DrawSmallChar((int)(cl_conXOffset->integer + con.xadjust + (x+1)*SMALLCHAR_WIDTH), v, text[x] & 0xff);
 			}
 
 			v += SMALLCHAR_HEIGHT;
@@ -604,29 +602,20 @@ void Con_DrawNotify (void) {
 
 	re.SetColor( NULL );
 
-	if (Key_GetCatcher( ) & (KEYCATCH_UI | KEYCATCH_CGAME) ) {
+	if (Key_GetCatcher() & (KEYCATCH_UI | KEYCATCH_CGAME)) {
 		return;
 	}
 
 	// draw the chat line
-	if ( Key_GetCatcher( ) & KEYCATCH_MESSAGE )
-	{
-		if (chat_team)
-		{
+	if (Key_GetCatcher() & KEYCATCH_MESSAGE) {
+		if (chat_team) {
 			chattext = SE_GetString("MP_SVGAME", "SAY_TEAM");
-			SCR_DrawBigString (8, v, chattext, 1.0f, qfalse );
-			skip = strlen(chattext)+1;
-		}
-		else
-		{
+		} else {
 			chattext = SE_GetString("MP_SVGAME", "SAY");
-			SCR_DrawBigString (8, v, chattext, 1.0f, qfalse );
-			skip = strlen(chattext)+1;
 		}
-
-		Field_BigDraw( &chatField, skip * BIGCHAR_WIDTH, v,
-			SCREEN_WIDTH - ( skip + 1 ) * BIGCHAR_WIDTH, qtrue, qtrue );
-
+		SCR_DrawStringExt2(8*cls.ratioFix, v, BIGCHAR_WIDTH*cls.ratioFix, BIGCHAR_HEIGHT, chattext, chatColour, qfalse, qfalse);
+		skip = strlen(chattext)+1;
+		Field_BigDraw(&chatField, skip * BIGCHAR_WIDTH, v, SCREEN_WIDTH - (skip + 1) * BIGCHAR_WIDTH, qtrue, qtrue);
 		v += BIGCHAR_HEIGHT;
 	}
 
