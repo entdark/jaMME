@@ -237,6 +237,9 @@ public class jaMME extends Activity {
 	protected void onDestroy() {
 		Log.i("jaMME", "onDestroy");
 		super.onDestroy();
+		if (gameReady) {
+			SDLActivity.nativeQuit();
+		}
 		//if user closed the application from OS side on the demo playback after opening them externally
 		if (gamePath != null && demoName != null) {
 			File demo = new File(gamePath + "/base/demos/" + demoName + ".dm_26");
