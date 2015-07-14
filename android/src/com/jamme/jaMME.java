@@ -971,7 +971,7 @@ public class jaMME extends Activity {
 			ady *= 300;
 			if (!touchMotion && longPress) {
 				return true;
-			} else if ((!touchMotion && (adx >= 3.5f || ady >= 3.5f))) {
+			} else if ((!touchMotion && (adx >= 4.5f || ady >= 4.5f))) {
 				touchMotion = true;
 		        _handler.removeCallbacks(_longPressed);
 			} else if (!touchMotion) {
