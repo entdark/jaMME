@@ -532,14 +532,16 @@ extern void demoCommandSmoothingEnable(qboolean enable);
 void CL_PlayDemo_f( void ) {
 	char		name[MAX_OSPATH], *testName, testNameActual[MAX_OSPATH];
 	char		*ext;
-	qboolean	haveConvert;
+	qboolean	haveConvert, del = qfalse;
 	cvar_t		*fs_game;
 
-	if (Cmd_Argc() != 2) {
-		Com_Printf ("demo <demoname>\n");
+	if (Cmd_Argc() < 2) {
+		Com_Printf ("demo <demoname> [del]\n");
 		return;
 	}
-
+	if (Cmd_Argc() >= 3 && !Q_stricmp(Cmd_Argv(2), "del")) {
+		del = qtrue;
+	}
 	fs_game = Cvar_FindVar ("fs_game" );
 	if (!fs_game)
 		return;
@@ -581,7 +583,7 @@ void CL_PlayDemo_f( void ) {
 	if ( haveConvert ) {
 		Com_sprintf (name, MAX_OSPATH, "mmedemos/%s.mme", testName );
 		if (FS_FileExists( name )) {
-			if (demoPlay( name ))
+			if (demoPlay( name, del ))
 				return;
 		}
 	}
@@ -599,7 +601,7 @@ void CL_PlayDemo_f( void ) {
 		Com_sprintf( mmeName, sizeof( mmeName ), "mmedemos/%s", testName );
 		demoConvert( name, mmeName, (qboolean)mme_demoSmoothen->integer );
 		Q_strcat( mmeName , sizeof( mmeName ), ".mme" );
-		if (demoPlay( mmeName ))
+		if (demoPlay( mmeName, del ))
 			return;
 		Com_Printf("Can't seem to play demo %s\n", testName );
 	}

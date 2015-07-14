@@ -23,6 +23,7 @@ static playerState_t	demoNullPlayerState;
 static qboolean			demoFirstPack;
 static qboolean			demoPrecaching = qfalse;
 static qboolean			demoCommandSmoothing = qfalse;
+static qboolean			demoDel = qfalse;
 static int				demoNextNum = 0, demoCurrentNum = 0;
 static clientConnection_t demoCutClc;
 static clientActive_t	demoCutCl;
@@ -1605,7 +1606,6 @@ static int demoFindNext(const char *fileName) {
 tryAgain:
 	for (i = demoCurrentNum + 1; i < 99; i++) {
 		Com_sprintf(name, MAX_OSPATH, "mmedemos/%s.%d.mme", seekName, i);
-		FS_FOpenFileRead(name, &demoHandle, qtrue);
 		if (FS_FileExists(name)) {
 			Com_Printf("Next demo file: %s\n", name);
 			return i;
@@ -1697,11 +1697,20 @@ errorreturn:
 	return 0;
 }
 
-static void demoPlayStop( demoPlay_t *play ) {
+static void demoPlayStop(demoPlay_t *play) {
 	FS_FCloseFile( play->fileHandle );
-	if (mme_demoRemove->integer && FS_FileExists( play->fileName ))
-		FS_FileErase( play->fileName );
-	Z_Free( play );
+	if ((mme_demoRemove->integer || demoDel) && FS_FileExists(play->fileName)) {
+		FS_FileErase(play->fileName);
+	}
+	if (demoDel) {
+		char demoPath[MAX_QPATH];
+		Com_sprintf(demoPath, sizeof(demoPath), "demos/%s.dm_26", mme_demoFileName->string);
+		if (FS_FileExists(demoPath)) {
+			FS_FileErase(demoPath);
+		}
+	}
+	Z_Free(play);
+	demoDel = qfalse;
 }
 
 qboolean demoGetDefaultState(int index, entityState_t *state) {
@@ -1929,7 +1938,7 @@ static void demoPrecache( void ) {
 	demoPlaySetIndex(play, 0);
 }
 
-qboolean demoPlay( const char *fileName ) {
+qboolean demoPlay( const char *fileName, qboolean del ) {
 	demo.play.handle = demoPlayOpen( fileName );
 	if (demo.play.handle) {
 		demoPlay_t *play = demo.play.handle;
@@ -1966,6 +1975,7 @@ qboolean demoPlay( const char *fileName ) {
 		}
 		CL_InitCGame();
 		cls.state = CA_ACTIVE;
+		demoDel = del;
 		return qtrue;
 	} else {
 		return qfalse;

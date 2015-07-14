@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +25,7 @@ import com.jamme.R;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -31,6 +33,7 @@ import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.opengl.GLSurfaceView;
@@ -61,7 +64,7 @@ public class jaMME extends Activity {
 	Vibrator v;
 	float density = 1.0f;
 	boolean gameReady = false;
-	String gamePath, gameArgs = "";
+	String gamePath, gameArgs = "", demoName = null;
 	jaMMEView view;
 	jaMMERenderer renderer = new jaMMERenderer();
 	Activity act;
@@ -145,7 +148,17 @@ public class jaMME extends Activity {
         String argsStr = "";
 		if (parameters.length > 1)
 			argsStr = parameters[1];
-		addLauncherItems(this, baseDirectory, argsStr);
+		try {
+			if (checkAssets(baseDirectory) && openDemo()) {
+				gameReady = true;
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (!gameReady) {
+			addLauncherItems(this, baseDirectory, argsStr);
+		}
     }
 	@Override
 	protected void onPause() {
@@ -179,7 +192,72 @@ public class jaMME extends Activity {
 	protected void onDestroy() {
 		Log.i("jaMME", "onDestroy");
 		super.onDestroy();
+		//if user closed the application from OS side on the demo playback after opening them externally
+		if (gamePath != null && demoName != null) {
+			File demo = new File(gamePath + "/base/demos/" + demoName + ".dm_26");
+			Log.i("jaMME", "onDestroy: removing " + demo.toString());
+			if (demo.exists()) {
+				Log.i("jaMME", "onDestroy: removed");
+		    	demo.delete();
+			}
+			demo = new File(gamePath + "/base/mmedemos/" + demoName + ".mme");
+			Log.i("jaMME", "onDestroy: removing " + demo.toString());
+			if (demo.exists()) {
+				Log.i("jaMME", "onDestroy: removed");
+		    	demo.delete();
+			}
+		}
 		System.exit(0);
+	}
+	private boolean openDemo() throws IOException {
+		Log.i("jaMME", "openDemo");
+		Intent intent = getIntent();
+		if (intent == null) {
+			return false;
+		}
+        String action = intent.getAction();
+    	Uri uri = intent.getData();
+        if (action != null && uri != null && action.compareTo(Intent.ACTION_VIEW) == 0) {
+        	String demo = java.net.URLDecoder.decode((uri.getEncodedPath()), "UTF-8");
+        	if (demo.contains(".dm_26") || demo.contains(".mme")) {
+        		String demosFolder = gamePath + "/base/demos/";
+        		if (demo.contains(".mme"))
+        			demosFolder = gamePath + "/base/mmedemos/";
+		    	File from = new File(demo);
+		    	File to = new File(demosFolder + from.getName());
+		    	while (to.exists()) {
+		        	to = new File(demosFolder + "_" + to.getName());
+		    	}
+		    	copyFile(from, to);
+		    	demoName = to.getName();
+		    	int pos = demoName.lastIndexOf(".");
+		    	if (pos > 0) {
+		    		demoName = demoName.substring(0, pos);
+		    	}
+				gameArgs = "+demo \"" + demoName + "\" del";
+		    	return true;
+        	}
+        }
+        return false;
+	}
+	public static void copyFile(File sourceFile, File destFile) throws IOException {
+	    if (!destFile.exists()) {
+	        destFile.createNewFile();
+	    }
+	    FileChannel source = null;
+	    FileChannel destination = null;
+	    try {
+	        source = new FileInputStream(sourceFile).getChannel();
+	        destination = new FileOutputStream(destFile).getChannel();
+	        destination.transferFrom(source, 0, source.size());
+	    } finally {
+	        if (source != null) {
+	            source.close();
+	        }
+	        if (destination != null) {
+	            destination.close();
+	        }
+	    }
 	}
 	RelativeLayout layout;
 	EditText args, baseDirET;
