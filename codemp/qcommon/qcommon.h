@@ -721,6 +721,10 @@ int			Com_RealTime(qtime_t *qtime);
 qboolean	Com_SafeMode( void );
 
 void		Com_StartupVariable( const char *match );
+
+extern char	loadingMsg[64];
+void		Com_SetLoadingMsg(char *msg);
+
 // checks for and removes command line "+set var arg" constructs
 // if match is NULL, all set commands will be executed, otherwise
 // only a set with the exact name.  Only used during startup.

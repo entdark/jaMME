@@ -798,6 +798,7 @@ void CL_Disconnect(qboolean showMainMenu) {
 	if (!com_cl_running || !com_cl_running->integer) {
 		return;
 	}
+	Com_SetLoadingMsg("Disconnecting...");
 	// shutting down the client so enter full screen ui mode
 	Cvar_Set("r_uiFullScreen", "1");
 	if (clc.demorecording) {
@@ -2086,6 +2087,8 @@ void CL_Frame(int msec) {
 	if (!com_cl_running->integer) {
 		return;
 	}
+	//reset the loading message
+	Com_SetLoadingMsg("Loading...");
 	SE_CheckForLanguageUpdates();	// will take zero time to execute unless language changes, then will reload strings.
 									//	of course this still doesn't work for menus...
 	if (cls.state == CA_DISCONNECTED && !(Key_GetCatcher() & KEYCATCH_UI)

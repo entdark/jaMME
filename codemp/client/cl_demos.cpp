@@ -846,6 +846,7 @@ qboolean demoCut(const char *oldName, int startTime, int endTime) {
 		return qfalse;
 	}
 	memset(&demoCutClc, 0, sizeof(demoCutClc));
+	Com_SetLoadingMsg("Cutting the demo...");
 	while (oldSize > 0) {
 cutcontinue:
 		MSG_Init(&oldMsg, oldData, sizeof(oldData));
@@ -1043,6 +1044,7 @@ void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothe
 	/* Alloc some memory */
 	convert = (demoConvert_t *)Z_Malloc( sizeof( demoConvert_t), TAG_GENERAL ); //what tag do we need?
 	memset( convert, 0, sizeof(demoConvert_t));
+	Com_SetLoadingMsg("Converting the demo...");
 	/* Initialize the first workframe's strings */
 	while (oldSize > 0) {
 		MSG_Init( &oldMsg, oldData, sizeof( oldData ) );
@@ -1638,6 +1640,7 @@ static demoPlay_t *demoPlayOpen( const char* fileName ) {
 		FS_FCloseFile( fileHandle );
 		return 0;
 	}
+	Com_SetLoadingMsg("Opening the demo...");
 	play = (demoPlay_t *)Z_Malloc( sizeof( demoPlay_t ), TAG_GENERAL);//what tag do we need?
 	memset( play, 0, sizeof(demoPlay_t) ); // In Q3MME the Z_Malloc doees a memset 0, it doesn't here though. So we gotta do it.
 	Q_strncpyz( play->fileName, fileName, sizeof( play->fileName ));
@@ -1912,6 +1915,7 @@ static void demoPrecache( void ) {
 	demoPlay_t *play = demo.play.handle;
 	int latestSequence = 0, time = play->startTime;
 	demoPlaySetIndex(play, 0);
+	Com_SetLoadingMsg("Precaching the demo...");
 	while (!play->lastFrame) {
 		demoPlaySynch( play, play->frame );
 		while (latestSequence < play->commandCount) {

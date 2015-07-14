@@ -25,6 +25,7 @@ import com.jamme.R;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -42,6 +43,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.text.format.Time;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -56,6 +58,7 @@ import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -71,6 +74,9 @@ public class jaMME extends Activity {
 	jaMMEEditText et;
 	jaMMESeekBar sb = null;
 	jaMMERangeSeekBar rsb = null;
+	long currentTime, lastTime;
+	ProgressDialog pd = null;
+	String loadingMsg = "Loading...", lmLast = "Loading...";
 	int surfaceWidth,surfaceHeight;
 //	int PORT_ACT_ATTACK = 13;
 //	int PORT_ACT_ALT_ATTACK = 64;
@@ -97,6 +103,7 @@ public class jaMME extends Activity {
 	public static native int init(Activity act,String[] args,String game_path,String lib_path);
 	public static native void setScreenSize(int width, int height);	
 	public static native int frame();
+	public static native String getLoadingMsg();
 	public static native void keypress(int down, int qkey, int unicode);
 	public static native void textPaste(byte []paste);
 	public static native void doAction(int state, int action);
@@ -128,6 +135,9 @@ public class jaMME extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
 				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		loadLibraries();
+		Time t = new Time();
+		t.setToNow();
+		lastTime = currentTime = t.toMillis(false);
 		view = new jaMMEView(this);
 		view.setEGLConfigChooser(new BestEglChooser(getApplicationContext()));
         view.setRenderer(renderer);
@@ -159,6 +169,41 @@ public class jaMME extends Activity {
 		if (!gameReady) {
 			addLauncherItems(this, baseDirectory, argsStr);
 		}
+		act.setTheme(android.R.style.Theme_Holo);
+/*		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while (true) {
+					Time t = new Time();
+					t.setToNow();
+					currentTime = t.toMillis(false);
+				}
+			}
+		}).start();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while (true) {
+					if (currentTime > lastTime + 2000 && gameReady) {
+						loadingMsg = getLoadingMsg();
+						if (!jaMME.equals(loadingMsg, lmLast)) {
+							lmLast = loadingMsg;
+							if (pd != null)
+								pd.dismiss();
+							pd = null;
+						}
+						act.runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								if (currentTime > lastTime + 2000 && pd == null && !jaMME.equals(loadingMsg, "")) {
+									pd = ProgressDialog.show(act, "", loadingMsg, true);
+								}
+							}
+						});
+					}
+				}
+			}
+		}).start();*/
     }
 	@Override
 	protected void onPause() {
@@ -208,6 +253,10 @@ public class jaMME extends Activity {
 			}
 		}
 		System.exit(0);
+	}
+	//gay way, but fastest
+	public static boolean equals(final String s1, final String s2) {
+		return s1.length() == s2.length() && s1.hashCode() == s2.hashCode();
 	}
 	private boolean openDemo() throws IOException {
 		Log.i("jaMME", "openDemo");
@@ -715,6 +764,16 @@ public class jaMME extends Activity {
 				initRenderer(surfaceWidth, surfaceHeight);
 			}
 			flags = frame();
+			lastTime = currentTime;
+			act.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					if (pd != null)
+						pd.dismiss();
+					pd = null;
+				}
+		    });
+//			flags |= (demoCutting) ? (DEMO_CUTTING) : (0);
 			if (flags != notifiedflags) {
 				if (((flags ^ notifiedflags) & CONSOLE_ACTIVE) != 0
 						|| ((flags ^ notifiedflags) & UI_EDITINGFIELD) != 0

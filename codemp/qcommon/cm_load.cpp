@@ -775,9 +775,10 @@ static void CM_LoadMap_Actual( const char *name, qboolean clientload, int *check
 void CM_LoadMap( const char *name, qboolean clientload, int *checksum )
 {
 	gbUsingCachedMapDataRightNow = qtrue;	// !!!!!!!!!!!!!!!!!!
-
+		Com_SetLoadingMsg("Loading map...");
 		CM_LoadMap_Actual( name, clientload, checksum, cmg );
-
+		//do not show the loading message on the info screen
+		Com_SetLoadingMsg("");
 	gbUsingCachedMapDataRightNow = qfalse;	// !!!!!!!!!!!!!!!!!!
 }
 

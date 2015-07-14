@@ -657,6 +657,10 @@ JAVA_FUNC(textPaste)(JNIEnv *env, jobject obj, jbyteArray paste) {
     env->GetByteArrayRegion(paste, 0, len, reinterpret_cast<jbyte*>(p));
 	PortableTextPaste((const char *)p);
 }
+jstring EXPORT_ME
+JAVA_FUNC(getLoadingMsg)(JNIEnv *env, jobject obj, jstring paste) {
+	return env->NewStringUTF(loadingMsg);
+}
 /*
  void EXPORT_ME
  JAVA_FUNC(touchEvent) (JNIEnv *env, jobject obj,jint action, jint pid, jfloat x, jfloat y)

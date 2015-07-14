@@ -1236,6 +1236,13 @@ static void Com_SetProcessCoresAffinity() {
 	}
 #endif
 }
+char loadingMsg[64] = "Loading...";
+void Com_SetLoadingMsg(char *msg) {
+	if (!msg)
+		return;
+	memset(loadingMsg, 0, sizeof(loadingMsg));
+	Com_sprintf(loadingMsg, sizeof(loadingMsg), msg);
+}
 /*
 =================
 Com_Init
@@ -1244,6 +1251,7 @@ Com_Init
 void Com_Init(char *commandLine) {
 	char *s;
 	Com_Printf("%s %s %s\n", JK_VERSION, PLATFORM_STRING, __DATE__);
+	Com_SetLoadingMsg("Starting the game...");
 	try {
 #ifdef USE_AIO
 		{
