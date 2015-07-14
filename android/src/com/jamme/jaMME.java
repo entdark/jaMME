@@ -1001,7 +1001,7 @@ public class jaMME extends Activity {
 			touchY = event.getY();
 		} else if (pointerCount == 2) {
 			touchMotion = true; //to fool that we didn't hit mouse1 or pause command
-			if (actionCode == MotionEvent.ACTION_POINTER_UP) {
+			if (actionCode == MotionEvent.ACTION_POINTER_UP && !longPress) {
 				quickCommand("toggleconsole");
 			}
 //	        if (!demoCutting) {
