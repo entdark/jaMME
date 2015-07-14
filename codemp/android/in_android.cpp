@@ -464,9 +464,8 @@ void pumpEvents(void)
 	}
 
 	//Ok so can not issue commands more than 60 times/sec, who cares!
-	if (postedCommand)
-	{
-		Cmd_ExecuteString(postedCommand);
+	if (postedCommand) {
+		Cbuf_AddText(postedCommand);
 		postedCommand = 0;
 	}
 
@@ -541,12 +540,15 @@ void PortableFrame(void){
 	}
 }
 extern console_t con;
+extern qboolean chat_team;
 int CONSOLE_ACTIVE				= 1<<2;
 int CONSOLE_ACTIVE_FULLSCREEN	= 1<<3;
 int UI_ACTIVE					= 1<<4;
 int UI_EDITINGFIELD				= 1<<5;
 int DEMO_PLAYBACK				= 1<<6;
 int DEMO_PAUSED					= 1<<7;
+int CHAT_SAY					= 1<<8;
+int CHAT_SAY_TEAM				= 1<<9;
 int PortableInMenu(void) {
 	int ret = 0;
 	if (con.state == conFull)
@@ -555,6 +557,10 @@ int PortableInMenu(void) {
 		ret |= CONSOLE_ACTIVE;
 	if ((Key_GetCatcher() & KEYCATCH_UI))
 		ret |= UI_ACTIVE;
+	if ((Key_GetCatcher() & KEYCATCH_MESSAGE) && !chat_team)
+		ret |= CHAT_SAY;
+	else if ((Key_GetCatcher() & KEYCATCH_MESSAGE) && chat_team)
+		ret |= CHAT_SAY_TEAM;
 	if (cls.uiEditingField)
 		ret |= UI_EDITINGFIELD;
 	if (clc.demoplaying && clc.newDemoPlayer)

@@ -715,8 +715,8 @@ JAVA_FUNC(mouseMove)(JNIEnv *env, jobject obj, float dx, float dy) {
 std::string quickCommandString;
 void EXPORT_ME
 JAVA_FUNC(quickCommand)(JNIEnv *env, jobject obj, jstring command) {
-	const char * p = env->GetStringUTFChars(command,NULL);
-	quickCommandString =  std::string(p) + "\n";
+	const char *p = env->GetStringUTFChars(command,NULL);
+	quickCommandString = std::string(p) + "\n";
 	env->ReleaseStringUTFChars(command, p);
 	PortableCommand(quickCommandString.c_str());
 }

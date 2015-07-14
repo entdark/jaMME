@@ -73,8 +73,15 @@ public class jaMME extends Activity {
 	int UI_EDITINGFIELD				= 1<<5;
 	int DEMO_PLAYBACK				= 1<<6;
 	int DEMO_PAUSED					= 1<<7;
+	int CHAT_SAY					= 1<<8;
+	int CHAT_SAY_TEAM				= 1<<9;
+	int INGAME						= ~(CONSOLE_ACTIVE
+										| CONSOLE_ACTIVE_FULLSCREEN
+										| UI_ACTIVE
+										| UI_EDITINGFIELD | DEMO_PLAYBACK);
 //	int DEMO_CUTTING				= 1<<17;
 //	boolean demoCutting = false;
+	boolean keyboardActive = false;
 	static void loadLibraries() {
 		System.loadLibrary("SDL2");
         System.loadLibrary("jamme");
@@ -392,6 +399,12 @@ public class jaMME extends Activity {
 							if ((flags & CONSOLE_ACTIVE) != 0 || (flags & CONSOLE_ACTIVE_FULLSCREEN) != 0) {
 	    						quickCommand("toggleconsole");
 	    						return true;
+							} else if ((flags & CHAT_SAY) != 0
+									|| (flags & UI_EDITINGFIELD) != 0
+									|| (flags & CHAT_SAY_TEAM) != 0) {
+								keypress(1, jk_keycodes.A_ESCAPE.ordinal(), 0);
+								keypress(0, jk_keycodes.A_ESCAPE.ordinal(), 0);
+	    						return true;
 							}
 						}
 						keypress(1, mapKey(keyCode, uc), uc);
@@ -404,10 +417,17 @@ public class jaMME extends Activity {
 		}
 		@Override
 		public boolean onKeyPreIme(int keyCode, KeyEvent event) {
-			if (event.getAction() == KeyEvent.ACTION_DOWN
-					&& event.getKeyCode() == KeyEvent.KEYCODE_BACK
-					&& (flags & CONSOLE_ACTIVE) != 0) {
-				quickCommand("toggleconsole");
+			if (event.getAction() == KeyEvent.ACTION_DOWN) {
+				if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+					if ((flags & CONSOLE_ACTIVE) != 0) {
+						quickCommand("toggleconsole");
+					} else if ((flags & CHAT_SAY) != 0
+							|| (flags & UI_EDITINGFIELD) != 0
+							|| (flags & CHAT_SAY_TEAM) != 0) {
+						keypress(1, jk_keycodes.A_ESCAPE.ordinal(), 0);
+						keypress(0, jk_keycodes.A_ESCAPE.ordinal(), 0);
+					}
+				}
 			}
 			return super.dispatchKeyEvent(event);
 		}
@@ -613,15 +633,19 @@ public class jaMME extends Activity {
 			flags = frame();
 			if (flags != notifiedflags) {
 				if (((flags ^ notifiedflags) & CONSOLE_ACTIVE) != 0
-						|| ((flags ^ notifiedflags) & UI_EDITINGFIELD) != 0) {
+						|| ((flags ^ notifiedflags) & UI_EDITINGFIELD) != 0
+						|| ((flags ^ notifiedflags) & CHAT_SAY) != 0
+						|| ((flags ^ notifiedflags) & CHAT_SAY_TEAM) != 0) {
 					Log.d(LOG,"keyboard");
 					final int fl = flags;
 					Runnable r = new Runnable() { //doing this on the ui thread because android sucks.
 						public void run() {
 							InputMethodManager im = (InputMethodManager)act.getSystemService(Context.INPUT_METHOD_SERVICE);
 							if (im != null) {
-								if (((fl & CONSOLE_ACTIVE) != 0 && (fl & UI_EDITINGFIELD) == 0)
-										|| ((fl & CONSOLE_ACTIVE) == 0 && (fl & UI_EDITINGFIELD) != 0)) {
+								if ((!keyboardActive && (fl & CONSOLE_ACTIVE) != 0
+										|| (fl & UI_EDITINGFIELD) != 0
+										|| (fl & CHAT_SAY) != 0
+										|| (fl & CHAT_SAY_TEAM) != 0)) {
 									removeView(et);
 									et = new jaMMEEditText(act);
 							        addContentView(et, et.getLayoutParams());
@@ -629,9 +653,11 @@ public class jaMME extends Activity {
 									et.requestFocusFromTouch();
 									//getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
 									im.showSoftInput(et, 0);//InputMethodManager.SHOW_FORCED);
+									keyboardActive = true;
 								} else {
 									//getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 									im.hideSoftInputFromWindow(view.getWindowToken(), 0);
+									keyboardActive = false;
 								}
 							} else {
 								Log.e(LOG, "IMM failed");
@@ -804,7 +830,17 @@ public class jaMME extends Activity {
 //	        }
         } else if (actionCode == MotionEvent.ACTION_UP) {
 			if (!touchMotion) {
-				if ((flags & CONSOLE_ACTIVE) == 0 && (flags & CONSOLE_ACTIVE_FULLSCREEN) == 0) {
+				if ((flags & ~INGAME) == 0 && !longPress) {
+					if ((flags & CHAT_SAY) == 0 && (flags & CHAT_SAY_TEAM) == 0) {
+						quickCommand("messagemode");
+					} else if ((flags & CHAT_SAY) != 0) {
+						//hack: the 1st call resets chat, and the 2nd call actually calls team chat
+						quickCommand("messagemode2; messagemode2");
+					} else if ((flags & CHAT_SAY_TEAM) != 0) {
+						keypress(1, jk_keycodes.A_ESCAPE.ordinal(), 0);
+						keypress(0, jk_keycodes.A_ESCAPE.ordinal(), 0);
+					}
+				} else if ((flags & CONSOLE_ACTIVE) == 0 && (flags & CONSOLE_ACTIVE_FULLSCREEN) == 0) {
 					if ((flags & DEMO_PLAYBACK) == 0) {
 						if (!longPress) {
 							keypress(1, jk_keycodes.A_MOUSE1.ordinal(), 0);
