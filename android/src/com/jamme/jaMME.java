@@ -984,15 +984,25 @@ public class jaMME extends Activity {
 				int tYt = (int)Math.abs(touchYtotal);
 				if (tYt > 1) {
 					int qkey = 0;
-					if (deltaY < 0) {
-						qkey = jk_keycodes.A_MWHEELDOWN.ordinal();
-					} else if (deltaY > 0) {
-						qkey = jk_keycodes.A_MWHEELUP.ordinal();
-					}
+					//scroll the console
 					if ((flags & CONSOLE_ACTIVE_FULLSCREEN) != 0) {
-						for (int i = 0; i < tYt; i++) {
-							keypress(1, qkey, 0);
+						if (deltaY < 0) {
+							qkey = jk_keycodes.A_MWHEELDOWN.ordinal();
+						} else if (deltaY > 0) {
+							qkey = jk_keycodes.A_MWHEELUP.ordinal();
 						}
+					//scroll the console input history
+					} else if ((flags & CONSOLE_ACTIVE) != 0) {
+						if (deltaY < 0) {
+							qkey = jk_keycodes.A_CURSOR_DOWN.ordinal();
+						} else if (deltaY > 0) {
+							qkey = jk_keycodes.A_CURSOR_UP.ordinal();
+						}
+						tYt = (int)(tYt / 1.7);
+					}
+					for (int i = 0; i < tYt; i++) {
+						keypress(1, qkey, 0);
+						keypress(0, qkey, 0);
 					}
 					touchYtotal -= (int)touchYtotal;
 				}
