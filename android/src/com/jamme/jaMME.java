@@ -880,10 +880,10 @@ public class jaMME extends Activity {
 			quickCommand("chase targetNext");
 		} else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
 			quickCommand("chase targetPrev");
-		} else if (keyCode == KeyEvent.KEYCODE_ESCAPE
+		} else/* if (keyCode == KeyEvent.KEYCODE_ESCAPE
 				   || keyCode == KeyEvent.KEYCODE_BACK
 				   || keyCode == KeyEvent.KEYCODE_MENU
-				   || keyCode == KeyEvent.KEYCODE_DEL) {
+				   || keyCode == KeyEvent.KEYCODE_DEL)*/ {
 			if (((flags & CONSOLE_ACTIVE) != 0 || (flags & CONSOLE_ACTIVE_FULLSCREEN) != 0)
 					&& keyCode == KeyEvent.KEYCODE_BACK) {
 				quickCommand("toggleconsole");
@@ -897,9 +897,9 @@ public class jaMME extends Activity {
 			if (keyCode == KeyEvent.KEYCODE_DEL) {
 				et.setText("");
 			}
-		} else {
+		}/* else {
 			return super.onKeyDown(keyCode, event); 
-		}
+		}*/
 		return true;
 	}
 	private String PasteFromClipboard() {
