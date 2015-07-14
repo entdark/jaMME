@@ -19,6 +19,7 @@ import org.libsdl.app.SDLActivity;
 import com.jamme.DirectoryChooserDialog;
 import com.jamme.R;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.os.Bundle;
@@ -60,7 +61,8 @@ public class jaMME extends Activity {
 	jaMMERenderer renderer = new jaMMERenderer();
 	Activity act;
 	jaMMEEditText et;
-	jaMMESeekBar sb;
+	jaMMESeekBar sb = null;
+	jaMMERangeSeekBar rsb = null;
 	int surfaceWidth,surfaceHeight;
 //	int PORT_ACT_ATTACK = 13;
 //	int PORT_ACT_ALT_ATTACK = 64;
@@ -71,6 +73,8 @@ public class jaMME extends Activity {
 	int UI_EDITINGFIELD				= 1<<5;
 	int DEMO_PLAYBACK				= 1<<6;
 	int DEMO_PAUSED					= 1<<7;
+//	int DEMO_CUTTING				= 1<<17;
+//	boolean demoCutting = false;
 	static void loadLibraries() {
 		System.loadLibrary("SDL2");
         System.loadLibrary("jamme");
@@ -203,21 +207,11 @@ public class jaMME extends Activity {
 				if (baseDirET != null && baseDirET.getText() != null && baseDirET.getText().toString() != null)
 					gp = baseDirET.getText().toString();
 				if (checkAssets(gp)) {
-					ViewGroup vg = (ViewGroup)startGame.getParent();
-					if (vg != null)
-						vg.removeView(startGame);
-					vg = (ViewGroup)args.getParent();
-					if (vg != null)
-						vg.removeView(args);
-					vg = (ViewGroup)baseDirET.getParent();
-					if (vg != null)
-						vg.removeView(baseDirET);
-					vg = (ViewGroup)baseDir.getParent();
-					if (vg != null)
-						vg.removeView(baseDir);
-					vg = (ViewGroup)layout.getParent();
-					if (vg != null)
-						vg.removeView(layout);
+					removeView(startGame);
+					removeView(args);
+					removeView(baseDirET);
+					removeView(baseDir);
+					removeView(layout);
 					if (args != null && args.getText() != null && args.getText().toString() != null)
 						gameArgs = args.getText().toString();
 					String []parameters = {gp,gameArgs};
@@ -440,7 +434,7 @@ public class jaMME extends Activity {
 				public void onProgressChanged(SeekBar seekBar, int progressValue, boolean fromUser) {
 				  	Log.d(LOG, "onProgressChanged");
 		            if (fromUser)
-		            	quickCommand("seek "+(progressValue/1000));
+		            	quickCommand("seek "+(progressValue/1000.0));
 				}
 				@Override
 				public void onStartTrackingTouch(SeekBar seekBar) {
@@ -448,12 +442,69 @@ public class jaMME extends Activity {
 				@Override
 				public void onStopTrackingTouch(SeekBar seekBar) {
 				}
-		   });
+			});
+		}
+	}
+	Integer lastMin = 0, lastMax = 0;
+	class jaMMERangeSeekBar extends RangeSeekBar<Integer> {
+		String LOG = "jaMME RangeSeekBar";
+		short lastChange = 0;
+		public jaMMERangeSeekBar(Integer min, Integer max, Context context) {
+			super(min, max, (int)(50*density), context);
+			float d = density;
+//			setMax(demoGetLength());
+			lastMin = 0;
+			lastMax = this.getAbsoluteMaxValue();
+//			setProgress(demoGetTime());
+			setNotifyWhileDragging(true);
+			setLeft(10);
+			setY(surfaceHeight - 87*d);
+			setPadding((int)(50*d), 0, (int)(50*d), 0);
+//			this.setThumbOffset((int)(50*d));
+//			setProgressDrawable(getResources().getDrawable(R.drawable.jamme_progress));
+//			setThumb(getResources().getDrawable(R.drawable.jamme_control));
+			ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams
+					(ViewGroup.LayoutParams.MATCH_PARENT,
+					ViewGroup.LayoutParams.WRAP_CONTENT);
+			setLayoutParams(lp);
+			setOnRangeSeekBarChangeListener(new OnRangeSeekBarChangeListener<Integer>() {
+				@SuppressLint("DefaultLocale")
+				@Override
+				public void onRangeSeekBarValuesChanged(RangeSeekBar<?> bar, Integer minValue, Integer maxValue) {
+				  	Log.d(LOG, "onRangeSeekBarValuesChanged");
+					if ((int)lastMin != (int)minValue) {
+						quickCommand(String.format("seek %d.%03d", (minValue/1000), (minValue%1000)));
+						lastMin = minValue;
+						lastChange = -1;
+					} else if ((int)lastMax != (int)maxValue) {
+						quickCommand(String.format("seek %d.%03d", (maxValue/1000), (maxValue%1000)));
+						lastMax = maxValue;
+						lastChange = 1;
+					}
+				}
+			});
+		}
+		@SuppressLint({ "ClickableViewAccessibility", "DefaultLocale" })
+		@Override
+		public boolean onTouchEvent(MotionEvent event) {
+			int action = event.getAction();
+			int actionCode = action & MotionEvent.ACTION_MASK;
+			if (actionCode == MotionEvent.ACTION_UP) {
+				if (lastChange < 0) {
+					quickCommand(String.format("cut start %d.%03d", (lastMin/1000), (lastMin%1000)));
+				} else if (lastChange > 0) {
+					quickCommand(String.format("cut end %d.%03d", (lastMax/1000), (lastMax%1000)));
+				}
+				lastChange = 0;
+//				return true;
+			}
+			return super.onTouchEvent(event);
 		}
 	}
     class jaMMEView extends GLSurfaceView {
     	String LOG = "jaMME View";
-    	public jaMMEView(Context context) {
+    	@SuppressLint("ClickableViewAccessibility")
+		public jaMMEView(Context context) {
     		super(context);
             setFocusableInTouchMode(true);
     	}
@@ -518,6 +569,14 @@ public class jaMME extends Activity {
 			}
 		}
     }
+	private void removeView(View v) {
+		if (v != null) {
+			ViewGroup vg = (ViewGroup)v.getParent();
+			if (vg != null)
+				vg.removeView(v);
+			v = null;
+		}
+	}
     class jaMMERenderer implements GLSurfaceView.Renderer {
     	String LOG = "jaMME Renderer";
 		@Override
@@ -563,11 +622,7 @@ public class jaMME extends Activity {
 							if (im != null) {
 								if (((fl & CONSOLE_ACTIVE) != 0 && (fl & UI_EDITINGFIELD) == 0)
 										|| ((fl & CONSOLE_ACTIVE) == 0 && (fl & UI_EDITINGFIELD) != 0)) {
-									if (et != null) {
-										ViewGroup vg = (ViewGroup)et.getParent();
-										if (vg != null)
-											vg.removeView(et);
-									}
+									removeView(et);
 									et = new jaMMEEditText(act);
 							        addContentView(et, et.getLayoutParams());
 							        et.requestFocus();
@@ -584,30 +639,58 @@ public class jaMME extends Activity {
 						}	
 					};
 					act.runOnUiThread(r);
-				} else if (((flags ^ notifiedflags) & DEMO_PAUSED) != 0) {
+				} else if ((((flags ^ notifiedflags) & DEMO_PAUSED) != 0)
+//						|| ((flags ^ notifiedflags) & DEMO_CUTTING) != 0
+						) {
 					Log.d(LOG,"seekbar");
 					final int fl = flags;
 					Runnable r = new Runnable() { //doing this on the ui thread because android sucks.
 						public void run() {
+//always draw demo cut inteface
 							if ((fl & DEMO_PAUSED) != 0) {
-								if (sb != null) {
-									ViewGroup vg = (ViewGroup)sb.getParent();
-									if (vg != null)
-										vg.removeView(sb);
-								}
-						        sb = new jaMMESeekBar(act);
-								addContentView(sb, sb.getLayoutParams());
+						        if (sb == null) {
+									sb = new jaMMESeekBar(act);
+									addContentView(sb, sb.getLayoutParams());
+						        } else {
+						        	sb.setVisibility(View.VISIBLE);
+						        }
+								if (rsb == null) {
+							        rsb = new jaMMERangeSeekBar(0, demoGetLength(), act);
+									addContentView(rsb, rsb.getLayoutParams());
+								} else {
+						        	rsb.setVisibility(View.VISIBLE);
+						        }
 							} else {
-								ViewGroup vg = (ViewGroup)sb.getParent();
-								if (vg != null)
-									vg.removeView(sb);
+								if (sb != null) {
+						        	sb.setVisibility(View.INVISIBLE);
+						        }
+								if (rsb != null) {
+						        	rsb.setVisibility(View.INVISIBLE);
+						        }
 							}
 						}	
 					};
 					act.runOnUiThread(r);
-				} else if (((flags ^ notifiedflags) & 128) != 0) {
-					Log.d(LOG,"QUIT");
-					finish();
+				} else if (((flags ^ notifiedflags) & DEMO_PLAYBACK) != 0) {
+					Log.d(LOG,"seekbar reset");
+					Runnable r = new Runnable() { //doing this on the ui thread because android sucks.
+						public void run() {
+							if (sb != null) {
+								ViewGroup vg = (ViewGroup)sb.getParent();
+								if (vg != null)
+									vg.removeView(sb);
+								sb = null;
+							}
+							if (rsb != null) {
+								ViewGroup vg = (ViewGroup)rsb.getParent();
+								if (vg != null)
+									vg.removeView(rsb);
+								rsb = null;
+							}
+						}	
+					};
+					act.runOnUiThread(r);
+//					}
 				}
 				notifiedflags = flags;
 			}
@@ -651,18 +734,24 @@ public class jaMME extends Activity {
 	final Handler _handler = new Handler(); 
 	Runnable _longPressed = new Runnable() { 
 	    public void run() {
-	    	if (flags == 0)
+	    	if ((flags & DEMO_PLAYBACK) != 0/* && twoFingers*/) {
+	    		quickCommand("cut it");
+			} else if (flags == 0) {
 	    		quickCommand("+scores");
+			}
 	    	longPress = true;
 	    }   
 	};
 	float touchX = 0, touchY = 0;
 	float touchYtotal = 0;
-	boolean touchMotion = false, longPress = false;
+	boolean touchMotion = false, longPress = false, textPasted = false;//, twoFingers = false;
 	public boolean onTouchEvent(MotionEvent event) {
     	int action = event.getAction();
 		int actionCode = action & MotionEvent.ACTION_MASK;
-		int fingersCount = event.getPointerCount();
+		int pointerCount = event.getPointerCount();
+/*		if (pointerCount == 2) {
+    		twoFingers = true;
+		}*/
 		if (actionCode == MotionEvent.ACTION_DOWN) {
 			touchX = event.getX();
 			touchY = event.getY();
@@ -705,12 +794,14 @@ public class jaMME extends Activity {
 			}
 			touchX = event.getX();
 			touchY = event.getY();
-		} else if (fingersCount == 2) {
+		} else if (pointerCount == 2) {
 			touchMotion = true; //to fool that we didn't hit mouse1 or pause command
 			if (actionCode == MotionEvent.ACTION_POINTER_UP) {
 				quickCommand("toggleconsole");
 			}
-	        _handler.removeCallbacks(_longPressed);
+//	        if (!demoCutting) {
+	        	_handler.removeCallbacks(_longPressed);
+//	        }
         } else if (actionCode == MotionEvent.ACTION_UP) {
 			if (!touchMotion) {
 				if ((flags & CONSOLE_ACTIVE) == 0 && (flags & CONSOLE_ACTIVE_FULLSCREEN) == 0) {
@@ -728,6 +819,7 @@ public class jaMME extends Activity {
 				quickCommand("-scores");
 			touchMotion = false;
 			longPress = false;
+//			twoFingers = false;
 			touchYtotal = 0;
 	        _handler.removeCallbacks(_longPressed);
 		}
