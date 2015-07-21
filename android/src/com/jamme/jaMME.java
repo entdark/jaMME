@@ -332,7 +332,7 @@ public class jaMME extends Activity {
 		args.setTextColor(Color.argb(0xFF, 0xC3, 0x00, 0x00));
 		args.setBackground(getResources().getDrawable(R.drawable.jamme_edit_text));
 		args.clearFocus();
-		args.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_FLAG_FORCE_ASCII);
+		args.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_FLAG_NO_FULLSCREEN);
 		args.setId(5);
 		RelativeLayout.LayoutParams argsParams = 
 		        new RelativeLayout.LayoutParams(
@@ -394,7 +394,7 @@ public class jaMME extends Activity {
 		baseDirET.setTextColor(Color.argb(0xFF, 0xC3, 0x00, 0x00));
 		baseDirET.setBackground(getResources().getDrawable(R.drawable.jamme_edit_text));
 		baseDirET.clearFocus();
-		baseDirET.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_FLAG_FORCE_ASCII);
+		baseDirET.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_FLAG_NO_FULLSCREEN);
 		baseDirET.setId(17);
 		RelativeLayout.LayoutParams baseDirETParams = 
 		        new RelativeLayout.LayoutParams(
@@ -519,7 +519,7 @@ public class jaMME extends Activity {
 			setAlpha(0.0f);
 			addTextChangedListener(new jaMMETextWatcher());
 	        clearFocus();
-	        setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_FLAG_FORCE_ASCII);
+	        setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_FLAG_NO_FULLSCREEN);
 	        setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 	        setOnEditorActionListener(new EditText.OnEditorActionListener() {
 	            @Override
@@ -675,7 +675,7 @@ public class jaMME extends Activity {
             BaseInputConnection fic = new BaseInputConnection(this, true);
             outAttrs.actionLabel = null;
             outAttrs.inputType = InputType.TYPE_CLASS_TEXT;
-            outAttrs.imeOptions = (EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_FLAG_FORCE_ASCII);
+            outAttrs.imeOptions = (EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_FLAG_NO_FULLSCREEN);
             return fic;
         }
     }
