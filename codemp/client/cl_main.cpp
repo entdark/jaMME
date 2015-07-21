@@ -70,7 +70,7 @@ cvar_t	*m_filter;
 cvar_t	*cl_activeAction;
 
 cvar_t	*cl_motdString;
-
+cvar_t	*cl_dlURL;
 cvar_t	*cl_allowDownload;
 cvar_t	*cl_allowAltEnter;
 cvar_t	*cl_conXOffset;
@@ -674,6 +674,9 @@ void CL_ShutdownAll(qboolean shutdownRef) {
 	//so it doesn't barf on shutdown saying refentities belong to each other
 	tr.refdef.num_entities = 0;
 #endif
+#ifdef USE_CURL
+	CL_cURL_Shutdown();
+#endif
 	// clear sounds
 	S_DisableSounds();
 	// shutdown CGame
@@ -1274,7 +1277,56 @@ void CL_Clientinfo_f( void ) {
 
 
 //====================================================================
-
+static char referencedPakNames[MAX_STRING_CHARS];
+static char *nextPackPtr = 0;
+static char *mod = "";
+char *getNextPakName() {
+    char* ptr;
+    if (!nextPackPtr) {
+        return 0;
+    }
+    // find first letter of the pak name
+    while (*nextPackPtr == ' ' && *nextPackPtr != '\0') {
+        ++nextPackPtr;
+    }
+    ptr = nextPackPtr;
+    // no pak left
+    if (*nextPackPtr == '\0')  {
+        return 0;
+    }
+    // find the end of pak name
+    while (*nextPackPtr != ' ' && *nextPackPtr != '\0') {
+        ++nextPackPtr;
+    }
+    // prepare for next run
+    if (*nextPackPtr != '\0') {
+        // make it appear as a C string to a caller
+        *nextPackPtr = '\0';
+        ++nextPackPtr;
+    } else {
+        //nothing else is there
+        nextPackPtr = 0;
+    }
+    return ptr;
+}
+char *getNextFileForDownload() {
+    const char *pakName;
+    static char filename[MAX_QPATH];
+    qboolean exists;
+    // go through pak files
+    do {
+        // parse next pak name from refererenced pak names string
+        pakName = getNextPakName();
+        if (!pakName) { //nothing to download at all
+            return 0;
+        }
+        // ignore files that we already have
+        exists = FS_FileExists(va("%s.pk3", pakName+strlen(mod)+1));
+    } while (exists);
+    //we found a pak that we dont have yet, we should try download it
+    Q_strncpyz(filename, va("%s.pk3", pakName), sizeof(filename));
+    return filename;
+}
 /*
 =================
 CL_DownloadsComplete
@@ -1283,7 +1335,22 @@ Called when all downloading has been completed
 =================
 */
 void CL_DownloadsComplete( void ) {
-
+#ifdef USE_CURL
+	// if we downloaded with cURL
+	if(clc.curl.used) { 
+		clc.curl.used = qfalse;
+		CL_cURL_Shutdown();
+		if(clc.curl.disconnected) {
+			if(clc.downloadRestart) {
+				FS_Restart(clc.checksumFeed);
+				clc.downloadRestart = qfalse;
+			}
+			clc.curl.disconnected = qfalse;
+			CL_Reconnect_f();
+			return;
+		}
+	}
+#endif
 	// if we downloaded files we need to restart the file system
 	if (clc.downloadRestart) {
 		clc.downloadRestart = qfalse;
@@ -1297,7 +1364,28 @@ void CL_DownloadsComplete( void ) {
 		// so we don't want to load stuff yet
 		return;
 	}
-
+#ifdef USE_CURL
+	char *info = cl.gameState.stringData + cl.gameState.stringOffsets[CS_SYSTEMINFO];
+	cvar_t *fs_game = Cvar_FindVar("fs_game");
+	if (fs_game && !Q_stricmp(fs_game->string, ""))
+		mod = "base";
+	else if (fs_game)
+		mod = fs_game->string;
+    Q_strncpyz(referencedPakNames, Info_ValueForKey(info, "sv_referencedPakNames"), sizeof(referencedPakNames));
+    nextPackPtr = referencedPakNames;
+	info = cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO];
+	if (!clc.curl.gotError
+		&& !FS_FileExistsInPaks(va("maps/%s.bsp", Info_ValueForKey(info, "mapname")))
+		&& !cl_allowDownload->integer) {
+		// if autodownloading is not enabled on the server
+		cls.state = CA_CONNECTED;
+		*clc.downloadTempName = *clc.downloadName = *clc.downloadList = 0;
+		Cvar_Set("cl_downloadName", "");
+		CL_NextDownload();
+		return;
+	}
+	clc.curl.gotError = qfalse;
+#endif
 	// let the client game init and load data
 	cls.state = CA_LOADING;
 
@@ -1372,9 +1460,14 @@ A download completed or failed
 void CL_NextDownload(void) {
 	char *s;
 	char *remoteName, *localName;
+	qboolean useCURL = qfalse;
 
 	// A download has finished, check whether this matches a referenced checksum
-	if(*clc.downloadName)
+	if(*clc.downloadName
+#ifdef USE_CURL
+		&& !clc.curl.gotError
+#endif /* USE_CURL */
+		)
 	{
 		char *zippath = FS_BuildOSPath(Cvar_VariableString("fs_homepath"), clc.downloadName, "");
 		zippath[strlen(zippath)-1] = '\0';
@@ -1382,7 +1475,12 @@ void CL_NextDownload(void) {
 		if(!FS_CompareZipChecksum(zippath))
 			Com_Error(ERR_DROP, "Incorrect checksum for file: %s", clc.downloadName);
 	}
-
+#ifdef USE_CURL
+	if(clc.curl.gotError) {
+		if (FS_FileExists(clc.downloadTempName+strlen(mod)+1))
+			FS_FileErase(clc.downloadTempName+strlen(mod)+1);
+	}
+#endif /* USE_CURL */
 	*clc.downloadTempName = *clc.downloadName = 0;
 	Cvar_Set("cl_downloadName", "");
 
@@ -1408,13 +1506,29 @@ void CL_NextDownload(void) {
 			*s++ = 0;
 		else
 			s = localName + strlen(localName); // point at the nul byte
-
-		if (!cl_allowDownload->integer) {
-			Com_Error(ERR_DROP, "UDP Downloads are disabled on your client. (cl_allowDownload is %d)", cl_allowDownload->integer);
-			return;	
-		}
-		else {
-			CL_BeginDownload( localName, remoteName );
+#ifdef USE_CURL
+//		if(!(cl_allowDownload->integer & DLF_NO_REDIRECT)) {
+/*			if(clc.sv_allowDownload & DLF_NO_REDIRECT) {
+				Com_Printf("WARNING: server does not allow download redirection (sv_allowDownload is %d)\n", clc.sv_allowDownload);
+			} else */if(!*clc.dlURL) {
+				Com_Printf("WARNING: server allows download redirection, but does not have dlURL set\n");
+			} else if(!CL_cURL_Init()) {
+				Com_Printf("WARNING: could not load cURL library\n");
+			} else {
+				CL_cURL_BeginDownload(localName, va("%s/%s", clc.dlURL, remoteName));
+				useCURL = qtrue;
+			}
+/*		} else if(!(clc.sv_allowDownload & DLF_NO_REDIRECT)) {
+			Com_Printf("WARNING: server allows download redirection, but it disabled by client configuration (cl_allowDownload is %d)\n", cl_allowDownload->integer);
+		}*/
+#endif /* USE_CURL */
+		if(!useCURL) {
+			if (!cl_allowDownload->integer) {
+				Com_Error(ERR_DROP, "UDP Downloads are disabled on your client. (cl_allowDownload is %d)", cl_allowDownload->integer);
+				return;	
+			} else {
+				CL_BeginDownload( localName, remoteName );
+			}
 		}
 
 		clc.downloadRestart = qtrue;
@@ -1424,6 +1538,26 @@ void CL_NextDownload(void) {
 
 		return;
 	}
+#ifdef USE_CURL
+	else if (localName = getNextFileForDownload()) {
+//		if(!(cl_allowDownload->integer & DLF_NO_REDIRECT)) {
+/*			if(clc.sv_allowDownload & DLF_NO_REDIRECT) {
+				Com_Printf("WARNING: server does not allow download redirection (sv_allowDownload is %d)\n", clc.sv_allowDownload);
+			} else */if(!*clc.dlURL) {
+				Com_Printf("WARNING: server allows download redirection, but client does not have dlURL set\n");
+			} else if(!CL_cURL_Init()) {
+				Com_Printf("WARNING: could not load cURL library\n");
+			} else {
+				CL_cURL_BeginDownload(localName, va("%s/%s", clc.dlURL, localName));
+				clc.downloadRestart = qtrue;
+				return;
+			}
+		clc.curl.gotError = qtrue;
+/*		} else if(!(clc.sv_allowDownload & DLF_NO_REDIRECT)) {
+			Com_Printf("WARNING: server allows download redirection, but it disabled by client configuration (cl_allowDownload is %d)\n", cl_allowDownload->integer);
+		}*/
+	}
+#endif /* USE_CURL */
 
 	CL_DownloadsComplete();
 }
@@ -2087,6 +2221,24 @@ void CL_Frame(int msec) {
 	if (!com_cl_running->integer) {
 		return;
 	}
+#ifdef USE_CURL
+	if(clc.curl.downloadCURLM) {
+		CL_cURL_PerformDownload();
+		// we can't process frames normally when in disconnected
+		// download mode since the ui vm expects clc.state to be
+		// CA_CONNECTED
+		if(clc.curl.disconnected) {
+			cls.realFrametime = msec;
+			cls.frametime = msec;
+			cls.realtime += cls.frametime;
+			SCR_UpdateScreen();
+			S_Update();
+			Con_RunConsole();
+			cls.framecount++;
+			return;
+		}
+	}
+#endif
 	//reset the loading message
 	Com_SetLoadingMsg("Loading...");
 	SE_CheckForLanguageUpdates();	// will take zero time to execute unless language changes, then will reload strings.
@@ -2599,6 +2751,7 @@ void CL_Init( void ) {
 	cl_showMouseRate = Cvar_Get ("cl_showmouserate", "0", 0);
 	cl_framerate	= Cvar_Get ("cl_framerate", "0", CVAR_TEMP);
 	cl_allowDownload = Cvar_Get ("cl_allowDownload", "0", CVAR_ARCHIVE);
+	cl_dlURL = Cvar_Get ("cl_dlURL", "", CVAR_ARCHIVE);
 	cl_allowAltEnter = Cvar_Get ("cl_allowAltEnter", "1", CVAR_ARCHIVE);
 
 	cl_autolodscale = Cvar_Get( "cl_autolodscale", "1", CVAR_ARCHIVE );

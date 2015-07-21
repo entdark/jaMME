@@ -574,7 +574,7 @@ void	FS_FreeFileList( char **fileList );
 
 void FS_Remove( const char *osPath );
 void FS_HomeRemove( const char *homePath );
-
+qboolean FS_FileExistsInPaks(const char *qpath);
 qboolean FS_FileExists( const char *file );
 FILE *	FS_DirectOpen( const char *name, const char *mode );
 qboolean FS_FileErase( const char *file );

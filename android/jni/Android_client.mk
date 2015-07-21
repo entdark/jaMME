@@ -1,20 +1,22 @@
 
 LOCAL_PATH := $(call my-dir)
 
-
 include $(CLEAR_VARS)
-
+LOCAL_MODULE    := libcurl
+LOCAL_SRC_FILES := $(TARGET_ARCH_ABI)/libcurl.a
+include $(PREBUILT_STATIC_LIBRARY)
+include $(CLEAR_VARS)
 
 LOCAL_MODULE    := jamme
 
 
 LOCAL_CFLAGS :=  $(JK3_BASE_CFLAGS)
-LOCAL_CPPFLAGS := $(JK3_BASE_CPPFLAGS) -DNDEBUG -DBOTLIB -D_JK2 -D_JK2MP -DFINAL_BUILD
+LOCAL_CPPFLAGS := $(JK3_BASE_CPPFLAGS) -DNDEBUG -DBOTLIB -D_JK2 -D_JK2MP -DFINAL_BUILD -DUSE_CURL -DCURL_STATICLIB
 
 LOCAL_LDLIBS := $(JK3_BASE_LDLIBS)
 
 #LOCAL_LDLIBS +=  -lGLESv1_CM -lEGL -llog -lz
-LOCAL_STATIC_LIBRARIES := libmad# libogg_static libvorbis_static win_utf8_io_static libFLAC_static 
+LOCAL_STATIC_LIBRARIES := curl libcurl libmad# libogg_static libvorbis_static win_utf8_io_static libFLAC_static 
 LOCAL_SHARED_LIBRARIES := SDL2# SDL2_mixer touchcontrols openal
 
 #############################################################################
@@ -130,6 +132,7 @@ JK3_SRC = \
 		../../${MPDir}/client/cl_cgame.cpp \
 		../../${MPDir}/client/cl_cin.cpp \
 		../../${MPDir}/client/cl_console.cpp \
+		../../${MPDir}/client/cl_curl.cpp \
 		../../${MPDir}/client/cl_demos.cpp \
 		../../${MPDir}/client/cl_demos_auto.cpp \
 		../../${MPDir}/client/cl_input.cpp \
@@ -180,9 +183,8 @@ JK3_SRC = \
 		../../${MPDir}/zlib/trees.c \
 		../../${MPDir}/zlib/uncompr.c \
 		../../${MPDir}/zlib/zutil.c \
-
+		
 LOCAL_SRC_FILES += $(JK3_SRC) $(JK3MP_ANDROID_SRC)
-
 
 include $(BUILD_SHARED_LIBRARY)
 

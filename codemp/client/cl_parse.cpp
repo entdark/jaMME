@@ -554,7 +554,36 @@ void CL_ParseRMG ( msg_t* msg )
 
 	CL_ParseAutomapSymbols ( msg );
 }
-
+static void CL_SetDLURL(const char *serverInfo) {
+	size_t len;
+	if (!*clc.dlURL) {
+		cvar_t *g_dlURL = Cvar_FindVar("g_dlURL");
+		Q_strncpyz(clc.dlURL, Info_ValueForKey(serverInfo, "g_dlURL"), sizeof(clc.dlURL));
+		if (*clc.dlURL) {
+			//just skip
+		} else if (g_dlURL && Q_stricmp(g_dlURL->string, "")) {
+			Q_strncpyz(clc.dlURL, g_dlURL->string, sizeof(clc.dlURL));
+		} else if(Q_stricmp(cl_dlURL->string, "")) {
+			Q_strncpyz(clc.dlURL, cl_dlURL->string, sizeof(clc.dlURL));
+		}
+	}
+	len = strlen(clc.dlURL);
+	while (len > 0 && (clc.dlURL[len-1] == '/' || clc.dlURL[len-1] == '\\')) {
+		clc.dlURL[len-1] = '\0';
+		len = strlen(clc.dlURL);
+	}
+}
+/*
+==================
+CL_ParseServerInfo
+==================
+*/
+static void CL_ParseServerInfo(void) {
+	const char *serverInfo = cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO];
+	*clc.dlURL = 0;
+	Q_strncpyz(clc.dlURL, Info_ValueForKey(serverInfo, "sv_dlURL"), sizeof(clc.dlURL));
+	CL_SetDLURL(serverInfo);
+}
 /*
 ==================
 CL_ParseGamestate
@@ -671,9 +700,12 @@ void CL_ParseGamestate( msg_t *msg ) {
 	endBytes=msg->readcount;
 //	ClReadProf().AddField("svc_gamestate",endBytes-startBytes);
 #endif
-
+	
 	// parse serverId and other cvars
 	CL_SystemInfoChanged();
+	
+	// parse useful values out of CS_SERVERINFO
+	CL_ParseServerInfo();
 
 	// reinitialize the filesystem if the game directory has changed
 	if( FS_ConditionalRestart( clc.checksumFeed ) ) {

@@ -433,6 +433,9 @@
     <ClCompile Include="client\cl_demos_auto.cpp">
       <Filter>Client</Filter>
     </ClCompile>
+    <ClCompile Include="client\cl_curl.cpp">
+      <Filter>Client</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="botlib\aasfile.h">
@@ -809,6 +812,9 @@
     </ClInclude>
     <ClInclude Include="client\snd_mix.h">
       <Filter>Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="client\cl_curl.h">
+      <Filter>Client</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

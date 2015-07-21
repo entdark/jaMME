@@ -103,12 +103,12 @@ enum
 	NUM_TYPES
 };
 
-enum
+/*enum
 {
 	MSG_COMPLETED,
 	MSG_EOF,
 	NUM_MESSAGES,
-};
+};*/
 
 #ifdef __cplusplus
 typedef struct variable_s

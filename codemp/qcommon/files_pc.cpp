@@ -257,6 +257,16 @@ FILE * FS_DirectOpen( const char *name, const char *mode ) {
 	return fopen( testpath, mode );
 }
 
+
+qboolean FS_FileExistsInPaks(const char *qpath) {
+	fileHandle_t f;
+	FS_FOpenFileRead(qpath, &f, qfalse);
+	if (f) {
+		FS_FCloseFile(f);
+		return qtrue;
+	}
+	return qfalse;
+}
 /*
 ================
 FS_FileExists
@@ -267,8 +277,7 @@ search the paths.  This is to determine if opening a file to write
 NOTE TTimo: this goes with FS_FOpenFileWrite for opening the file afterwards
 ================
 */
-qboolean FS_FileExists( const char *file )
-{
+qboolean FS_FileExists( const char *file ) {
 	FILE *f;
 	char *testpath;
 
