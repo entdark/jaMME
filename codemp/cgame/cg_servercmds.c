@@ -230,23 +230,29 @@ void CG_ParseServerinfo( void ) {
 	if (!Q_stricmpn(gamename, "JA+ Mod", 7)) {
 		cg.japlus.detected = qtrue;
 		cg.japlus.SSF = JAPLUS_SERVER_FLAGS;
-		CG_Printf("JA+ demo detected\n");
+		CG_Printf("JA+");
 	} else if (!Q_stricmpn(gamename, "^4U^3A^5Galaxy", 14)) {	//uag :s
 		cg.japlus.detected = qtrue;
 		cg.japlus.SSF = JAPLUS_SERVER_FLAGS;
 		cg.uag.detected = qtrue;
-		CG_Printf("^4U^3A^5Galaxy ^7demo detected\n");
+		CG_Printf("^4U^3A^5Galaxy");
+	} else if (!Q_stricmpn(gamename, "^5X^2Jedi ^5Academy", 19)) {	//xjedi :s
+		cg.japlus.detected = qtrue;
+		cg.japlus.SSF = JAPLUS_SERVER_FLAGS;
+		cg.uag.detected = qtrue;
+		CG_Printf("^5X^2Jedi ^5Academy");
 	} else if (!Q_stricmpn(gamename, "base_enhanced", 13)) {
-		CG_Printf("Base Enhanced demo detected\n");
+		CG_Printf("Base Enhanced");
 		cg.enhanced.detected = qtrue;
 	} else if (!Q_stricmpn(gamename, "MakerMod", 8)) {
-		CG_Printf("MakerMod demo detected\n");
+		CG_Printf("MakerMod");
 	} else if (!Q_stricmpn(gamename, "Lugormod", 8)) {
-		CG_Printf("Lugormod demo detected\n");
+		CG_Printf("Lugormod");
 	} else {
-		CG_Printf("Base/Unknown demo detected\n");
+		CG_Printf("Base/Unknown");
 	}
-	CG_Printf( "\n" );
+	CG_Printf(" ^7mod detected\n");
+	CG_Printf("\n");
 
 	mapname = Info_ValueForKey( info, "mapname" );
 
