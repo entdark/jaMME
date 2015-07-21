@@ -912,7 +912,9 @@ public class jaMME extends Activity {
 				&& clipboard.getPrimaryClip() != null
 				&& clipboard.getPrimaryClip().getItemAt(0) != null) {
 		    ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
-		    paste = (String)item.getText();
+		    if (item.getText() != null) {
+		    	paste = item.getText().toString();
+		    }
 		}
 		return paste;
 	}
