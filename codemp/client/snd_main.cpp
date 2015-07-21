@@ -123,7 +123,7 @@ void S_Init(void) {
 	s_dopplerSpeed = Cvar_Get ("s_dopplerSpeed", "4000", CVAR_ARCHIVE);
 	s_dopplerFactor = Cvar_Get ("s_dopplerFactor", "1", CVAR_ARCHIVE);
 	s_timescale = Cvar_Get ("s_timescale", "1", CVAR_ARCHIVE);
-	s_attenuate = Cvar_Get ("s_attenuate", "1.0", CVAR_ARCHIVE);
+	s_attenuate = Cvar_Get ("s_attenuate", "1.0", CVAR_ARCHIVE | CVAR_CHEAT);
 	s_playScale = 1.0f;
 	s_forceScale = Cvar_Get ("s_forceScale", "0", CVAR_TEMP);
 
