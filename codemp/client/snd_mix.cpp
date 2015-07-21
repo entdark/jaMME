@@ -385,7 +385,7 @@ static int S_MixDopplerOriginal( int speed, const vec3_t origin, const vec3_t ve
 	float	lena, lenb, scale;
 
 	lena = DistanceSquared( s_listenOrigin, origin);
-	VectorMA( origin, s_dopplerFactor->value, velocity, out);
+	VectorMA( origin, s_dopplerFactor->value*1.7f, velocity, out);
 	lenb = DistanceSquared( s_listenOrigin, out);
 	scale = lenb/(lena*100);
 	if (scale > MAX_DOPPLER_SCALE) {
