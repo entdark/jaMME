@@ -515,6 +515,7 @@ static consoleCommand_t	commands[] = {
 	{ "siegeCompleteCvarUpdate", CG_SiegeCompleteCvarUpdate_f },
 	{ "clientlist", CG_ClientList_f },
 	{ "sm_stats", CG_EnhancedStatistics_f },
+	{ "clientOverride", CG_ClientOverride_f },
 #ifdef __ANDROID__
 	{ "targetPrev", CG_TargetPrev_f },
 	{ "targetNext", CG_TargetNext_f },
