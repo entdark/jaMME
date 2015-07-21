@@ -368,7 +368,7 @@ static openSound_t * S_WavOpen( const char *fileName ) {
 #include "mad.h"
 #pragma comment (lib, "libmad.lib")
 #elif defined(__ANDROID__)
-#include "../libs/win32/include/mad.h"
+#include "../libs/android/include/mad.h"
 #else
 #include <mad.h>
 #endif
