@@ -45,7 +45,7 @@ void S_DMAClearBuffer( void ) {
 	/* Clear the active channels and loops */
 	Com_Memset( dmaLoops, 0, sizeof( dmaLoops ));
 	Com_Memset( dmaChannels, 0, sizeof( dmaChannels ));
-	Com_Memset( &dmaEffect, 0, sizeof( &dmaEffect ));
+	Com_Memset( &dmaEffect, 0, sizeof( dmaEffect ));
 
 	if (dma.samplebits == 8)
 		clear = 0x80;
