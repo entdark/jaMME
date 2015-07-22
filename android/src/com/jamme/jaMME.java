@@ -963,7 +963,7 @@ public class jaMME extends Activity {
 			touchX = event.getX();
 			touchY = event.getY();
 	        _handler.postDelayed(_longPressed, LONG_PRESS_TIME);
-		} else if (actionCode == MotionEvent.ACTION_MOVE && pointerCount < 2) {
+		} else if (actionCode == MotionEvent.ACTION_MOVE && !twoPointers) {
 			float d = density;
 			float deltaX = (event.getX() - touchX) / surfaceWidth;
 			float deltaY = (event.getY() - touchY) / surfaceHeight;
