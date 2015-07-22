@@ -2016,7 +2016,7 @@ again:
 		case RC_SWAP_BUFFERS:
 			R_BloomScreen();
 			data = RB_SwapBuffers( data );
-			if ( (intptr_t)data == -1)
+			if (data == NULL)
 				goto again;
 			break;
 		case RC_WORLD_EFFECTS:
