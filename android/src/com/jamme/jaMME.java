@@ -922,7 +922,9 @@ public class jaMME extends Activity {
 	final Handler _handler = new Handler(); 
 	Runnable _longPressed = new Runnable() { 
 	    public void run() {
-	    	if ((flags & DEMO_PLAYBACK) != 0/* && twoFingers*/) {
+	    	if (twoPointers) {
+	    		quickCommand("screenshot");
+	    	} else if ((flags & DEMO_PLAYBACK) != 0) {
 	    		quickCommand("cut it");
 	    	} else if (!textPasted && ((flags & CONSOLE_ACTIVE) != 0
 	    			|| (flags & UI_EDITINGFIELD) != 0
@@ -951,14 +953,14 @@ public class jaMME extends Activity {
 	};
 	float touchX = 0, touchY = 0;
 	float touchYtotal = 0;
-	boolean touchMotion = false, longPress = false, textPasted = false;//, twoFingers = false;
+	boolean touchMotion = false, longPress = false, textPasted = false, twoPointers = false;
 	public boolean onTouchEvent(MotionEvent event) {
     	int action = event.getAction();
 		int actionCode = action & MotionEvent.ACTION_MASK;
 		int pointerCount = event.getPointerCount();
-/*		if (pointerCount == 2) {
-    		twoFingers = true;
-		}*/
+		if (pointerCount == 2) {
+			twoPointers = true;
+		}
 		if (actionCode == MotionEvent.ACTION_DOWN) {
 			touchX = event.getX();
 			touchY = event.getY();
@@ -1011,16 +1013,13 @@ public class jaMME extends Activity {
 			}
 			touchX = event.getX();
 			touchY = event.getY();
-		} else if (pointerCount == 2) {
-			touchMotion = true; //to fool that we didn't hit mouse1 or pause command
-			if (actionCode == MotionEvent.ACTION_POINTER_UP && !longPress) {
+		} else if (actionCode == MotionEvent.ACTION_POINTER_UP && twoPointers) {
+			if (!longPress) {
 				quickCommand("toggleconsole");
 			}
-//	        if (!demoCutting) {
-	        	_handler.removeCallbacks(_longPressed);
-//	        }
-        } else if (actionCode == MotionEvent.ACTION_UP) {
-			if (!touchMotion) {
+			touchMotion = true;
+    	} else if (actionCode == MotionEvent.ACTION_UP) {
+        	if (!touchMotion) {
 				if ((flags & ~INGAME) == 0 && !longPress) {
 					if ((flags & CHAT_SAY) == 0 && (flags & CHAT_SAY_TEAM) == 0) {
 						quickCommand("messagemode");
@@ -1042,12 +1041,12 @@ public class jaMME extends Activity {
 					}
 				}
 			}
-			if (longPress)
+			if (longPress && !twoPointers)
 				quickCommand("-scores");
 			touchMotion = false;
 			longPress = false;
 			textPasted = false;
-//			twoFingers = false;
+			twoPointers = false;
 			touchYtotal = 0;
 	        _handler.removeCallbacks(_longPressed);
 		}
