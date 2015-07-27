@@ -3221,6 +3221,11 @@ void CG_ComputeCommandSmoothStates( centity_t *cent, timedEntityState_t **curren
 	// curEsh should now be right.  nextEsh may be, unless player went a whole frame with no userCmd
 	// in that case we probably want to skip it - note we still need to keep the thing around in case it has an event
 	// otherwise we will miss that event
+	if ( curEsh->isMissing ) {
+		*currentState = NULL;
+		*nextState = NULL;
+		return;
+	}
 	*currentState = curEsh;
 	qboolean nextIsTeleport = nextEsh->isTeleport;
 	while ( curEsh->time >= nextEsh->time && cent->currentStateHistory + nextEshOffset < hist->nextSlot ) {
@@ -3228,10 +3233,12 @@ void CG_ComputeCommandSmoothStates( centity_t *cent, timedEntityState_t **curren
 		nextEsh = &hist->states[(cent->currentStateHistory + nextEshOffset) % MAX_STATE_HISTORY];
 		nextIsTeleport |= nextEsh->isTeleport;
 	}
-	if ( cent->currentStateHistory + nextEshOffset == hist->nextSlot || nextIsTeleport ) {
+	if ( cent->currentStateHistory + nextEshOffset == hist->nextSlot || nextIsTeleport || nextEsh->isMissing ) {
 		// couldn't find a valid nextEsh
 #ifdef _DEBUG
-		Com_Printf( "couldn't find valid nextEsh for client %d\n", cent->currentState.number );
+		if ( !nextIsTeleport ) {
+			Com_Printf( "couldn't find valid nextEsh for client %d\n", cent->currentState.number );
+		}
 #endif
 		*nextState = NULL;
 		return;
@@ -3273,6 +3280,10 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 			&& cent->currentState.number < MAX_CLIENTS
 			&& cent != &cg_entities[cg.snap->ps.clientNum] ) {
 		CG_ComputeCommandSmoothStates( cent, &curEsh, &nextEsh );
+		if ( curEsh == NULL ) {
+			cent->currentValid = qfalse;
+			return;
+		}
 		currentState = &curEsh->es;
 		currentStateTime = curEsh->time;
 		if ( nextEsh == NULL ) {
@@ -3351,6 +3362,10 @@ void CG_CalcEntityLerpPositions( centity_t *cent ) {
 			&& cent != &cg_entities[cg.snap->ps.clientNum] ) {
 		timedEntityState_t *curEsh, *nextEsh;
 		CG_ComputeCommandSmoothStates( cent, &curEsh, &nextEsh );
+		if ( curEsh == NULL ) {
+			cent->currentValid = qfalse;
+			return;
+		}
 		currentState = &curEsh->es;
 		nextState = nextEsh == NULL ? NULL : &nextEsh->es;
 	} else {

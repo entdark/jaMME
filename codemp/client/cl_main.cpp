@@ -88,6 +88,8 @@ cvar_t	*cl_autoDemoFormat;
 cvar_t	*cl_consoleKeys;
 #endif
 
+cvar_t	*cl_commandSmoothTolerance;
+
 vec3_t cl_windVec;
 
 
@@ -2790,6 +2792,8 @@ void CL_Init( void ) {
 	// ~ and `, as keys and characters
 	cl_consoleKeys = Cvar_Get( "cl_consoleKeys", "~ ` 0x7e 0x60", CVAR_ARCHIVE);
 #endif
+
+	cl_commandSmoothTolerance = Cvar_Get( "cl_commandSmoothTolerance", "100", CVAR_ARCHIVE );
 
 	// userinfo
 	Cvar_Get ("name", "Padawan", CVAR_USERINFO | CVAR_ARCHIVE );

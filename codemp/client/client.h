@@ -424,7 +424,6 @@ extern	cvar_t	*cl_autoDemoFormat;
 extern	cvar_t	*cl_consoleKeys;
 #endif
 
-
 // MME cvars
 //extern	cvar_t	*mme_anykeystopsdemo;
 extern	cvar_t	*mme_saveWav;
@@ -439,6 +438,9 @@ extern	cvar_t	*mme_demoRemove;
 extern	cvar_t	*mme_demoPrecache;
 extern	cvar_t	*mme_demoAutoNext;
 extern	cvar_t	*mme_demoPaused;
+
+extern	cvar_t	*cl_commandSmoothTolerance;
+
 //=================================================
 // cl_demos
 void CL_MMEDemo_f( void );

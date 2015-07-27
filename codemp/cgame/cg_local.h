@@ -347,6 +347,7 @@ typedef struct timedEntityState_s {
 	int time;
 	int serverTime;
 	qboolean isTeleport;
+	qboolean isMissing;
 	entityState_t es;
 } timedEntityState_t;
 
@@ -357,7 +358,7 @@ typedef struct timedPlayerState_s {
 	playerState_t ps;
 } timedPlayerState_t;
 
-#define MAX_STATE_HISTORY 8
+#define MAX_STATE_HISTORY 20
 typedef struct playerHistory_s {
 	int		nextSlot;
 	timedEntityState_t	states[MAX_STATE_HISTORY];
@@ -818,7 +819,6 @@ typedef struct {
 
 	snapshot_t	*snap;				// cg.snap->serverTime <= cg.time
 	snapshot_t	*nextSnap;			// cg.nextSnap->serverTime > cg.time, or NULL
-	snapshot_t	*nextNextSnap;		// cg.nextNextSnap->serverTime > cg.nextSnap->serverTime, or NULL
 //	snapshot_t	activeSnapshots[2];
 
 	float		frameInterpolation;	// (float)( cg.time - cg.frame->serverTime ) / (cg.nextFrame->serverTime - cg.frame->serverTime)
@@ -1049,9 +1049,11 @@ Ghoul2 Insert Start
 */
 	int				testModel;
 	// had to be moved so we wouldn't wipe these out with the memset - these have STL in them and shouldn't be cleared that way
-	snapshot_t	activeSnapshots[3];
+	// teh: liar! the whole struct is still memset'd
+	snapshot_t		activeSnapshots[2];
 	int				currentPsHistory;
 	psHistory_t		psHistory;
+	int				historySnapNumber;
 /*
 Ghoul2 Insert End
 */

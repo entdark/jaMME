@@ -348,6 +348,8 @@ static int demoSetupView( void) {
 }
 
 extern snapshot_t *CG_ReadNextSnapshot( void );
+extern void CG_ResetCommandSmoothState( int resetTime );
+extern void CG_ReadCommandSmoothSnapshots( void );
 extern void CG_SetNextSnap( snapshot_t *snap );
 extern void CG_SetNextNextSnap( snapshot_t *snap );
 extern void CG_TransitionSnapshot( void );
@@ -361,14 +363,13 @@ void demoProcessSnapShots( qboolean hadSkip ) {
 	// see what the latest snapshot the client system has is
 	trap_GetCurrentSnapshotNumber( &cg.latestSnapshotNum, &cg.latestSnapshotTime );
 	if (hadSkip || !cg.snap) {
-		cgs.processedSnapshotNum = max(cg.latestSnapshotNum - 3, -1);
+		cgs.processedSnapshotNum = -1;  // max( cg.latestSnapshotNum - 3, -1 );
 		if (cg.nextSnap)
 			cgs.serverCommandSequence = cg.nextSnap->serverCommandSequence;
 		else if (cg.snap)
 			cgs.serverCommandSequence = cg.snap->serverCommandSequence;
 		cg.snap = 0;
 		cg.nextSnap = 0;
-		cg.nextNextSnap = 0;
 
 		for (i=-1;i<MAX_GENTITIES;i++) {
 			centity_t *cent = i < 0 ? &cg_entities[cg.predictedPlayerState.clientNum] : &cg_entities[i];
@@ -389,7 +390,6 @@ void demoProcessSnapShots( qboolean hadSkip ) {
 
 	/* Check if we have some transition between snapsnots */
 	if (!cg.snap) {
-		entityState_t pes;
 		snap = CG_ReadNextSnapshot();
 		if (!snap)
 			return;
@@ -407,16 +407,12 @@ void demoProcessSnapShots( qboolean hadSkip ) {
 		BG_PlayerStateToEntityState( &snap->ps, &cg_entities[ snap->ps.clientNum ].currentState, qfalse );
 		CG_BuildSolidList();
 		CG_ExecuteNewServerCommands( snap->serverCommandSequence );
-		CG_UpdateTps( snap, qtrue );
-		BG_PlayerStateToEntityStateExtraPolate( &snap->ps, &pes, snap->ps.commandTime, qfalse );
-		CG_AddToHistory( snap->serverTime, &pes, &cg_entities[snap->ps.clientNum] );
 		for ( i = 0; i < cg.snap->numEntities; i++ ) {
 			entityState_t *state = &cg.snap->entities[ i ];
 			centity_t *cent = &cg_entities[ state->number ];
 			memcpy(&cent->currentState, state, sizeof(entityState_t));
 			cent->interpolate = qfalse;
 			cent->currentValid = qtrue;
-			CG_AddToHistory( snap->serverTime, state, cent );
 			if ( ( cent->currentState.eType == ET_NPC )
 				&& !(cent->currentState.NPC_class == CLASS_VEHICLE
 				&& cent->m_pVehicle && cent->m_pVehicle->m_pVehicleInfo->type == VH_FIGHTER
@@ -454,17 +450,12 @@ skipNPC:
 				break;
 			CG_SetNextSnap( snap );
 		}
-		if ( !cg.nextNextSnap ) {
-			snap = CG_ReadNextSnapshot();
-			if ( !snap )
-				break;
-			CG_SetNextNextSnap( snap );
-		}
 		if ( cg.timeFraction >= cg.snap->serverTime - cg.time && cg.timeFraction < cg.nextSnap->serverTime - cg.time )
 			break;
 		//Todo our own transition checking if we wanna hear certain sounds
 		CG_TransitionSnapshot();
 	} while (1);
+	CG_ReadCommandSmoothSnapshots();
 }
 
 void demoAddViewPos( const char *baseName, const vec3_t origin, const vec3_t angles, float fov ) {
@@ -658,6 +649,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	if (cg.frametime < 0) {
 		int i;
 		cg.frametime = 0;
+		CG_ResetCommandSmoothState( cg.time );
 		hadSkip = qtrue;
 		cg.oldTime = cg.time;
 		cg.oldTimeFraction = cg.timeFraction;

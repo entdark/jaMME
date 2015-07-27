@@ -1570,8 +1570,8 @@ static int demoPlaySeek(demoPlay_t *play, int seekTime) {
 foundit:
 		demoPlaySetIndex(play, i);
 	}
-	while (!play->lastFrame && (demoCommandSmoothing ? (seekTime >= play->frame->serverTime) : (seekTime > play->nextFrame->serverTime))) {
-		demoPlayForwardFrame(play);
+	while (!play->lastFrame && ( seekTime + (demoCommandSmoothing ? cl_commandSmoothTolerance->integer : 0) > play->nextFrame->serverTime)) {
+		demoPlayForwardFrame( play  );
 	}
 	return seekTime;
 }
@@ -1686,6 +1686,9 @@ static demoPlay_t *demoPlayOpen( const char* fileName ) {
 	play->fileHandle = fileHandle;
 	demoFirstPack = qtrue;
 	demoPlaySetIndex( play, 0 );
+	while ( !play->lastFrame && ( play->startTime + cl_commandSmoothTolerance->integer > play->nextFrame->serverTime ) ) {
+		demoPlayForwardFrame( play );
+	}
 	play->clientNum = -1;
 	for( i=0;i<MAX_CLIENTS;i++)
 		if (play->frame->clientData[i]) {
@@ -1934,7 +1937,7 @@ static void demoPrecache( void ) {
 			}
 		}
 		time += 50;
-		while (!play->lastFrame && time > play->nextFrame->serverTime)
+		while ( !play->lastFrame && time + cl_commandSmoothTolerance->integer > play->nextFrame->serverTime )
 			demoPlayForwardFrame(play);
 	}
 	S_Update();
