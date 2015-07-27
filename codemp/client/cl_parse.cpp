@@ -456,7 +456,8 @@ void CL_SystemInfoChanged( void ) {
 				if (Q_stricmp( key, "g_synchronousClients" ) &&
 					Q_stricmp( key, "pmove_fixed" ) &&
 					Q_stricmp( key, "pmove_msec" ) &&
-					Q_stricmp( key, "pmove_float" ) )
+					Q_stricmp( key, "pmove_float" ) &&
+					Q_stricmp( key, "sex" ) )
 				{
 					Com_Printf(S_COLOR_YELLOW "WARNING: server is not allowed to set %s=%s\n", key, value);
 					continue;
