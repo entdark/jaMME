@@ -135,6 +135,7 @@ JK3_SRC = \
 		../../${MPDir}/client/cl_curl.cpp \
 		../../${MPDir}/client/cl_demos.cpp \
 		../../${MPDir}/client/cl_demos_auto.cpp \
+		../../${MPDir}/client/cl_demos_cut.cpp \
 		../../${MPDir}/client/cl_input.cpp \
 		../../${MPDir}/client/cl_keys.cpp \
 		../../${MPDir}/client/cl_main.cpp \

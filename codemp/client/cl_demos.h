@@ -74,7 +74,21 @@ typedef struct {
 	int					fileIndexCount;
 } demoPlay_t;
 
+#define DEMOLISTSIZE 1024
 typedef struct {
+	char demoName[MAX_OSPATH];
+	char projectName[MAX_OSPATH];
+} demoListEntry_t;
+
+#define MAX_TIMESTAMPS 256
+
+typedef struct {
+	byte					buffer[128*1024];
+	qboolean				firstPack;
+	qboolean				precaching;
+	qboolean				commandSmoothing;
+	qboolean				del;
+	int						nextNum, currentNum;
 	struct {
 		demoPlay_t			*handle;
 		int					snapCount;
@@ -84,7 +98,24 @@ typedef struct {
 		int					oldFrameNumber;
 		int					serverTime;
 	} play;
+	struct {
+		demoListEntry_t		entry[DEMOLISTSIZE];
+		int					index, count;
+	} list;
+	struct {
+		char				defaultName[MAX_QPATH];
+		char				demoName[MAX_QPATH];
+		char				customName[MAX_QPATH];
+		int					timeStamps[MAX_TIMESTAMPS];
+		char				mod[MAX_QPATH];
+	} record;
+	struct {
+		clientConnection_t	Clc;
+		clientActive_t		Cl;
+	} cut;
 } demo_t;
+
+extern demo_t demo;
 
 extern int demoLength(void);
 extern int demoTime(void);

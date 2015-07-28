@@ -431,6 +431,7 @@
     <ClCompile Include="client\cl_curl.cpp" />
     <ClCompile Include="client\cl_demos.cpp" />
     <ClCompile Include="client\cl_demos_auto.cpp" />
+    <ClCompile Include="client\cl_demos_cut.cpp" />
     <ClCompile Include="client\cl_mme.cpp" />
     <ClCompile Include="client\FXExport.cpp" />
     <ClCompile Include="client\FxPrimitives.cpp" />
