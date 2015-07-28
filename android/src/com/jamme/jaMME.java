@@ -74,9 +74,6 @@ public class jaMME extends Activity {
 	jaMMEEditText et;
 	jaMMESeekBar sb = null;
 	jaMMERangeSeekBar rsb = null;
-	long currentTime, lastTime;
-	ProgressDialog pd = null;
-	String loadingMsg = "Loading...", lmLast = "Loading...";
 	int surfaceWidth,surfaceHeight;
 //	int PORT_ACT_ATTACK = 13;
 //	int PORT_ACT_ALT_ATTACK = 64;
@@ -135,9 +132,6 @@ public class jaMME extends Activity {
 		getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
 				WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		loadLibraries();
-		Time t = new Time();
-		t.setToNow();
-		lastTime = currentTime = t.toMillis(false);
 		view = new jaMMEView(this);
 		view.setEGLConfigChooser(new BestEglChooser(getApplicationContext()));
         view.setRenderer(renderer);
@@ -170,40 +164,6 @@ public class jaMME extends Activity {
 			addLauncherItems(this, baseDirectory, argsStr);
 		}
 		act.setTheme(android.R.style.Theme_Holo);
-/*		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (true) {
-					Time t = new Time();
-					t.setToNow();
-					currentTime = t.toMillis(false);
-				}
-			}
-		}).start();
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (true) {
-					if (currentTime > lastTime + 2000 && gameReady) {
-						loadingMsg = getLoadingMsg();
-						if (!jaMME.equals(loadingMsg, lmLast)) {
-							lmLast = loadingMsg;
-							if (pd != null)
-								pd.dismiss();
-							pd = null;
-						}
-						act.runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								if (currentTime > lastTime + 2000 && pd == null && !jaMME.equals(loadingMsg, "")) {
-									pd = ProgressDialog.show(act, "", loadingMsg, true);
-								}
-							}
-						});
-					}
-				}
-			}
-		}).start();*/
     }
 	@Override
 	protected void onPause() {
@@ -725,6 +685,30 @@ public class jaMME extends Activity {
 			}
 		}
     }
+	ProgressDialog pd = null;
+	String loadingMsg = "Loading...", lmLast = "Loading...";
+	public static int LOADING_MESSAGE_TIME = 2000;
+	public static int LOADING_MESSAGE_UPDATE_TIME = 1337;
+	Runnable _loadingMessage = new Runnable() { 
+	    public void run() {
+	    	loadingMsg = getLoadingMsg();
+			act.runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					if (!jaMME.equals(loadingMsg, lmLast)) {
+						lmLast = loadingMsg;
+						if (pd != null)
+							pd.dismiss();
+						pd = null;
+					}
+					if (pd == null && !jaMME.equals(loadingMsg, "")) {
+						pd = ProgressDialog.show(act, "", loadingMsg, true);
+					}
+				}
+			});
+	        _handler.postDelayed(_loadingMessage, LOADING_MESSAGE_UPDATE_TIME);
+	    }   
+	};
 	private void removeView(View v) {
 		if (v != null) {
 			ViewGroup vg = (ViewGroup)v.getParent();
@@ -761,13 +745,14 @@ public class jaMME extends Activity {
 		public void onDrawFrame(GL10 gl) {
 			if (!gameReady)
 				return;
+	        _handler.postDelayed(_loadingMessage, LOADING_MESSAGE_TIME);
 			if (!inited) {
 				SDLActivity.nativeInit();
 				inited = true;
 				initRenderer(surfaceWidth, surfaceHeight);
 			}
 			flags = frame();
-			lastTime = currentTime;
+	        _handler.removeCallbacks(_loadingMessage);
 			act.runOnUiThread(new Runnable() {
 				@Override
 				public void run() {

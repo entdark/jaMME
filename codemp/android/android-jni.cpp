@@ -68,7 +68,7 @@ bool shooting = false;
  touchcontrols::TouchJoy *touchJoyRight;
  touchcontrols::WheelSelect *weaponWheel;*/
 
-extern JNIEnv* env_;
+//extern JNIEnv* env_;
 
 /*void openGLStart()
  {
