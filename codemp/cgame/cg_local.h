@@ -1359,6 +1359,10 @@ typedef struct {
 	qhandle_t	binocularStatic;
 	qhandle_t	binocularOverlay;
 
+	// ratio fix helpers
+	qhandle_t	zoomLeft;
+	qhandle_t	zoomRight;
+
 	// weapon effect models
 	qhandle_t	lightningExplosionModel;
 

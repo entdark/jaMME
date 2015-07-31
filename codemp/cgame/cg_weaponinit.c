@@ -300,6 +300,9 @@ void CG_RegisterWeapon( int weaponNum) {
 		cgs.media.disruptorChargeShader	= trap_R_RegisterShaderNoMip("gfx/2d/crop_charge");
 
 		cgs.media.disruptorZoomLoop		= trap_S_RegisterSound( "sound/weapons/disruptor/zoomloop.wav" );
+
+		cgs.media.zoomLeft				= trap_R_RegisterShader("zoomLeft");
+		cgs.media.zoomRight				= trap_R_RegisterShader("zoomRight");
 		break;
 
 	case WP_BOWCASTER:

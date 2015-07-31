@@ -208,17 +208,16 @@ CG_DrawZoomMask
 
 ================
 */
-static void CG_DrawZoomMask( void )
-{
+extern void trap_R_RotatePic2RatioFix(float ratio);
+static void CG_DrawZoomMask(void) {
 	vec4_t		color1;
 	float		level;
 	static qboolean	flip = qtrue;
-
+	float ratio = (cgs.media.zoomLeft || cgs.media.zoomRight) ? cgs.widthRatioCoef : 1.0f;
 //	int ammo = cg_entities[0].gent->client->ps.ammo[weaponData[cent->currentState.weapon].ammoIndex];
 	float cx, cy;
 //	int val[5];
 	float max, fi;
-
 	// Check for Binocular specific zooming since we'll want to render different bits in each case
 	if ( cg.playerPredicted && cg.predictedPlayerState.zoomMode == 2 )
 	{
@@ -275,8 +274,8 @@ static void CG_DrawZoomMask( void )
 			if (( off > 3.0f && i == -10 ) || i > -10 )
 			{
 				// draw the value, but add 200 just to bump the range up...arbitrary, so change it if you like
-				CG_DrawNumField( 155 + i * 10 + off * 10, 374, 3, val + 200, 24, 14, NUM_FONT_CHUNKY, qtrue );
-				CG_DrawPic( 245 + (i-1) * 10 + off * 10, 376, 6, 6, cgs.media.whiteShader );
+				CG_DrawNumField( 320 - (320 - (155 + i * 10 + off * 10))*ratio, 374, 3, val + 200, 24*ratio, 14, NUM_FONT_CHUNKY, qtrue );
+				CG_DrawPic( 320 - (320 - (245 + (i-1) * 10 + off * 10))*ratio, 376, 6*ratio, 6, cgs.media.whiteShader );
 			}
 		}
 
@@ -290,7 +289,7 @@ static void CG_DrawZoomMask( void )
 
 		trap_R_SetColor( color1 );
 
-		CG_DrawPic( 82, 94, 16, 16, cgs.media.binocularCircle );
+		CG_DrawPic( 82, 94, 16*ratio, 16, cgs.media.binocularCircle );
 
 		// Flickery color
 		color1[0] = 0.7f + crandom() * 0.1f;
@@ -341,7 +340,21 @@ static void CG_DrawZoomMask( void )
 
 		// Draw target mask
 		trap_R_SetColor( colorTable[CT_WHITE] );
-		CG_DrawPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, cgs.media.disruptorMask );
+		if (ratio != 1.0f) {
+			if (cgs.media.zoomLeft) {
+				CG_DrawPic(0, 0, SCREEN_WIDTH / 2 - (SCREEN_WIDTH / 2)*ratio, SCREEN_HEIGHT, cgs.media.zoomLeft);
+				if (!cgs.media.zoomRight) {
+					CG_DrawPic(SCREEN_WIDTH, 0, -(SCREEN_WIDTH / 2 - (SCREEN_WIDTH / 2)*ratio), SCREEN_HEIGHT, cgs.media.zoomLeft);
+				}
+			}
+			if (cgs.media.zoomRight) {
+				CG_DrawPic(SCREEN_WIDTH / 2 + (SCREEN_WIDTH / 2)*ratio, 0, SCREEN_WIDTH / 2 - (SCREEN_WIDTH / 2)*ratio, SCREEN_HEIGHT, cgs.media.zoomRight);
+				if (!cgs.media.zoomLeft) {
+					CG_DrawPic(SCREEN_WIDTH / 2 - (SCREEN_WIDTH / 2)*ratio, 0, -(SCREEN_WIDTH / 2 - (SCREEN_WIDTH / 2)*ratio), SCREEN_HEIGHT, cgs.media.zoomRight);
+				}
+			}
+		}
+		CG_DrawPic(SCREEN_WIDTH / 2 - (SCREEN_WIDTH / 2)*ratio, 0, SCREEN_WIDTH*ratio, SCREEN_HEIGHT, cgs.media.disruptorMask);
 
 		// apparently 99.0f is the full zoom level
 		if ( level >= 99 )
@@ -356,6 +369,7 @@ static void CG_DrawZoomMask( void )
 		}
 
 		// Draw rotating insert
+		trap_R_RotatePic2RatioFix(ratio);
 		CG_DrawRotatePic2( SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT, -level, cgs.media.disruptorInsert );
 
 		// Increase the light levels under the center of the target
@@ -422,11 +436,12 @@ static void CG_DrawZoomMask( void )
 
 		for (fi = 18.5f; fi <= 18.5f + max; fi+= 3 ) // going from 15 to 45 degrees, with 5 degree increments
 		{
-			cx = SCREEN_WIDTH / 2 + sin( (fi+90.0f)/57.296f ) * 190;
+			cx = SCREEN_WIDTH / 2 + sin( (fi+90.0f)/57.296f ) * 190*ratio;
 			cy = SCREEN_HEIGHT / 2 + cos( (fi+90.0f)/57.296f ) * 190;
 
 			CG_DrawRotatePic2( cx, cy, 12, 24, 90 - fi, cgs.media.disruptorInsertTick );
 		}
+		trap_R_RotatePic2RatioFix(1.0f);
 
 		if ((cg.playerPredicted && cg.predictedPlayerState.weaponstate == WEAPON_CHARGING_ALT)
 			|| (!cg.playerPredicted && cg.charging && cg.chargeTime && cg.time > cg.chargeTime))
@@ -444,7 +459,7 @@ static void CG_DrawZoomMask( void )
 				max = 1.0f;
 			}
 
-			trap_R_DrawStretchPic(257, 435, 134*max, 34, 0, 0, max, 1, cgs.media.disruptorChargeShader);
+			trap_R_DrawStretchPic(SCREEN_WIDTH / 2 - (SCREEN_WIDTH / 2 - 257)*ratio, 435, 134*max*ratio, 34, 0, 0, max, 1, cgs.media.disruptorChargeShader);
 		}
 //		trap_R_SetColor( colorTable[CT_WHITE] );
 //		CG_DrawPic( 0, 0, 640, 480, cgs.media.disruptorMask );
@@ -3190,11 +3205,7 @@ static int impactSoundDebounceTime = 0;
 #define	RADAR_MISSILE_RANGE					3000.0f
 #define	RADAR_ASTEROID_RANGE				10000.0f
 #define	RADAR_MIN_ASTEROID_SURF_WARN_DIST	1200.0f
-
-extern void trap_R_RotatePic2RatioFix( float ratio );
-
-float CG_DrawRadar ( float y )
-{
+float CG_DrawRadar (float y) {
 	vec4_t			color;
 	vec4_t			teamColor;
 	float			arrow_w;
