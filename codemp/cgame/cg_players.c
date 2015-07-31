@@ -4993,7 +4993,7 @@ static void CG_PlayerSprites( centity_t *cent ) {
 
 		// ADD CVAR CHECK FROM HERE
 #ifdef JK2AWARDS
-	if (!cg.enhanced.detected) { //base_enhanced mod replaces those with glag rets, fc kills etc
+	if (!(cg.enhanced.detected && !(cg.enhanced.flags & BASE_ENHANCED_ALL_REWARDS))) { //base_enhanced mod replaces those with glag rets, fc kills etc
 		if ( cent->currentState.eFlags & EF_AWARD_IMPRESSIVE ) {
 			CG_PlayerFloatSprite( cent, cgs.media.medalImpressive );
 			return;

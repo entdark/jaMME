@@ -1096,6 +1096,7 @@ Ghoul2 Insert End
 	} uag;
 	struct {
 		qboolean		detected;
+		int				flags;
 		qboolean		statsGenerated;
 		struct {
 			team_t		team;
@@ -2690,3 +2691,5 @@ void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end );
 #define	SDISABLE_PAIN			0x080000	//pain, death
 #define	SDISABLE_LOOPING		0x100000	//all looping sounds; prolly :s
 #define	SDISABLE_JETPACK		0x200000
+
+#define BASE_ENHANCED_ALL_REWARDS	0x01

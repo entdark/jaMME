@@ -244,6 +244,23 @@ void CG_ParseServerinfo( void ) {
 	} else if (!Q_stricmpn(gamename, "base_enhanced", 13)) {
 		CG_Printf("Base Enhanced");
 		cg.enhanced.detected = qtrue;
+		if (Q_stricmp(gamename, "base_enhanced")) {
+			//having gameversion in the server info?
+			char *version = Info_ValueForKey(info, "gameversion");
+			if (*version) {
+				int verMajor = 0, verMinor = 0;
+				CG_Printf(" v%s", version);
+				verMajor = atoi(version);
+				version = strchr(version, '.');
+				if (version) {
+					version++;
+					verMinor = atoi(version);
+				}
+				if (verMajor >= 1) {
+					cg.enhanced.flags |= BASE_ENHANCED_ALL_REWARDS;
+				}
+			}
+		}
 	} else if (!Q_stricmpn(gamename, "MakerMod", 8)) {
 		CG_Printf("MakerMod");
 	} else if (!Q_stricmpn(gamename, "Lugormod", 8)) {
@@ -251,7 +268,7 @@ void CG_ParseServerinfo( void ) {
 	} else {
 		CG_Printf("Base/Unknown");
 	}
-	CG_Printf(" ^7mod detected\n");
+	CG_Printf(" "S_COLOR_WHITE"mod detected\n");
 	CG_Printf("\n");
 
 	mapname = Info_ValueForKey( info, "mapname" );

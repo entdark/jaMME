@@ -360,7 +360,7 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 		reward = qtrue;
 		//Com_Printf("^6Capture\n");
 	}
-	if (!cg.enhanced.detected) { //base_enhanced mod replaces those with flag rets, fc kills etc
+	if (!(cg.enhanced.detected && !(cg.enhanced.flags & BASE_ENHANCED_ALL_REWARDS))) { //base_enhanced mod replaces those with flag rets, fc kills etc
 		if (ps->persistant[PERS_IMPRESSIVE_COUNT] != ops->persistant[PERS_IMPRESSIVE_COUNT]) {
 			if (ps->persistant[PERS_IMPRESSIVE_COUNT] == 1) {
 				sfx = cgs.media.firstImpressiveSound;
