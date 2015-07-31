@@ -3357,41 +3357,46 @@ CL_GlobalServers_f
 void CL_GlobalServers_f( void ) {
 	netadr_t	to;
 	int			count, i, masterNum;
-	char		command[1024];
-	
-	if ((count = Cmd_Argc()) < 3 || (masterNum = atoi(Cmd_Argv(1))) < 0 || masterNum > 1)
-	{
-		Com_Printf("usage: globalservers <master# 0-1> <protocol> [keywords]\n");
+	char		command[1024], *masteraddress;
+	if ((count = Cmd_Argc()) < 3 || (masterNum = atoi(Cmd_Argv(1))) < 0 || masterNum > MAX_MASTER_SERVERS - 1) {
+		Com_Printf("usage: globalservers <master# 0-%d> <protocol> [keywords]\n", MAX_MASTER_SERVERS - 1);
 		return;
 	}
-
+	Com_sprintf(command, sizeof(command), "sv_master%d", masterNum + 1);
+	masteraddress = Cvar_VariableString(command);
+	if (!*masteraddress) {
+		Com_Printf("CL_GlobalServers_f: Error: No master server address given.\n");
+		return;
+	}
 	// reset the list, waiting for response
 	// -1 is used to distinguish a "no response"
-
-	i = NET_StringToAdr(MASTER_SERVER_NAME, &to);
-
-	if (!i)
-	{
-		Com_Printf("CL_GlobalServers_f: Error: could not resolve address of master %s\n", MASTER_SERVER_NAME);
+	i = NET_StringToAdr(masteraddress, &to);
+	if (!i) {
+		Com_Printf("CL_GlobalServers_f: Error: could not resolve address of master %s\n", masteraddress);
+		masterNum++;
+		if (masterNum <= MAX_MASTER_SERVERS - 1) {
+			Com_Printf("CL_GlobalServers_f: trying an alternative master server\n");
+			//try the next master server
+			Com_sprintf(command, sizeof(command), "globalservers %d", masterNum);
+			for (i = 2; i < count; i++) {
+				Q_strcat(command, sizeof(command), " ");
+				Q_strcat(command, sizeof(command), Cmd_Argv(i));
+			}
+			Cbuf_AddText(command);
+		}
 		return;
 	}
 	to.type = NA_IP;
 	to.port = BigShort(PORT_MASTER);
-
-	Com_Printf("Requesting servers from the master %s (%s)...\n", MASTER_SERVER_NAME, NET_AdrToString(to));
-
+	Com_Printf("Requesting servers from the master %s (%s)...\n", masteraddress, NET_AdrToString(to));
 	cls.numglobalservers = -1;
 	cls.pingUpdateSource = AS_GLOBAL;
-
 	Com_sprintf(command, sizeof(command), "getservers %s", Cmd_Argv(2));
-
 	// tack on keywords
-	for (i = 3; i < count; i++)
-	{
+	for (i = 3; i < count; i++) {
 		Q_strcat(command, sizeof(command), " ");
 		Q_strcat(command, sizeof(command), Cmd_Argv(i));
 	}
-
 	NET_OutOfBandPrint( NS_SERVER, to, "%s", command );
 }
 

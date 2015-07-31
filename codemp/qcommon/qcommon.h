@@ -103,6 +103,8 @@ NET
 
 #define	MAX_RELIABLE_COMMANDS	128			// max string commands buffered for restransmit
 
+#define	MAX_MASTER_SERVERS	5
+
 typedef enum {
 	NA_BAD = 0,					// an address lookup failed
 	NA_BOT,

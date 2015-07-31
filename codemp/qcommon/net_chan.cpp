@@ -626,10 +626,12 @@ qboolean	NET_StringToAdr( const char *s, netadr_t *a ) {
 	if ( !r ) {
 		a->type = NA_BAD;
 		return qfalse;
-	}
-
+	} else
 	// inet_addr returns this if out of range
 	if ( a->ip[0] == 255 && a->ip[1] == 255 && a->ip[2] == 255 && a->ip[3] == 255 ) {
+		a->type = NA_BAD;
+		return qfalse;
+	} else if ( a->ip[0] == 0 && a->ip[1] == 0 && a->ip[2] == 0 && a->ip[3] == 0 ) {
 		a->type = NA_BAD;
 		return qfalse;
 	}
