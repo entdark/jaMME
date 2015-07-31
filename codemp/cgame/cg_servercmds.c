@@ -242,23 +242,21 @@ void CG_ParseServerinfo( void ) {
 		cg.uag.detected = qtrue;
 		CG_Printf("^5X^2Jedi ^5Academy");
 	} else if (!Q_stricmpn(gamename, "base_enhanced", 13)) {
+		//having gameversion in the server info?
+		char *version = Info_ValueForKey(info, "gameversion");
 		CG_Printf("Base Enhanced");
 		cg.enhanced.detected = qtrue;
-		if (Q_stricmp(gamename, "base_enhanced")) {
-			//having gameversion in the server info?
-			char *version = Info_ValueForKey(info, "gameversion");
-			if (*version) {
-				int verMajor = 0, verMinor = 0;
-				CG_Printf(" v%s", version);
-				verMajor = atoi(version);
-				version = strchr(version, '.');
-				if (version) {
-					version++;
-					verMinor = atoi(version);
-				}
-				if (verMajor >= 1) {
-					cg.enhanced.flags |= BASE_ENHANCED_ALL_REWARDS;
-				}
+		if (*version) {
+			int verMajor = 0, verMinor = 0;
+			CG_Printf(" v%s", version);
+			verMajor = atoi(version);
+			version = strchr(version, '.');
+			if (version) {
+				version++;
+				verMinor = atoi(version);
+			}
+			if (verMajor >= 1) {
+				cg.enhanced.flags |= BASE_ENHANCED_ALL_REWARDS;
 			}
 		}
 	} else if (!Q_stricmpn(gamename, "MakerMod", 8)) {
