@@ -4990,41 +4990,6 @@ static void CG_PlayerSprites( centity_t *cent ) {
 		CG_PlayerFloatSprite( cent, cgs.media.balloonShader );
 		return;
 	}
-
-		// ADD CVAR CHECK FROM HERE
-#ifdef JK2AWARDS
-	if (!(cg.enhanced.detected && !(cg.enhanced.flags & BASE_ENHANCED_ALL_REWARDS))) { //base_enhanced mod replaces those with glag rets, fc kills etc
-		if ( cent->currentState.eFlags & EF_AWARD_IMPRESSIVE ) {
-			CG_PlayerFloatSprite( cent, cgs.media.medalImpressive );
-			return;
-		}
-
-		if ( cent->currentState.eFlags & EF_AWARD_EXCELLENT ) {
-			CG_PlayerFloatSprite( cent, cgs.media.medalExcellent );
-			return;
-		}
-
-		if ( cent->currentState.eFlags & EF_AWARD_GAUNTLET ) {
-			CG_PlayerFloatSprite( cent, cgs.media.medalGauntlet );
-			return;
-		}
-	}
-	if ( cent->currentState.eFlags & EF_AWARD_DEFEND ) {
-		CG_PlayerFloatSprite( cent, cgs.media.medalDefend );
-		return;
-	}
-
-	if ( cent->currentState.eFlags & EF_AWARD_ASSIST ) {
-		CG_PlayerFloatSprite( cent, cgs.media.medalAssist );
-		return;
-	}
-
-	if ( cent->currentState.eFlags & EF_AWARD_CAP ) {
-		CG_PlayerFloatSprite( cent, cgs.media.medalCapture );
-		return;
-	}
-#endif
-	// TO HERE
 }
 
 /*

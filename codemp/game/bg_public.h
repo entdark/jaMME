@@ -608,15 +608,6 @@ typedef enum {
 
 #define	EF_NOT_USED_5			(1<<31)		// not used
 
-//ql rewards by alpha
-#define	EF_AWARD_EXCELLENT		(1<<32)		// draw an excellent sprite
-#define	EF_AWARD_IMPRESSIVE		(1<<33)		// draw an impressive sprite
-#define	EF_AWARD_GAUNTLET		(1<<34)		// draw a gauntlet sprite
-#define	EF_AWARD_ASSIST			(1<<35)		// draw a assist sprite
-#define	EF_AWARD_DEFEND			(1<<36)		// draw a defend sprite
-#define EF_AWARD_CAP			(1<<37)		// draw the capture sprite
-#define EF_AWARD_DENIED			(1<<38)		// denied
-
 //These new EF2_??? flags were added for NPCs, they really should not be used often.
 //NOTE: we only allow 10 of these!
 #define	EF2_HELD_BY_MONSTER		(1<<0)		// Being held by something, like a Rancor or a Wampa
