@@ -250,8 +250,7 @@ void CG_ParseServerinfo( void ) {
 			int verMajor = 0, verMinor = 0;
 			CG_Printf(" v%s", version);
 			verMajor = atoi(version);
-			version = strchr(version, '.');
-			if (version) {
+			if (version = strchr(version, '.')) {
 				version++;
 				verMinor = atoi(version);
 			}
