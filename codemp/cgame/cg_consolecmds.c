@@ -582,7 +582,10 @@ static const char *gcmds[] = {
 	"voice_cmd",
 	"vote",
 	"where",
-	"zoom"
+	"zoom",
+	//base_enhanced
+	"ignore",
+	"whois"
 };
 static size_t numgcmds = ARRAY_LEN( gcmds );
 
