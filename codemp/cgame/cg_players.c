@@ -4694,6 +4694,7 @@ static void CG_TrailItem( centity_t *cent, qhandle_t hModel ) {
 CG_PlayerFlag
 ===============
 */
+extern void CG_SetWallHack(int *renderfx, int flag);
 static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 	refEntity_t		ent;
 	vec3_t			angles;
@@ -4749,8 +4750,7 @@ static void CG_PlayerFlag( centity_t *cent, qhandle_t hModel ) {
 	AnglesToAxis(angles, axis);
 
 	memset( &ent, 0, sizeof( ent ) );
-	if ( mov_wallhack.integer & movMaskFlags && cg.demoPlayback )
-		ent.renderfx |= RF_DEPTHHACK;
+	CG_SetWallHack(&ent.renderfx, movMaskFlags);
 	VectorMA( boltOrg, 24, axis[0], ent.origin );
 
 	if ( mov_simpleFlags.integer || (cg_newFX.integer & NEWFX_SIMPLEFLAG)) {
@@ -10604,14 +10604,11 @@ void CG_Player( centity_t *cent ) {
 				return;
 			}
 		}
-		if (mov_wallhack.integer & movMaskClient && cg.demoPlayback) {
-			renderfx |= RF_DEPTHHACK;
-		}
+		CG_SetWallHack(&renderfx, movMaskClient);
 	} else if (mov_filterMask.integer & movMaskPlayers) {
 		return;
-	} else if (mov_wallhack.integer & movMaskPlayers && cg.demoPlayback) {
-		renderfx |= RF_DEPTHHACK;
 	}
+	CG_SetWallHack(&renderfx, movMaskPlayers);
 	// Update the player's client entity information regarding weapons.
 	// Explanation:  The entitystate has a weapond defined on it.  The cliententity does as well.
 	// The cliententity's weapon tells us what the ghoul2 instance on the cliententity has bolted to it.

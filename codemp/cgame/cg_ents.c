@@ -1878,6 +1878,15 @@ qboolean CG_GreyItem(int type, int tag, int plSide)
 	return qfalse;
 }
 
+void CG_SetWallHack(int *renderfx, int flag) {
+	if (!(cg.demoPlayback || (cg.snap->ps.pm_flags & PMF_FOLLOW))) {
+		return;
+	}
+	if (mov_wallhack.integer & flag) {
+		*renderfx |= RF_DEPTHHACK;
+	}
+}
+
 /*
 ==================
 CG_Item
@@ -1979,9 +1988,7 @@ Ghoul2 Insert End
 		
 			MAKERGBA( ent.shaderRGBA, 255, 255, 255, 200 );
 			ent.renderfx |= RF_FORCE_ENT_ALPHA;
-			if (mov_wallhack.integer & movMaskItems && cg.demoPlayback) {
-				ent.renderfx |= RF_DEPTHHACK;
-			}
+			CG_SetWallHack(&ent.renderfx, movMaskFlags);
 			ent.radius = 28.0f;
 		}
 		
@@ -2015,9 +2022,7 @@ Ghoul2 Insert End
 		{
 			ent.renderfx |= RF_FORCE_ENT_ALPHA;
 		}
-		if (mov_wallhack.integer & movMaskItems && cg.demoPlayback) {
-			ent.renderfx |= RF_DEPTHHACK;
-		}
+		CG_SetWallHack(&ent.renderfx, movMaskItems);
 
 		if ( es->eFlags & EF_ITEMPLACEHOLDER )
 		{
@@ -2100,6 +2105,9 @@ Ghoul2 Insert End
 	}
 
 	memset (&ent, 0, sizeof(ent));
+	if (item->giType == IT_TEAM) {
+		CG_SetWallHack(&ent.renderfx, movMaskFlags);
+	}
 
 	if ( (!(cent->currentState.eFlags & EF_DROPPEDWEAPON) || item->giType == IT_POWERUP) &&
 		(item->giType == IT_WEAPON || item->giType == IT_POWERUP) )
@@ -2235,9 +2243,7 @@ Ghoul2 Insert End
 		ent.shaderRGBA[2] = 85;
 		ent.customShader = cgs.media.itemRespawningPlaceholder;
 	}
-	if (mov_wallhack.integer & movMaskItems && cg.demoPlayback) {
-		ent.renderfx |= RF_DEPTHHACK;
-	}
+	CG_SetWallHack(&ent.renderfx, movMaskItems);
 
 	// increase the size of the weapons when they are presented as items
 	if ( item->giType == IT_WEAPON ) {
@@ -2306,9 +2312,7 @@ Ghoul2 Insert End
 		*/
 
 		ent.renderfx |= RF_RGB_TINT;
-		if (mov_wallhack.integer & movMaskItems && cg.demoPlayback) {
-			ent.renderfx |= RF_DEPTHHACK;
-		}
+		CG_SetWallHack(&ent.renderfx, movMaskItems);
 		ent.shaderRGBA[0] = 0;
 		ent.shaderRGBA[1] = 200;
 		ent.shaderRGBA[2] = 85;
@@ -2713,9 +2717,7 @@ Ghoul2 Insert End
 	// flicker between two skins
 	ent.skinNum = cg.clientFrame & 1;
 	ent.renderfx = /*weapon->missileRenderfx | */RF_NOSHADOW;
-	if (mov_wallhack.integer & movMaskMissiles && cg.demoPlayback) {
-		ent.renderfx |= RF_DEPTHHACK;
-	}
+	CG_SetWallHack(&ent.renderfx, movMaskMissiles);
 
 	if ( !(s1->eFlags&EF_JETPACK_ACTIVE) )
 	{
