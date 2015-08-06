@@ -34,10 +34,12 @@ mov_soundDisable        [0, bit-field: 1..2097152] Disable selected sounds:
                         2048 = ambience, 4096 = taunts, 8192 = water (coming in/out), 16384 = picked items,
                         32768 = zoom, 65536 = teleport/spawn, 131072 = falling, 262144 = entities,
                         524288 = pain/death, 1048576 = all looping sounds, 2097152 = jetpack
-mov_wallhack            [0, 1] See players through walls
+mov_wallhack            [0, bit-field: 1..8] See selected entities through walls:
+                        0 = disabled, 1 = see the predicted client, 2 = see everyone except the predicted client,
+                        4 = see all projectiles (rockets, grenades, blaster shots etc), 8 = see pickable items, 16 = see flags
 mov_filterMask          [0, bit-field: 1..8] Hide selected entities:
                         0 = everything is visible, 1 = hide the predicted client, 2 = hide everyone except the predicted client,
-                        4 = hide all projectiles (rockets, granades, blaster shots etc), 8 = hide pickable items
+                        4 = hide all projectiles (rockets, grenades, blaster shots etc), 8 = hide pickable items, 16 = hide flags
 mov_musicFile           [text] Play MP3 or WAV file from either "mme" or "base" folder, or from a subfolder in format:
                         filename or subfolder/subfolder/filename
 mov_musicStart          [-?..?] Offset music start time in seconds
@@ -60,17 +62,19 @@ fx_disruptCoreColor     [0..9, a..t, xHEXCOL] Set a colour for disruptor core (f
 fx_disruptSpiralColor   [0..9, a..t, xHEXCOL] Set a colour for disruptor spiral (fx_disruptSpiral 1)
 
 
-REMADE
+REMADE/ADDED
 cg_drawRewards          [0, 1, 2] Show awards (rewards assets):
                         0 = disabled, 1 = all enabled (wroks wrong on all current(sept 2013) mods), 2 = only ctf awards
-cg_saberTrail           [0, 1, 2, 3] Saber trail type:
+cg_saberTrail           [0, 1, 2, 3, 4] Saber trail type:
                         0 = disabled, 1 = enabled, 2 = saber style with distortion (cg_shadows != 2),
-                        3 = same as 1 but visible even if a player uses force speed and cg_speedTrail 0
+                        3 = same as 1 but visible even if a player uses force speed and cg_speedTrail 0, 4 = always visible
 cg_draw2D               [0, 1, 2, 3] Show 2D images on screen:
                         0 = hide all images, 1 = show all images, 2 = show all images and show chatbox if camera is not locked to any player
                         3 = same as 2 but shows underwater visual effect in either camera mode or in frags only mode (mov_fragsOnly > 0)
 cg_thirdPerson          [0, 1, 2] Set thridperson view:
                         0 - disabled, 1 - regular way, 2 - q3-style way
+cg_commandSmooth        [0, 1, 2] Set clients' movements smoothing:
+                        0 = disabled, 1 = enabled for the predicted client only, 2 = enabled for all clients
 
 NEW FROM JA++ (WORKS FOR ALL)
 cg_newFX                [0, bit-field: 1..16] Use new effects:
@@ -127,7 +131,7 @@ fs_extraGames           [text text] Tell the game which mod folders it can load 
 s_doppler               [0, 1, 2] Enable doppler effect:
                         0 = disabled, 1 = original doppler, 2 = full doppler
 s_dopplerSpeed          [-?.?..?.?] Adjust speed of full doppler effect (s_doppler 2)
-s_dopplerFactor         [-?.?..?.?] Adjust speed coefficient of full doppler effect (s_doppler 2)
+s_dopplerFactor         [-?.?..?.?] Adjust speed coefficient of full doppler effect (s_doppler > 0)
 s_timescale             [0, 1] Disable/enable sound speed scaling
 s_forceScale            [0..5.0] Force sound speed (s_timescale 1)
 s_mixSame               [0..?] How many same sounds can come from the same entity at the same time
@@ -148,6 +152,9 @@ fx_forcePhysics         [0, bit-field: 1..8] Force .efx particles use bounce phy
 cl_drawRecording        [0, 1, 2, 3] Change style of demo recording notifier:
                         0 = doesn't recording message, 1 = draw regular recording message,
                         2 = draw the red circle and REC in left down corner, 3 = same as 2, but the red circle blinks		
+cl_autoDemo             [0, 1] Disable/enable autorecording demos
+cl_autoDemoFormat       [text, %format] Set the autorecording demo name with certain formatting:
+                        %d = date, %m = map, %n = custom name (2nd arguement in saveDemo command), %p = player name, %t = time stamps, %% = %
 
 
 
@@ -172,6 +179,7 @@ mme_blurType            [gaussian, triangle, median] Set different type of mergi
 mme_blurOverlap         [0..256] Set number of frames that will be additively merged in current one
 mme_blurGamma           [0, 1] Correct gamma in every frame that will be merged
 mme_blurJitter          [0..?.?] Jitter effect (random offset) power for blur frames
+mme_blurStrength        [0, 1.0..?.?] Strength of blur frames blending (r_fbo 0)
 
 mme_dofFrames           [0..256] Number of frames that will be captured at the same time with view offset each and merged into one to emulate realistic DOF
 mme_dofRadius           [0.0..?.?] Set view offset for every dof frame (power of dof blur)
