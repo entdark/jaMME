@@ -1191,7 +1191,9 @@ static void demoFindCommand_f(void) {
 		demo.find = findObituary;
 	} else if (!Q_stricmp(cmd, "direct")) {
 		demo.find = findDirect;
-	} else{
+	} else if (!Q_stricmp(cmd, "airkill")) {
+		demo.find = findAirkill;
+	} else {
 		demo.find = findNone;
 	}
 	if ( demo.find )
@@ -1348,14 +1350,13 @@ void demoPlaybackInit(void) {
 }
 
 void CG_DemoEntityEvent( const centity_t* cent ) {
+	qboolean found = qfalse, splash = qfalse;
+	int target = cent->currentState.otherEntityNum;
 	switch ( cent->currentState.event ) {
 	case EV_OBITUARY:
-		if ( demo.find == findObituary ) {
-			demo.play.paused = qtrue;
-			demo.find = findNone;
-		} else if ( demo.find == findDirect ) {
-			int mod = cent->currentState.eventParm;
-			switch (mod) {
+		switch(demo.find) {
+		case findDirect:
+			switch (cent->currentState.eventParm) {
 			case MOD_BRYAR_PISTOL:
 			case MOD_BRYAR_PISTOL_ALT:
 			case MOD_BLASTER:
@@ -1371,12 +1372,40 @@ void CG_DemoEntityEvent( const centity_t* cent ) {
 			case MOD_ROCKET_HOMING:
 			case MOD_THERMAL:
 			case MOD_CONC_ALT:
-				demo.play.paused = qtrue;
-				demo.find = findNone;
-			break;
+				found = qtrue;
 			}
+			break;
+		case findAirkill:
+			switch (cent->currentState.eventParm) {
+			case MOD_DISRUPTOR_SPLASH:
+			case MOD_REPEATER_ALT_SPLASH:
+			case MOD_FLECHETTE_ALT_SPLASH:
+			case MOD_ROCKET_SPLASH:
+			case MOD_ROCKET_HOMING_SPLASH:
+			case MOD_THERMAL_SPLASH:
+			case MOD_TRIP_MINE_SPLASH:
+			case MOD_TIMED_MINE_SPLASH:
+			case MOD_DET_PACK_SPLASH:
+				splash = qtrue;
+				break;
+			}
+			if (!splash && target >= 0 && target < MAX_CLIENTS && cg_entities[target].currentValid
+				//and not self-kill
+				&& target != cent->currentState.otherEntityNum2) {
+				int groundEntityNum = cg_entities[target].currentState.groundEntityNum;
+				if (groundEntityNum == -1 || groundEntityNum == ENTITYNUM_NONE)
+					found = qtrue;
+			}
+			break;
+		case findObituary:
+			found = qtrue;
+			break;
 		}
 		break;
+	}
+	if (found) {
+		demo.play.paused = qtrue;
+		demo.find = findNone;
 	}
 }
 

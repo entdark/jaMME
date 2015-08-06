@@ -32,6 +32,7 @@ typedef enum {
 	findNone,
 	findObituary,
 	findDirect,
+	findAirkill,
 } demofindType_t;
 
 typedef struct demoLinePoint_s {
