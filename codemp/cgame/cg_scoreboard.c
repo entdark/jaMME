@@ -249,7 +249,9 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 
 		CG_Text_Paint (SB_PING_X - CG_Text_Width( va("%i", score->ping), 1.0f * scale, FONT_SMALL ) / 2, y, 1.0f * scale, colorWhite, va("%i", score->ping),0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_SMALL );	
 		CG_Text_Paint (SB_TIME_X - CG_Text_Width( va("%i", score->time), 1.0f * scale, FONT_SMALL ) / 2, y, 1.0f * scale, colorWhite, va("%i", score->time),0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_SMALL );		
-		CG_DrawSpectated(320 + (SB_SCORELINE_X / 2), y, score, scale);
+		//entTODO: implement spectated for non-team games
+		if (cgs.gametype >= GT_TEAM)
+			CG_DrawSpectated(320 + (SB_SCORELINE_X / 2), y, score, scale);
 	}
 	else
 	{
@@ -295,8 +297,7 @@ static int CG_TeamScoreboard( int y, team_t team, float fade, int maxClients, in
 	}
 
 	count = 0;
-	if( cgs.gametype == GT_CTF )
-	{
+	if ( cgs.gametype >= GT_TEAM ) {
 		if( team == TEAM_RED ) { //red team on left
 			if( !countOnly ) {
 				CG_Text_Paint ((SB_NAME_X + SB_SCORELINE_X + SB_SCORELINE_WIDTH ) / 2 - CG_Text_Width( "^1Red Team", 1.0f * scale, FONT_SMALL ) / 2, y-3, 1.0f * scale, colorWhite, "^1Red Team",0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_SMALL );
@@ -334,7 +335,7 @@ static int CG_TeamScoreboard( int y, team_t team, float fade, int maxClients, in
 		count++;
 	}
 	
-	if( !countOnly && cgs.gametype == GT_CTF && (team == TEAM_RED || team == TEAM_BLUE ) ) {
+	if( !countOnly && cgs.gametype >= GT_TEAM && (team == TEAM_RED || team == TEAM_BLUE ) ) {
 		if( count-1 )avgping /= count-1;
 		CG_Text_Paint (SB_PING_X - CG_Text_Width( va("%i", avgping), 1.0f * scale, FONT_SMALL ) / 2, y-3, 1.0f * scale, colorWhite, va("%i", avgping),0, 0, ITEM_TEXTSTYLE_OUTLINED, FONT_SMALL );
 	}
@@ -467,7 +468,8 @@ qboolean CG_DrawOldScoreboard( void ) {
 	SB_SCORELINE_X = SB_SCORELINE_X_CONST;
 	SB_BOTICON_X = SB_BOTICON_X_CONST;
 	SB_HEAD_X = SB_HEAD_X_CONST;
-	if ( cgs.gametype == GT_CTF ) {
+//	if ( cgs.gametype == GT_CTF ) {
+	if ( cgs.gametype >= GT_TEAM ) {
 		SB_SCORELINE_X /= 2;
 		SB_SCORELINE_WIDTH = (SB_SCORELINE_WIDTH + SB_SCORELINE_X) / 2;
 		SB_BOTICON_X /= 2;
@@ -651,7 +653,8 @@ qboolean CG_DrawOldScoreboard( void ) {
 
 	//I guess this can be accomplished simply by printing the first teams score with a maxClients
 	//value passed in related to how many players are on both teams.
-	if ( cgs.gametype == GT_CTF ) {
+//	if ( cgs.gametype == GT_CTF ) {
+	if ( cgs.gametype >= GT_TEAM ) {
 		//
 		// teamplay scoreboard
 		//
@@ -740,8 +743,7 @@ qboolean CG_DrawOldScoreboard( void ) {
 		hcolor[3] = 1.0f;
 		CG_FillRect( SB_SCORELINE_X - 5, y + lineHeight, SB_SCORELINE_WIDTH + 10, 1, hcolor );
 		y += (n2 * lineHeight) + BIGCHAR_HEIGHT;
-		
-	} else if ( cgs.gametype >= GT_TEAM ) {
+/*	} else if ( cgs.gametype >= GT_TEAM ) {
 		//
 		// teamplay scoreboard
 		//
@@ -817,7 +819,7 @@ qboolean CG_DrawOldScoreboard( void ) {
 		}
 		n1 = CG_TeamScoreboard( y, TEAM_SPECTATOR, fade, maxClients, lineHeight, qfalse );
 		y += (n1 * lineHeight) + BIGCHAR_HEIGHT;
-
+		*/
 	} else {
 		//
 		// free for all scoreboard
