@@ -1360,6 +1360,8 @@ void CG_DemoEntityEvent( const centity_t* cent ) {
 			case MOD_BRYAR_PISTOL_ALT:
 			case MOD_BLASTER:
 			case MOD_TURBLAST:
+			case MOD_DISRUPTOR:
+			case MOD_DISRUPTOR_SNIPER:
 			case MOD_BOWCASTER:
 			case MOD_REPEATER:
 			case MOD_REPEATER_ALT:
