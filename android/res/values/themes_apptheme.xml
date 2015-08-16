@@ -20,6 +20,8 @@
 
     <item name="android:seekBarStyle">@style/SeekBarAppTheme</item>
 
+    <item name="android:listChoiceIndicatorMultiple">@drawable/jamme_checkbox</item>
+    
   </style>
 
 </resources>

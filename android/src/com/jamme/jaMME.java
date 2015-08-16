@@ -57,6 +57,9 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -139,7 +142,7 @@ public class jaMME extends Activity {
         setContentView(view);
         view.requestFocus();
         view.setFocusableInTouchMode(true);
-        String[] parameters = {"",""};
+        String[] parameters = {"","",""};
 		try {
 			parameters = loadParameters();
 		} catch (IOException e) {
@@ -152,6 +155,9 @@ public class jaMME extends Activity {
         String argsStr = "";
 		if (parameters.length > 1)
 			argsStr = parameters[1];
+		boolean logSave = false;
+		if (parameters.length > 2)
+			logSave = Boolean.parseBoolean(parameters[2]);
 		try {
 			if (checkAssets(baseDirectory) && openDemo()) {
 				gameReady = true;
@@ -161,7 +167,7 @@ public class jaMME extends Activity {
 			e.printStackTrace();
 		}
 		if (!gameReady) {
-			addLauncherItems(this, baseDirectory, argsStr);
+			addLauncherItems(this, baseDirectory, argsStr, logSave);
 		}
 		act.setTheme(android.R.style.Theme_Holo);
     }
@@ -274,7 +280,8 @@ public class jaMME extends Activity {
 	RelativeLayout layout;
 	EditText args, baseDirET;
 	Button startGame, baseDir;
-	private void addLauncherItems(Context context, String baseDirectory, String argsStr) {
+	CheckBox logSave;
+	private void addLauncherItems(Context context, String baseDirectory, String argsStr, boolean saveLog) {
 		float d = density;
 /* LAYOUT */
 		Drawable bg = getResources().getDrawable(R.drawable.jamme);
@@ -317,7 +324,7 @@ public class jaMME extends Activity {
 					removeView(layout);
 					if (args != null && args.getText() != null && args.getText().toString() != null)
 						gameArgs = args.getText().toString();
-					String []parameters = {gp,gameArgs};
+					String []parameters = {gp,gameArgs,String.valueOf(logSave.isChecked())};
 					try {
 						saveParameters(parameters);
 					} catch (IOException e) {
@@ -393,11 +400,30 @@ public class jaMME extends Activity {
 		baseDirParams.addRule(RelativeLayout.ABOVE, baseDirET.getId());
 		baseDirParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
 		baseDirParams.setMargins(0, 0, 0, (int)(3.5f*d));
+/* LOGGING */
+		logSave = new CheckBox(context);
+		logSave.setChecked(saveLog);
+		logSave.setButtonDrawable(getResources().getDrawable(R.drawable.jamme_checkbox));
+		logSave.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				logging = isChecked;
+			}
+		});
+		logSave.setText("Save Log");
+		logSave.setTextColor(Color.argb(0xFF, 0xC3, 0x00, 0x00));
+		RelativeLayout.LayoutParams logSaveParams = 
+		        new RelativeLayout.LayoutParams(
+		            RelativeLayout.LayoutParams.WRAP_CONTENT,   
+		            RelativeLayout.LayoutParams.WRAP_CONTENT);
+		logSaveParams.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+		logSaveParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
 /* ADD TO LAYOUT */
 		layout.addView(args, argsParams);
 		layout.addView(startGame, startParams);
 		layout.addView(baseDirET, baseDirETParams);
 		layout.addView(baseDir, baseDirParams);
+		layout.addView(logSave, logSaveParams);
 		addContentView(layout, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 	}
 	public static String getRemovableStorage() {
@@ -709,6 +735,26 @@ public class jaMME extends Activity {
 	        _handler.postDelayed(_loadingMessage, LOADING_MESSAGE_UPDATE_TIME);
 	    }   
 	};
+	boolean logging = false;
+	public void saveLog(){
+		if (!logging)
+			return;
+        try {
+            String[] command = new String[] {"logcat", "-v", "threadtime", "-f", gamePath+"/jamme.log"};
+            Process process = Runtime.getRuntime().exec(command);
+/*            BufferedReader bufferedReader = 
+              new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+            String line;
+            while ((line = bufferedReader.readLine()) != null){
+                if(line.contains(processId)) {
+                    LogFileWriter.write(line);
+                }
+            }*/
+        } catch (IOException ex) {
+            Log.e("jaMME saveLog", "getCurrentProcessLog failed", ex);
+        }
+    }
 	private void removeView(View v) {
 		if (v != null) {
 			ViewGroup vg = (ViewGroup)v.getParent();
@@ -724,6 +770,7 @@ public class jaMME extends Activity {
 			Log.d(LOG, "onSurfaceCreated");
 		}
 		private void initRenderer(int width, int height){
+			saveLog();
 			Log.i(LOG, "screen size : " + width + "x"+ height);		
 			setScreenSize(width,height);
 			Log.i(LOG, "Init start");
