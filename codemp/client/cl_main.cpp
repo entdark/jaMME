@@ -545,14 +545,14 @@ void CL_PlayDemo_f( void ) {
 	fs_game = Cvar_FindVar ("fs_game" );
 	if (!fs_game)
 		return;
+	demoCommandSmoothingEnable(qfalse);
 #ifdef __ANDROID__
 	haveConvert = (qboolean)(mme_demoConvert->integer);
 #else
-	demoCommandSmoothingEnable(qfalse);
 	haveConvert = (qboolean)(mme_demoConvert->integer && !Q_stricmpn( fs_game->string, "mme", 3 ));
 	if (!Q_stricmp( fs_game->string, "mme"))
-#endif
 		demoCommandSmoothingEnable(qtrue);
+#endif
 	// make sure a local server is killed
 	// 2 means don't force disconnect of local client
 	Cvar_Set( "sv_killserver", "2" );

@@ -14,6 +14,14 @@
 #		define Sys_LoadFunction(h,fn) dlsym(h,fn)
 #		define Sys_LibraryError() dlerror()
 #	endif
+#elif defined (__ANDROID__)
+#	include <SDL.h>
+#	include <SDL_loadso.h>
+#	include <dlfcn.h>
+#		define Sys_LoadLibrary(f) dlopen(f,RTLD_LAZY)
+#		define Sys_UnloadLibrary(h) dlclose(h)
+#		define Sys_LoadFunction(h,fn) dlsym(h,fn)
+#		define Sys_LibraryError() dlerror()
 #else
 #	include <SDL.h>
 #	include <SDL_loadso.h>

@@ -27,6 +27,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
@@ -96,7 +97,7 @@ public class jaMME extends Activity {
 		System.loadLibrary("SDL2");
         System.loadLibrary("jamme");
     }
-	public static native int init(Activity act,String[] args,String game_path,String lib_path);
+	public static native int init(Activity act,String[] args,String game_path,String lib_path,String app_path,String abi,String abi_alt);
 	public static native void setScreenSize(int width, int height);	
 	public static native int frame();
 	public static native String getLoadingMsg();
@@ -728,7 +729,9 @@ public class jaMME extends Activity {
 			Log.i(LOG, "Init start");
 			//TODO: filter out fs_basepath from gameArgs 
 			String[] args_array = createArgs("+set fs_basepath \""+gamePath+"\" "+gameArgs);
-			init(act,args_array,gamePath,getApplicationInfo().nativeLibraryDir);
+			//entTODO: need to test on different devices
+			String abi = Build.CPU_ABI, abi_alt = Build.CPU_ABI2;
+			init(act,args_array,gamePath,getApplicationInfo().nativeLibraryDir,act.getFilesDir().toString(),abi,abi_alt);
 			Log.i(LOG, "Init done");
 		}
 		@Override

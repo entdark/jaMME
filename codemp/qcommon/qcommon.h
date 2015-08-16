@@ -591,6 +591,7 @@ int		FS_GetModList(  char *listbuf, int bufsize );
 #ifdef USE_AIO
 fileHandle_t	FS_FOpenFileWriteAsync( const char *qpath );
 #endif
+fileHandle_t	FS_FOpenFileWriteAbsolute( const char *qpath );
 fileHandle_t	FS_FOpenFileWrite( const char *qpath );
 fileHandle_t	FS_FDirectOpenFileWrite( const char *filename, const char *mode );
 fileHandle_t	FS_FOpenFileReadWrite( const char *filename );

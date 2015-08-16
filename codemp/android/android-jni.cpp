@@ -582,19 +582,34 @@ const char * argv[32];
 std::string graphicpath;
 
 std::string game_path;
-const char * getGamePath() {
+const char *getGamePath() {
 	return game_path.c_str();
 }
 
 std::string lib_path;
-const char * getLibPath() {
+const char *getLibPath() {
 	return lib_path.c_str();
+}
+
+std::string app_path;
+const char *getAppPath() {
+	return app_path.c_str();
+}
+
+std::string android_abi;
+const char *getAndroidAbi() {
+	return android_abi.c_str();
+}
+
+std::string android_abi_alt;
+const char *getAndroidAbiAlt() {
+	return android_abi_alt.c_str();
 }
 
 jobject *activity_;
 jint EXPORT_ME
 JAVA_FUNC(init)(JNIEnv* env, jobject thiz, jobject act, jobjectArray argsArray, jstring game_path_,
-		jstring lib_path_) {
+		jstring lib_path_, jstring app_path_, jstring abi, jstring abi_alt) {
 //	getGlobalClasses(env);
 //set_check_len(3840538);
 	activity_ = &act;
@@ -610,8 +625,14 @@ JAVA_FUNC(init)(JNIEnv* env, jobject thiz, jobject act, jobjectArray argsArray, 
 	}
 	game_path = (char *) (env)->GetStringUTFChars(game_path_, 0);
 	lib_path = (char *) (env)->GetStringUTFChars(lib_path_, 0);
+	app_path = (char *) (env)->GetStringUTFChars(app_path_, 0);
+	android_abi = (char *) (env)->GetStringUTFChars(abi, 0);
+	android_abi_alt = (char *) (env)->GetStringUTFChars(abi_alt, 0);
 	LOGI("game_path = %s", getGamePath());
 	LOGI("lib_path = %s", getLibPath());
+	LOGI("app_path = %s", getAppPath());
+	LOGI("android_abi = %s", getAndroidAbi());
+	LOGI("android_abi_alt = %s", getAndroidAbiAlt());
 	chdir(getGamePath());
 	//self_crc_check((string(getLibPath()) + "/libjk3.so").c_str());
 	PortableInit(argc, argv);

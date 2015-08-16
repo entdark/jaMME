@@ -187,11 +187,61 @@ void Sys_UnloadDll( void *dllHandle )
 	Sys_UnloadLibrary(dllHandle);
 }
 
-
-
 extern "C"
 {
-extern const char * getLibPath();
+extern const char *getLibPath();
+extern const char *getAppPath();
+extern const char *getAndroidAbi();
+extern const char *getAndroidAbiAlt();
+}
+
+//make sure the dll can be opened by the file system, then write the
+//file back out again so it can be loaded is a library. If the read
+//fails then the dll is probably not in the pk3 and we are running
+//a pure server -rww
+bool Sys_UnpackDLL(const char *abi, const char *name) {
+	void *data;
+	fileHandle_t f;
+	const char *abiName = va("%s/%s", abi, name);
+	int len = FS_ReadFile(abiName, &data);
+	int ck;
+	char filename[MAX_OSPATH];
+	Com_Printf("Sys_UnpackDLL: file=%s/%s\n", abi, name);
+	if (len < 1) {
+		//failed to read the file (out of the pk3 if pure)
+		Com_Printf("Sys_UnpackDLL: failed to read the file\n");
+		return false;
+	}
+	if (FS_FileIsInPAK(abiName, &ck) == -1) {
+		//alright, it isn't in a pk3 anyway, so we don't need to write it.
+		//this is allowable when running non-pure.
+		Com_Printf("Sys_UnpackDLL: the file missing in the pk3s\n");
+		FS_FreeFile(data);
+		return true;
+	}
+	Com_sprintf(filename, sizeof(filename), "%s/%s", getAppPath(), name);
+//	f = FS_FOpenFileWrite(name);
+	f = FS_FOpenFileWriteAbsolute(filename);
+	if (!f) {
+		//can't open for writing? Might be in use.
+		//This is possibly a malicious user attempt to circumvent dll
+		//replacement so we won't allow it.
+		Com_Printf("Sys_UnpackDLL: failed to open %s for writing\n", filename);
+		FS_FreeFile(data);
+		return false;
+	}
+
+	if (FS_Write(data, len, f) < len) {
+		//Failed to write the full length. Full disk maybe?
+		Com_Printf("Sys_UnpackDLL: failed to write fully\n");
+		FS_FCloseFile(f);
+		FS_FreeFile(data);
+		return false;
+	}
+	FS_FCloseFile(f);
+	FS_FreeFile(data);
+	Com_Printf("Sys_UnpackDLL: done\n");
+	return true;
 }
 
 /*
@@ -214,7 +264,7 @@ void *Sys_LoadDll(const char *name, qboolean useSystemLib)
 		dllhandle = dlopen (lib_path, RTLD_LAZY );
 
 		return dllhandle;
-
+		
 	if(useSystemLib)
 		Com_Printf("Trying to load \"%s\"...\n", name);
 
@@ -280,6 +330,17 @@ void *Sys_LoadMachOBundle( const char *name )
 }
 #endif
 
+const char *androidAbi[] = {
+	"armeabi",
+	"armeabi-v7a",
+	"arm64-v8a",
+	"x86",
+	"x86_64",
+	"mips",
+	"mips64",
+	NULL
+};
+
 /*
  =================
  Sys_LoadGameDll
@@ -290,8 +351,7 @@ void *Sys_LoadMachOBundle( const char *name )
 
 //TODO: load mac dlls that are inside zip things inside pk3s.
 
-void *Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) )
-{
+void *Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) ) {
 	void	*libHandle = NULL;
 	void	(QDECL *dllEntry)( intptr_t (QDECL *syscallptr)(intptr_t, ...) );
 	char	*basepath;
@@ -303,98 +363,133 @@ void *Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ..
 #endif
 	char	*fn;
 	char	filename[MAX_OSPATH];
+	int		i = -2;
 
-	Com_sprintf (filename, sizeof(filename), "%s" ARCH_STRING DLL_EXT, name);
-
+	while (i < 0 || androidAbi[i]) {
+		const char *abi;
+//		Com_Printf("Sys_LoadLegacyGameDll: i=%d\n", i);
+		//check given ABIs at first
+		if (i == -2) {
+			abi = getAndroidAbi();
+			Com_sprintf(filename, sizeof(filename), "lib%s" ARCH_STRING DLL_EXT, name);
+		} else if (i == -1) {
+			abi = getAndroidAbiAlt();
+			Com_sprintf(filename, sizeof(filename), "lib%s" ARCH_STRING DLL_EXT, name);
+		//ignore primary and alt
+		} else if (!Q_stricmp(androidAbi[i], getAndroidAbi()) || !Q_stricmp(androidAbi[i], getAndroidAbiAlt())) {
+			i++;
+			continue;
+		} else {
+			abi = androidAbi[i];
+			Com_sprintf(filename, sizeof(filename), "%s/lib%s" ARCH_STRING DLL_EXT, name);
+		}
+		if (!Sys_UnpackDLL(abi, filename)) {
+			i++;
+			continue;
+		}
+		Com_sprintf(filename, sizeof(filename), "%s/lib%s" ARCH_STRING DLL_EXT, abi, name);
 #if 0
-	libHandle = Sys_LoadLibrary( filename );
+		libHandle = Sys_LoadLibrary( filename );
 #endif
 
 #ifdef MACOS_X
-    //First, look for the old-style mac .bundle that's inside a pk3
-    //It's actually zipped, and the zipfile has the same name as 'name'
-    libHandle = Sys_LoadMachOBundle( name );
+		//First, look for the old-style mac .bundle that's inside a pk3
+		//It's actually zipped, and the zipfile has the same name as 'name'
+		libHandle = Sys_LoadMachOBundle( name );
 #endif
+		if (!libHandle) {
+			//Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", filename, Sys_LibraryError() );
 
-    char  lib_path[512];
-    	sprintf(lib_path,"%s/lib%s", getLibPath(),filename);
-    	LOGI("Trying to load Android lib: %s",lib_path);
-    	libHandle = dlopen (lib_path, RTLD_LAZY );
-
-	if (!libHandle) {
-		//Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", filename, Sys_LibraryError() );
-
-		basepath = Cvar_VariableString( "fs_basepath" );
-		homepath = Cvar_VariableString( "fs_homepath" );
-		cdpath = Cvar_VariableString( "fs_cdpath" );
-		gamedir = Cvar_VariableString( "fs_game" );
+			basepath = Cvar_VariableString( "fs_basepath" );
+			homepath = Cvar_VariableString( "fs_homepath" );
+			cdpath = Cvar_VariableString( "fs_cdpath" );
+			gamedir = Cvar_VariableString( "fs_game" );
 #ifdef MACOS_X
-        apppath = Cvar_VariableString( "fs_apppath" );
+			apppath = Cvar_VariableString( "fs_apppath" );
 #endif
 
-		fn = FS_BuildOSPath( basepath, gamedir, filename );
-		libHandle = Sys_LoadLibrary( fn );
+			fn = FS_BuildOSPath( basepath, gamedir, filename );
+			libHandle = Sys_LoadLibrary( fn );
 
-		if ( !libHandle ) {
-			Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
-			if( homepath[0] ) {
-				Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
-				fn = FS_BuildOSPath( homepath, gamedir, filename );
-				libHandle = Sys_LoadLibrary( fn );
-			}
 			if ( !libHandle ) {
 				Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
-#ifdef MACOS_X
-                if( apppath[0] ) {
-					fn = FS_BuildOSPath( apppath, gamedir, filename );
+				if( homepath[0] ) {
+					fn = FS_BuildOSPath( homepath, gamedir, filename );
 					libHandle = Sys_LoadLibrary( fn );
 				}
-                if ( !libHandle ) {
-                    Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
-#endif
-                    if( cdpath[0] ) {
-                        fn = FS_BuildOSPath( cdpath, gamedir, filename );
-                        libHandle = Sys_LoadLibrary( fn );
-                    }
-                    if ( !libHandle ) {
-                        Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
-                        // now we try base
-                        fn = FS_BuildOSPath( basepath, BASEGAME, filename );
-                        libHandle = Sys_LoadLibrary( fn );
-                        if ( !libHandle ) {
-                            if( homepath[0] ) {
-                                Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
-                                fn = FS_BuildOSPath( homepath, BASEGAME, filename );
-                                libHandle = Sys_LoadLibrary( fn );
-                            }
-                            if ( !libHandle ) {
-                                Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+				if ( !libHandle ) {
+					Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
 #ifdef MACOS_X
-                                if( apppath[0] ) {
-                                    fn = FS_BuildOSPath( apppath, BASEGAME, filename);
-                                    libHandle = Sys_LoadLibrary( fn );
-                                }
-                                if ( !libHandle ) {
-                                    Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+					if( apppath[0] ) {
+						fn = FS_BuildOSPath( apppath, gamedir, filename );
+						libHandle = Sys_LoadLibrary( fn );
+					}
+					if ( !libHandle ) {
+						Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
 #endif
-                                    if( cdpath[0] ) {
-                                        fn = FS_BuildOSPath( cdpath, BASEGAME, filename );
-                                        libHandle = Sys_LoadLibrary( fn );
-                                    }
-                                    if ( !libHandle ) {
-                                        Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
-                                        return NULL;
-                                    }
+						if( cdpath[0] ) {
+							fn = FS_BuildOSPath( cdpath, gamedir, filename );
+							libHandle = Sys_LoadLibrary( fn );
+						}
+						if ( !libHandle ) {
+							Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+							// now we try base
+							fn = FS_BuildOSPath( basepath, BASEGAME, filename );
+							libHandle = Sys_LoadLibrary( fn );
+							if ( !libHandle ) {
+								Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+								if( homepath[0] ) {
+									fn = FS_BuildOSPath( homepath, BASEGAME, filename );
+									libHandle = Sys_LoadLibrary( fn );
+								}
+								if ( !libHandle ) {
+									Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
 #ifdef MACOS_X
-                                }
+									if( apppath[0] ) {
+										fn = FS_BuildOSPath( apppath, BASEGAME, filename);
+										libHandle = Sys_LoadLibrary( fn );
+									}
+									if ( !libHandle ) {
+										Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
 #endif
-                            }
-                        }
-                    }
+										if( cdpath[0] ) {
+											fn = FS_BuildOSPath( cdpath, BASEGAME, filename );
+											libHandle = Sys_LoadLibrary( fn );
+										}
+										if ( !libHandle ) {
+											char  lib_path[512];
+											Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
+    										sprintf(lib_path,"%s/lib%s" ARCH_STRING DLL_EXT, getAppPath(), name);
+    										LOGI("Trying to load Android lib: %s", lib_path);
+											libHandle = Sys_LoadLibrary( lib_path );
+											if ( !libHandle ) {
+												Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", lib_path, Sys_LibraryError() );
+											}
+										}
 #ifdef MACOS_X
-                }
+									}
 #endif
+								}
+							}
+						}
+#ifdef MACOS_X
+					}
+#endif
+				}
 			}
+		}
+		if (libHandle)
+			break;
+		i++;
+	}
+	if ( !libHandle ) {
+		char  lib_path[512];
+    	sprintf(lib_path,"%s/lib%s" ARCH_STRING DLL_EXT, getLibPath(), name);
+    	LOGI("Trying to load Android lib: %s", lib_path);
+		libHandle = Sys_LoadLibrary( lib_path );
+		if ( !libHandle ) {
+			Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", lib_path, Sys_LibraryError() );
+			return NULL;
 		}
 	}
 

@@ -657,7 +657,34 @@ fileHandle_t FS_FOpenFileWriteAsync( const char *filename ) {
 	return f;
 }
 #endif
+/*
+===========
+FS_FOpenFileWrite
 
+===========
+*/
+fileHandle_t FS_FOpenFileWriteAbsolute( const char *qpath ) {
+	fileHandle_t	f;
+
+	f = FS_HandleForFile();
+	fsh[f].zipFile = qfalse;
+
+	// enabling the following line causes a recursive function call loop
+	// when running with +set logfile 1 +set developer 1
+	//Com_DPrintf( "writing to: %s\n", ospath );
+	fsh[f].handleFiles.file.o = fopen( qpath, "wb" );
+
+	Q_strncpyz( fsh[f].name, qpath, sizeof( fsh[f].name ) );
+
+	fsh[f].handleSync = qfalse;
+#ifdef USE_AIO
+	fsh[f].handleAsync = qfalse;
+#endif
+	if (!fsh[f].handleFiles.file.o) {
+		f = 0;
+	}
+	return f;
+}
 /*
 ===========
 FS_FOpenFileWrite
