@@ -50,6 +50,7 @@ extern qboolean demoGetSnapshot( int snapNumber, snapshot_t *snap );
 extern qboolean demoGetServerCommand( int cmdNumber );
 extern void demoRenderFrame( stereoFrame_t stereo );
 extern int demoSeek( int seekTime );
+extern float demoProgress(void);
 
 void FX_FeedTrail(effectTrailArgStruct_t *a);
 
@@ -1845,6 +1846,8 @@ Ghoul2 Insert End
 		PortableVibrateFeedback(args[1]);
 #endif
 		return 0;
+	case CG_MME_PROGRESSTIME:
+		return FloatAsInt(demoProgress());
 	default:
 	        assert(0); // bk010102
 		Com_Error( ERR_DROP, "Bad cgame system trap: %ld", (long int) args[0] );

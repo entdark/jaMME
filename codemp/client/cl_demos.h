@@ -55,9 +55,8 @@ typedef struct {
 	int					fileSize, filePos;
 	int					totalFrames;
 	int					startTime, endTime;			//serverTime from first snapshot 
-
+	int					seekTime;
 	qboolean			lastFrame;
-
 	int					frameNumber;
 
 	char				commandData[256*1024];

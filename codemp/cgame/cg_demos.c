@@ -35,6 +35,7 @@ extern void trap_FX_RandomSeed( int time, float timeFraction );
 extern void trap_S_UpdateScale( float scale );
 extern void trap_CIN_AdjustTime( int time );
 extern void trap_MME_VibrateFeedback( int time );
+extern float trap_MME_ProgressTime( void );
 int lastMusicStart;
 
 static void demoSynchMusic( int start, float length ) {
@@ -993,6 +994,9 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		if (demo.editType && !cg.playerCent)
 			demoDrawCrosshair();
 		hudDraw();
+		if (demo.editType) {
+			demoDrawProgress(trap_MME_ProgressTime());
+		}
 	}
 
 	if ( demo.capture.active && demo.capture.locked && demo.play.time > demo.capture.end  ) {

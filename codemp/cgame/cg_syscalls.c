@@ -1290,3 +1290,8 @@ void trap_R_RotatePic2RatioFix( float ratio ) {
 void trap_MME_VibrateFeedback( int time ) {
 	Q_syscall( CG_MME_VIBRATEFEEDBACK, time );
 }
+float trap_MME_ProgressTime( void ) {
+	floatint_t fi;
+	fi.i = Q_syscall( CG_MME_PROGRESSTIME );
+	return fi.f;
+}

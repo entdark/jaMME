@@ -836,10 +836,9 @@ static void demoPlaySetIndex( demoPlay_t *play, int index ) {
 	if (!demo.commandSmoothing)
 		play->frameNumber = play->fileIndex[index].frame;
 }
-static int demoSeekTime = 0;
 static int demoPlaySeek(demoPlay_t *play, int seekTime) {
 	int i;
-	demoSeekTime = seekTime;
+	play->seekTime = seekTime;
 	seekTime += play->startTime;
 	if (seekTime < 0)
 		seekTime = 0;
@@ -868,15 +867,20 @@ int demoTime(void) {
 	demoPlay_t *play = demo.play.handle;
 	if (!play)
 		return 0;
-	if (demoSeekTime < 0)
-		demoSeekTime = 0;
-	return demoSeekTime;
+	if (play->seekTime < 0)
+		play->seekTime = 0;
+	return play->seekTime;
+}
+float demoProgress(void) {
+	int pos = demoTime();
+	int length = demoLength();
+	length = length ? length : 1;
+	return (float)pos/length;
 }
 static int demoFindNext(const char *fileName) {
 	int i;
 	const int len = strlen(fileName);
 	char name[MAX_OSPATH], seekName[MAX_OSPATH];
-	fileHandle_t demoHandle = 0;
 	qboolean tryAgain = qtrue;
 	if (isdigit(fileName[len-1]) && ((fileName[len-2] == '.'))) {
 		Com_sprintf(seekName, len-1, fileName);

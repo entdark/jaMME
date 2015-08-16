@@ -692,6 +692,16 @@ void demoDrawCrosshair( void ) {
 		w*cgs.widthRatioCoef, h, 0, 0, 1, 1, hShader );
 }
 
+static const vec4_t progressColour = { 1.0f, 0.0f, 0.0f, 1.0f };
+void demoDrawProgress( float progress ) {
+	if (progress > 1.0f)
+		progress = 1.0f;
+	trap_R_SetColor(progressColour);
+	trap_R_DrawStretchPic( 0, (float)SCREEN_HEIGHT-1.25f, 
+		SCREEN_WIDTH*progress, 1.25f, 0, 0, 1, 1, demo.media.additiveWhiteShader );
+	trap_R_SetColor(NULL);
+}
+
 void demoTrajectory( const trajectory_t *tr, int time, float timeFraction, vec3_t result ) {
 	float		deltaTime;
 	float		phase;
