@@ -881,7 +881,7 @@ public class jaMME extends Activity {
 			}
 			keypress(1, mapKey(keyCode, uc), uc);
 			keypress(0, mapKey(keyCode, uc), uc);
-			if (keyCode == KeyEvent.KEYCODE_DEL) {
+			if (keyCode == KeyEvent.KEYCODE_DEL && et != null) {
 				et.setText("");
 			}
 		}/* else {
