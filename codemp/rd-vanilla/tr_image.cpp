@@ -2284,8 +2284,9 @@ int SaveJPG( int quality, int image_width, int image_height, mmeShotType_t image
 
 int RE_SavePNG(const char *filename, byte *buf, size_t width, size_t height, int byteDepth) {
 	int outSize = width * height * 4;
+	int ret = -1;
 	mmeShotType_t shotType;
-	byte *outBuf;
+	byte *outBuf = (byte *)ri.Hunk_AllocateTempMemory(outSize*2);
 	switch (byteDepth) {
 	default:
 	case 3:
@@ -2298,9 +2299,10 @@ int RE_SavePNG(const char *filename, byte *buf, size_t width, size_t height, int
 	outSize = SavePNG(mme_pngCompression->integer, width, height, mmeShotTypeRGB, buf, outBuf, outSize);
 	if (outSize) {
 		ri.FS_WriteFile(filename, outBuf, outSize);
-		return 0;
+		ret = 0;
 	}
-	return -1;
+	ri.Hunk_FreeTempMemory(outBuf);
+	return ret;
 }
 #ifdef _MSC_VER
 	#pragma warning( pop )
