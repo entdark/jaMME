@@ -436,7 +436,9 @@
     <ClCompile Include="client\cl_curl.cpp">
       <Filter>Client</Filter>
     </ClCompile>
-    <ClCompile Include="client\cl_demos_cut.cpp" />
+    <ClCompile Include="client\cl_demos_cut.cpp">
+      <Filter>Client</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="botlib\aasfile.h">
