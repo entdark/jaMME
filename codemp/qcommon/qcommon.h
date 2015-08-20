@@ -204,8 +204,6 @@ PROTOCOL
 
 // maintain a list of compatible protocols for demo playing
 // NOTE: that stuff only works with two digits protocols
-extern int demo_protocols[];
-
 #define	PROTOCOL_VERSION	26
 
 #define	UPDATE_SERVER_NAME			"updatejk3.ravensoft.com"

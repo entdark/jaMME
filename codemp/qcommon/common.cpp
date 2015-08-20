@@ -16,9 +16,6 @@
 #include <pthread.h>
 #endif
 
-int demo_protocols[] =
-{ 26, NULL };
-
 #define	MAXPRINTMSG	4096
 
 #define MAX_NUM_ARGVS	50

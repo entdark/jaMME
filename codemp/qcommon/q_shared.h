@@ -3097,3 +3097,5 @@ typedef struct BG_XMLParseBlock_s {
 	qboolean (*openHandler)(BG_XMLParse_t *,const struct BG_XMLParseBlock_s *, void *);
 	qboolean (*textHandler)(BG_XMLParse_t *,const char *, void *);
 } BG_XMLParseBlock_t;
+
+extern int demo_protocols[];

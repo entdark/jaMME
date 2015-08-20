@@ -4786,8 +4786,7 @@ void UI_SetDemoListPosition(menuDef_t *menu, int startPos, int cursorPos){
 }
 
 //muj pokus o upravu
-static int UI_GetDemos( char *folder, char *demolist, int demolistSize, char *demoExt )
-{
+static int UI_GetDemos(char *folder, char *demolist, int demolistSize, char *demoExt, qboolean skipFolders) {
 	char realFolders[2048], *folders = realFolders;
 	int numFolders, num;
 
@@ -4799,6 +4798,9 @@ static int UI_GetDemos( char *folder, char *demolist, int demolistSize, char *de
 		demolistSize -= strlen( demolist ) + 1;
 		demolist += strlen( demolist ) + 1;
 	}
+	
+	if (skipFolders)
+		return ret;
 
 	numFolders = trap_FS_GetFileList( folder, "/", realFolders, sizeof( realFolders ) );
 
@@ -4820,51 +4822,59 @@ static int UI_GetDemos( char *folder, char *demolist, int demolistSize, char *de
 	return ret;
 }
 
-static void UI_LoadDemos( void )
-{
+static void UI_LoadDemos( void ) {
+	int d = 0;
 	char demolist[4096*20];
 	char demoExt[32];
 	char *demoname;
 	int i, len;
 	char game[32];
+	int bottom = 0, top = 0;
 
-	trap_Cvar_VariableStringBuffer("fs_game",game,sizeof(game));
+	uiInfo.demoCount = 0;
+	while(demo_protocols[d]) {
+		trap_Cvar_VariableStringBuffer("fs_game",game,sizeof(game));
 
-	if (!strcmp(game, ""))
-		strcpy(game,"base");
+		if (!strcmp(game, ""))
+			strcpy(game,"base");
 
-	Com_sprintf(demoExt, sizeof(demoExt), "dm_%d", (int)trap_Cvar_VariableValue("protocol"));
+		Com_sprintf(demoExt, sizeof(demoExt), "dm_%d", demo_protocols[d]);
 
-	//SMod - fix for specific jka mod, we go back and forth so we end up in desired folder
-	//(otherwise we would always end up in base/demos)
-	uiInfo.demoCount = UI_GetDemos( va("..\\%s\\demos%s",game,uiCurrentDemoFolder), demolist, sizeof( demolist ), demoExt );
+		//SMod - fix for specific jka mod, we go back and forth so we end up in desired folder
+		//(otherwise we would always end up in base/demos)
+		uiInfo.demoCount = UI_GetDemos( va("..\\%s\\demos%s",game,uiCurrentDemoFolder), demolist, sizeof( demolist ), demoExt, (d>0)?qtrue:qfalse );
 
-	Com_sprintf(demoExt, sizeof(demoExt), ".dm_%d", (int)trap_Cvar_VariableValue("protocol"));
+		Com_sprintf(demoExt, sizeof(demoExt), ".dm_%d", demo_protocols[d]);
 
-	if (uiInfo.demoCount) 
-	{
-		if (uiInfo.demoCount > MAX_DEMOS){
-			Com_Printf("^1Too many demo files and folders found, can't show them all. (%i > %i)\n",uiInfo.demoCount,MAX_DEMOS);
-			uiInfo.demoCount = MAX_DEMOS;
-		}
-
-		demoname = demolist;
-		for ( i = uiInfo.demoCount - 1; i >= 0 ; i-- ) 
+		if (uiInfo.demoCount) 
 		{
-			len = strlen( demoname );
+			if (uiInfo.demoCount > MAX_DEMOS){
+				Com_Printf("^1Too many demo files and folders found, can't show them all. (%i > %i)\n",uiInfo.demoCount,MAX_DEMOS);
+				uiInfo.demoCount = MAX_DEMOS;
+			}
 
-			if (!Q_stricmp(demoname + len - strlen(demoExt), demoExt))
-				demoname[len-strlen(demoExt)] = '\0';
+			top += uiInfo.demoCount;
 
-			//Q_strupr(demoname);
-			//uiInfo.demoList[i] = String_Alloc(demoname);
-			Com_sprintf(uiInfo.demoList[i], 2048, String_Alloc(demoname));
+			demoname = demolist;
+			for ( i = top - 1; i >= bottom ; i-- ) 
+			{
+				len = strlen( demoname );
+
+				if (!Q_stricmp(demoname + len - strlen(demoExt), demoExt))
+					demoname[len-strlen(demoExt)] = '\0';
+
+				//Q_strupr(demoname);
+				//uiInfo.demoList[i] = String_Alloc(demoname);
+				Com_sprintf(uiInfo.demoList[i], 2048, String_Alloc(demoname));
 			
-			demoname += len + 1;
+				demoname += len + 1;
+			}
+			bottom += uiInfo.demoCount;
 		}
+		d++;
 	}
+	uiInfo.demoCount = top;
 }
-
 #endif
 
 static qboolean UI_SetNextMap(int actual, int index) {

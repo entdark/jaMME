@@ -1933,3 +1933,6 @@ void Info_SetValueForKey_Big( char *s, const char *key, const char *value ) {
 
 	strcat (s, newi);
 }
+
+int demo_protocols[] =
+{ 26, 25, NULL };
