@@ -401,6 +401,7 @@ public class jaMME extends Activity {
 		baseDirParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
 		baseDirParams.setMargins(0, 0, 0, (int)(3.5f*d));
 /* LOGGING */
+		logging = saveLog;
 		logSave = new CheckBox(context);
 		logSave.setChecked(saveLog);
 		logSave.setButtonDrawable(getResources().getDrawable(R.drawable.jamme_checkbox));
