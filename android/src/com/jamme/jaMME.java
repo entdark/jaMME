@@ -208,17 +208,18 @@ public class jaMME extends Activity {
 		}
 		//if user closed the application from OS side on the demo playback after opening them externally
 		if (gamePath != null && demoName != null) {
-			File demo = new File(gamePath + "/base/demos/" + demoName + ".dm_26");
-			Log.i("jaMME", "onDestroy: removing " + demo.toString());
-			if (demo.exists()) {
-				Log.i("jaMME", "onDestroy: removed");
-		    	demo.delete();
-			}
-			demo = new File(gamePath + "/base/mmedemos/" + demoName + ".mme");
-			Log.i("jaMME", "onDestroy: removing " + demo.toString());
-			if (demo.exists()) {
-				Log.i("jaMME", "onDestroy: removed");
-		    	demo.delete();
+			int i = 0;
+			while(demoExtList[i] != null) {
+				String demosFolder = gamePath + "/base/demos/";
+        		if (demoName.contains(".mme"))
+        			demosFolder = gamePath + "/base/mmedemos/";
+				File demo = new File(demosFolder + demoName + demoExtList[i]);
+				Log.i("jaMME", "onDestroy: removing " + demo.toString());
+				if (demo.exists()) {
+					Log.i("jaMME", "onDestroy: removed");
+			    	demo.delete();
+				}
+				i++;
 			}
 		}
 		System.exit(0);
@@ -237,7 +238,13 @@ public class jaMME extends Activity {
     	Uri uri = intent.getData();
         if (action != null && uri != null && action.compareTo(Intent.ACTION_VIEW) == 0) {
         	String demo = java.net.URLDecoder.decode((uri.getEncodedPath()), "UTF-8");
-        	if (demo.contains(".dm_26") || demo.contains(".mme")) {
+        	int i = 0;
+        	while(demoExtList[i] != null) {
+        		if (demo.contains(demoExtList[i]))
+        			break;
+        		i++;
+			}
+        	if (demoExtList[i] != null) {
         		String demosFolder = gamePath + "/base/demos/";
         		if (demo.contains(".mme"))
         			demosFolder = gamePath + "/base/mmedemos/";
@@ -1515,6 +1522,12 @@ public class jaMME extends Activity {
 		}
 		return 0;
 	}
+	private static String []demoExtList = {
+		".dm_26",
+		".dm_25",
+		".mme",
+		null
+	};
 }
 /*
 class PathArgsActivity extends Activity {

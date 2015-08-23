@@ -504,7 +504,8 @@ void CL_ReadDemoMessage( void ) {
 CL_WalkDemoExt
 ====================
 */
-static void CL_WalkDemoExt(const char *arg, char *name, int *demofile) {
+static char *CL_WalkDemoExt(const char *arg, char *name, int *demofile) {
+	static char demoExt[8];
 	int i = 0;
 	*demofile = 0;
 	while(demo_protocols[i]) {
@@ -512,12 +513,14 @@ static void CL_WalkDemoExt(const char *arg, char *name, int *demofile) {
 		FS_FOpenFileRead( name, demofile, qtrue );
 		if (*demofile) {
 			Com_Printf("Demo file: %s\n", name);
-			break;
+			Com_sprintf(demoExt, sizeof(demoExt), ".dm_%d", demo_protocols[i]);
+			return demoExt;
 		}
 		else
 			Com_Printf("Not found: %s\n", name);
 		i++;
 	}
+	return "";
 }
 
 /*
@@ -575,6 +578,7 @@ void CL_PlayDemo_f( void ) {
 	ext = testName + strlen(testName) - 6;
 	if ((strlen(testName) > 6) && (ext[0] == '.') && ((ext[1] == 'd') || (ext[1] == 'D')) && ((ext[2] == 'm') || (ext[2] == 'M')) && (ext[3] == '_'))
 	{
+		Cvar_Set( "mme_demoExt", ext );
 		ext[0] = 0;	
 	}
 
@@ -588,7 +592,7 @@ void CL_PlayDemo_f( void ) {
 		}
 	}
 
-	CL_WalkDemoExt( testName, name, &clc.demofile );
+	Cvar_Set( "mme_demoExt", CL_WalkDemoExt( testName, name, &clc.demofile ) );
 	if (!clc.demofile) {
 		Com_Error( ERR_DROP, "couldn't open %s", name);
 		return;

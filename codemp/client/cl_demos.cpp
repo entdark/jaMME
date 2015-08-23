@@ -994,7 +994,10 @@ static void demoPlayStop(demoPlay_t *play) {
 	}
 	if (demo.del) {
 		char demoPath[MAX_QPATH];
-		Com_sprintf(demoPath, sizeof(demoPath), "demos/%s.dm_26", mme_demoFileName->string);
+		char *ext = Cvar_FindVar("mme_demoExt")->string;
+		if (!*ext)
+			ext = ".dm_26";
+		Com_sprintf(demoPath, sizeof(demoPath), "demos/%s%s", mme_demoFileName->string, ext);
 		if (FS_FileExists(demoPath)) {
 			FS_FileErase(demoPath);
 		}

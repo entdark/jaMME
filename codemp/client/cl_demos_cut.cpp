@@ -525,13 +525,17 @@ qboolean demoCut(const char *oldName, int startTime, int endTime) {
 	int				framesSaved = 0;
 	char			newGameDir[MAX_QPATH];
 	char			next;
+	char			*ext;
 	if (!play) {
 		Com_Printf("Demo cutting is allowed in mme mode only.\n");
 		return qfalse;
 	}
 	startTime += play->startTime;
 	endTime += play->startTime;
-	oldSize = FS_FOpenFileRead(va("demos/%s.dm_26", oldName), &oldHandle, qtrue);
+	ext = Cvar_FindVar("mme_demoExt")->string;
+	if (!*ext)
+		ext = ".dm_26";
+	oldSize = FS_FOpenFileRead(va("demos/%s%s", oldName, ext), &oldHandle, qtrue);
 	if (!oldHandle) {
 		Com_Printf("Failed to open %s for cutting.\n", oldName);
 		return qfalse;
@@ -602,7 +606,7 @@ cutcontinue:
 				if (!demoCutParseGamestate(&oldMsg, &demo.cut.Clc, &demo.cut.Cl)) {
 					goto cuterror;
 				}
-				Com_sprintf(newName, sizeof(newName), "demos/%s_cut.dm_26", oldName);
+				Com_sprintf(newName, sizeof(newName), "demos/%s_cut%s", oldName, ext);
 				newHandle = FS_FOpenFileWrite(newName);
 				if (!newHandle) {
 					Com_Printf("Failed to open %s for target cutting.\n", newName);
