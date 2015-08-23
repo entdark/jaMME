@@ -70,6 +70,12 @@ typedef struct {
 
 extern int g_console_field_width;
 
+typedef enum {
+	MME_STATE_NONE, //fs_game != "mme[*]"
+	MME_STATE_DEFAULT, //fs_game == "mme"
+	MME_STATE_CUSTOM //fs_game == "mme*" like "mmeMBII"
+} mmeState_t;
+
 typedef struct {
 	int			timeoutcount;		// it requres several frames in a timeout condition
 									// to disconnect, preventing debugging breaks from
@@ -133,6 +139,8 @@ typedef struct {
 	entityState_t	parseEntities[MAX_PARSE_ENTITIES];
 
 	char			*mSharedMemory;
+
+	mmeState_t		mmeState;
 } clientActive_t;
 
 extern	clientActive_t		cl;

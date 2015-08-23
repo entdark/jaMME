@@ -1004,8 +1004,7 @@ intptr_t CL_UISystemCalls(intptr_t *args) {
 		re.Font_DrawString( VMF(1), VMF(2), (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );
 #else
 		{float ox, oy;
-		cvar_t *fs_game = Cvar_FindVar("fs_game");
-		if (fs_game && !Q_stricmpn(fs_game->string, "mme", 3)) {
+		if (cl.mmeState >= MME_STATE_DEFAULT) {
 			ox = VMF(1); oy = VMF(2);
 		} else {
 			ox = args[1]; oy = args[2];
