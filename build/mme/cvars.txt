@@ -75,6 +75,8 @@ cg_thirdPerson          [0, 1, 2] Set thridperson view:
                         0 - disabled, 1 - regular way, 2 - q3-style way
 cg_commandSmooth        [0, 1, 2] Set clients' movements smoothing:
                         0 = disabled, 1 = enabled for the predicted client only, 2 = enabled for all clients
+cg_drawSpeed            [0, 1, 2, 3, 4] Show speedometer:
+                        0 = disabled, 1 = regular speedometer, >1 = enhanced speedometer
 
 NEW FROM JA++ (WORKS FOR ALL)
 cg_newFX                [0, bit-field: 1..16] Use new effects:
@@ -155,6 +157,10 @@ cl_drawRecording        [0, 1, 2, 3] Change style of demo recording notifier:
 cl_autoDemo             [0, 1] Disable/enable autorecording demos
 cl_autoDemoFormat       [text, %format] Set the autorecording demo name with certain formatting:
                         %d = date, %m = map, %n = custom name (2nd arguement in saveDemo command), %p = player name, %t = time stamps, %% = %
+
+cl_dlURL                [text] Set a download URL where to automatically download maps from (cl_allowDownload 0, yes, has to be "0")
+
+con_timestamps          [0, 1] Hide/show timestamps in the console
 
 
 
