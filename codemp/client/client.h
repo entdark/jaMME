@@ -139,8 +139,6 @@ typedef struct {
 	entityState_t	parseEntities[MAX_PARSE_ENTITIES];
 
 	char			*mSharedMemory;
-
-	mmeState_t		mmeState;
 } clientActive_t;
 
 extern	clientActive_t		cl;
@@ -339,6 +337,8 @@ typedef struct {
 	struct {
 		qboolean		newColors;
 	} uag;
+
+	mmeState_t		mmeState;
 } clientStatic_t;
 #define	CON_TEXTSIZE	0x30000 //was 32768
 #define	NUM_CON_TIMES	4

@@ -1004,7 +1004,7 @@ intptr_t CL_UISystemCalls(intptr_t *args) {
 		re.Font_DrawString( VMF(1), VMF(2), (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );
 #else
 		{float ox, oy;
-		if (cl.mmeState >= MME_STATE_DEFAULT) {
+		if (cls.mmeState >= MME_STATE_DEFAULT) {
 			ox = VMF(1); oy = VMF(2);
 		} else {
 			ox = args[1]; oy = args[2];

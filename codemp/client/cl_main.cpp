@@ -552,8 +552,8 @@ void CL_PlayDemo_f( void ) {
 #ifdef __ANDROID__
 	haveConvert = (qboolean)(mme_demoConvert->integer);
 #else
-	haveConvert = (qboolean)(mme_demoConvert->integer && cl.mmeState >= MME_STATE_DEFAULT);
-	if (cl.mmeState == MME_STATE_DEFAULT)
+	haveConvert = (qboolean)(mme_demoConvert->integer && cls.mmeState >= MME_STATE_DEFAULT);
+	if (cls.mmeState == MME_STATE_DEFAULT)
 		demoCommandSmoothingEnable(qtrue);
 #endif
 	// make sure a local server is killed
@@ -1142,11 +1142,11 @@ void CL_ResetPureClientAtServer( void ) {
 void CL_SetMMEState(void) {
 	cvar_t *fs_game = Cvar_FindVar("fs_game");
 	if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
-		cl.mmeState = MME_STATE_DEFAULT;
+		cls.mmeState = MME_STATE_DEFAULT;
 	} else if (fs_game && !Q_stricmpn(fs_game->string, "mme", 3)) {
-		cl.mmeState = MME_STATE_CUSTOM;
+		cls.mmeState = MME_STATE_CUSTOM;
 	} else {
-		cl.mmeState = MME_STATE_NONE;
+		cls.mmeState = MME_STATE_NONE;
 	}
 }
 
@@ -2875,7 +2875,7 @@ void CL_Init( void ) {
 	Cmd_AddCommand("vid_restart", CL_Vid_Restart_f);
 	Cmd_AddCommand("disconnect", CL_Disconnect_f);
 	Cmd_AddCommand("cinematic", CL_PlayCinematic_f);
-	if (cl.mmeState == MME_STATE_NONE)
+	if (cls.mmeState == MME_STATE_NONE)
 		Cmd_AddCommand("connect", CL_Connect_f);
 	Cmd_AddCommand("reconnect", CL_Reconnect_f);
 	Cmd_AddCommand("localservers", CL_LocalServers_f);
