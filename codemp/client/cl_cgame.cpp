@@ -1170,7 +1170,7 @@ intptr_t CL_CgameSystemCalls(intptr_t *args) {
 		if (fs_game && !Q_stricmpn(fs_game->string, "mme", 3)) {
 			FX_AdjustTime(args[1], VMF(2), VMF(3));
 		} else {
-			FX_AdjustTime(args[1], cls.frametime, 0.0f);
+			FX_AdjustTime(args[1], cl.serverTime-cl.serverTimeLast, 0.0f);
 		}}
 #endif
 		return 0;
@@ -2137,7 +2137,7 @@ void CL_SetCGameTime( void ) {
 	}
 	cl.oldFrameServerTime = cl.snap.serverTime;
 
-
+	cl.serverTimeLast = cl.serverTime;
 	// get our current view of time
 
 	if ( clc.demoplaying && cl_freezeDemo->integer ) {

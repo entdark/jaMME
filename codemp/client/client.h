@@ -77,6 +77,7 @@ typedef struct {
 	clSnapshot_t	snap;			// latest received from server
 
 	int			serverTime;			// may be paused during play
+	int			serverTimeLast;		// server time from the last snapshot
 	int			oldServerTime;		// to prevent time from flowing bakcwards
 	int			oldFrameServerTime;	// to check tournament restarts
 	int			serverTimeDelta;	// cl.serverTime = cls.realtime + cl.serverTimeDelta
