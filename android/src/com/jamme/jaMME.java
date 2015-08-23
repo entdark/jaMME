@@ -317,20 +317,22 @@ public class jaMME extends Activity {
 				if (baseDirET != null && baseDirET.getText() != null && baseDirET.getText().toString() != null)
 					gp = baseDirET.getText().toString();
 				if (checkAssets(gp)) {
-					removeView(startGame);
-					removeView(args);
-					removeView(baseDirET);
-					removeView(baseDir);
-					removeView(layout);
 					if (args != null && args.getText() != null && args.getText().toString() != null)
 						gameArgs = args.getText().toString();
-					String []parameters = {gp,gameArgs,String.valueOf(logSave.isChecked())};
+					logging = logSave.isChecked();
+					String []parameters = {gp,gameArgs,String.valueOf(logging)};
 					try {
 						saveParameters(parameters);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
+					removeView(startGame);
+					removeView(args);
+					removeView(baseDirET);
+					removeView(baseDir);
+					removeView(logSave);
+					removeView(layout);
 					gameReady = true;
 				} else {
 					AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(act);
@@ -401,7 +403,6 @@ public class jaMME extends Activity {
 		baseDirParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
 		baseDirParams.setMargins(0, 0, 0, (int)(3.5f*d));
 /* LOGGING */
-		logging = saveLog;
 		logSave = new CheckBox(context);
 		logSave.setChecked(saveLog);
 		logSave.setButtonDrawable(getResources().getDrawable(R.drawable.jamme_checkbox));
