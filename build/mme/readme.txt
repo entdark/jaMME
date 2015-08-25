@@ -21,9 +21,9 @@ features and some new ones.
 
   Author: ent
   Contributors: ent, Scooper, redsaurus, teh
-  Version: 1.8
-! Date: 05.03.2015
-! Filesize: 7.21 MB
+  Version: 1.9
+!  Date: 21.08.2015
+!  Filesize: 9.14 MB
 
   Installation: extract the archive to "GameData" folder.
 
@@ -31,14 +31,14 @@ features and some new ones.
     - q3mme crew and their q3mme mod
     - Raz0r and his JA++ code for JA+ and JA++ compatibiliy, also he helped
     a lot
-    - teh and his pugmod that was a good starting point, also some jamme
-    features are taken from pugmod; and his jamme port for linux
+    - teh and his huge contribution
     - Sil and his features from smod
     - CaNaBiS and his help in explaining of how q3mme works
     - Razorace and his trueview feature (taken from JA++)
     - Grant R. Griffin and his "FIR filter algorithms for use in C"
     - OpenJK contributors and their OpenJK project
     - redsaurus for Mac support
+    - Beloko Games and some of their codes for Android support
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
