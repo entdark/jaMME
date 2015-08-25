@@ -1295,3 +1295,6 @@ float trap_MME_ProgressTime( void ) {
 	fi.i = Q_syscall( CG_MME_PROGRESSTIME );
 	return fi.f;
 }
+int trap_MME_DemoLength( void ) {
+	return Q_syscall( CG_MME_DEMOLENGTH );
+}

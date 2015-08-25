@@ -1187,6 +1187,12 @@ qboolean CG_KeyEvent(int key, qboolean down) {
 				hudToggleChecked( item );
 				break;
 			}
+		//Progress in range
+		} else if (hud.cursorY >= SCREEN_HEIGHT-5) {
+			float time = hud.cursorX / SCREEN_WIDTH;
+			time *= demo.length;
+			time /= 1000;
+			trap_SendConsoleCommand(va("seek %f\n", time));
 		}
 		return qtrue;
 	//Further keypresses only handled when waiting for input

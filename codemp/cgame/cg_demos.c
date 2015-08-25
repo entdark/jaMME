@@ -36,6 +36,7 @@ extern void trap_S_UpdateScale( float scale );
 extern void trap_CIN_AdjustTime( int time );
 extern void trap_MME_VibrateFeedback( int time );
 extern float trap_MME_ProgressTime( void );
+extern int trap_MME_DemoLength( void );
 int lastMusicStart;
 
 static void demoSynchMusic( int start, float length ) {
@@ -1208,6 +1209,7 @@ void demoPlaybackInit(void) {
 	char projectFile[MAX_OSPATH];
 	int i;
 
+	demo.length = trap_MME_DemoLength();
 	demo.initDone = qtrue;
 	demo.autoLoad = qfalse;
 	demo.play.time = 0;

@@ -190,6 +190,7 @@ typedef struct demoMain_s {
 	qboolean	initDone;
 	qboolean	autoLoad;
 	qboolean	drawFully;
+	int			length;
 	demoLog_t	log;
 } demoMain_t;
 
