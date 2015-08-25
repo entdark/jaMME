@@ -443,6 +443,7 @@ void CL_ConsolePrint(const char *txt) {
 			break;
 		case '\r':
 			con.x = 0;
+			newString = qtrue;
 			break;
 		default:	// display character and advance
 			y = con.current % con.totallines;
