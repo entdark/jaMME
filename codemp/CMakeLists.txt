@@ -222,8 +222,6 @@ if(BuildMPEngine OR BuildMPDed)
 		"${MPDir}/qcommon/tags.h"
 		"${MPDir}/qcommon/timing.h"
 		"${MPDir}/qcommon/vm.cpp"
-		"${MPDir}/qcommon/vm_interpreted.cpp"
-		"${MPDir}/qcommon/vm_local.h"
 		"${MPDir}/qcommon/z_memman_pc.cpp"
 		)
 	if(WIN32)
@@ -345,7 +343,6 @@ if(BuildMPEngine OR BuildMPDed)
 		set(MPEngineAndDedFiles ${MPEngineAndDedFiles} ${MPEngineAndDedWin32Files})
 	else(WIN32)
 		set(MPEngineAndDedSysFiles
-			"${MPDir}/sys/vm_x86.cpp"
 			"${MPDir}/sys/snapvector.cpp"
 			)
 		set(MPEngineAndDedFiles ${MPEngineAndDedFiles} ${MPEngineAndDedSysFiles})
@@ -359,7 +356,7 @@ if(BuildMPEngine)
 	set(MPEngineLibraries ${MPEngineAndDedLibraries})
 	set(MPEngineIncludeDirectories ${MPEngineAndDedIncludeDirectories})
 	set(MPEngineFiles ${MPEngineAndDedFiles})
-	set(MPEngineDefines ${MPSharedDefines} "_JK2MP")
+	set(MPEngineDefines ${MPSharedDefines} "_JK2MP" "USE_CURL")
 	
 	#    Dependencies
 	
@@ -376,11 +373,13 @@ if(BuildMPEngine)
 			set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libFLAC.a)
 			set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libogg.a)
 			set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/macosx/lib/libvorbis.a)
+			set(MPEngineLibraries ${MPEngineLibraries} curl)
 		else(APPLE)
 			set(MPEngineLibraries ${MPEngineLibraries} mad)
 			set(MPEngineLibraries ${MPEngineLibraries} FLAC)
 			set(MPEngineLibraries ${MPEngineLibraries} ogg)
 			set(MPEngineLibraries ${MPEngineLibraries} vorbis)
+			set(MPEngineLibraries ${MPEngineLibraries} curl)
 		endif(APPLE)
 	endif(UNIX)
 	
@@ -429,8 +428,10 @@ if(BuildMPEngine)
 		"${MPDir}/client/cl_cgame.cpp"
 		"${MPDir}/client/cl_cin.cpp"
 		"${MPDir}/client/cl_console.cpp"
+		"${MPDir}/client/cl_curl.cpp"
 		"${MPDir}/client/cl_demos.cpp"
 		"${MPDir}/client/cl_demos_auto.cpp"
+		"${MPDir}/client/cl_demos_cut.cpp"
 		"${MPDir}/client/cl_input.cpp"
 		"${MPDir}/client/cl_keys.cpp"
 		"${MPDir}/client/cl_main.cpp"

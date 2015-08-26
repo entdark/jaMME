@@ -42,6 +42,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #endif
 #elif defined (__ANDROID__)
 #include "../libs/android/include/curl/curl.h"
+#elif defined(MACOS_X)
+#include <curl/curl.h>
 #else
 #error "Missing cURL includes for this OS"
 #endif

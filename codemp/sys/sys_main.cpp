@@ -263,7 +263,7 @@ void *Sys_LoadMachOBundle( const char *name )
 
 //TODO: load mac dlls that are inside zip things inside pk3s.
 
-void *Sys_LoadGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) )
+void *Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) )
 {
 	void	*libHandle = NULL;
 	void	(QDECL *dllEntry)( intptr_t (QDECL *syscallptr)(intptr_t, ...) );

@@ -608,14 +608,18 @@ static void IN_ProcessEvents( void ) {
 				}
 				break;
 			case SDL_APP_DIDENTERBACKGROUND: {
+#ifdef __ANDROID__
 				LOGI("SDL_APP_DIDENTERBACKGROUND");
+#endif
 				Cvar_SetValue("com_minimized", 1);
 				Cvar_SetValue("com_unfocused", 1);
 				SNDDMA_Activate(qfalse);
 				break;
 			}
 			case SDL_APP_DIDENTERFOREGROUND: {
+#ifdef __ANDROID__
 				LOGI("SDL_APP_DIDENTERFOREGROUND");
+#endif
 				Cvar_SetValue("com_minimized", 0);
 				Cvar_SetValue("com_unfocused", 0);
 				SNDDMA_Activate(qtrue);
