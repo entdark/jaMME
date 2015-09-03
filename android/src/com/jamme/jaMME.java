@@ -745,7 +745,7 @@ public class jaMME extends Activity {
 	    }   
 	};
 	boolean logging = false;
-	public void saveLog(){
+	public void saveLog() {
 		if (!logging)
 			return;
         try {
