@@ -821,11 +821,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="win32\icon.ico">
-      <Filter>win32</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="Client">
       <UniqueIdentifier>{4f0526e1-838f-4a51-9197-4f2851acf7d9}</UniqueIdentifier>
     </Filter>
@@ -870,7 +865,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="win32\openjk.rc">
+    <Image Include="win32\icon.ico">
+      <Filter>win32</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="win32\jamme.rc">
       <Filter>win32</Filter>
     </ResourceCompile>
   </ItemGroup>
