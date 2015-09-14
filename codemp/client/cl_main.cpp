@@ -553,7 +553,7 @@ void CL_PlayDemo_f( void ) {
 	haveConvert = (qboolean)(mme_demoConvert->integer);
 #else
 	haveConvert = (qboolean)(mme_demoConvert->integer && cls.mmeState >= MME_STATE_DEFAULT);
-	if (cls.mmeState == MME_STATE_DEFAULT)
+	if (haveConvert && cls.mmeState == MME_STATE_DEFAULT)
 		demoCommandSmoothingEnable(qtrue);
 #endif
 	// make sure a local server is killed
@@ -608,6 +608,7 @@ void CL_PlayDemo_f( void ) {
 		if (demoPlay( mmeName, del ))
 			return;
 		Com_Printf("Can't seem to play demo %s\n", testName );
+		demoCommandSmoothingEnable(qfalse);
 	}
 	Q_strncpyz( clc.demoName, Cmd_Argv(1), sizeof( clc.demoName ) );
 
