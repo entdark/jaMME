@@ -553,6 +553,7 @@ issues.
 #	define Q3CONFIG_CFG PRODUCT_NAME ".cfg"
 #endif
 
+qboolean FS_CopyFileAbsolute(char *fromOSPath, char *toOSPath);
 qboolean FS_CopyFile( char *fromOSPath, char *toOSPath, char *newOSPath, const int newSize );
 
 qboolean FS_Initialized();

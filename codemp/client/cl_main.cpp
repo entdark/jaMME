@@ -534,7 +534,7 @@ demo <demoname>
 extern void demoCommandSmoothingEnable(qboolean enable);
 void CL_PlayDemo_f( void ) {
 	char		name[MAX_OSPATH], *testName, testNameActual[MAX_OSPATH];
-	char		*ext;
+	char		*ext = NULL;
 	qboolean	haveConvert, del = qfalse;
 	cvar_t		*fs_game;
 
@@ -551,35 +551,58 @@ void CL_PlayDemo_f( void ) {
 	demoCommandSmoothingEnable(qfalse);
 #ifdef __ANDROID__
 	haveConvert = (qboolean)(mme_demoConvert->integer);
+	if (haveConvert && fs_game && (!Q_stricmp(fs_game->string, "")
+		|| !Q_stricmp(fs_game->string, "base")
+		|| !Q_stricmp(fs_game->string, "mme"))) {
+		demoCommandSmoothingEnable(qtrue);
+	}
+	Q_strncpyz( testNameActual, Cmd_Argv(1), sizeof( testNameActual ) );
 #else
 	haveConvert = (qboolean)(mme_demoConvert->integer && cls.mmeState >= MME_STATE_DEFAULT);
 	if (haveConvert && cls.mmeState == MME_STATE_DEFAULT)
 		demoCommandSmoothingEnable(qtrue);
+	if (del) {
+		ext = strstr(Cmd_Argv(1), ".mme");
+		if (!ext) {
+			int i = 0;
+			while(demo_protocols[i]) {
+				ext = strstr(Cmd_Argv(1), va(".dm_%d", demo_protocols[i]));
+				if (ext && *ext) {
+					break;
+				}
+				i++;
+			}
+		}
+		if (ext && *ext) {
+			char temp[MAX_OSPATH] = "_";
+			char *demos = (!Q_stricmp(ext, ".mme")) ? "mmedemos" : "demos";
+			while (FS_FileExists(va("%s/%s%s", demos, temp, ext))) {
+				if (strlen(temp) >= MAX_OSPATH)
+					break;
+				Q_strcat(temp, sizeof(temp), "_");
+			}
+			if (FS_CopyFileAbsolute(Cmd_Argv(1), va("%s/%s%s", demos, temp, ext))) {
+				Q_strncpyz( testNameActual, temp, sizeof( testNameActual ) );
+			} else {
+				Q_strncpyz( testNameActual, Cmd_Argv(1), sizeof( testNameActual ) );
+			}
+		}
+	} else {
+		Q_strncpyz( testNameActual, Cmd_Argv(1), sizeof( testNameActual ) );
+	}
 #endif
 	// make sure a local server is killed
 	// 2 means don't force disconnect of local client
 	Cvar_Set( "sv_killserver", "2" );
 
-	// open the demo file
-	Q_strncpyz( testNameActual, Cmd_Argv(1), sizeof( testNameActual ) );
-	// if to associate dm_26 files with jamme.exe then we can open them from "demos" folder directly
-	// TODO: open demo files from any place
-	testName = strstr(testNameActual, "/demos/");
-	if (!testName) {
-		testName = strstr(testNameActual, "\\demos\\");
-		if (!testName)
-			testName = testNameActual;
-		else
-			testName = testName + 7;
-	} else {
-		testName = testName + 7;
-	}
+	testName = testNameActual;
 	// check for an extension .dm_?? (?? is protocol)
 	ext = testName + strlen(testName) - 6;
-	if ((strlen(testName) > 6) && (ext[0] == '.') && ((ext[1] == 'd') || (ext[1] == 'D')) && ((ext[2] == 'm') || (ext[2] == 'M')) && (ext[3] == '_'))
-	{
+	if ((strlen(testName) > 6) && (ext[0] == '.') && ((ext[1] == 'd') || (ext[1] == 'D')) && ((ext[2] == 'm') || (ext[2] == 'M')) && (ext[3] == '_')) {
 		Cvar_Set( "mme_demoExt", ext );
 		ext[0] = 0;	
+	} else {
+		Cvar_Set( "mme_demoExt", "" );
 	}
 
 	Cvar_Set( "mme_demoFileName", testName );
@@ -2861,6 +2884,8 @@ void CL_Init( void ) {
 	mme_demoAutoNext = Cvar_Get ("mme_demoAutoNext", "1", CVAR_ARCHIVE );
 	mme_demoPaused = Cvar_Get ("mme_demoPaused", "0", CVAR_INTERNAL );
 	
+	Cvar_Set( "mme_demoExt", "" );
+
 	CL_SetMMEState();
 	//
 	// register our commands

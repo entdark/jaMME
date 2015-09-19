@@ -1215,6 +1215,85 @@ static int ParseCommandLine(char *cmdline, char **argv)
 #	endif
 #endif
 
+#include <Shlobj.h>
+
+typedef struct {
+	string extension;
+	string desc;
+} extensionsTable_t;
+
+static extensionsTable_t et[] = {
+	//should we reg it? q3mme and other mme mods use it too
+//	{".mme", "MovieMaker's Edition Demo"},
+	{".dm_26", "Jedi Academy Demo (v1.01)"},
+	{".dm_25", "Jedi Academy Demo (v1.00)"},
+};
+
+char *GetStringRegKey(HKEY hkey) {
+	if (!hkey) {
+		return NULL;
+	}
+    static CHAR szBuffer[512];
+    DWORD dwBufferSize = sizeof(szBuffer);
+    LSTATUS nError = RegQueryValueEx(hkey, NULL, 0, NULL, (LPBYTE)szBuffer, &dwBufferSize);
+    if (ERROR_SUCCESS == nError) {
+        return szBuffer;
+    }
+    return NULL;
+}
+
+bool RegisterFileType(const char *key, const char *value) {
+	Com_DPrintf(S_COLOR_YELLOW"RegisterFileType(%s,%s)\n", key, value);
+	HKEY hkey;
+	LSTATUS nError = RegOpenKeyEx(HKEY_CLASSES_ROOT, key, 0, KEY_READ, &hkey);
+	if (nError != ERROR_SUCCESS && nError != ERROR_FILE_NOT_FOUND) {
+		Com_DPrintf(S_COLOR_RED"RegOpenKeyEx(%s,%s) error: %d\n", key, value, nError);
+		return false;
+	}
+	bool ret = false;
+	const char *setValue = GetStringRegKey(hkey);
+	RegCloseKey(hkey);
+	//ignore the same value
+	if (!setValue || Q_stricmp(setValue, value)) {
+		nError = RegCreateKeyEx(HKEY_CLASSES_ROOT,key,0,0,0,KEY_ALL_ACCESS,0,&hkey,0);
+		if (nError == ERROR_SUCCESS) {
+			RegSetValueEx(hkey,"",0,REG_SZ,(BYTE*)value,strlen(value)+1);
+			ret = true;
+		} else {
+			Com_DPrintf(S_COLOR_RED"RegCreateKeyEx(%s,%s) error: %d\n", key, value, nError);
+		}
+	}
+	RegCloseKey(hkey);
+	return ret;
+}
+
+void RegisterFileTypes(char *program) {
+	string action="jaMME";
+	bool refresh = false; //once true - forever true
+	for (int i = 0; i < ARRAY_LEN(et); i++) {
+		string app = program + string(" +set fs_game \"mme\" +set fs_extraGames \"japlus japp\" +demo \"%1\" del");
+		string extension = et[i].extension;
+		string desc = et[i].desc;
+		string icon = extension + string("\\DefaultIcon");
+
+		string path=extension+
+					"\\shell\\"+
+					action+
+					"\\command\\";
+	
+		//using | to be able to call all 3 functions even if true got returned
+		//register the filetype extension
+		refresh |= RegisterFileType(extension.c_str(), desc.c_str())
+		//register application association
+		| RegisterFileType(path.c_str(), app.c_str())
+		//register icon for the filetype
+		| RegisterFileType(icon.c_str(), program);
+	}
+	if (refresh) {
+		SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
+	}
+}
+
 int main( int argc, char **argv )
 {
 	int		i;
@@ -1261,6 +1340,10 @@ int main( int argc, char **argv )
 	if ( !com_dedicated->integer && !com_viewlog->integer ) {
 		Sys_ShowConsole( 0, qfalse );
 	}
+	CHAR path[512];
+	if (GetModuleFileName(NULL, path, sizeof(path))) {
+		RegisterFileTypes(path);
+	}
 
     // main game loop
 	while( 1 ) {
@@ -1295,9 +1378,9 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
     if ( hPrevInstance ) {
         return 0;
 	}
-
+	
+//	__asm int 3;
 	/* Begin Sam Lantinga Public Domain 4/13/98 */
-
 	TCHAR *text = GetCommandLine();
 	char *cmdline = _strdup(text);
 	if ( cmdline == NULL ) {
