@@ -11,6 +11,7 @@
     <application android:label="@string/app_name"
                  android:icon="@drawable/icon">
         <activity android:name=".jaMME"
+            	  android:noHistory="false"
             	  android:windowSoftInputMode="adjustPan"
 		          android:configChanges="orientation|keyboardHidden"
 		          android:launchMode="singleTop"

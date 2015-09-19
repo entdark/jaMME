@@ -203,6 +203,13 @@ public class jaMME extends Activity {
 	protected void onDestroy() {
 		Log.i("jaMME", "onDestroy");
 		super.onDestroy();
+		//stop demo to be able to remove currently opened demo file
+		keypress(1, jk_keycodes.A_ESCAPE.ordinal(), 0);
+		keypress(0, jk_keycodes.A_ESCAPE.ordinal(), 0);
+		do {
+			flags = frame();
+		} while((flags & DEMO_PLAYBACK) != 0);
+		
 		if (gameReady) {
 			SDLActivity.nativeQuit();
 		}
