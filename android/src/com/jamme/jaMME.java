@@ -67,19 +67,20 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 
 public class jaMME extends Activity {
-	Vibrator v;
-	float density = 1.0f;
-	boolean gameReady = false;
-	String gamePath, gameArgs = "", demoName = null;
-	jaMMEView view;
-	jaMMERenderer renderer = new jaMMERenderer();
-	Activity act;
-	jaMMEEditText et;
-	jaMMESeekBar sb = null;
-	jaMMERangeSeekBar rsb = null;
-	int surfaceWidth,surfaceHeight;
-//	int PORT_ACT_ATTACK = 13;
-//	int PORT_ACT_ALT_ATTACK = 64;
+	private Activity act;
+	private Vibrator v;
+	private float density = 1.0f;
+	private boolean gameReady = false;
+	private String gamePath, gameArgs = "", demoName = null;
+	
+	private jaMMEView view;
+	private jaMMERenderer renderer = new jaMMERenderer();
+	private jaMMEEditText et;
+	private jaMMESeekBar sb = null;
+	private jaMMERangeSeekBar rsb = null;
+	
+	private int surfaceWidth, surfaceHeight;
+
 	int flags = 0;
 	int CONSOLE_ACTIVE				= 1<<2;
 	int CONSOLE_ACTIVE_FULLSCREEN	= 1<<3;
@@ -96,27 +97,29 @@ public class jaMME extends Activity {
 //	int DEMO_CUTTING				= 1<<17;
 //	boolean demoCutting = false;
 	boolean keyboardActive = false;
-	static void loadLibraries() {
+	private static void loadLibraries() {
 		System.loadLibrary("SDL2");
         System.loadLibrary("jamme");
     }
-	public static native int init(Activity act,String[] args,String game_path,String lib_path,String app_path,String abi,String abi_alt);
-	public static native void setScreenSize(int width, int height);	
-	public static native int frame();
-	public static native String getLoadingMsg();
-	public static native void keypress(int down, int qkey, int unicode);
-	public static native void textPaste(byte []paste);
-	public static native void doAction(int state, int action);
-	public static native void analogPitch(int mode,float v);
-	public static native void analogYaw(int mode,float v);
-	public static native void mouseMove(float dx, float dy);
-	public static native void quickCommand(String command);
+	
+	private static native int init(Activity act,String[] args,String game_path,String lib_path,String app_path,String abi,String abi_alt);
+	private static native void setScreenSize(int width, int height);	
+	private static native int frame();
+	private static native String getLoadingMsg();
+	private static native void keypress(int down, int qkey, int unicode);
+	private static native void textPaste(byte []paste);
+	private static native void doAction(int state, int action);
+	private static native void analogPitch(int mode,float v);
+	private static native void analogYaw(int mode,float v);
+	private static native void mouseMove(float dx, float dy);
+	private static native void quickCommand(String command);
+	
 	/* DEMO STUFF */
-	public static native int demoGetLength();
-	public static native int demoGetTime();
+	private static native int demoGetLength();
+	private static native int demoGetTime();
 	/* FEEDBACK */
-	public static native int vibrateFeedback();
-	public void vibrate() {
+	private static native int vibrateFeedback();
+	private void vibrate() {
 		long time = vibrateFeedback();
 		if (time > 5)
 			v.vibrate(time);
@@ -203,16 +206,18 @@ public class jaMME extends Activity {
 	protected void onDestroy() {
 		Log.i("jaMME", "onDestroy");
 		super.onDestroy();
+		if (!gameReady) {
+			return;
+		}
 		//stop demo to be able to remove currently opened demo file
-		keypress(1, jk_keycodes.A_ESCAPE.ordinal(), 0);
-		keypress(0, jk_keycodes.A_ESCAPE.ordinal(), 0);
+		keypress(1, JAKeycodes.A_ESCAPE.ordinal(), 0);
+		keypress(0, JAKeycodes.A_ESCAPE.ordinal(), 0);
 		do {
 			flags = frame();
 		} while((flags & DEMO_PLAYBACK) != 0);
 		
-		if (gameReady) {
-			SDLActivity.nativeQuit();
-		}
+		SDLActivity.nativeQuit();
+		
 		//if user closed the application from OS side on the demo playback after opening them externally
 		if (gamePath != null && demoName != null) {
 			int i = 0;
@@ -232,7 +237,7 @@ public class jaMME extends Activity {
 		System.exit(0);
 	}
 	//gay way, but fastest
-	public static boolean equals(final String s1, final String s2) {
+	private static boolean equals(final String s1, final String s2) {
 		return s1.length() == s2.length() && s1.hashCode() == s2.hashCode();
 	}
 	private boolean openDemo() throws IOException {
@@ -272,7 +277,7 @@ public class jaMME extends Activity {
         }
         return false;
 	}
-	public static void copyFile(File sourceFile, File destFile) throws IOException {
+	private static void copyFile(File sourceFile, File destFile) throws IOException {
 	    if (!destFile.exists()) {
 	        destFile.createNewFile();
 	    }
@@ -442,7 +447,7 @@ public class jaMME extends Activity {
 		layout.addView(logSave, logSaveParams);
 		addContentView(layout, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 	}
-	public static String getRemovableStorage() {
+	private static String getRemovableStorage() {
 		String value = System.getenv("SECONDARY_STORAGE");
         if (!TextUtils.isEmpty(value)) {
             String[] paths = value.split(":");
@@ -509,9 +514,9 @@ public class jaMME extends Activity {
 		    stream.close();
 		}
 	}
-	boolean ignoreAfter = false;
-	int prevLength = 0;
-	class jaMMEEditText extends EditText {
+	private boolean ignoreAfter = false;
+	private int prevLength = 0;
+	private class jaMMEEditText extends EditText {
 		public jaMMEEditText(Context context) {
 			super(context);
 			setY(surfaceHeight + 32);
@@ -540,13 +545,13 @@ public class jaMME extends Activity {
 							} else if ((flags & CHAT_SAY) != 0
 									|| (flags & UI_EDITINGFIELD) != 0
 									|| (flags & CHAT_SAY_TEAM) != 0) {
-								keypress(1, jk_keycodes.A_ESCAPE.ordinal(), 0);
-								keypress(0, jk_keycodes.A_ESCAPE.ordinal(), 0);
+								keypress(1, JAKeycodes.A_ESCAPE.ordinal(), 0);
+								keypress(0, JAKeycodes.A_ESCAPE.ordinal(), 0);
 	    						return true;
 							}
 						}
-						keypress(1, mapKey(keyCode, uc), uc);
-						keypress(0, mapKey(keyCode, uc), uc);
+						keypress(1, MobileKeycodes.getMobileKey(keyCode, uc), uc);
+						keypress(0, MobileKeycodes.getMobileKey(keyCode, uc), uc);
 						return true;
 					}
 	        		return false;
@@ -562,15 +567,15 @@ public class jaMME extends Activity {
 					} else if ((flags & CHAT_SAY) != 0
 							|| (flags & UI_EDITINGFIELD) != 0
 							|| (flags & CHAT_SAY_TEAM) != 0) {
-						keypress(1, jk_keycodes.A_ESCAPE.ordinal(), 0);
-						keypress(0, jk_keycodes.A_ESCAPE.ordinal(), 0);
+						keypress(1, JAKeycodes.A_ESCAPE.ordinal(), 0);
+						keypress(0, JAKeycodes.A_ESCAPE.ordinal(), 0);
 					}
 				}
 			}
 			return super.dispatchKeyEvent(event);
 		}
 	}
-	class jaMMESeekBar extends SeekBar {
+	private class jaMMESeekBar extends SeekBar {
 		String LOG = "jaMME SeekBar";
     	public jaMMESeekBar(Context context) {
 			super(context);
@@ -603,8 +608,8 @@ public class jaMME extends Activity {
 			});
 		}
 	}
-	Integer lastMin = 0, lastMax = 0;
-	class jaMMERangeSeekBar extends RangeSeekBar<Integer> {
+	private Integer lastMin = 0, lastMax = 0;
+	private class jaMMERangeSeekBar extends RangeSeekBar<Integer> {
 		String LOG = "jaMME RangeSeekBar";
 		short lastChange = 0;
 		public jaMMERangeSeekBar(Integer min, Integer max, Context context) {
@@ -659,8 +664,8 @@ public class jaMME extends Activity {
 			return super.onTouchEvent(event);
 		}
 	}
-    class jaMMEView extends GLSurfaceView {
-    	String LOG = "jaMME View";
+	private class jaMMEView extends GLSurfaceView {
+    	static final String LOG = "jaMME View";
     	@SuppressLint("ClickableViewAccessibility")
 		public jaMMEView(Context context) {
     		super(context);
@@ -681,14 +686,14 @@ public class jaMME extends Activity {
             return fic;
         }
     }
-	public static boolean isLatinLetter(char c) {
+	private static boolean isLatinLetter(char c) {
 		return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
 	}
-	public static boolean isDigit(char c) {
+	private static boolean isDigit(char c) {
 		return (c >= '0' && c <= '9');
 	}
-	class jaMMETextWatcher implements TextWatcher {
-    	String LOG = "jaMME TextWatcher";
+	private class jaMMETextWatcher implements TextWatcher {
+    	static final String LOG = "jaMME TextWatcher";
 		@Override
 		public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 			Log.d(LOG, "beforeTextChanged");
@@ -711,8 +716,8 @@ public class jaMME extends Activity {
 			if (l < prevLength && l >= 0) {
 //				int d = prevLength - l;
 //				for (int i = d; i > 0; i--) {
-					keypress(1, jk_keycodes.A_BACKSPACE.ordinal(), 0);
-					keypress(0, jk_keycodes.A_BACKSPACE.ordinal(), 0);
+					keypress(1, JAKeycodes.A_BACKSPACE.ordinal(), 0);
+					keypress(0, JAKeycodes.A_BACKSPACE.ordinal(), 0);
 //				}
 				prevLength = 0;
 				s.replace(0, s.length(), "");
@@ -720,8 +725,8 @@ public class jaMME extends Activity {
 				int d = l - prevLength;
 				for (int i = d; i > 0; i--) {
 					char ch = ss.toCharArray()[l-i];
-					keypress(1, mapKey(0, ch), ch);
-					keypress(0, mapKey(0, ch), ch);
+					keypress(1, MobileKeycodes.getMobileKey(0, ch), ch);
+					keypress(0, MobileKeycodes.getMobileKey(0, ch), ch);
 				}
 				prevLength = l;
 			}
@@ -751,8 +756,8 @@ public class jaMME extends Activity {
 	        _handler.postDelayed(_loadingMessage, LOADING_MESSAGE_UPDATE_TIME);
 	    }   
 	};
-	boolean logging = false;
-	public void saveLog() {
+	private boolean logging = false;
+	private void saveLog() {
 		if (!logging)
 			return;
         try {
@@ -779,8 +784,8 @@ public class jaMME extends Activity {
 			v = null;
 		}
 	}
-    class jaMMERenderer implements GLSurfaceView.Renderer {
-    	String LOG = "jaMME Renderer";
+	private class jaMMERenderer implements GLSurfaceView.Renderer {
+		static final String LOG = "jaMME Renderer";
 		@Override
 		public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 			Log.d(LOG, "onSurfaceCreated");
@@ -942,8 +947,8 @@ public class jaMME extends Activity {
 				quickCommand("toggleconsole");
 				return true;
 			}
-			keypress(1, mapKey(keyCode, uc), uc);
-			keypress(0, mapKey(keyCode, uc), uc);
+			keypress(1, MobileKeycodes.getMobileKey(keyCode, uc), uc);
+			keypress(0, MobileKeycodes.getMobileKey(keyCode, uc), uc);
 			if (keyCode == KeyEvent.KEYCODE_DEL && et != null) {
 				et.setText("");
 			}
@@ -968,8 +973,8 @@ public class jaMME extends Activity {
 		}
 		return paste;
 	}
-	public static int LONG_PRESS_TIME = 717;
-	final Handler _handler = new Handler(); 
+	private static int LONG_PRESS_TIME = 717;
+	private final Handler _handler = new Handler(); 
 	Runnable _longPressed = new Runnable() { 
 	    public void run() {
 	    	if (twoPointers) {
@@ -1001,9 +1006,10 @@ public class jaMME extends Activity {
 	    	longPress = true;
 	    }   
 	};
-	float touchX = 0, touchY = 0;
-	float touchYtotal = 0;
-	boolean touchMotion = false, longPress = false, textPasted = false, twoPointers = false;
+	private float touchX = 0, touchY = 0;
+	private float touchYtotal = 0;
+	private boolean touchMotion = false, longPress = false, textPasted = false, twoPointers = false;
+//	@Override
 	public boolean onTouchEvent(MotionEvent event) {
     	int action = event.getAction();
 		int actionCode = action & MotionEvent.ACTION_MASK;
@@ -1041,16 +1047,16 @@ public class jaMME extends Activity {
 					//scroll the console
 					if ((flags & CONSOLE_ACTIVE_FULLSCREEN) != 0) {
 						if (deltaY < 0) {
-							qkey = jk_keycodes.A_MWHEELDOWN.ordinal();
+							qkey = JAKeycodes.A_MWHEELDOWN.ordinal();
 						} else if (deltaY > 0) {
-							qkey = jk_keycodes.A_MWHEELUP.ordinal();
+							qkey = JAKeycodes.A_MWHEELUP.ordinal();
 						}
 					//scroll the console input history
 					} else if ((flags & CONSOLE_ACTIVE) != 0) {
 						if (deltaY < 0) {
-							qkey = jk_keycodes.A_CURSOR_DOWN.ordinal();
+							qkey = JAKeycodes.A_CURSOR_DOWN.ordinal();
 						} else if (deltaY > 0) {
-							qkey = jk_keycodes.A_CURSOR_UP.ordinal();
+							qkey = JAKeycodes.A_CURSOR_UP.ordinal();
 						}
 						tYt = (int)(tYt / 1.7);
 					}
@@ -1077,14 +1083,14 @@ public class jaMME extends Activity {
 						//hack: the 1st call resets chat, and the 2nd call actually calls team chat
 						quickCommand("messagemode2; messagemode2");
 					} else if ((flags & CHAT_SAY_TEAM) != 0) {
-						keypress(1, jk_keycodes.A_ESCAPE.ordinal(), 0);
-						keypress(0, jk_keycodes.A_ESCAPE.ordinal(), 0);
+						keypress(1, JAKeycodes.A_ESCAPE.ordinal(), 0);
+						keypress(0, JAKeycodes.A_ESCAPE.ordinal(), 0);
 					}
 				} else if ((flags & CONSOLE_ACTIVE) == 0 && (flags & CONSOLE_ACTIVE_FULLSCREEN) == 0) {
 					if ((flags & DEMO_PLAYBACK) == 0) {
 						if (!longPress) {
-							keypress(1, jk_keycodes.A_MOUSE1.ordinal(), 0);
-							keypress(0, jk_keycodes.A_MOUSE1.ordinal(), 0);
+							keypress(1, JAKeycodes.A_MOUSE1.ordinal(), 0);
+							keypress(0, JAKeycodes.A_MOUSE1.ordinal(), 0);
 						}
 					} else {
 						quickCommand("pause");
@@ -1102,7 +1108,7 @@ public class jaMME extends Activity {
 		}
 		return true;
     }
-    static public String[] createArgs(String appArgs) {
+    private String[] createArgs(String appArgs) {
 		ArrayList<String> a = new ArrayList<String>(Arrays.asList(appArgs.split(" ")));
 		Iterator<String> iter = a.iterator();
 		while (iter.hasNext()) {
@@ -1112,491 +1118,16 @@ public class jaMME extends Activity {
 		}
 		return a.toArray(new String[a.size()]);
 	}
-	public enum jk_keycodes {
-		A_NULL ,
-		A_SHIFT,
-		A_CTRL,
-		A_ALT,
-		A_CAPSLOCK,
-		A_NUMLOCK,
-		A_SCROLLLOCK,
-		A_PAUSE,
-		A_BACKSPACE,
-		A_TAB,
-		A_ENTER,
-		A_KP_PLUS,
-		A_KP_MINUS,
-		A_KP_ENTER,
-		A_KP_PERIOD,
-		A_PRINTSCREEN,
-		A_KP_0,
-		A_KP_1,
-		A_KP_2,
-		A_KP_3,
-		A_KP_4,
-		A_KP_5,
-		A_KP_6,
-		A_KP_7,
-		A_KP_8,
-		A_KP_9,
-		A_CONSOLE,
-		A_ESCAPE,
-		A_F1,
-		A_F2,
-		A_F3,
-		A_F4,
-
-		A_SPACE,
-		A_PLING,
-		A_DOUBLE_QUOTE,
-		A_HASH,
-		A_STRING,
-		A_PERCENT,
-		A_AND,
-		A_SINGLE_QUOTE,
-		A_OPEN_BRACKET,
-		A_CLOSE_BRACKET,
-		A_STAR,
-		A_PLUS,
-		A_COMMA,
-		A_MINUS,
-		A_PERIOD,
-		A_FORWARD_SLASH,
-		A_0,
-		A_1,
-		A_2,
-		A_3,
-		A_4,
-		A_5,
-		A_6,
-		A_7,
-		A_8,
-		A_9,
-		A_COLON,
-		A_SEMICOLON,
-		A_LESSTHAN,
-		A_EQUALS,
-		A_GREATERTHAN,
-		A_QUESTION,
-
-		A_AT,
-		A_CAP_A,
-		A_CAP_B,
-		A_CAP_C,
-		A_CAP_D,
-		A_CAP_E,
-		A_CAP_F,
-		A_CAP_G,
-		A_CAP_H,
-		A_CAP_I,
-		A_CAP_J,
-		A_CAP_K,
-		A_CAP_L,
-		A_CAP_M,
-		A_CAP_N,
-		A_CAP_O,
-		A_CAP_P,
-		A_CAP_Q,
-		A_CAP_R,
-		A_CAP_S,
-		A_CAP_T,
-		A_CAP_U,
-		A_CAP_V,
-		A_CAP_W,
-		A_CAP_X,
-		A_CAP_Y,
-		A_CAP_Z,
-		A_OPEN_SQUARE,
-		A_BACKSLASH,
-		A_CLOSE_SQUARE,
-		A_CARET,
-		A_UNDERSCORE,
-
-		A_LEFT_SINGLE_QUOTE,
-		A_LOW_A,
-		A_LOW_B,
-		A_LOW_C,
-		A_LOW_D,
-		A_LOW_E,
-		A_LOW_F,
-		A_LOW_G,
-		A_LOW_H,
-		A_LOW_I,
-		A_LOW_J,
-		A_LOW_K,
-		A_LOW_L,
-		A_LOW_M,
-		A_LOW_N,
-		A_LOW_O,
-		A_LOW_P,
-		A_LOW_Q,
-		A_LOW_R,
-		A_LOW_S,
-		A_LOW_T,
-		A_LOW_U,
-		A_LOW_V,
-		A_LOW_W,
-		A_LOW_X,
-		A_LOW_Y,
-		A_LOW_Z,
-		A_OPEN_BRACE,
-		A_BAR,
-		A_CLOSE_BRACE,
-		A_TILDE,
-		A_DELETE,
-
-		A_EURO,
-		A_SHIFT2,
-		A_CTRL2,
-		A_ALT2,
-		A_F5,
-		A_F6,
-		A_F7,
-		A_F8,
-		A_CIRCUMFLEX,
-		A_MWHEELUP,
-		A_CAP_SCARON,
-		A_MWHEELDOWN,
-		A_CAP_OE,
-		A_MOUSE1,
-		A_MOUSE2,
-		A_INSERT,
-		A_HOME,
-		A_PAGE_UP,
-		A_RIGHT_SINGLE_QUOTE,
-		A_LEFT_DOUBLE_QUOTE,
-		A_RIGHT_DOUBLE_QUOTE,
-		A_F9,
-		A_F10,
-		A_F11,
-		A_F12,
-		A_TRADEMARK,
-		A_LOW_SCARON,
-		A_SHIFT_ENTER,
-		A_LOW_OE,
-		A_END,
-		A_PAGE_DOWN,
-		A_CAP_YDIERESIS,
-
-		A_SHIFT_SPACE,
-		A_EXCLAMDOWN,
-		A_CENT,
-		A_POUND,
-		A_SHIFT_KP_ENTER,
-		A_YEN,
-		A_MOUSE3,
-		A_MOUSE4,
-		A_MOUSE5,
-		A_COPYRIGHT,
-		A_CURSOR_UP,
-		A_CURSOR_DOWN,
-		A_CURSOR_LEFT,
-		A_CURSOR_RIGHT,
-		A_REGISTERED,
-		A_UNDEFINED_7,
-		A_UNDEFINED_8,
-		A_UNDEFINED_9,
-		A_UNDEFINED_10,
-		A_UNDEFINED_11,
-		A_UNDEFINED_12,
-		A_UNDEFINED_13,
-		A_UNDEFINED_14,
-		A_UNDEFINED_15,
-		A_UNDEFINED_16,
-		A_UNDEFINED_17,
-		A_UNDEFINED_18,
-		A_UNDEFINED_19,
-		A_UNDEFINED_20,
-		A_UNDEFINED_21,
-		A_UNDEFINED_22,
-		A_QUESTION_DOWN,
-
-		A_CAP_AGRAVE,
-		A_CAP_AACUTE,
-		A_CAP_ACIRCUMFLEX,
-		A_CAP_ATILDE,
-		A_CAP_ADIERESIS,
-		A_CAP_ARING,
-		A_CAP_AE,
-		A_CAP_CCEDILLA,
-		A_CAP_EGRAVE,
-		A_CAP_EACUTE,
-		A_CAP_ECIRCUMFLEX,
-		A_CAP_EDIERESIS,
-		A_CAP_IGRAVE,
-		A_CAP_IACUTE,
-		A_CAP_ICIRCUMFLEX,
-		A_CAP_IDIERESIS,
-		A_CAP_ETH,
-		A_CAP_NTILDE,
-		A_CAP_OGRAVE,
-		A_CAP_OACUTE,
-		A_CAP_OCIRCUMFLEX,
-		A_CAP_OTILDE,
-		A_CAP_ODIERESIS,
-		A_MULTIPLY,
-		A_CAP_OSLASH,
-		A_CAP_UGRAVE,
-		A_CAP_UACUTE,
-		A_CAP_UCIRCUMFLEX,
-		A_CAP_UDIERESIS,
-		A_CAP_YACUTE,
-		A_CAP_THORN,
-		A_GERMANDBLS,
-
-		A_LOW_AGRAVE,
-		A_LOW_AACUTE,
-		A_LOW_ACIRCUMFLEX,
-		A_LOW_ATILDE,
-		A_LOW_ADIERESIS,
-		A_LOW_ARING,
-		A_LOW_AE,
-		A_LOW_CCEDILLA,
-		A_LOW_EGRAVE,
-		A_LOW_EACUTE,
-		A_LOW_ECIRCUMFLEX,
-		A_LOW_EDIERESIS,
-		A_LOW_IGRAVE,
-		A_LOW_IACUTE,
-		A_LOW_ICIRCUMFLEX,
-		A_LOW_IDIERESIS,
-		A_LOW_ETH,
-		A_LOW_NTILDE,
-		A_LOW_OGRAVE,
-		A_LOW_OACUTE,
-		A_LOW_OCIRCUMFLEX,
-		A_LOW_OTILDE,
-		A_LOW_ODIERESIS,
-		A_DIVIDE,
-		A_LOW_OSLASH,
-		A_LOW_UGRAVE,
-		A_LOW_UACUTE,
-		A_LOW_UCIRCUMFLEX,
-		A_LOW_UDIERESIS,
-		A_LOW_YACUTE,
-		A_LOW_THORN,
-		A_LOW_YDIERESIS,
-
-		A_JOY0,
-		A_JOY1,
-		A_JOY2,
-		A_JOY3,
-		A_JOY4,
-		A_JOY5,
-		A_JOY6,
-		A_JOY7,
-		A_JOY8,
-		A_JOY9,
-		A_JOY10,
-		A_JOY11,
-		A_JOY12,
-		A_JOY13,
-		A_JOY14,
-		A_JOY15,
-		A_JOY16,
-		A_JOY17,
-		A_JOY18,
-		A_JOY19,
-		A_JOY20,
-		A_JOY21,
-		A_JOY22,
-		A_JOY23,
-		A_JOY24,
-		A_JOY25,
-		A_JOY26,
-		A_JOY27,
-		A_JOY28,
-		A_JOY29,
-		A_JOY30,
-		A_JOY31,
-
-		A_AUX0,
-		A_AUX1,
-		A_AUX2,
-		A_AUX3,
-		A_AUX4,
-		A_AUX5,
-		A_AUX6,
-		A_AUX7,
-		A_AUX8,
-		A_AUX9,
-		A_AUX10,
-		A_AUX11,
-		A_AUX12,
-		A_AUX13,
-		A_AUX14,
-		A_AUX15,
-		A_AUX16,
-		A_AUX17,
-		A_AUX18,
-		A_AUX19,
-		A_AUX20,
-		A_AUX21,
-		A_AUX22,
-		A_AUX23,
-		A_AUX24,
-		A_AUX25,
-		A_AUX26,
-		A_AUX27,
-		A_AUX28,
-		A_AUX29,
-		A_AUX30,
-		A_AUX31,
-		
-		MAX_KEYS
-	}
-	public  int mapKey(int acode,  int unicode) {
-		switch(acode) {
-		case KeyEvent.KEYCODE_VOLUME_UP:
-			return jk_keycodes.A_CAP_Q.ordinal();
-		case KeyEvent.KEYCODE_VOLUME_DOWN:
-			return jk_keycodes.A_CAP_E.ordinal();
-		case KeyEvent.KEYCODE_ESCAPE:
-		case KeyEvent.KEYCODE_BACK:
-			return jk_keycodes.A_ESCAPE.ordinal();
-		case KeyEvent.KEYCODE_MENU:
-			return jk_keycodes.A_CONSOLE.ordinal();
-		case KeyEvent.KEYCODE_TAB:
-			return jk_keycodes.A_TAB.ordinal();
-		case KeyEvent.KEYCODE_DPAD_CENTER:
-		case KeyEvent.KEYCODE_ENTER:
-			return jk_keycodes.A_ENTER.ordinal();
-		case KeyEvent.KEYCODE_SPACE:
-			return jk_keycodes.A_SPACE.ordinal();
-		case KeyEvent.KEYCODE_DEL:
-			return jk_keycodes.A_BACKSPACE.ordinal();
-		case KeyEvent.KEYCODE_DPAD_UP:
-			return jk_keycodes.A_CURSOR_UP.ordinal();
-		case KeyEvent.KEYCODE_DPAD_DOWN:
-			return jk_keycodes.A_CURSOR_DOWN.ordinal();
-		case KeyEvent.KEYCODE_DPAD_LEFT:
-			return jk_keycodes.A_CURSOR_LEFT.ordinal();
-		case KeyEvent.KEYCODE_DPAD_RIGHT:
-			return jk_keycodes.A_CURSOR_RIGHT.ordinal();
-		case KeyEvent.KEYCODE_ALT_LEFT:
-			return jk_keycodes.A_ALT.ordinal();
-		case KeyEvent.KEYCODE_ALT_RIGHT:
-			return jk_keycodes.A_ALT2.ordinal();
-		case KeyEvent.KEYCODE_CTRL_LEFT:
-			return jk_keycodes.A_CTRL.ordinal();
-		case KeyEvent.KEYCODE_CTRL_RIGHT:
-			return jk_keycodes.A_CTRL2.ordinal();
-		case KeyEvent.KEYCODE_SHIFT_LEFT:
-			return jk_keycodes.A_SHIFT.ordinal();
-		case KeyEvent.KEYCODE_SHIFT_RIGHT:
-			return jk_keycodes.A_SHIFT2.ordinal();
-		case KeyEvent.KEYCODE_F1:
-			return jk_keycodes.A_F1.ordinal();
-		case KeyEvent.KEYCODE_F2:
-			return jk_keycodes.A_F2.ordinal();
-		case KeyEvent.KEYCODE_F3:
-			return jk_keycodes.A_F3.ordinal();
-		case KeyEvent.KEYCODE_F4:
-			return jk_keycodes.A_F4.ordinal();
-		case KeyEvent.KEYCODE_F5:
-			return jk_keycodes.A_F5.ordinal();
-		case KeyEvent.KEYCODE_F6:
-			return jk_keycodes.A_F6.ordinal();
-		case KeyEvent.KEYCODE_F7:
-			return jk_keycodes.A_F7.ordinal();
-		case KeyEvent.KEYCODE_F8:
-			return jk_keycodes.A_F8.ordinal();
-		case KeyEvent.KEYCODE_F9:
-			return jk_keycodes.A_F9.ordinal();
-		case KeyEvent.KEYCODE_F10:
-			return jk_keycodes.A_F10.ordinal();
-		case KeyEvent.KEYCODE_F11:
-			return jk_keycodes.A_F11.ordinal();
-		case KeyEvent.KEYCODE_F12:
-			return jk_keycodes.A_F12.ordinal();	
-		case KeyEvent.KEYCODE_FORWARD_DEL:
-			return jk_keycodes.A_BACKSPACE.ordinal();
-		case KeyEvent.KEYCODE_INSERT:
-			return jk_keycodes.A_INSERT.ordinal();
-		case KeyEvent.KEYCODE_PAGE_UP:
-			return jk_keycodes.A_PAGE_UP.ordinal();
-		case KeyEvent.KEYCODE_PAGE_DOWN:
-			return jk_keycodes.A_PAGE_DOWN.ordinal();
-		case KeyEvent.KEYCODE_MOVE_HOME:
-			return jk_keycodes.A_HOME.ordinal();
-		case KeyEvent.KEYCODE_MOVE_END:
-			return jk_keycodes.A_END.ordinal();
-		case KeyEvent.KEYCODE_BREAK:
-			return jk_keycodes.A_PAUSE.ordinal();
-		default:
-			if (unicode < 128)
-				return Character.toLowerCase(unicode);
-		}
-		return 0;
-	}
-	private static String []demoExtList = {
+	private static final String []demoExtList = {
 		".dm_26",
 		".dm_25",
 		".mme",
 		null
 	};
 }
-/*
-class PathArgsActivity extends Activity {
-	View view;
-	EditText args;
-	Button gamepath, start;
-	boolean gameFound = false;
-	@Override
-	protected void onCreate(Bundle bundle) {
-		super.onCreate(bundle);
-		view = new View(this);
-		setContentView(view);
-		addContentView(gamepath, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-/* LAYOUT */
-/*		RelativeLayout layout = new RelativeLayout(this);
-        layout.setBackgroundColor(Color.BLACK);
-        
-/* ARGS */
-/*		args.setId(2);
-		RelativeLayout.LayoutParams argsParams = 
-                new RelativeLayout.LayoutParams(
-                    RelativeLayout.LayoutParams.WRAP_CONTENT, 
-                    RelativeLayout.LayoutParams.WRAP_CONTENT);
-        argsParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        argsParams.addRule(RelativeLayout.CENTER_VERTICAL);
-        Resources r = getResources();
-        int px = (int)TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP, 200, r.getDisplayMetrics());
-        args.setWidth(px);
-        
-/* GAME FOLDER */
-/*		gamepath.setId(1);
-		gamepath.setText("Game Folder");
-        RelativeLayout.LayoutParams gamepathParams = 
-                new RelativeLayout.LayoutParams(
-                    RelativeLayout.LayoutParams.WRAP_CONTENT,   
-                    RelativeLayout.LayoutParams.WRAP_CONTENT);
-        gamepathParams.addRule(RelativeLayout.ABOVE, args.getId());
-        gamepathParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        gamepathParams.setMargins(0, 0, 0, 50);
-        
-/* START */
-/*		start.setId(5);
-		gamepath.setText("Start");
-        RelativeLayout.LayoutParams startParams = 
-                new RelativeLayout.LayoutParams(
-                    RelativeLayout.LayoutParams.WRAP_CONTENT,   
-                    RelativeLayout.LayoutParams.WRAP_CONTENT);
-        startParams.addRule(RelativeLayout.BELOW, args.getId());
-        startParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
-        startParams.setMargins(0, 50, 0, 0);
-
-        layout.addView(args, argsParams);
-        layout.addView(gamepath, gamepathParams);
-        layout.addView(start, startParams);
-        setContentView(layout);
-	}
-}
-*/
 class BestEglChooser implements EGLConfigChooser {
-	String LOG = "BestEglChooser";
+	static final String LOG = "BestEglChooser";
 
 	Context ctx;
 
