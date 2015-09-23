@@ -162,7 +162,7 @@ public class jaMME extends Activity {
 		if (parameters.length > 2)
 			logSave = Boolean.parseBoolean(parameters[2]);
 		try {
-			if (checkAssets(baseDirectory) && openDemo()) {
+			if (checkAssets(baseDirectory) && openIntent()) {
 				gameReady = true;
 			}
 		} catch (IOException e) {
@@ -240,7 +240,41 @@ public class jaMME extends Activity {
 	private static boolean equals(final String s1, final String s2) {
 		return s1.length() == s2.length() && s1.hashCode() == s2.hashCode();
 	}
-	private boolean openDemo() throws IOException {
+	private boolean openDemo(String demo) throws IOException {
+    	int i = 0;
+    	while(demoExtList[i] != null) {
+    		if (demo.contains(demoExtList[i]))
+    			break;
+    		i++;
+		}
+    	if (demoExtList[i] != null) {
+    		String demosFolder = gamePath + "/base/demos/";
+    		if (demo.contains(".mme"))
+    			demosFolder = gamePath + "/base/mmedemos/";
+	    	File from = new File(demo);
+	    	File to = new File(demosFolder + from.getName());
+	    	while (to.exists()) {
+	        	to = new File(demosFolder + "_" + to.getName());
+	    	}
+	    	copyFile(from, to);
+	    	demoName = to.getName();
+	    	int pos = demoName.lastIndexOf(".");
+	    	if (pos > 0) {
+	    		demoName = demoName.substring(0, pos);
+	    	}
+			gameArgs = "+demo \"" + demoName + "\" del";
+	    	return true;
+    	}
+		return false;
+	}
+	private boolean openURI(String uri) {
+		if (uri.contains(".") || uri.contains("localhost")) {
+			gameArgs = uri;
+			return true;
+		}
+		return false;
+	}
+	private boolean openIntent() throws IOException {
 		Log.i("jaMME", "openDemo");
 		Intent intent = getIntent();
 		if (intent == null) {
@@ -249,31 +283,8 @@ public class jaMME extends Activity {
         String action = intent.getAction();
     	Uri uri = intent.getData();
         if (action != null && uri != null && action.compareTo(Intent.ACTION_VIEW) == 0) {
-        	String demo = java.net.URLDecoder.decode((uri.getEncodedPath()), "UTF-8");
-        	int i = 0;
-        	while(demoExtList[i] != null) {
-        		if (demo.contains(demoExtList[i]))
-        			break;
-        		i++;
-			}
-        	if (demoExtList[i] != null) {
-        		String demosFolder = gamePath + "/base/demos/";
-        		if (demo.contains(".mme"))
-        			demosFolder = gamePath + "/base/mmedemos/";
-		    	File from = new File(demo);
-		    	File to = new File(demosFolder + from.getName());
-		    	while (to.exists()) {
-		        	to = new File(demosFolder + "_" + to.getName());
-		    	}
-		    	copyFile(from, to);
-		    	demoName = to.getName();
-		    	int pos = demoName.lastIndexOf(".");
-		    	if (pos > 0) {
-		    		demoName = demoName.substring(0, pos);
-		    	}
-				gameArgs = "+demo \"" + demoName + "\" del";
-		    	return true;
-        	}
+        	String data = java.net.URLDecoder.decode((uri.getEncodedPath()), "UTF-8");
+        	return openDemo(data) || openURI(data);
         }
         return false;
 	}

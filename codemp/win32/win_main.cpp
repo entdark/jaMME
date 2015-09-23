@@ -1229,42 +1229,67 @@ static extensionsTable_t et[] = {
 	{".dm_25", "Jedi Academy Demo (v1.00)"},
 };
 
-char *GetStringRegKey(HKEY hkey) {
+char *GetStringRegKey(HKEY hkey, const char *valueName) {
 	if (!hkey) {
 		return NULL;
 	}
     static CHAR szBuffer[512];
     DWORD dwBufferSize = sizeof(szBuffer);
-    LSTATUS nError = RegQueryValueEx(hkey, NULL, 0, NULL, (LPBYTE)szBuffer, &dwBufferSize);
+    LSTATUS nError = RegQueryValueEx(hkey, valueName, 0, NULL, (LPBYTE)szBuffer, &dwBufferSize);
     if (ERROR_SUCCESS == nError) {
         return szBuffer;
     }
     return NULL;
 }
 
-bool RegisterFileType(const char *key, const char *value) {
+bool AddRegistry(const HKEY key, const char *subkey, const char *value, const char *valueName = NULL) {
 	Com_DPrintf(S_COLOR_YELLOW"RegisterFileType(%s,%s)\n", key, value);
 	HKEY hkey;
-	LSTATUS nError = RegOpenKeyEx(HKEY_CLASSES_ROOT, key, 0, KEY_READ, &hkey);
+	LSTATUS nError = RegOpenKeyEx(key, subkey, 0, KEY_READ, &hkey);
 	if (nError != ERROR_SUCCESS && nError != ERROR_FILE_NOT_FOUND) {
 		Com_DPrintf(S_COLOR_RED"RegOpenKeyEx(%s,%s) error: %d\n", key, value, nError);
 		return false;
 	}
-	bool ret = false;
-	const char *setValue = GetStringRegKey(hkey);
+	const char *setValue = GetStringRegKey(hkey, valueName);
 	RegCloseKey(hkey);
 	//ignore the same value
 	if (!setValue || Q_stricmp(setValue, value)) {
-		nError = RegCreateKeyEx(HKEY_CLASSES_ROOT,key,0,0,0,KEY_ALL_ACCESS,0,&hkey,0);
+		nError = RegCreateKeyEx(key, subkey, 0, 0, 0, KEY_ALL_ACCESS, 0, &hkey, 0);
 		if (nError == ERROR_SUCCESS) {
-			RegSetValueEx(hkey,"",0,REG_SZ,(BYTE*)value,strlen(value)+1);
-			ret = true;
+			RegSetValueEx(hkey, valueName, 0, REG_SZ, (BYTE*)value, strlen(value)+1);
+			RegCloseKey(hkey);
+			return true;
 		} else {
 			Com_DPrintf(S_COLOR_RED"RegCreateKeyEx(%s,%s) error: %d\n", key, value, nError);
 		}
 	}
-	RegCloseKey(hkey);
-	return ret;
+	return false;
+}
+
+void RegisterProtocol(char *program) {
+	string action="open";
+	string app = program + string(" %1");
+	string protocol = "ja";
+	string icon = protocol + string("\\DefaultIcon");
+
+	string path=protocol+
+				"\\shell\\"+
+				action+
+				"\\command\\";
+	
+	//using | to be able to call all 3 functions even if true got returned
+	//register the protocol
+	bool refresh = false;
+	refresh |= AddRegistry(HKEY_CLASSES_ROOT, protocol.c_str(), "")
+	//register application association
+	| AddRegistry(HKEY_CLASSES_ROOT, protocol.c_str(), "", "URL Protocol")
+	//register application association
+	| AddRegistry(HKEY_CLASSES_ROOT, path.c_str(), app.c_str())
+	//register icon for the protocol
+	| AddRegistry(HKEY_CLASSES_ROOT, icon.c_str(), program);
+	if (refresh) {
+		SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
+	}
 }
 
 void RegisterFileTypes(char *program) {
@@ -1283,11 +1308,11 @@ void RegisterFileTypes(char *program) {
 	
 		//using | to be able to call all 3 functions even if true got returned
 		//register the filetype extension
-		refresh |= RegisterFileType(extension.c_str(), desc.c_str())
+		refresh |= AddRegistry(HKEY_CLASSES_ROOT, extension.c_str(), desc.c_str())
 		//register application association
-		| RegisterFileType(path.c_str(), app.c_str())
+		| AddRegistry(HKEY_CLASSES_ROOT, path.c_str(), app.c_str())
 		//register icon for the filetype
-		| RegisterFileType(icon.c_str(), program);
+		| AddRegistry(HKEY_CLASSES_ROOT, icon.c_str(), program);
 	}
 	if (refresh) {
 		SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
@@ -1328,6 +1353,12 @@ int main( int argc, char **argv )
 	}
 
 	Com_Init( commandLine );
+	
+	CHAR path[512];
+	if (GetModuleFileName(NULL, path, sizeof(path))) {
+		RegisterFileTypes(path);
+		RegisterProtocol(path);
+	}
 
 #if !defined(DEDICATED)
 	QuickMemTest();
@@ -1339,10 +1370,6 @@ int main( int argc, char **argv )
 	// have a working graphics subsystems
 	if ( !com_dedicated->integer && !com_viewlog->integer ) {
 		Sys_ShowConsole( 0, qfalse );
-	}
-	CHAR path[512];
-	if (GetModuleFileName(NULL, path, sizeof(path))) {
-		RegisterFileTypes(path);
 	}
 
     // main game loop
@@ -1395,7 +1422,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 		return 0;
 	}
 	ParseCommandLine(cmdline, argv);
-
+	
 	/* End Sam Lantinga Public Domain 4/13/98 */
 
 	g_wv.hInstance = hInstance;

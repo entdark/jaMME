@@ -357,6 +357,64 @@ quake3 set test blah + map test
 int		com_numConsoleLines;
 char	*com_consoleLines[MAX_CONSOLE_LINES];
 
+typedef enum {
+	PROTOCOL_CMD,
+	PROTOCOL_CVAR,
+} protocolParamType_t;
+typedef struct {
+	const char			*name;
+	protocolParamType_t	type;
+} protocolParams_t;
+//allowed parameters to get parsed out from ja://
+protocolParams_t parseParams[] = {
+	{"password",PROTOCOL_CVAR},
+	{"fs_game",PROTOCOL_CVAR},
+};
+
+//ja://ip:port&password=pass&fs_game=mod -> +connect ip:port +password pass +set fs_game mod
+char *Com_ParseProtocol(char *commandLine) {
+	static char newCommandLine[256];
+	char *protocol;
+	//ip has to contain dots, hasn't it?
+	if ((protocol = strstr(commandLine, "ja:")) && (strchr(commandLine, '.') || strstr(commandLine, "hostname"))) {
+		protocol += 3;
+		char *ip = strtok(protocol, " /\\?!\"#$%&\'()*+,;<=>@[]^_`{|}~"); //allow only alphanumeric with ".", ":" and "-"
+		if (ip) {
+			Q_strcat(newCommandLine, sizeof(newCommandLine), "+connect ");
+			Q_strcat(newCommandLine, sizeof(newCommandLine), ip);
+			size_t len = ARRAY_LEN(parseParams);
+			char *param;
+			for (param = strtok(NULL, " /\\?&%\'"); param != NULL;
+				param = strtok(param + strlen(param) + 1, " /\\?&%\'")) {
+				char temp[64], *key, *val;
+				Q_strncpyz(temp, param, sizeof (temp));
+				key = strtok(temp, " =\"\'");
+				val = strtok(NULL, " =\"\'");
+				if (key && *key && val && *val && *val != '&') {
+					for (size_t i = 0; i < len; i++) {
+						if (!Q_stricmpn(key, parseParams[i].name, strlen(parseParams[i].name))) {
+							//entTODO: add ignoring params into protocolParams_t?
+							if (!Q_stricmp(parseParams[i].name, "fs_game") && !Q_stricmp(val, "base"))
+								break;
+							if (parseParams[i].type == PROTOCOL_CMD) {
+								Q_strcat(newCommandLine, sizeof(newCommandLine), " +");
+							} else {
+								Q_strcat(newCommandLine, sizeof(newCommandLine), " +set ");
+							}
+							Q_strcat(newCommandLine, sizeof(newCommandLine), parseParams[i].name);
+							Q_strcat(newCommandLine, sizeof(newCommandLine), " ");
+							Q_strcat(newCommandLine, sizeof(newCommandLine), val);
+							break;
+						}
+					}
+				}
+			}
+			return newCommandLine;
+		}
+	}
+	return commandLine;
+}
+
 /*
 ==================
 Com_ParseCommandLine
@@ -364,7 +422,8 @@ Com_ParseCommandLine
 Break it up into multiple console lines
 ==================
 */
-void Com_ParseCommandLine( char *commandLine ) {
+void Com_ParseCommandLine( char *cmdLine ) {
+	char *commandLine = Com_ParseProtocol(cmdLine);
 	com_consoleLines[0] = commandLine;
 	com_numConsoleLines = 1;
 
