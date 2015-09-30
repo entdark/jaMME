@@ -1371,6 +1371,8 @@ int main( int argc, char **argv )
 	if ( !com_dedicated->integer && !com_viewlog->integer ) {
 		Sys_ShowConsole( 0, qfalse );
 	}
+	
+	DragAcceptFiles(GetActiveWindow(), TRUE);
 
     // main game loop
 	while( 1 ) {

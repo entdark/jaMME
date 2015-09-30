@@ -298,6 +298,59 @@ static int MapKey (ulong key, word wParam)
 	return(result);
 }
 
+static bool fileHasExt(const char *filename, const char *ext) {
+	const char *fileExt = filename + strlen(filename) - strlen(ext);
+	if (!Q_stricmp(fileExt, ext))
+		return true;
+	return false;
+}
+
+const char *demoExt[] = {
+	".dm_26",
+	".dm_25",
+	".mme",
+	NULL,
+};
+static bool isDemo(const char *filename) {
+	int i = 0;
+	while (demoExt[i]) {
+		if (fileHasExt(filename, demoExt[i]))
+			return true;
+		i++;
+	}
+	return false;
+}
+
+const char *configExt = ".cfg";
+static bool isConfig(const char *filename) {
+	if (fileHasExt(filename, configExt))
+		return true;
+	return false;
+}
+
+typedef struct dropLogic_s {
+	bool (*isSupported)(const char *filename);
+	char *cmd;
+	char *args;
+	bool allowMulti;
+} dropLogic_t;
+//entTODO: implement config and other files support
+static dropLogic_t dropList[] = {
+	{isDemo, "demo", "del", false},
+//	{isConfig, "exec", NULL, true},
+};
+
+static bool isSupported(const char *filename, dropLogic_t *out) {
+	size_t len = ARRAY_LEN(dropList);
+	for (size_t i = 0; i < len; i++) {
+		if (dropList[i].isSupported(filename)) {
+			*out = dropList[i];
+			return true;
+		}
+	}
+	out = NULL;
+	return false;
+}
 
 /*
 ====================
@@ -558,6 +611,27 @@ LONG WINAPI MainWndProc (
 			return BROADCAST_QUERY_DENY;
 		}
 		break;
+	case WM_DROPFILES:
+		HDROP hDrop = (HDROP)wParam;
+		TCHAR szFileName[MAX_PATH];
+		DWORD dwCount = DragQueryFile(hDrop, 0xFFFFFFFF, szFileName, MAX_PATH);
+		for (DWORD i = 0; i < dwCount; i++) {
+			DragQueryFile(hDrop, 0, szFileName, MAX_PATH);
+			dropLogic_t drop;
+			if (!isSupported(szFileName, &drop))
+				continue;
+			char cmd[MAX_PATH+16] = {0};
+			Q_strcat(cmd, sizeof(cmd), drop.cmd);
+			Q_strcat(cmd, sizeof(cmd), " \"");
+			Q_strcat(cmd, sizeof(cmd), szFileName);
+			Q_strcat(cmd, sizeof(cmd), "\" ");
+			if (drop.args)
+				Q_strcat(cmd, sizeof(cmd), drop.args);
+			Cbuf_ExecuteText(EXEC_APPEND, cmd);
+			if (!drop.allowMulti)
+				break;
+		}
+		DragFinish(hDrop);
    }
 
     return DefWindowProc( hWnd, uMsg, wParam, lParam );

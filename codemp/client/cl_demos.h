@@ -59,7 +59,7 @@ typedef struct {
 	qboolean			lastFrame;
 	int					frameNumber;
 
-	char				commandData[256*1024];
+	char				commandData[DEMO_PLAY_CMDS*1024];
 	int					commandFree;
 	int					commandStart[DEMO_PLAY_CMDS];
 	int					commandCount;

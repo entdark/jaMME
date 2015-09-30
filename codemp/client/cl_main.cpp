@@ -604,6 +604,14 @@ void CL_PlayDemo_f( void ) {
 	} else {
 		Cvar_Set( "mme_demoExt", "" );
 	}
+	
+	//stop playing back the current demo
+	if (clc.demofile) { //regular demo player way
+		FS_FCloseFile(clc.demofile);
+		clc.demofile = 0;
+	} else if (clc.demoplaying) {
+		demoStop();
+	}
 
 	Cvar_Set( "mme_demoFileName", testName );
 
@@ -614,7 +622,7 @@ void CL_PlayDemo_f( void ) {
 				return;
 		}
 	}
-
+	
 	Cvar_Set( "mme_demoExt", CL_WalkDemoExt( testName, name, &clc.demofile ) );
 	if (!clc.demofile) {
 		Com_Error( ERR_DROP, "couldn't open %s", name);
@@ -2883,8 +2891,7 @@ void CL_Init( void ) {
 	mme_demoPrecache = Cvar_Get ("mme_demoPrecache", "0", CVAR_ARCHIVE );
 	mme_demoAutoNext = Cvar_Get ("mme_demoAutoNext", "1", CVAR_ARCHIVE );
 	mme_demoPaused = Cvar_Get ("mme_demoPaused", "0", CVAR_INTERNAL );
-	
-	Cvar_Set( "mme_demoExt", "" );
+	mme_demoPaused = Cvar_Get ("mme_demoExt", "", CVAR_INTERNAL );
 
 	CL_SetMMEState();
 	//

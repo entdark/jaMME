@@ -377,7 +377,7 @@ qboolean demoCutParseSnapshot(msg_t *msg, clientConnection_t *clcCut, clientActi
 	clCut->snap = newSnap;
 	clCut->snap.ping = 999;
 	// calculate ping time
-	for (i = 0 ; i < PACKET_BACKUP ; i++) {
+	for (i = 0; i < PACKET_BACKUP; i++) {
 		packetNum = (clcCut->netchan.outgoingSequence-1-i) & PACKET_MASK;
 		if (clCut->snap.ps.commandTime >= clCut->outPackets[packetNum].p_serverTime) {
 			clCut->snap.ping = cls.realtime - clCut->outPackets[packetNum].p_realtime;
