@@ -577,7 +577,7 @@ void CL_PlayDemo_f( void ) {
 			char temp[MAX_OSPATH] = "_";
 			char *demos = (!Q_stricmp(ext, ".mme")) ? "mmedemos" : "demos";
 			while (FS_FileExists(va("%s/%s%s", demos, temp, ext))) {
-				if (strlen(temp) >= MAX_OSPATH)
+				if (strlen(temp) >= MAX_OSPATH-1)
 					break;
 				Q_strcat(temp, sizeof(temp), "_");
 			}

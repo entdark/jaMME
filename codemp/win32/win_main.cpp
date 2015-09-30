@@ -1243,11 +1243,11 @@ char *GetStringRegKey(HKEY hkey, const char *valueName) {
 }
 
 bool AddRegistry(const HKEY key, const char *subkey, const char *value, const char *valueName = NULL) {
-	Com_DPrintf(S_COLOR_YELLOW"RegisterFileType(%s,%s)\n", key, value);
+	Com_DPrintf(S_COLOR_YELLOW"AddRegistry(%u,%s,%s,%s)\n", key, subkey, value, valueName ? valueName : "NULL");
 	HKEY hkey;
 	LSTATUS nError = RegOpenKeyEx(key, subkey, 0, KEY_READ, &hkey);
 	if (nError != ERROR_SUCCESS && nError != ERROR_FILE_NOT_FOUND) {
-		Com_DPrintf(S_COLOR_RED"RegOpenKeyEx(%s,%s) error: %d\n", key, value, nError);
+		Com_DPrintf(S_COLOR_RED"RegOpenKeyEx(%u,%s,%s) error: %d\n", key, subkey, value, nError);
 		return false;
 	}
 	const char *setValue = GetStringRegKey(hkey, valueName);
@@ -1260,7 +1260,7 @@ bool AddRegistry(const HKEY key, const char *subkey, const char *value, const ch
 			RegCloseKey(hkey);
 			return true;
 		} else {
-			Com_DPrintf(S_COLOR_RED"RegCreateKeyEx(%s,%s) error: %d\n", key, value, nError);
+			Com_DPrintf(S_COLOR_RED"RegCreateKeyEx(%u,%s,%s) error: %d\n", key, subkey, value, nError);
 		}
 	}
 	return false;
@@ -1277,9 +1277,9 @@ void RegisterProtocol(char *program) {
 				action+
 				"\\command\\";
 	
+	bool refresh = false;
 	//using | to be able to call all 3 functions even if true got returned
 	//register the protocol
-	bool refresh = false;
 	refresh |= AddRegistry(HKEY_CLASSES_ROOT, protocol.c_str(), "")
 	//register application association
 	| AddRegistry(HKEY_CLASSES_ROOT, protocol.c_str(), "", "URL Protocol")
