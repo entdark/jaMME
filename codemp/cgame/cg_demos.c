@@ -8,7 +8,6 @@ demoMain_t demo;
 
 extern void CG_DamageBlendBlob( void );
 extern void CG_PlayBufferedSounds( void );
-extern int CG_DemosCalcViewValues( void );
 extern void CG_SetupFrustum( void );
 extern void CG_CalcScreenEffects(void);
 extern void CG_PowerupTimerSounds( void );
@@ -233,7 +232,7 @@ static int demoSetupView( void) {
 						|| cg.fallingToDeath)
 						&& !cg.zoomMode);
 				}
-				inwater = CG_DemosCalcViewValues();
+				inwater = CG_CalcViewValues();
 				// first person blend blobs, done after AnglesToAxis
 				if ( !cg.renderingThirdPerson && cg.predictedPlayerState.pm_type != PM_SPECTATOR) {
 					CG_DamageBlendBlob();
