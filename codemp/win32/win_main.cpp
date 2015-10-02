@@ -17,6 +17,8 @@
 
 #define MEM_THRESHOLD 128*1024*1024
 
+UINT MSH_BROADCASTARGS;
+
 //static char		sys_cmdline[MAX_STRING_CHARS];
 
 /* win_shared.cpp */
@@ -1319,6 +1321,17 @@ void RegisterFileTypes(char *program) {
 	}
 }
 
+static HANDLE mutex;
+bool isOtherInstanceRunning(void) {
+	mutex = CreateMutex(NULL, TRUE, PROGRAM_MUTEX);
+	//prevent multiple instances if we are opening a demo
+	if (ERROR_ALREADY_EXISTS == GetLastError()) {
+		return true;
+	}
+	//in the other case just open another sintance
+	return false;
+}
+
 int main( int argc, char **argv )
 {
 	int		i;
@@ -1359,6 +1372,7 @@ int main( int argc, char **argv )
 		RegisterFileTypes(path);
 		RegisterProtocol(path);
 	}
+	Com_Printf("MSH_BROADCASTARGS: %u\n", MSH_BROADCASTARGS);
 
 #if !defined(DEDICATED)
 	QuickMemTest();
@@ -1416,6 +1430,21 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 		MessageBox(NULL, "Out of memory - aborting", "Fatal Error", MB_ICONEXCLAMATION | MB_OK);
 		return 0;
 	}
+	MSH_BROADCASTARGS = RegisterWindowMessage("MSH_BROADCASTARGS");
+	if (isOtherInstanceRunning()) {
+		char *bcArgs = strstr(cmdline, "+demo");
+		if (!bcArgs)
+			bcArgs = strstr(cmdline, "ja:");
+		if (bcArgs) {
+			Sys_CopySharedData(bcArgs, strlen(bcArgs)+1);
+			PostMessage(HWND_BROADCAST, MSH_BROADCASTARGS, 0, 0);
+			Sleep(1337);
+			free(cmdline);
+			ReleaseMutex(mutex);
+			CloseHandle(mutex);
+			return 0;
+		}
+	}
 
 	int    argc = ParseCommandLine(cmdline, NULL);
 	char **argv = (char **)alloca(sizeof(char *) * argc + 1);
@@ -1434,6 +1463,9 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 	main(argc, argv);
 
 	free(cmdline);
+
+	ReleaseMutex(mutex);
+	CloseHandle(mutex);
 
 	/* End Sam Lantinga Public Domain 4/13/98 */
 

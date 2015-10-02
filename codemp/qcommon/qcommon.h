@@ -863,6 +863,9 @@ void Hunk_Trash( void );
 
 void Com_TouchMemory( void );
 
+void Com_ParseCommandLine( char *cmdLine );
+qboolean Com_AddStartupCommands( void );
+
 // commandLine should not include the executable name (argv[0])
 void Com_Init( char *commandLine );
 void Com_Frame( void );

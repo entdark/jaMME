@@ -31,6 +31,9 @@ char	*Sys_ConsoleInput (void);
 
 qboolean	Sys_GetPacket ( netadr_t *net_from, msg_t *net_message );
 
+bool Sys_CopySharedData(void *data, size_t size);
+void *Sys_GetSharedData(void);
+
 // Input subsystem
 
 void	IN_Init (void);
@@ -79,3 +82,4 @@ extern WinVars_t	g_wv;
 #define	MAX_QUED_EVENTS		256
 #define	MASK_QUED_EVENTS	( MAX_QUED_EVENTS - 1 )
 
+#define PROGRAM_MUTEX "jaMME"

@@ -14,6 +14,7 @@ WinVars_t	g_wv;
 #endif
 
 static UINT MSH_MOUSEWHEEL;
+extern UINT MSH_BROADCASTARGS;
 
 // Console variables that we need to access from this module
 cvar_t			*vid_xpos;			// X coordinate of window position
@@ -298,6 +299,15 @@ static int MapKey (ulong key, word wParam)
 	return(result);
 }
 
+void switchMod(void) {
+	cvar_t *fs_game = Cvar_FindVar("fs_game");
+	if (!(fs_game && !Q_stricmp(fs_game->string, "mme"))) {
+		Com_Printf("Switching mod\n");
+		Cvar_Set("fs_game", "mme");
+		Cbuf_ExecuteText(EXEC_APPEND, "vid_restart\n");
+	}
+}
+
 static bool fileHasExt(const char *filename, const char *ext) {
 	const char *fileExt = filename + strlen(filename) - strlen(ext);
 	if (!Q_stricmp(fileExt, ext))
@@ -373,18 +383,26 @@ LONG WINAPI MainWndProc (
 {
 	byte code;
 
-	if ( uMsg == MSH_MOUSEWHEEL )
-	{
-		if ( ( ( int ) wParam ) > 0 )
-		{
-			Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, A_MWHEELUP, qtrue, 0, NULL );
-			Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, A_MWHEELUP, qfalse, 0, NULL );
+	if (uMsg == MSH_MOUSEWHEEL) {
+		if (((int)wParam) > 0) {
+			Sys_QueEvent(g_wv.sysMsgTime, SE_KEY, A_MWHEELUP, qtrue, 0, NULL);
+			Sys_QueEvent(g_wv.sysMsgTime, SE_KEY, A_MWHEELUP, qfalse, 0, NULL);
+		} else {
+			Sys_QueEvent(g_wv.sysMsgTime, SE_KEY, A_MWHEELDOWN, qtrue, 0, NULL);
+			Sys_QueEvent(g_wv.sysMsgTime, SE_KEY, A_MWHEELDOWN, qfalse, 0, NULL);
 		}
-		else
-		{
-			Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, A_MWHEELDOWN, qtrue, 0, NULL );
-			Sys_QueEvent( g_wv.sysMsgTime, SE_KEY, A_MWHEELDOWN, qfalse, 0, NULL );
+        return DefWindowProc (hWnd, uMsg, wParam, lParam);
+	} else if (uMsg == MSH_BROADCASTARGS) {
+		char *args = (char *)Sys_GetSharedData();
+		if (args) {
+			if (strstr(args, "+demo")) {
+				switchMod();
+			}
+			Com_ParseCommandLine(args);
+			Com_AddStartupCommands();
+//			Cbuf_ExecuteText(EXEC_APPEND, args);
 		}
+		SwitchToThisWindow(hWnd, FALSE);
         return DefWindowProc (hWnd, uMsg, wParam, lParam);
 	}
 
@@ -612,7 +630,7 @@ LONG WINAPI MainWndProc (
 		}
 		break;
 	case WM_DROPFILES:
-		HDROP hDrop = (HDROP)wParam;
+		{HDROP hDrop = (HDROP)wParam;
 		TCHAR szFileName[MAX_PATH];
 		DWORD dwCount = DragQueryFile(hDrop, 0xFFFFFFFF, szFileName, MAX_PATH);
 		for (DWORD i = 0; i < dwCount; i++) {
@@ -627,11 +645,17 @@ LONG WINAPI MainWndProc (
 			Q_strcat(cmd, sizeof(cmd), "\" ");
 			if (drop.args)
 				Q_strcat(cmd, sizeof(cmd), drop.args);
+			if (!Q_stricmp(drop.cmd, "demo")) {
+				switchMod();
+			}
 			Cbuf_ExecuteText(EXEC_APPEND, cmd);
+			Cbuf_ExecuteText(EXEC_APPEND, "\n");
 			if (!drop.allowMulti)
 				break;
 		}
-		DragFinish(hDrop);
+		DragFinish(hDrop);}
+		SwitchToThisWindow(hWnd, FALSE);
+		break;
    }
 
     return DefWindowProc( hWnd, uMsg, wParam, lParam );

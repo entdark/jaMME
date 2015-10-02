@@ -535,7 +535,7 @@ extern void demoCommandSmoothingEnable(qboolean enable);
 void CL_PlayDemo_f( void ) {
 	char		name[MAX_OSPATH], *testName, testNameActual[MAX_OSPATH];
 	char		*ext = NULL;
-	qboolean	haveConvert, del = qfalse;
+	qboolean	haveConvert, forceNewConvert = qfalse, del = qfalse;
 	cvar_t		*fs_game;
 
 	if (Cmd_Argc() < 2) {
@@ -583,6 +583,8 @@ void CL_PlayDemo_f( void ) {
 			}
 			if (FS_CopyFileAbsolute(Cmd_Argv(1), va("%s/%s%s", demos, temp, ext))) {
 				Q_strncpyz( testNameActual, temp, sizeof( testNameActual ) );
+				if (Q_stricmp(ext, ".mme"))
+					forceNewConvert = qtrue;
 			} else {
 				Q_strncpyz( testNameActual, Cmd_Argv(1), sizeof( testNameActual ) );
 			}
@@ -615,7 +617,7 @@ void CL_PlayDemo_f( void ) {
 
 	Cvar_Set( "mme_demoFileName", testName );
 
-	if ( haveConvert ) {
+	if (haveConvert && !forceNewConvert) {
 		Com_sprintf (name, MAX_OSPATH, "mmedemos/%s.mme", testName );
 		if (FS_FileExists( name )) {
 			if (demoPlay( name, del ))
@@ -2908,8 +2910,7 @@ void CL_Init( void ) {
 	Cmd_AddCommand("vid_restart", CL_Vid_Restart_f);
 	Cmd_AddCommand("disconnect", CL_Disconnect_f);
 	Cmd_AddCommand("cinematic", CL_PlayCinematic_f);
-	if (cls.mmeState == MME_STATE_NONE)
-		Cmd_AddCommand("connect", CL_Connect_f);
+	Cmd_AddCommand("connect", CL_Connect_f);
 	Cmd_AddCommand("reconnect", CL_Reconnect_f);
 	Cmd_AddCommand("localservers", CL_LocalServers_f);
 	Cmd_AddCommand("rcon", CL_Rcon_f);

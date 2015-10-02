@@ -175,3 +175,71 @@ char *Sys_GetCurrentUser( void )
 char	*Sys_DefaultHomePath(void) {
 	return NULL;
 }
+
+#define SHAREDDATA_SIZE 512
+#define MAPNAME PROGRAM_MUTEX"_Map"
+HANDLE hMapFile;
+bool Sys_CopySharedData(void *data, size_t size) {
+	HANDLE hMapFile;
+	LPCTSTR pBuf;
+
+	hMapFile = CreateFileMapping(
+					INVALID_HANDLE_VALUE,    // use paging file
+					NULL,                    // default security
+					PAGE_READWRITE,          // read/write access
+					0,                       // maximum object size (high-order DWORD)
+					SHAREDDATA_SIZE,         // maximum object size (low-order DWORD)
+					MAPNAME); 
+	if (hMapFile == NULL) {
+		hMapFile = OpenFileMapping(
+					FILE_MAP_ALL_ACCESS,   // read/write access
+					FALSE,                 // do not inherit the name
+					MAPNAME);  
+		if (hMapFile == NULL) {
+			return false;
+		}
+	}
+
+	pBuf = (LPTSTR)MapViewOfFile(hMapFile,   // handle to map object
+						FILE_MAP_ALL_ACCESS, // read/write permission
+						0,
+						0,
+						SHAREDDATA_SIZE);
+	if (pBuf == NULL) {
+		return false;
+	}
+
+	CopyMemory((PVOID)pBuf, data, size);
+	UnmapViewOfFile(pBuf);
+//	CloseHandle(hMapFile);
+	return true;
+}
+
+void *Sys_GetSharedData(void) {
+	static char ret[SHAREDDATA_SIZE];
+	HANDLE hMapFile;
+	LPCTSTR pBuf;
+
+	hMapFile = OpenFileMapping(
+					FILE_MAP_ALL_ACCESS,   // read/write access
+					FALSE,                 // do not inherit the name
+					MAPNAME);              // name of mapping object
+	if (hMapFile == NULL) {
+		return NULL;
+	}
+
+	pBuf = (LPTSTR)MapViewOfFile(hMapFile, // handle to map object
+				FILE_MAP_ALL_ACCESS,  // read/write permission
+				0,
+				0,
+				SHAREDDATA_SIZE);
+	if (pBuf == NULL) {
+		CloseHandle(hMapFile);
+		return NULL;
+	}
+
+	Com_sprintf(ret, sizeof(ret), pBuf);
+	UnmapViewOfFile(pBuf);
+	CloseHandle(hMapFile);
+	return ret;
+}
