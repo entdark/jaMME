@@ -17,11 +17,11 @@ typedef struct {
 	int			cluster;
 	int			area;
 
-	int64_t		firstLeafBrush;
-	int64_t		numLeafBrushes;
+	ptrdiff_t	firstLeafBrush;
+	int         numLeafBrushes;
 
-	int64_t		firstLeafSurface;
-	int64_t		numLeafSurfaces;
+	ptrdiff_t	firstLeafSurface;
+	int         numLeafSurfaces;
 } cLeaf_t;
 
 typedef struct cmodel_s {
