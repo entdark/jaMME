@@ -541,9 +541,9 @@ void G2_TransformSurfaces(int surfaceNum, surfaceInfo_v &rootSList,
 
 // main calling point for the model transform for collision detection. At this point all of the skeleton has been transformed.
 #ifdef _G2_GORE
-void G2_TransformModel(CGhoul2Info_v &ghoul2, const int frameNum, vec3_t scale, CMiniHeap *G2VertSpace, int useLod, bool ApplyGore)
+void G2_TransformModel(CGhoul2Info_v *ghoul2, const int frameNum, vec3_t scale, CMiniHeap *G2VertSpace, int useLod, bool ApplyGore)
 #else
-void G2_TransformModel(CGhoul2Info_v &ghoul2, const int frameNum, vec3_t scale, CMiniHeap *G2VertSpace, int useLod)
+void G2_TransformModel(CGhoul2Info_v *ghoul2, const int frameNum, vec3_t scale, CMiniHeap *G2VertSpace, int useLod)
 #endif
 {
 	int				i, lod;
@@ -578,9 +578,9 @@ void G2_TransformModel(CGhoul2Info_v &ghoul2, const int frameNum, vec3_t scale, 
 	}
 
 	// walk each possible model for this entity and try rendering it out
-	for (i=0; i<ghoul2.size(); i++)
+	for (i=0; i<ghoul2->size(); i++)
 	{
-		CGhoul2Info &g=ghoul2[i];
+		CGhoul2Info &g=(*ghoul2)[i];
 		// don't bother with models that we don't care about.
 		if (!g.mValid)
 		{

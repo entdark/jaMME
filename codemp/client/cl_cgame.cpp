@@ -1315,26 +1315,26 @@ Ghoul2 Insert Start
 
 	case CG_G2_HAVEWEGHOULMODELS:
 		if ( re.G2API_HaveWeGhoul2Models )
-			return re.G2API_HaveWeGhoul2Models( *((CGhoul2Info_v *)args[1]) );
+			return re.G2API_HaveWeGhoul2Models(((CGhoul2Info_v *)args[1]) );
 		else
 			return qfalse;
 
 	case CG_G2_SETMODELS:
-		re.G2API_SetGhoul2ModelIndexes( *((CGhoul2Info_v *)args[1]),(qhandle_t *)VMA(2),(qhandle_t *)VMA(3));
+		re.G2API_SetGhoul2ModelIndexes(((CGhoul2Info_v *)args[1]),(qhandle_t *)VMA(2),(qhandle_t *)VMA(3));
 		return 0;
 
 	case CG_G2_GETBOLT:
-		return re.G2API_GetBoltMatrix(*((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), args[7], (qhandle_t *)VMA(8), (float *)VMA(9));
+		return re.G2API_GetBoltMatrix(((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), args[7], (qhandle_t *)VMA(8), (float *)VMA(9));
 
 	case CG_G2_GETBOLT_NOREC:
 		re.G2API_BoltMatrixReconstruction( qfalse );
-		return re.G2API_GetBoltMatrix(*((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), args[7], (qhandle_t *)VMA(8), (float *)VMA(9));
+		return re.G2API_GetBoltMatrix(((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), args[7], (qhandle_t *)VMA(8), (float *)VMA(9));
 
 	case CG_G2_GETBOLT_NOREC_NOROT:
 		//gG2_GBMNoReconstruct = qtrue;
 		//Yeah, this was probably BAD.
 		re.G2API_BoltMatrixSPMethod( qtrue );
-		return re.G2API_GetBoltMatrix(*((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), args[7], (qhandle_t *)VMA(8), (float *)VMA(9));
+		return re.G2API_GetBoltMatrix(((CGhoul2Info_v *)args[1]), args[2], args[3], (mdxaBone_t *)VMA(4), (const float *)VMA(5),(const float *)VMA(6), args[7], (qhandle_t *)VMA(8), (float *)VMA(9));
 
 	case CG_G2_INITGHOUL2MODEL:
 #ifdef _FULL_G2_LEAK_CHECKING
@@ -1355,7 +1355,7 @@ Ghoul2 Insert Start
 		}
 
 	case CG_G2_COLLISIONDETECT:
-		re.G2API_CollisionDetect ( (CollisionRecord_t*)VMA(1), *((CGhoul2Info_v *)args[2]), 
+		re.G2API_CollisionDetect((CollisionRecord_t*)VMA(1), ((CGhoul2Info_v *)args[2]),
 								   (const float*)VMA(3),
 								   (const float*)VMA(4),
 								   args[5],
@@ -1370,7 +1370,7 @@ Ghoul2 Insert Start
 		return 0;
 
 	case CG_G2_COLLISIONDETECTCACHE:
-		re.G2API_CollisionDetectCache ( (CollisionRecord_t*)VMA(1), *((CGhoul2Info_v *)args[2]), 
+		re.G2API_CollisionDetectCache((CollisionRecord_t*)VMA(1), ((CGhoul2Info_v *)args[2]), 
 								   (const float*)VMA(3),
 								   (const float*)VMA(4),
 								   args[5],
@@ -1385,7 +1385,7 @@ Ghoul2 Insert Start
 		return 0;
 
 	case CG_G2_ANGLEOVERRIDE:
-		return re.G2API_SetBoneAngles(*((CGhoul2Info_v *)args[1]), args[2], (const char *)VMA(3), (float *)VMA(4), args[5],
+		return re.G2API_SetBoneAngles(((CGhoul2Info_v *)args[1]), args[2], (const char *)VMA(3), (float *)VMA(4), args[5],
 							 (const Eorientations) args[6], (const Eorientations) args[7], (const Eorientations) args[8],
 							 (qhandle_t *)VMA(9), args[10], args[11] );
 	
@@ -1399,7 +1399,7 @@ Ghoul2 Insert Start
 		return 0;
 
 	case CG_G2_PLAYANIM:
-		return re.G2API_SetBoneAnim(*((CGhoul2Info_v *)args[1]), args[2], (const char *)VMA(3), args[4], args[5],
+		return re.G2API_SetBoneAnim(((CGhoul2Info_v *)args[1]), args[2], (const char *)VMA(3), args[4], args[5],
 								args[6], VMF(7), args[8], VMF(9), args[10]);
 
 	case CG_G2_GETBONEANIM:
@@ -1435,7 +1435,7 @@ Ghoul2 Insert Start
 		{
 			char *point = ((char *)VMA(3));
 			char *local;
-			local = re.G2API_GetGLAName(*((CGhoul2Info_v *)args[1]), args[2]);
+			local = re.G2API_GetGLAName(((CGhoul2Info_v *)args[1]), args[2]);
 			if (local)
 			{
 				strcpy(point, local);
@@ -1444,17 +1444,17 @@ Ghoul2 Insert Start
 		return 0;
 
 	case CG_G2_COPYGHOUL2INSTANCE:
-		return re.G2API_CopyGhoul2Instance(*((CGhoul2Info_v *)args[1]), *((CGhoul2Info_v *)args[2]), args[3]);
+		return re.G2API_CopyGhoul2Instance(((CGhoul2Info_v *)args[1]), ((CGhoul2Info_v *)args[2]), args[3]);
 
 	case CG_G2_COPYSPECIFICGHOUL2MODEL:
-		re.G2API_CopySpecificG2Model(*((CGhoul2Info_v *)args[1]), args[2], *((CGhoul2Info_v *)args[3]), args[4]);
+		re.G2API_CopySpecificG2Model(((CGhoul2Info_v *)args[1]), args[2], ((CGhoul2Info_v *)args[3]), args[4]);
 		return 0;
 
 	case CG_G2_DUPLICATEGHOUL2INSTANCE:
 #ifdef _FULL_G2_LEAK_CHECKING
 		g_G2AllocServer = 0;
 #endif
-		re.G2API_DuplicateGhoul2Instance(*((CGhoul2Info_v *)args[1]), (CGhoul2Info_v **)VMA(2));
+		re.G2API_DuplicateGhoul2Instance(((CGhoul2Info_v *)args[1]), (CGhoul2Info_v **)VMA(2));
 		return 0;
 
 	case CG_G2_HASGHOUL2MODELONINDEX:
@@ -1508,7 +1508,7 @@ Ghoul2 Insert Start
 		break;
 
 	case CG_G2_ADDBOLT:
-		return	re.G2API_AddBolt(*((CGhoul2Info_v *)args[1]), args[2], (const char *)VMA(3));
+		return	re.G2API_AddBolt(((CGhoul2Info_v *)args[1]), args[2], (const char *)VMA(3));
 
 
 	case CG_G2_ATTACHENT:
@@ -1523,7 +1523,7 @@ Ghoul2 Insert Start
 		}
 
 	case CG_G2_SETBOLTON:
-		re.G2API_SetBoltInfo(*((CGhoul2Info_v *)args[1]), args[2], args[3]);
+		re.G2API_SetBoltInfo(((CGhoul2Info_v *)args[1]), args[2], args[3]);
 		return 0;
 
 #ifdef _SOF2	
@@ -1535,13 +1535,13 @@ Ghoul2 Insert Start
 Ghoul2 Insert End
 */
 	case CG_G2_SETROOTSURFACE:
-		return re.G2API_SetRootSurface(*((CGhoul2Info_v *)args[1]), args[2], (const char *)VMA(3));
+		return re.G2API_SetRootSurface(((CGhoul2Info_v *)args[1]), args[2], (const char *)VMA(3));
 
 	case CG_G2_SETSURFACEONOFF:
-		return re.G2API_SetSurfaceOnOff(*((CGhoul2Info_v *)args[1]), (const char *)VMA(2), /*(const int)VMA(3)*/args[3]);
+		return re.G2API_SetSurfaceOnOff(((CGhoul2Info_v *)args[1]), (const char *)VMA(2), /*(const int)VMA(3)*/args[3]);
 
 	case CG_G2_SETNEWORIGIN:
-		return re.G2API_SetNewOrigin(*((CGhoul2Info_v *)args[1]), /*(const int)VMA(2)*/args[2]);
+		return re.G2API_SetNewOrigin(((CGhoul2Info_v *)args[1]), /*(const int)VMA(2)*/args[2]);
 
 	case CG_G2_DOESBONEEXIST:
 		{
@@ -1639,7 +1639,7 @@ Ghoul2 Insert End
 			rduParams.me = rduParamst->me;
 			rduParams.settleFrame = rduParamst->settleFrame;
 
-			re.G2API_AnimateG2ModelsRag(*((CGhoul2Info_v *)args[1]), args[2], &rduParams);
+			re.G2API_AnimateG2ModelsRag(((CGhoul2Info_v *)args[1]), args[2], &rduParams);
 		}
 		return 0;
 		break;
