@@ -3277,7 +3277,7 @@ void R_AddGhoulSurfaces( trRefEntity_t *ent ) {
 	personalModel = (qboolean)((ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal);
 
 	int modelList[256];
-	assert(ghoul2.size()<=255);
+	assert(ghoul2->size()<=255);
 	modelList[255]=548;
 
 	// set up lighting now that we know we aren't culled

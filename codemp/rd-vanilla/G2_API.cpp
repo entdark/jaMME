@@ -1636,7 +1636,7 @@ qboolean G2API_RemoveBolt(CGhoul2Info *ghlInfo, const int index)
 
 int G2API_AddBolt(CGhoul2Info_v *ghoul2, const int modelIndex, const char *boneName)
 {
-	assert(ghoul2.size()>modelIndex);
+	assert(ghoul2->size()>modelIndex);
 
 	if (ghoul2 && ghoul2->size()>modelIndex)
 	{
@@ -1731,7 +1731,7 @@ qboolean gG2_GBMUseSPMethod;
 qboolean G2API_GetBoltMatrix_SPMethod(CGhoul2Info_v *ghoul2, const int modelIndex, const int boltIndex, mdxaBone_t *matrix, const vec3_t angles,
 							 const vec3_t position, const int frameNum, qhandle_t *modelList, const vec3_t scale )
 {
-	assert(ghoul2.size() > modelIndex);
+	assert(ghoul2->size() > modelIndex);
 
 	if ((intptr_t)&ghoul2 && (ghoul2->size() > modelIndex))
 	{
