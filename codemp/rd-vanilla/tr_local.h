@@ -1228,6 +1228,8 @@ extern cvar_t	*r_ext_multitexture;
 extern cvar_t	*r_ext_compiled_vertex_array;
 extern cvar_t	*r_ext_texture_env_add;
 extern cvar_t	*r_ext_texture_filter_anisotropic;
+extern cvar_t	*r_ext_multisample;
+
 
 extern cvar_t	*r_environmentMapping;
 
