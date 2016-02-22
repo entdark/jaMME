@@ -355,7 +355,7 @@ static rserr_t GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 		depthBits = r_depthbits->value;
 
 	stencilBits = r_stencilbits->value;
-	//samples = r_ext_multisample->value;
+    samples = r_ext_multisample->value;
 
 	for (i = 0; i < 16; i++)
 	{
@@ -434,8 +434,8 @@ static rserr_t GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 		SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, testDepthBits );
 		SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, testStencilBits );
 
-		/*SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, samples ? 1 : 0 );
-		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, samples );*/
+		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, samples ? 1 : 0 );
+		SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, samples );
 
 		if(r_stereo->integer)
 		{
@@ -619,7 +619,7 @@ static rserr_t GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 	else
 		depthbits = r_depthbits->value;
 	stencilbits = r_stencilbits->value;
-	//samples = r_ext_multisample->value;
+    samples = r_ext_multisample->value;
 
 	for (i = 0; i < 16; i++)
 	{

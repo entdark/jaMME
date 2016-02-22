@@ -577,7 +577,7 @@ static void IN_ProcessEvents( void ) {
 				break;
 			case SDL_WINDOWEVENT:
 				switch(e.window.event) {
-					case SDL_WINDOWEVENT_RESIZED: {
+/*					case SDL_WINDOWEVENT_RESIZED: {
 							char width[32], height[32];
 							if (!Cvar_VariableIntegerValue("r_restartOnResize"))
 								break;
@@ -591,7 +591,7 @@ static void IN_ProcessEvents( void ) {
 							// he tries to drag...
 							vidRestartTime = Sys_Milliseconds() + Cvar_VariableIntegerValue("r_resizeDelay");
 						}
-						break;
+						break;*/
 					case SDL_WINDOWEVENT_MINIMIZED: Cvar_SetValue("com_minimized", 1); break;
 					case SDL_WINDOWEVENT_RESTORED:
 					case SDL_WINDOWEVENT_MAXIMIZED: Cvar_SetValue("com_minimized", 0); break;

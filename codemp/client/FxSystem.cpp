@@ -105,7 +105,7 @@ qboolean SFxHelper::GetOriginAxisFromBolt(CGhoul2Info_v *pGhoul2, int mEntNum, i
 		return qfalse;
 #endif
 	// go away and get me the bolt position for this frame please
-	doesBoltExist = re.G2API_GetBoltMatrix(*pGhoul2, modelNum, boltNum, 
+	doesBoltExist = re.G2API_GetBoltMatrix(pGhoul2, modelNum, boltNum,
 		&boltMatrix, data->mAngles, data->mOrigin, theFxHelper.mOldTime, 0, data->mScale);
 	if (doesBoltExist) {
 		// set up the axis and origin we need for the actual effect spawning

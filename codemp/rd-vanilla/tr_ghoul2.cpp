@@ -90,7 +90,7 @@ void G2Time_ReportTimers(void)
 bool HackadelicOnClient=false; // means this is a render traversal
 
 qboolean G2_SetupModelPointers(CGhoul2Info *ghlInfo);
-qboolean G2_SetupModelPointers(CGhoul2Info_v &ghoul2);
+qboolean G2_SetupModelPointers(CGhoul2Info_v *ghoul2);
 
 extern cvar_t	*r_Ghoul2AnimSmooth;
 extern cvar_t	*r_Ghoul2UnSqashAfterSmooth;
@@ -3243,9 +3243,9 @@ void R_AddGhoulSurfaces( trRefEntity_t *ent ) {
 	skin_t			*skin;
 	int				modelCount;
 	mdxaBone_t		rootMatrix;
-	CGhoul2Info_v	&ghoul2 = *((CGhoul2Info_v *)ent->e.ghoul2);
+	CGhoul2Info_v	*ghoul2 = ((CGhoul2Info_v *)ent->e.ghoul2);
 
-	if ( !ghoul2.IsValid() )
+	if ( !ghoul2->IsValid() )
 	{
 		return;
 	}
@@ -3271,13 +3271,13 @@ void R_AddGhoulSurfaces( trRefEntity_t *ent ) {
 	}
 	HackadelicOnClient=true;
 	// are any of these models setting a new origin?
-	RootMatrix(ghoul2,currentTime, ent->e.modelScale,rootMatrix);
+	RootMatrix(*ghoul2,currentTime, ent->e.modelScale,rootMatrix);
 
    	// don't add third_person objects if not in a portal
 	personalModel = (qboolean)((ent->e.renderfx & RF_THIRD_PERSON) && !tr.viewParms.isPortal);
 
 	int modelList[256];
-	assert(ghoul2.size()<=255);
+	assert(ghoul2->size()<=255);
 	modelList[255]=548;
 
 	// set up lighting now that we know we aren't culled
@@ -3294,7 +3294,7 @@ void R_AddGhoulSurfaces( trRefEntity_t *ent ) {
 	fogNum = R_GComputeFogNum( ent );
 
 	// order sort the ghoul 2 models so bolt ons get bolted to the right model
-	G2_Sort_Models(ghoul2, modelList, &modelCount);
+	G2_Sort_Models(*ghoul2, modelList, &modelCount);
 	assert(modelList[255]==548);
 
 #ifdef _G2_GORE
@@ -3311,7 +3311,7 @@ void R_AddGhoulSurfaces( trRefEntity_t *ent ) {
 	for (j=0; j<modelCount; j++)
 	{
 		i = modelList[j];
-		if (ghoul2[i].mValid&&!(ghoul2[i].mFlags & GHOUL2_NOMODEL)&&!(ghoul2[i].mFlags & GHOUL2_NORENDER))
+		if ((*ghoul2)[i].mValid&&!((*ghoul2)[i].mFlags & GHOUL2_NOMODEL)&&!((*ghoul2)[i].mFlags & GHOUL2_NORENDER))
 		{
 			//
 			// figure out whether we should be using a custom shader for this model
@@ -3325,49 +3325,49 @@ void R_AddGhoulSurfaces( trRefEntity_t *ent ) {
 			{
 				cust_shader = NULL;
 				// figure out the custom skin thing
-				if (ghoul2[i].mCustomSkin)
+				if ((*ghoul2)[i].mCustomSkin)
 				{
-					skin = R_GetSkinByHandle(ghoul2[i].mCustomSkin );
+					skin = R_GetSkinByHandle((*ghoul2)[i].mCustomSkin );
 				}
 				else if (ent->e.customSkin)
 				{
 					skin = R_GetSkinByHandle(ent->e.customSkin );
 				}
-				else if ( ghoul2[i].mSkin > 0 && ghoul2[i].mSkin < tr.numSkins ) 
+				else if ( (*ghoul2)[i].mSkin > 0 && (*ghoul2)[i].mSkin < tr.numSkins )
 				{
-					skin = R_GetSkinByHandle( ghoul2[i].mSkin );
+					skin = R_GetSkinByHandle( (*ghoul2)[i].mSkin );
 				}
 			}
 
-			if (j&&ghoul2[i].mModelBoltLink != -1)
+			if (j&&(*ghoul2)[i].mModelBoltLink != -1)
 			{
-				int	boltMod = (ghoul2[i].mModelBoltLink >> MODEL_SHIFT) & MODEL_AND;
-				int	boltNum = (ghoul2[i].mModelBoltLink >> BOLT_SHIFT) & BOLT_AND;
+				int	boltMod = ((*ghoul2)[i].mModelBoltLink >> MODEL_SHIFT) & MODEL_AND;
+				int	boltNum = ((*ghoul2)[i].mModelBoltLink >> BOLT_SHIFT) & BOLT_AND;
 				mdxaBone_t bolt;
-				G2_GetBoltMatrixLow(ghoul2[boltMod],boltNum,ent->e.modelScale,bolt);
-				G2_TransformGhoulBones(ghoul2[i].mBlist,bolt, ghoul2[i],currentTime);
+				G2_GetBoltMatrixLow((*ghoul2)[boltMod],boltNum,ent->e.modelScale,bolt);
+				G2_TransformGhoulBones((*ghoul2)[i].mBlist,bolt, (*ghoul2)[i],currentTime);
 			}
 			else
 			{
-				G2_TransformGhoulBones(ghoul2[i].mBlist, rootMatrix, ghoul2[i],currentTime);
+				G2_TransformGhoulBones((*ghoul2)[i].mBlist, rootMatrix, (*ghoul2)[i],currentTime);
 			}
-			whichLod = G2_ComputeLOD( ent, ghoul2[i].currentModel, ghoul2[i].mLodBias );
-			G2_FindOverrideSurface(-1,ghoul2[i].mSlist); //reset the quick surface override lookup;
+			whichLod = G2_ComputeLOD( ent, (*ghoul2)[i].currentModel, (*ghoul2)[i].mLodBias );
+			G2_FindOverrideSurface(-1,(*ghoul2)[i].mSlist); //reset the quick surface override lookup;
 
 #ifdef _G2_GORE
 			CGoreSet *gore=0;
-			if (ghoul2[i].mGoreSetTag)
+			if ((*ghoul2)[i].mGoreSetTag)
 			{
-				gore=FindGoreSet(ghoul2[i].mGoreSetTag);
+				gore=FindGoreSet((*ghoul2)[i].mGoreSetTag);
 				if (!gore) // my gore is gone, so remove it
 				{
-					ghoul2[i].mGoreSetTag=0;
+					(*ghoul2)[i].mGoreSetTag=0;
 				}
 			}
 
-			CRenderSurface RS(ghoul2[i].mSurfaceRoot, ghoul2[i].mSlist, cust_shader, fogNum, personalModel, ghoul2[i].mBoneCache, ent->e.renderfx, skin, (model_t *)ghoul2[i].currentModel, whichLod, ghoul2[i].mBltlist, gore_shader, gore);
+			CRenderSurface RS((*ghoul2)[i].mSurfaceRoot, (*ghoul2)[i].mSlist, cust_shader, fogNum, personalModel, (*ghoul2)[i].mBoneCache, ent->e.renderfx, skin, (model_t *)((*ghoul2)[i]).currentModel, whichLod, (*ghoul2)[i].mBltlist, gore_shader, gore);
 #else
-			CRenderSurface RS(ghoul2[i].mSurfaceRoot, ghoul2[i].mSlist, cust_shader, fogNum, personalModel, ghoul2[i].mBoneCache, ent->e.renderfx, skin, (model_t *)ghoul2[i].currentModel, whichLod, ghoul2[i].mBltlist);
+			CRenderSurface RS((*ghoul2)[i].mSurfaceRoot, (*ghoul2)[i].mSlist, cust_shader, fogNum, personalModel, (*ghoul2)[i].mBoneCache, ent->e.renderfx, skin, (model_t *)((*ghoul2)[i]).currentModel, whichLod, (*ghoul2)[i].mBltlist);
 #endif
 			if (!personalModel && (RS.renderfx & RF_SHADOW_PLANE) && !bInShadowRange(ent->e.origin))
 			{

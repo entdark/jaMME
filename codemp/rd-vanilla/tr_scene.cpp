@@ -237,12 +237,12 @@ void RE_AddRefEntityToScene( const refEntity_t *ent ) {
 
 	if (ent->ghoul2)
 	{
-		CGhoul2Info_v	&ghoul2 = *((CGhoul2Info_v *)ent->ghoul2);
+		CGhoul2Info_v	*ghoul2 = ((CGhoul2Info_v *)ent->ghoul2);
 
-		if (!ghoul2[0].mModel)
+		if (!(*ghoul2)[0].mModel)
 		{
 #ifdef _DEBUG
-			CGhoul2Info &g2 = ghoul2[0];
+			CGhoul2Info &g2 = (*ghoul2)[0];
 #endif
 			//DebugBreak();
 			Com_Printf("Your ghoul2 instance has no model!\n");
