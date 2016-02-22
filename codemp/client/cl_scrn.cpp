@@ -389,6 +389,16 @@ void SCR_DrawDemoRecording( void ) {
 	}
 }
 
+extern qboolean s_soundMuted;
+void SCR_DrawMuted(void) {
+	if (!s_soundMuted)
+		return;
+	const float ratio = cls.ratioFix;
+	const float size = 20.0f;
+	re.SetColor(NULL);
+	re.DrawStretchPic(SCREEN_WIDTH-size*ratio, SCREEN_HEIGHT-size, size*ratio, size, 0, 0, 1, 1, re.RegisterShaderNoMip("gfx/mp/voice_icon"));
+	re.DrawStretchPic(SCREEN_WIDTH-size*ratio, SCREEN_HEIGHT-size, size*ratio, size, 0, 0, 1, 1, re.RegisterShaderNoMip("gfx/2d/defer"));
+}
 
 /*
 ===============================================================================
@@ -550,7 +560,8 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	if ( Key_GetCatcher( ) & KEYCATCH_UI && uivm ) {
 		VM_Call( uivm, UI_REFRESH, cls.realtime );
 	}
-
+	
+	SCR_DrawMuted();
 	// console draws next
 	Con_DrawConsole ();
 
