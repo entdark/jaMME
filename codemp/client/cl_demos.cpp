@@ -663,25 +663,12 @@ void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothe
 					MSG_ReadByte( &oldMsg );
 				break;
 			case svc_setgame:
-				char newGameDir[MAX_QPATH];
-				char next;
 				i = 0;
-				while (i < MAX_QPATH)
-				{
-					next = MSG_ReadByte(&oldMsg);
-					if(next)
-					{
-						newGameDir[i] = next;
-					}
-					else
-					{
+				while (i < MAX_QPATH) {
+					if (!MSG_ReadByte(&oldMsg))
 						break;
-					}
 					i++;
 				}
-				newGameDir[i] = 0;
-
-				// But here we stop, and don't do more. If this goes horribly wrong sometime, you might have to go and actually do something with this.
 				break;
 			case svc_mapchange:
 				// nothing to parse.
