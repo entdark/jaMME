@@ -872,7 +872,7 @@ void CL_Disconnect(qboolean showMainMenu) {
 		CL_WritePacket();
 		CL_WritePacket();
 	}
-	CL_ClearState ();
+	CL_ClearState();
 	// wipe the client connection
 	Com_Memset(&clc, 0, sizeof(clc));
 	Cvar_Set("mme_demoPaused", "0");
@@ -2390,7 +2390,7 @@ void CL_Frame(int msec) {
 	}
 
 	if (!cls.cgameStarted || !clc.newDemoPlayer)
-		CIN_AdjustTime(Sys_Milliseconds()*com_timescale->value);
+		CIN_AdjustTime(-1);
 	
 	// update the screen
 	SCR_UpdateScreen();
