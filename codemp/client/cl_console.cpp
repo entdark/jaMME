@@ -377,7 +377,7 @@ const char *CL_ConsolePrintTimeStamp(const char *txt) {
 		newString = qfalse;
 		time(&rawtime);
 		strftime(timeStr,sizeof(timeStr),"[%H:%M:%S]",localtime(&rawtime));
-		return va("%s %s", timeStr, txt);
+		return va(S_COLOR_WHITE"%s %s", timeStr, txt);
 	}
 	return txt;
 }
