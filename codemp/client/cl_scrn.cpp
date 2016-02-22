@@ -194,8 +194,9 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 	s = string;
 	xx = x;
 	while ( *s ) {
-		if ( !noColorEscape && ( ( cls.uag.newColors && Q_IsColorStringUAG( s ) ) || Q_IsColorString( s ) ) ) {
-			s += 2;
+		int colorLen = Q_parseColorString( s, 0, cls.uag.newColors );
+		if ( !noColorEscape && colorLen ) {
+			s += colorLen;
 			continue;
 		}
 		SCR_DrawChar( xx+2, y+2, size, *s );
@@ -209,24 +210,14 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 	xx = x;
 	re.SetColor( setColor );
 	while ( *s ) {
-		if ( cls.uag.newColors && Q_IsColorStringUAG( s ) ) {
+		int colorLen = Q_parseColorString( s, color, cls.uag.newColors );
+		if ( colorLen ) {
 			if ( !forceColor ) {
-				Com_Memcpy( color, g_color_table_uag[ColorIndexUAG(*(s+1))], sizeof( color ) );
 				color[3] = setColor[3];
 				re.SetColor( color );
 			}
 			if ( !noColorEscape ) {
-				s += 2;
-				continue;
-			}
-		} else if ( Q_IsColorString( s ) ) {
-			if ( !forceColor ) {
-				Com_Memcpy( color, g_color_table[ColorIndex(*(s+1))], sizeof( color ) );
-				color[3] = setColor[3];
-				re.SetColor( color );
-			}
-			if ( !noColorEscape ) {
-				s += 2;
+				s += colorLen;
 				continue;
 			}
 		}
@@ -248,8 +239,9 @@ void SCR_DrawStringExt2( float x, float y, float charWidth, float charHeight, co
 	s = string;
 	xx = x;
 	while ( *s ) {
-		if ( !noColorEscape && ( ( cls.uag.newColors && Q_IsColorStringUAG( s ) ) || Q_IsColorString( s ) ) ) {
-			s += 2;
+		int colorLen = Q_parseColorString( s, 0, cls.uag.newColors );
+		if ( !noColorEscape && colorLen ) {
+			s += colorLen;
 			continue;
 		}
 		SCR_DrawChar2( xx+2*cls.ratioFix, y+2, charWidth, charHeight, *s );
@@ -263,24 +255,14 @@ void SCR_DrawStringExt2( float x, float y, float charWidth, float charHeight, co
 	xx = x;
 	re.SetColor( setColor );
 	while ( *s ) {
-		if ( cls.uag.newColors && Q_IsColorStringUAG( s ) ) {
+		int colorLen = Q_parseColorString( s, color, cls.uag.newColors );
+		if ( colorLen ) {
 			if ( !forceColor ) {
-				Com_Memcpy( color, g_color_table_uag[ColorIndexUAG(*(s+1))], sizeof( color ) );
 				color[3] = setColor[3];
 				re.SetColor( color );
 			}
 			if ( !noColorEscape ) {
-				s += 2;
-				continue;
-			}
-		} else if ( Q_IsColorString( s ) ) {
-			if ( !forceColor ) {
-				Com_Memcpy( color, g_color_table[ColorIndex(*(s+1))], sizeof( color ) );
-				color[3] = setColor[3];
-				re.SetColor( color );
-			}
-			if ( !noColorEscape ) {
-				s += 2;
+				s += colorLen;
 				continue;
 			}
 		}
@@ -325,24 +307,14 @@ void SCR_DrawSmallStringExt( int x, int y, const char *string, float *setColor, 
 	xx = x;
 	re.SetColor( setColor );
 	while ( *s ) {
-		if ( cls.uag.newColors && Q_IsColorStringUAG( s ) ) {
+		int colorLen = Q_parseColorString( s, color, cls.uag.newColors );
+		if ( colorLen ) {
 			if ( !forceColor ) {
-				Com_Memcpy( color, g_color_table_uag[ColorIndexUAG(*(s+1))], sizeof( color ) );
 				color[3] = setColor[3];
 				re.SetColor( color );
 			}
 			if ( !noColorEscape ) {
-				s += 2;
-				continue;
-			}
-		} else if ( Q_IsColorString( s ) ) {
-			if ( !forceColor ) {
-				Com_Memcpy( color, g_color_table[ColorIndex(*(s+1))], sizeof( color ) );
-				color[3] = setColor[3];
-				re.SetColor( color );
-			}
-			if ( !noColorEscape ) {
-				s += 2;
+				s += colorLen;
 				continue;
 			}
 		}
@@ -363,12 +335,13 @@ static int SCR_Strlen( const char *str ) {
 	int count = 0;
 
 	while ( *s ) {
-		if ( ( cls.uag.newColors && Q_IsColorStringUAG( s ) ) || Q_IsColorString( s ) ) {
-			s += 2;
-		} else {
-			count++;
-			s++;
+		int colorLen = Q_parseColorString( s, 0, cls.uag.newColors);
+		if( colorLen ) {
+			s += colorLen;
+			continue;
 		}
+		count++;
+		s++;
 	}
 
 	return count;

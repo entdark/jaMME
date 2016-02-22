@@ -1415,7 +1415,8 @@ extern	vec4_t		colorLtBlue;
 extern	vec4_t		colorDkBlue;
 
 extern vec3_t defaultColors[10];
-int Q_parseColor( const char *p, const vec3_t numberColors[10], float *color );
+int Q_parseColorString( const char *p, float *color, qboolean uagColours );
+int Q_parseColor( const char *p, const vec3_t *numberColors, float *color );
 
 #define Q_COLOR_ESCAPE	'^'
 // you MUST have the last bit on here about colour strings being less than 7 or taiwanese strings register as colour!!!!
@@ -1447,7 +1448,6 @@ int Q_parseColor( const char *p, const vec3_t numberColors[10], float *color );
 #define S_COLOR_WHITE	"^7"
 
 extern vec4_t	g_color_table[8];
-extern vec4_t	g_color_table_uag[43];
 
 #define	MAKERGB( v, r, g, b ) v[0]=r;v[1]=g;v[2]=b
 #define	MAKERGBA( v, r, g, b, a ) v[0]=r;v[1]=g;v[2]=b;v[3]=a
@@ -1764,17 +1764,41 @@ void	Q_strcat( char *dest, int size, const char *src );
 
 const char *Q_stristr( const char *s, const char *find);
 
-int Q_PrintStrlenUAG( const char *string );
 // strlen that discounts Quake color sequences
-int Q_PrintStrlen( const char *string );
+int Q_PrintStrlen( const char *string
+#if defined (UI_EXPORTS) || (QAGAME)
+#elif defined (CGAME)
+	, qboolean uagColours
+#else
+	, qboolean uagColours = qfalse
+#endif
+);
 
-char *Q_CleanStrUAG( char *string );
 // removes color sequences from string
-char *Q_CleanStr( char *string );
-void Q_StripColor(char *text);
-void Q_StripColorUAG(char *text);
-void Q_StripColorNew(char *text);
-void Q_StripColorNewUAG(char *text);
+char *Q_CleanStr( char *string
+#if defined (UI_EXPORTS) || (QAGAME)
+#elif defined (CGAME)
+	, qboolean uagColours
+#else
+	, qboolean uagColours = qfalse
+#endif
+);
+void Q_StripColor(char *text
+#if defined (UI_EXPORTS) || (QAGAME)
+#elif defined (CGAME)
+	, qboolean uagColours
+#else
+	, qboolean uagColours = qfalse
+#endif
+);
+void Q_StripColorNew(char *text
+#if defined (UI_EXPORTS) || (QAGAME)
+#elif defined (CGAME)
+	, qboolean uagColours
+#else
+	, qboolean uagColours = qfalse
+#endif
+);
 void Q_strstrip( char *string, const char *strip, const char *repl );
 const char *Q_strchrs( const char *string, const char *search );
 

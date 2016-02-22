@@ -1130,18 +1130,75 @@ vec3_t defaultColors[10] =
 	{0.0f, 1.0f, 1.0f},
 	{1.0f, 0.0f, 1.0f},
 	{1.0f, 1.0f, 1.0f},
-	{0.6f, 0.6f, 0.6f},
-	{0.3f, 0.3f, 0.3f},
+	{0.0f, 0.0f, 0.0f},
+	{1.0f, 0.0f, 0.0f},
+};
+vec3_t uagColors[43] =
+{
+	{ 0.000, 0.000, 0.000 }, // '0' 0x30 48:   0   0   0
+	{ 1.000, 0.000, 0.000 }, // '1' 0x31 49: 255   0   0
+	{ 0.000, 1.000, 0.000 }, // '2' 0x32 50:   0 255   0
+	{ 1.000, 1.000, 0.000 }, // '3' 0x33 51: 255 255   0
+	{ 0.000, 0.000, 1.000 }, // '4' 0x34 52:   0   0 255
+	{ 0.000, 1.000, 1.000 }, // '5' 0x35 53:   0 255 255
+	{ 1.000, 0.000, 1.000 }, // '6' 0x36 54: 255   0 255
+	{ 1.000, 1.000, 1.000 }, // '7' 0x37 55: 255 255 255
+// '8'-'@' will be skipped, but '8' and '9' will appear in the console as black and red (as in original jamp)
+	{ 0.000, 0.000, 0.000 }, // '8' 0x38 56:   0   0   0
+	{ 1.000, 0.000, 0.000 }, // '9' 0x39 57: 255   0   0
+	{ 1.000, 1.000, 1.000 }, // ':' 0x3A 58: 255 255 255
+	{ 1.000, 1.000, 1.000 }, // ';' 0x3B 59: 255 255 255
+	{ 1.000, 1.000, 1.000 }, // '<' 0x3C 60: 255 255 255
+	{ 1.000, 1.000, 1.000 }, // '=' 0x3D 61: 255 255 255
+	{ 1.000, 1.000, 1.000 }, // '>' 0x3E 62: 255 255 255
+	{ 1.000, 1.000, 1.000 }, // '?' 0x3F 63: 255 255 255
+	{ 1.000, 1.000, 1.000 }, // '@' 0x40 64: 255 255 255
+// end of skip
+	{ 1.000, 0.561, 0.561 }, // 'A' 0x41 65: 255 143 143
+	{ 0.500, 0.039, 0.039 }, // 'B' 0x42 66: 127  10  10
+	{ 0.500, 0.302, 0.027 }, // 'C' 0x43 67: 127  77   7
+	{ 1.000, 0.584, 0.000 }, // 'D' 0x44 68: 255 149   0
+	{ 0.843, 0.757, 0.545 }, // 'E' 0x45 69: 215 193 139
+	{ 1.000, 1.000, 0.612 }, // 'F' 0x46 70: 255 255 156
+	{ 0.647, 1.000, 0.655 }, // 'G' 0x47 71: 165 255 167
+	{ 0.541, 0.863, 0.035 }, // 'H' 0x48 72: 138 220   9
+	{ 0.004, 0.475, 0.004 }, // 'I' 0x49 73:   1 121   1
+	{ 0.439, 0.447, 0.176 }, // 'J' 0x4A 74: 112 114  45
+	{ 0.388, 0.490, 0.321 }, // 'K' 0x4B 75:  99 125  82
+	{ 0.000, 0.902, 0.659 }, // 'L' 0x4C 76:   0 230 168
+	{ 0.612, 0.996, 1.000 }, // 'M' 0x4D 77: 156 254 255
+	{ 0.000, 0.580, 0.580 }, // 'N' 0x4E 78:   0 148 148
+	{ 0.321, 0.482, 0.510 }, // 'O' 0x4F 79:  82 123 130
+	{ 0.000, 0.667, 1.000 }, // 'P' 0x50 80:   0 170 255
+	{ 0.494, 0.500, 1.000 }, // 'Q' 0x51 81: 126 127 255
+	{ 0.306, 0.306, 0.573 }, // 'R' 0x52 82:  78  78 146
+	{ 0.518, 0.000, 1.000 }, // 'S' 0x53 83: 132   0 255
+	{ 0.769, 0.518, 1.000 }, // 'T' 0x54 84: 196 132 255
+	{ 0.510, 0.329, 0.506 }, // 'U' 0x55 85: 130  84 129
+	{ 0.988, 0.608, 0.937 }, // 'V' 0x56 86: 252 155 239
+	{ 1.000, 0.000, 0.500 }, // 'W' 0x57 87: 255   0 127
+	{ 0.596, 0.000, 0.588 }, // 'X' 0x58 88: 152   0 150
+	{ 0.725, 0.725, 0.725 }, // 'Y' 0x59 89: 185 185 185
+	{ 0.329, 0.329, 0.329 }, // 'Z' 0x5A 90:  84  84  84
 };
 
-int Q_parseColor( const char *p, const vec3_t numberColors[10], float *color ) {
+#if defined (UI_EXPORTS) || (QAGAME)
+static const qboolean uagColours = qfalse;
+#else
+#endif
+int Q_parseColor( const char *p, const vec3_t *numberColors, float *color ) {
 	char c = *p++;
-	if (c >= '0' && c <='9') {
+	if (((c >= '0' && c <='9') || (c >= 'A' && c <= 'Z')) && numberColors == &(uagColors[0])) {
 		if (!color)
 			return 1;
 		memcpy( color, numberColors + c - '0', sizeof( vec3_t ));
 		return 1;
-	} else if ( ( c >= 'a' && c < 'u') || (c >= 'A' && c < 'U') ) {
+	} else if (c >= '0' && c <='9') {
+		if (!color)
+			return 1;
+		memcpy( color, numberColors + c - '0', sizeof( vec3_t ));
+		return 1;
+/*	} else if ( ( c >= 'a' && c < 'u') || (c >= 'A' && c < 'U') ) {
 		int deg;
 		float angle, v;
 		if (!color)
@@ -1162,10 +1219,11 @@ int Q_parseColor( const char *p, const vec3_t numberColors[10], float *color ) {
 			color[1] = 0;
 			color[2] = v;
 		}
-		return 1;
+		return 1;*/
 	} else if ( c == 'u' || c == 'U' || c == 'v' || c == 'V'
 				|| c == 'w' || c == 'W' || c == 'x' || c == 'X'
-				|| c == 'y' || c == 'Y' || c == 'z' || c == 'Z') {
+				|| c == 'y' || c == 'Y' || c == 'z' || c == 'Z'
+				|| c == '#') {
 		int i;
 		int val;
 		for (i = 0;i<6;i++) {
@@ -1178,10 +1236,10 @@ int Q_parseColor( const char *p, const vec3_t numberColors[10], float *color ) {
 			} else if ( c >= 'A' && c<= 'F') {
 				readHex = 0xa + c - 'A';
 			} else {
-				if (color) {
+/*				if (color) {
 					color[0] = color[1] = color[2] = 1.0f;
-				}
-				return 1;
+				}*/
+				return -1;
 			}
 			if (!color)
 				continue;
@@ -1194,10 +1252,25 @@ int Q_parseColor( const char *p, const vec3_t numberColors[10], float *color ) {
 		}
 		return 7;
 	}
-	if (color) {
+/*	if (color) {
 		color[0] = color[1] = color[2] = 1.0f;
-	}
-	return 0;
+	}*/
+	return -1;
+}
+
+int Q_parseColorString( const char *p, float *color
+#if defined (UI_EXPORTS) || (QAGAME)
+#else
+	, qboolean uagColours
+#endif
+	) {
+	char c;
+	if (!p )
+		return 0;
+	c = *p;
+	if (!c || c!= Q_COLOR_ESCAPE || (c== Q_COLOR_ESCAPE && !p[1]))
+		return 0;
+	return 1 + Q_parseColor( p+1, !(uagColours)?(defaultColors):(uagColors), color );
 }
 
 /*
@@ -1232,7 +1305,12 @@ const char *Q_stristr( const char *s, const char *find)
   return s;
 }
 
-int Q_PrintStrlenUAG( const char *string ) {
+int Q_PrintStrlen( const char *string
+#if defined (UI_EXPORTS) || (QAGAME)
+#else
+	, qboolean uagColours
+#endif
+	) {
 	int			len;
 	const char	*p;
 
@@ -1243,30 +1321,9 @@ int Q_PrintStrlenUAG( const char *string ) {
 	len = 0;
 	p = string;
 	while( *p ) {
-		if( Q_IsColorStringUAG( p ) ) {
-			p += 2;
-			continue;
-		}
-		p++;
-		len++;
-	}
-
-	return len;
-}
-
-int Q_PrintStrlen( const char *string ) {
-	int			len;
-	const char	*p;
-
-	if( !string ) {
-		return 0;
-	}
-
-	len = 0;
-	p = string;
-	while( *p ) {
-		if( Q_IsColorString( p ) ) {
-			p += 2;
+		int colorLen = Q_parseColorString( p, 0, uagColours);
+		if( colorLen ) {
+			p += colorLen;
 			continue;
 		}
 		p++;
@@ -1277,7 +1334,12 @@ int Q_PrintStrlen( const char *string ) {
 }
 
 
-char *Q_CleanStrUAG( char *string ) {
+char *Q_CleanStr( char *string
+#if defined (UI_EXPORTS) || (QAGAME)
+#else
+	, qboolean uagColours
+#endif
+	) {
 	char*	d;
 	char*	s;
 	int		c;
@@ -1285,31 +1347,12 @@ char *Q_CleanStrUAG( char *string ) {
 	s = string;
 	d = string;
 	while ((c = *s) != 0 ) {
-		if ( Q_IsColorStringUAG( s ) ) {
-			s++;
+		int colorLen = Q_parseColorString( s, 0, uagColours);
+		if ( colorLen ) {
+			s += colorLen;
+			continue;
 		}		
-		else if ( c >= 0x20 && c <= 0x7E ) {
-			*d++ = c;
-		}
-		s++;
-	}
-	*d = '\0';
-
-	return string;
-}
-
-char *Q_CleanStr( char *string ) {
-	char*	d;
-	char*	s;
-	int		c;
-
-	s = string;
-	d = string;
-	while ((c = *s) != 0 ) {
-		if ( Q_IsColorString( s ) ) {
-			s++;
-		}		
-		else if ( c >= 0x20 && c <= 0x7E ) {
+		if ( c >= 0x20 && c <= 0x7E ) {
 			*d++ = c;
 		}
 		s++;
@@ -1328,8 +1371,12 @@ Strips coloured strings in-place using multiple passes: "fgs^^56fds" -> "fgs^6fd
 (Also strips ^8 and ^9)
 ==================
 */
-void Q_StripColorUAG(char *text)
-{
+void Q_StripColor(char *text
+#if defined (UI_EXPORTS) || (QAGAME)
+#else
+	, qboolean uagColours
+#endif
+	) {
 	qboolean doPass = qtrue;
 	char *read;
 	char *write;
@@ -1340,45 +1387,10 @@ void Q_StripColorUAG(char *text)
 		read = write = text;
 		while ( *read )
 		{
-			if ( Q_IsColorStringExt(read) )
-			{
+			int colorLen = Q_parseColorString( read, 0, uagColours);
+			if( colorLen ) {
 				doPass = qtrue;
-				read += 2;
-			}
-			else
-			{
-				// Avoid writing the same data over itself
-				if (write != read)
-				{
-					*write = *read;
-				}
-				write++;
-				read++;
-			}
-		}
-		if ( write < read )
-		{
-			// Add trailing NUL byte if string has shortened
-			*write = '\0';
-		}
-	}
-}
-void Q_StripColor(char *text)
-{
-	qboolean doPass = qtrue;
-	char *read;
-	char *write;
-
-	while ( doPass )
-	{
-		doPass = qfalse;
-		read = write = text;
-		while ( *read )
-		{
-			if ( Q_IsColorStringExt(read) )
-			{
-				doPass = qtrue;
-				read += 2;
+				read += colorLen;
 			}
 			else
 			{
@@ -1406,36 +1418,20 @@ Q_StripColorNew
 Strips coloured strings in-place: "fgs^^^223fds" -> "fgs^^23fds"
 ==================
 */
-void Q_StripColorNewUAG(char *text) {
+void Q_StripColorNew(char *text
+#if defined (UI_EXPORTS) || (QAGAME)
+#else
+	, qboolean uagColours
+#endif
+	) {
 	char *read;
 	char *write;
 
 	read = write = text;
 	while ( *read ) {
-		if ( Q_IsColorStringUAG(read) ) {
-			read += 2;
-		} else {
-			// Avoid writing the same data over itself
-			if (write != read) {
-				*write = *read;
-			}
-			write++;
-			read++;
-		}
-	}
-	if ( write < read ) {
-		// Add trailing NUL byte if string has shortened
-		*write = '\0';
-	}
-}
-void Q_StripColorNew(char *text) {
-	char *read;
-	char *write;
-
-	read = write = text;
-	while ( *read ) {
-		if ( Q_IsColorStringExt(read) ) {
-			read += 2;
+		int colorLen = Q_parseColorString( read, 0, uagColours);
+		if( colorLen ) {
+			read += colorLen;
 		} else {
 			// Avoid writing the same data over itself
 			if (write != read) {

@@ -351,7 +351,7 @@ typedef enum {
 typedef struct {
 	qboolean	initialized;
 
-	short	text[CON_TEXTSIZE];
+	int		text[CON_TEXTSIZE];
 	int		current;		// line where next message will be printed
 	int		x;				// offset in current line for next print
 	int		display;		// bottom of console displays this line

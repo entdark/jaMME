@@ -130,7 +130,7 @@ void Con_Clear_f (void) {
 	int		i;
 
 	for ( i = 0 ; i < CON_TEXTSIZE ; i++ ) {
-		con.text[i] = (ColorIndex(COLOR_WHITE)<<8) | ' ';
+		con.text[i] = ' ';
 	}
 
 	Con_Bottom();		// go to end
@@ -147,7 +147,7 @@ Save the console contents out to a file
 void Con_Dump_f (void)
 {
 	int				l, x, i;
-	short			*line;
+	int				*line;
 	fileHandle_t	f;
 	int		bufferlen;
 	char	*buffer;
@@ -241,7 +241,7 @@ If the line width has changed, reformat the buffer.
 void Con_CheckResize (void)
 {
 	int		i, j, width, oldwidth, oldtotallines, numlines, numchars;
-	MAC_STATIC short	tbuf[CON_TEXTSIZE];
+	MAC_STATIC int	tbuf[CON_TEXTSIZE];
 
 //	width = (SCREEN_WIDTH / SMALLCHAR_WIDTH) - 2;
 	width = (cls.glconfig.vidWidth / SMALLCHAR_WIDTH) - 2;
@@ -258,9 +258,7 @@ void Con_CheckResize (void)
 		con.linewidth = width;
 		con.totallines = CON_TEXTSIZE / con.linewidth;
 		for(i=0; i<CON_TEXTSIZE; i++)
-		{
-			con.text[i] = (ColorIndex(COLOR_WHITE)<<8) | ' ';
-		}
+			con.text[i] = ' ';
 	}
 	else
 	{
@@ -282,10 +280,9 @@ void Con_CheckResize (void)
 		if (con.linewidth < numchars)
 			numchars = con.linewidth;
 
-		Com_Memcpy (tbuf, con.text, CON_TEXTSIZE * sizeof(short));
+		Com_Memcpy(tbuf, con.text, sizeof(tbuf));
 		for(i=0; i<CON_TEXTSIZE; i++)
-
-			con.text[i] = (ColorIndex(COLOR_WHITE)<<8) | ' ';
+			con.text[i] = ' ';
 
 
 		for (i=0 ; i<numlines ; i++)
@@ -353,7 +350,7 @@ static void Con_Linefeed (qboolean skipnotify) {
 		con.display++;
 	con.current++;
 	for(i=0; i<con.linewidth; i++)
-		con.text[(con.current%con.totallines)*con.linewidth+i] = (ColorIndex(COLOR_WHITE)<<8) | ' ';
+		con.text[(con.current%con.totallines)*con.linewidth+i] = ' ';
 }
 
 /*
@@ -413,16 +410,17 @@ void CL_ConsolePrint(const char *txt) {
 		Con_CheckResize ();
 		con.initialized = qtrue;
 	}
-	color = ColorIndex(COLOR_WHITE);
+//	color = ColorIndex(COLOR_WHITE);
+	color = 0xffffff00;
 	txt = CL_ConsolePrintTimeStamp(txt);
 	while ((c = (unsigned char)*txt) != 0) {
-		if (cls.uag.newColors && Q_IsColorStringUAG((unsigned char*)txt)) {
-			color = ColorIndexUAG(*(txt+1));
-			txt += 2;
-			continue;
-		} else if (Q_IsColorString((unsigned char*)txt)) {
-			color = ColorIndex(*(txt+1));
-			txt += 2;
+		vec4_t newColor;
+		int colorLen = Q_parseColorString( txt, newColor, cls.uag.newColors );
+		if ( colorLen ) {
+			color = ((int)(newColor[0] * 0xff)) << 8 |
+					((int)(newColor[1] * 0xff)) << 16 |
+					((int)(newColor[2] * 0xff)) << 24;
+			txt += colorLen;
 			continue;
 		}
 		// count word length
@@ -447,7 +445,7 @@ void CL_ConsolePrint(const char *txt) {
 			break;
 		default:	// display character and advance
 			y = con.current % con.totallines;
-			con.text[y*con.linewidth+con.x] = (short)((color << 8) | c);
+			con.text[y*con.linewidth+con.x] = color | c;
 			con.x++;
 			if (con.x >= con.linewidth) {
 				Con_Linefeed(skipnotify);
@@ -505,9 +503,6 @@ void Con_DrawInput (void) {
 				SCREEN_WIDTH - 3 * SMALLCHAR_WIDTH, qtrue, qfalse );
 }
 
-
-
-
 float chatColour[4] = {1.0f,1.0f,1.0f,1.0f};
 /*
 ================
@@ -518,15 +513,17 @@ Draws the last few lines of output transparently over the game top
 */
 void Con_DrawNotify (void) {
 	int		x, v;
-	short	*text;
+	int		*text;
 	int		i;
 	int		time;
 	int		skip;
 	int		currentColor;
 	const char* chattext;
 
-	currentColor = 7;
-	re.SetColor( g_color_table[currentColor] );
+//	currentColor = 7;
+//	re.SetColor( g_color_table[currentColor] );
+	currentColor = 0xffffff00;
+	re.SetColor( colorWhite );
 
 	v = 0;
 	for (i= con.current-NUM_CON_TIMES+1 ; i<=con.current ; i++) {
@@ -584,12 +581,14 @@ void Con_DrawNotify (void) {
 				if ( ( text[x] & 0xff ) == ' ' ) {
 					continue;
 				}
-				if ( cls.uag.newColors && ( (text[x]>>8)%43 ) != currentColor ) {
-					currentColor = (text[x]>>8)%43;
-					re.SetColor( g_color_table_uag[currentColor] );
-				} else if ( !cls.uag.newColors && ( (text[x]>>8)&7 ) != currentColor ) {
-					currentColor = (text[x]>>8)&7;
-					re.SetColor( g_color_table[currentColor] );
+				if ( ( text[x] & 0xffffff00 ) != currentColor ) {
+					vec4_t setColor;
+					currentColor = text[x] & 0xffffff00;
+					setColor[0] = ((currentColor >>  8) & 0xff) * (1 / 255.0f);
+					setColor[1] = ((currentColor >> 16) & 0xff) * (1 / 255.0f);
+					setColor[2] = ((currentColor >> 24) & 0xff) * (1 / 255.0f);
+					setColor[3] = 1.0f;
+					re.SetColor( setColor );
 				}
 				if (!cl_conXOffset) {
 					cl_conXOffset = Cvar_Get ("cl_conXOffset", "0", 0);
@@ -652,7 +651,7 @@ Draws the console with the solid background
 void Con_DrawSolidConsole( float frac ) {
 	int				i, x, y;
 	int				rows;
-	short			*text;
+	int				*text;
 	int				row;
 	int				lines;
 //	qhandle_t		conShader;
@@ -717,8 +716,10 @@ void Con_DrawSolidConsole( float frac ) {
 		row--;
 	}
 
-	currentColor = 7;
-	re.SetColor( g_color_table[currentColor] );
+//	currentColor = 7;
+//	re.SetColor( g_color_table[currentColor] );
+	currentColor = 0xffffff00;
+	re.SetColor( colorWhite );
 
 	static int iFontIndexForAsian = 0;
 	const float fFontScaleForAsian = 0.75f*con.yadjust;
@@ -771,13 +772,14 @@ void Con_DrawSolidConsole( float frac ) {
 				if ( ( text[x] & 0xff ) == ' ' ) {
 					continue;
 				}
-
-				if ( cls.uag.newColors && ( (text[x]>>8)%43 ) != currentColor ) {
-					currentColor = (text[x]>>8)%43;
-					re.SetColor( g_color_table_uag[currentColor] );
-				} else if ( !cls.uag.newColors && ( (text[x]>>8)&7 ) != currentColor ) {
-					currentColor = (text[x]>>8)&7;
-					re.SetColor( g_color_table[currentColor] );
+				if ( ( text[x] & 0xffffff00 ) != currentColor ) {
+					vec4_t setColor;
+					currentColor = text[x] & 0xffffff00;
+					setColor[0] = ((currentColor >>  8) & 0xff) * (1 / 255.0f);
+					setColor[1] = ((currentColor >> 16) & 0xff) * (1 / 255.0f);
+					setColor[2] = ((currentColor >> 24) & 0xff) * (1 / 255.0f);
+					setColor[3] = 1.0f;
+					re.SetColor( setColor );
 				}
 				SCR_DrawSmallChar(  (int) (con.xadjust + (x+1)*SMALLCHAR_WIDTH), y, text[x] & 0xff );
 			}
