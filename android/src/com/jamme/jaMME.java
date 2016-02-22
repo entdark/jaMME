@@ -252,7 +252,7 @@ public class jaMME extends Activity {
     		if (demo.contains(".mme"))
     			demosFolder = gamePath + "/base/mmedemos/";
 	    	File from = new File(demo);
-	    	File to = new File(demosFolder + from.getName());
+	    	File to = new File(demosFolder + "_" + demoExtList[i]);
 	    	while (to.exists()) {
 	        	to = new File(demosFolder + "_" + to.getName());
 	    	}
