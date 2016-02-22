@@ -404,7 +404,7 @@ static qboolean aviOpen( mmeAviFile_t *aviFile, const char *name, mmeShotType_t 
 	/* First see if the file already exist */
 	for (i = 0;i < AVI_MAX_FILES;i++) {
 		Com_sprintfOld( fileName, sizeof(fileName), "%s.%03d.avi", name, i );
-		if (mme_noAviSizeLimit->integer || !ri.FS_FileExists( fileName ))
+		if (!mme_aviLimit->integer || !ri.FS_FileExists( fileName ))
 			break;
 	}
 	if (i == AVI_MAX_FILES) {
@@ -458,7 +458,7 @@ static qboolean aviValid( const mmeAviFile_t *aviFile, const char *name, mmeShot
 		return qfalse;
 	if (Q_stricmp(aviFile->name, name))
 		return qfalse;
-	if (aviFile->written >= AVI_MAX_SIZE && !mme_noAviSizeLimit->integer)
+	if (aviFile->written >= AVI_MAX_SIZE && mme_aviLimit->integer)
 		return qfalse;
 	if (mme_aviFormat->integer != aviFile->format)
 		return qfalse;

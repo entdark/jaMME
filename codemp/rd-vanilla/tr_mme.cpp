@@ -69,7 +69,7 @@ cvar_t	*mme_saveShot;
 cvar_t	*mme_saveStencil;
 cvar_t	*mme_saveDepth;
 
-cvar_t	*mme_noAviSizeLimit;
+cvar_t	*mme_aviLimit;
 
 ID_INLINE byte * R_MME_BlurOverlapBuf( mmeBlurBlock_t *block ) {
 	mmeBlurControl_t* control = block->control;
@@ -585,6 +585,7 @@ void R_MME_Init(void) {
 	
 	// MME cvars
 	mme_aviFormat = ri.Cvar_Get ("mme_aviFormat", "0", CVAR_ARCHIVE);
+	mme_aviLimit = ri.Cvar_Get ("mme_aviLimit", "1", CVAR_ARCHIVE);
 
 	mme_jpegQuality = ri.Cvar_Get ("mme_jpegQuality", "90", CVAR_ARCHIVE);
 	mme_jpegDownsampleChroma = ri.Cvar_Get ("mme_jpegDownsampleChroma", "0", CVAR_ARCHIVE);
@@ -620,8 +621,6 @@ void R_MME_Init(void) {
 	mme_saveDepth = ri.Cvar_Get ( "mme_saveDepth", "0", CVAR_ARCHIVE );
 	mme_saveShot = ri.Cvar_Get ( "mme_saveShot", "1", CVAR_ARCHIVE );
 	mme_workMegs = ri.Cvar_Get ( "mme_workMegs", "128", CVAR_LATCH | CVAR_ARCHIVE );
-
-	mme_noAviSizeLimit = ri.Cvar_Get ("mme_noAviSizeLimit", "0", CVAR_ARCHIVE);
 
 	mme_worldShader->modified = qtrue;
 
