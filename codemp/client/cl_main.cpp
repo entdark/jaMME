@@ -2742,6 +2742,32 @@ void CL_SetForcePowers_f( void ) {
 	return;
 }
 
+void CL_PrintGameState_f(void) {
+	int i;
+	char *data;
+	size_t lenOld, len, offset;
+	for (i = 0; i < MAX_CONFIGSTRINGS; i++) {
+		data = cl.gameState.stringData + cl.gameState.stringOffsets[i];
+		if ( !data[0] ) {
+			continue;		// leave with the default empty string
+		}
+
+		len = strlen(data);
+
+		if (len > 0) {
+			Com_Printf("\n");
+			Com_Printf("gameState at index %d with length %d:\n", i, len);
+		}
+		//2 less bytes because \n\0
+		for (offset = 0; offset < len; offset += 1022) {
+			char print[1022];
+			Com_sprintf(print, sizeof(print), data + offset);
+			Com_Printf("%s\n", print);
+		}
+	}
+	Com_Printf(S_COLOR_YELLOW"gameState data count: %d\n", cl.gameState.dataCount);
+}
+
 #define G2_VERT_SPACE_CLIENT_SIZE 256
 
 /*
@@ -2929,6 +2955,7 @@ void CL_Init( void ) {
 	Cmd_AddCommand("demoListNext", CL_DemoListNext_f);
 	Cmd_AddCommand("demoListNext", CL_DemoListNext_f);
 	Cmd_AddCommand("pause", NULL);
+	Cmd_AddCommand("printGameState", CL_PrintGameState_f);
 	CL_InitRef();
 
 	SCR_Init ();
