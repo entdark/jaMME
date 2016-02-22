@@ -27,6 +27,7 @@ typedef struct mmeAviFile_s {
 
 typedef struct {
 	char name[MAX_OSPATH];
+	char nameOld[MAX_OSPATH];
 	int	 counter;
 	mmeShotFormat_t format;
 	mmeShotType_t type;

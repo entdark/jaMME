@@ -293,6 +293,16 @@ qboolean R_MME_TakeShot( void ) {
 		return qtrue;
 	}
 
+	if (shotData.fps < 0.0f) {
+		byte *shotBuf = (byte *)ri.Hunk_AllocateTempMemory( pixelCount * 5 );
+		R_MME_MultiShot( shotBuf );
+		if ( doGamma ) 
+			R_GammaCorrect( shotBuf, pixelCount * 3 );
+		R_MME_SaveShot( &shotData.main, glConfig.vidWidth, glConfig.vidHeight, shotData.fps, shotBuf, qfalse, -1, inSound );
+		ri.Hunk_FreeTempMemory( shotBuf );
+		Com_sprintf( shotData.main.name, sizeof( shotData.main.name ), "%s", shotData.main.nameOld );
+		return qtrue;
+	}
 	/* Test if we need to do blurred shots */
 	if ( blurControl->totalFrames > 0 ) {
 		mmeBlurBlock_t *blurShot = &blurData.shot;
@@ -476,12 +486,25 @@ const void *R_MME_CaptureShotCmd( const void *data ) {
 	shotData.fps = cmd->fps;
 	shotData.dofFocus = cmd->focus;
 	shotData.dofRadius = cmd->radius;
-	if (strcmp( cmd->name, shotData.main.name) || mme_screenShotFormat->modified || mme_screenShotAlpha->modified ) {
+	if (shotData.fps < 0.0f) { //called from screenshot command for special dof screenshot
+		Com_sprintf( shotData.main.name, sizeof( shotData.main.name ), "%s", cmd->name );
+		if (!Q_stricmp(mme_screenShotFormat->string, "jpg")) {
+			shotData.main.format = mmeShotFormatJPG;
+		} else if (!Q_stricmp(mme_screenShotFormat->string, "tga")) {
+			shotData.main.format = mmeShotFormatTGA;
+		} else if (!Q_stricmp(mme_screenShotFormat->string, "png")) {
+			shotData.main.format = mmeShotFormatPNG;
+		} else {
+			shotData.main.format = mmeShotFormatPNG;
+		}
+		shotData.main.type = mmeShotTypeRGB;
+	} else if (strcmp( cmd->name, shotData.main.name) || mme_screenShotFormat->modified || mme_screenShotAlpha->modified ) {
 		/* Also reset the the other data */
 		blurData.control.totalIndex = 0;
 		if ( workAlign )
 			Com_Memset( workAlign, 0, workUsed );
 		Com_sprintf( shotData.main.name, sizeof( shotData.main.name ), "%s", cmd->name );
+		Com_sprintf( shotData.main.nameOld, sizeof( shotData.main.nameOld ), "%s", cmd->name );
 		Com_sprintf( shotData.depth.name, sizeof( shotData.depth.name ), "%s.depth", cmd->name );
 		Com_sprintf( shotData.stencil.name, sizeof( shotData.stencil.name ), "%s.stencil", cmd->name );
 		
@@ -516,6 +539,7 @@ const void *R_MME_CaptureShotCmd( const void *data ) {
 			else if ( shotData.main.format == mmeShotFormatTGA )
 				shotData.main.type = mmeShotTypeRGBA;
 		}
+
 		shotData.main.counter = -1;
 		shotData.depth.type = mmeShotTypeGray;
 		shotData.depth.counter = -1;
@@ -618,4 +642,5 @@ void R_MME_Init(void) {
 		}
 		workAlign = (char *)(((intptr_t)workAlloc + 15) & ~15);
 	}
+	R_MME_CheckCvars();
 }
