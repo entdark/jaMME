@@ -371,6 +371,7 @@ typedef struct {
 								// for transparent notify lines
 	vec4_t	color;
 	conState_t state;
+	byte	filter;
 } console_t;
 
 extern	clientStatic_t		cls;

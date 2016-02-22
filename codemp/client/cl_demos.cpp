@@ -1031,6 +1031,21 @@ qboolean demoGetServerCommand( int cmdNumber ) {
 	if ( !strcmp( cmd, "cs" ) ) {
 		CL_ConfigstringModified();
 	}
+	if (!strcmp(cmd, "lchat") && Cmd_Argc() > 3) {
+		cvar_t *cg_teamChatsOnly = Cvar_FindVar("cg_teamChatsOnly");
+		if (cg_teamChatsOnly && !cg_teamChatsOnly->integer)
+			Con_SetFilter(CON_FILTER_CHAT);
+	} else if (!strcmp(cmd, "ltchat") && Cmd_Argc() > 3) {
+		Con_SetFilter(CON_FILTER_TEAMCHAT);
+	} else if (!strcmp(cmd, "chat")) {
+		cvar_t *cg_teamChatsOnly = Cvar_FindVar("cg_teamChatsOnly");
+		if (cg_teamChatsOnly && !cg_teamChatsOnly->integer)
+			Con_SetFilter(CON_FILTER_CHAT);
+	} else if (!strcmp(cmd, "tchat")) {
+		Con_SetFilter(CON_FILTER_TEAMCHAT);
+	} else if (!strcmp(cmd, "print")) {
+		Con_SetFilter(CON_FILTER_SERVER);
+	}
 	return qtrue;
 }
 

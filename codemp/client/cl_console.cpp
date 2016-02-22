@@ -7,6 +7,7 @@
 #include "../qcommon/stringed_ingame.h"
 #include "../qcommon/game_version.h"
 
+//#define CON_FILTER
 
 int g_console_field_width = 78;
 
@@ -15,6 +16,7 @@ console_t con;
 cvar_t *con_conspeed;
 cvar_t *con_notifytime;
 cvar_t *con_timestamps;
+cvar_t *con_filter;
 
 #define	DEFAULT_CONSOLE_WIDTH 78
 
@@ -308,11 +310,12 @@ void Con_CheckResize (void)
 Con_Init
 ================
 */
-void Con_Init (void) {
+void Con_Init(void) {
 	int i;
 	con_notifytime = Cvar_Get("con_notifytime", "3", 0);
 	con_timestamps = Cvar_Get("con_timestamps", "0", CVAR_ARCHIVE);
 	con_conspeed = Cvar_Get("scr_conspeed", "3", 0);
+	con_filter = Cvar_Get("con_filter", "0", CVAR_TEMP);
 	Field_Clear(&kg.g_consoleField);
 	kg.g_consoleField.widthInChars = g_console_field_width;
 	for (i = 0; i < COMMAND_HISTORY; i++) {
@@ -334,7 +337,7 @@ void Con_Init (void) {
 Con_Linefeed
 ===============
 */
-static void Con_Linefeed (qboolean skipnotify) {
+static void Con_Linefeed(qboolean skipnotify) {
 	int		i;
 
 	// mark time for transparent overlay
@@ -351,6 +354,25 @@ static void Con_Linefeed (qboolean skipnotify) {
 	con.current++;
 	for(i=0; i<con.linewidth; i++)
 		con.text[(con.current%con.totallines)*con.linewidth+i] = ' ';
+}
+
+void Con_SetFilter(const byte filter) {
+	con.filter = filter;
+}
+void Con_ResetFilter() {
+	Con_SetFilter(CON_FILTER_CLIENT);
+}
+byte Con_GetFilter(void) {
+	return con.filter;
+}
+
+byte Con_GetUserFilter(void) {
+	byte filter = CON_FILTER_NONE;
+	if (!con_filter)
+		return filter;
+	if (con_filter->integer > 0)
+		filter = con_filter->integer;
+	return filter;
 }
 
 /*
@@ -386,7 +408,9 @@ void CL_ConsolePrint(const char *txt) {
 	int c, l;
 	int color;
 	qboolean skipnotify = qfalse;	// NERVE - SMF
-	int prev;						// NERVE - SMF
+	int	prev;						// NERVE - SMF
+	byte filter = Con_GetFilter();
+	qboolean setFilter = qfalse;
 	// TTimo - prefix for text that shows up in console but not in notify
 	// backported from RTCW
 	if ( !Q_strncmp(txt, "[skipnotify]", 12)) {
@@ -394,11 +418,14 @@ void CL_ConsolePrint(const char *txt) {
 		txt += 12;
 	}
 	if (txt[0] == '*') {
+		if (Con_GetFilter() == CON_FILTER_SERVER)
+			filter = CON_FILTER_CHAT;
 		skipnotify = qtrue;
 		txt += 1;
 	}
 	// for some demos we don't want to ever show anything on the console
 	if (cl_noprint && cl_noprint->integer) {
+		Con_ResetFilter();
 		return;
 	}
 	if (!con.initialized) {
@@ -407,7 +434,7 @@ void CL_ConsolePrint(const char *txt) {
 		con.color[2] =
 		con.color[3] = 1.0f;
 		con.linewidth = -1;
-		Con_CheckResize ();
+		Con_CheckResize();
 		con.initialized = qtrue;
 	}
 //	color = ColorIndex(COLOR_WHITE);
@@ -445,6 +472,16 @@ void CL_ConsolePrint(const char *txt) {
 			break;
 		default:	// display character and advance
 			y = con.current % con.totallines;
+#ifdef CON_FILTER
+			if (!setFilter) {
+				con.text[y*con.linewidth+con.x] = (short)(((short)filter << 8) | 0);
+				con.x++;
+				if (con.x >= con.linewidth) {
+					Con_Linefeed(skipnotify);
+				}
+				setFilter = qtrue;
+			}
+#endif
 			con.text[y*con.linewidth+con.x] = color | c;
 			con.x++;
 			if (con.x >= con.linewidth) {
@@ -467,6 +504,7 @@ void CL_ConsolePrint(const char *txt) {
 			con.times[con.current % NUM_CON_TIMES] = cls.realtime;
 		}
 	}
+	Con_ResetFilter();
 }
 
 
@@ -519,6 +557,9 @@ void Con_DrawNotify (void) {
 	int		skip;
 	int		currentColor;
 	const char* chattext;
+	//filter out the notifications?
+	const byte filter = CON_FILTER_NONE;//Con_GetUserFilter();
+	qboolean filterLine = qfalse;
 
 //	currentColor = 7;
 //	re.SetColor( g_color_table[currentColor] );
@@ -578,6 +619,12 @@ void Con_DrawNotify (void) {
 		else
 		{		
 			for (x = 0 ; x < con.linewidth ; x++) {
+#ifdef CON_FILTER
+				if ( ( text[x] & 0xff ) == 0 && ( !((text[x]>>8) & filter )) ) {
+					filterLine = qtrue;
+					break;
+				}
+#endif
 				if ( ( text[x] & 0xff ) == ' ' ) {
 					continue;
 				}
@@ -595,8 +642,15 @@ void Con_DrawNotify (void) {
 				}
 				SCR_DrawSmallChar((int)(cl_conXOffset->integer + con.xadjust + (x+1)*SMALLCHAR_WIDTH), v, text[x] & 0xff);
 			}
-
+#ifdef CON_FILTER
+			if (filterLine) {
+				v += SMALLCHAR_HEIGHT;
+				i--;
+			}
+#else
 			v += SMALLCHAR_HEIGHT;
+#endif
+			filterLine = qfalse;
 		}
 	}
 
@@ -641,6 +695,38 @@ static vec4_t conColourTable[16] = {
 	{1, 0, 0.5f, 1}		//conColorMagenta
 };
 
+typedef struct {
+	const byte type;
+	const char *key;
+} conDrawFilter_t;
+conDrawFilter_t conDrawFilter[] = {
+	{CON_FILTER_PUBCHAT,	"^1PC"},
+	{CON_FILTER_TEAMCHAT,	"^2TC"},
+	{CON_FILTER_SERVER,		"^3SV"},
+	{CON_FILTER_CLIENT,		"^4CL"},
+};
+
+void Con_DrawFilter(const float x, const float y, const byte filter) {
+	static char drawFilter[32];
+	size_t len = ARRAY_LEN(conDrawFilter);
+	int i;
+	byte f = (filter & 0xff);
+	byte mask = (byte)CON_FILTER_NONE;
+	if (f == mask)
+		return;
+	Com_sprintf(drawFilter, sizeof(drawFilter), S_COLOR_WHITE"(");
+	for (i = 0; i < len; i++) {
+		if (conDrawFilter[i].type & f) {
+			if (i > 0)
+				Q_strcat(drawFilter, sizeof(drawFilter), S_COLOR_BLACK"|");
+			Q_strcat(drawFilter, sizeof(drawFilter), conDrawFilter[i].key);
+		}
+	}
+	Q_strcat(drawFilter, sizeof(drawFilter), S_COLOR_WHITE")");
+	SCR_DrawSmallStringExt(x - (Q_PrintStrlen(drawFilter) + 1) * SMALLCHAR_WIDTH,
+		y, drawFilter, g_color_table[ColorIndex(COLOR_WHITE)], qfalse, qfalse);
+}
+
 /*
 ================
 Con_DrawSolidConsole
@@ -657,6 +743,9 @@ void Con_DrawSolidConsole( float frac ) {
 //	qhandle_t		conShader;
 	int				currentColor;
 	const			char *version = JK_VERSION;
+
+	const byte		filter = Con_GetUserFilter();
+	qboolean		filterLine = qfalse;
 
 	lines = (int) (cls.glconfig.vidHeight * frac);
 	if (lines <= 0)
@@ -691,7 +780,10 @@ void Con_DrawSolidConsole( float frac ) {
 		SCR_DrawSmallChar( cls.glconfig.vidWidth - ( i - x ) * SMALLCHAR_WIDTH, 
 			(lines-(SMALLCHAR_HEIGHT+SMALLCHAR_HEIGHT/2)), version[x] );
 	}
-
+#ifdef CON_FILTER
+	Con_DrawFilter(cls.glconfig.vidWidth - (i) * SMALLCHAR_WIDTH,
+		(lines-(SMALLCHAR_HEIGHT+SMALLCHAR_HEIGHT/2)), filter);
+#endif
 
 	// draw the text
 	con.vislines = lines;
@@ -769,6 +861,14 @@ void Con_DrawSolidConsole( float frac ) {
 		else
 		{		
 			for (x=0 ; x<con.linewidth ; x++) {
+#ifdef CON_FILTER
+				byte left = ( text[x] & 0xff );
+				byte right = (text[x]>>8) & 0xff;
+				if ( left == 0 && ( !((right & filter)) ) ) {
+					filterLine = qtrue;
+					break;
+				}
+#endif
 				if ( ( text[x] & 0xff ) == ' ' ) {
 					continue;
 				}
@@ -781,9 +881,19 @@ void Con_DrawSolidConsole( float frac ) {
 					setColor[3] = 1.0f;
 					re.SetColor( setColor );
 				}
+#ifdef CON_FILTER
+				SCR_DrawSmallChar(  (int) (con.xadjust + (x)*SMALLCHAR_WIDTH), y, text[x] & 0xff );
+#else
 				SCR_DrawSmallChar(  (int) (con.xadjust + (x+1)*SMALLCHAR_WIDTH), y, text[x] & 0xff );
+#endif
 			}
 		}
+#ifdef CON_FILTER
+		if (filterLine) {
+			y += iPixelHeightToAdvance; i--;
+		}
+		filterLine = qfalse;
+#endif
 	}
 
 	// draw the input prompt, user text, and cursor if desired
