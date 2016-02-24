@@ -526,6 +526,10 @@ static void IN_ProcessEvents( void ) {
 				if( ( key = IN_TranslateSDLToJKKey( &e.key.keysym, qfalse ) ) )
 					Sys_QueEvent( 0, SE_KEY, key, qfalse, 0, NULL );
 				lastKeyDown = A_NULL;
+                if ( ( e.key.keysym.scancode == SDL_SCANCODE_LGUI || e.key.keysym.scancode == SDL_SCANCODE_RGUI ) &&
+                    Cvar_VariableIntegerValue("r_fullscreen")) {
+                    SDL_MinimizeWindow(SDL_window);
+                }
 				break;
 			case SDL_TEXTINPUT:
 				if(lastKeyDown != A_CONSOLE) {
