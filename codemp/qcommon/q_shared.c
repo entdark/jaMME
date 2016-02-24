@@ -1182,10 +1182,6 @@ vec3_t uagColors[43] =
 	{ 0.329, 0.329, 0.329 }, // 'Z' 0x5A 90:  84  84  84
 };
 
-#if defined (UI_EXPORTS) || (QAGAME)
-static const qboolean uagColours = qfalse;
-#else
-#endif
 int Q_parseColor( const char *p, const vec3_t *numberColors, float *color ) {
 	char c = *p++;
 	if (((c >= '0' && c <='9') || (c >= 'A' && c <= 'Z')) && numberColors == &(uagColors[0])) {
@@ -1258,12 +1254,7 @@ int Q_parseColor( const char *p, const vec3_t *numberColors, float *color ) {
 	return -1;
 }
 
-int Q_parseColorString( const char *p, float *color
-#if defined (UI_EXPORTS) || (QAGAME)
-#else
-	, qboolean uagColours
-#endif
-	) {
+int Q_parseColorString( const char *p, float *color, qboolean uagColours) {
 	char c;
 	if (!p )
 		return 0;
@@ -1305,6 +1296,10 @@ const char *Q_stristr( const char *s, const char *find)
   return s;
 }
 
+#if defined (UI_EXPORTS) || (QAGAME)
+static const qboolean uagColours = qfalse;
+#else
+#endif
 int Q_PrintStrlen( const char *string
 #if defined (UI_EXPORTS) || (QAGAME)
 #else
