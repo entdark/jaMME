@@ -708,7 +708,7 @@ void		Info_Print( const char *s );
 
 void		Com_BeginRedirect (char *buffer, int buffersize, void (*flush)(char *));
 void		Com_EndRedirect( void );
-void 		QDECL Com_Printf( const char *fmt, ... );
+void 		QDECL Com_Printf(const char *fmt, ...);
 void 		QDECL Com_DPrintf( const char *fmt, ... );
 void		QDECL Com_OPrintf( const char *fmt, ...); // Outputs to the VC / Windows Debug window (only in debug compile)
 void 		QDECL Com_Error( int code, const char *fmt, ... ) __attribute__((noreturn));
@@ -907,7 +907,14 @@ void CL_JoystickEvent( int axis, int value, int time );
 
 void CL_PacketEvent( netadr_t from, msg_t *msg );
 
-void CL_ConsolePrint( const char *text );
+#define CON_FILTER_PUBCHAT	0x01
+#define CON_FILTER_TEAMCHAT	0x02
+#define CON_FILTER_CLIENT	0x04
+#define CON_FILTER_SERVER	0x08
+#define CON_FILTER_CHAT		CON_FILTER_PUBCHAT | CON_FILTER_TEAMCHAT
+#define CON_FILTER_NONE		CON_FILTER_CHAT | CON_FILTER_TEAMCHAT | CON_FILTER_CLIENT | CON_FILTER_SERVER
+void Con_SetFilter(const byte filter);
+void CL_ConsolePrint(const char *text);
 
 void CL_MapLoading( void );
 // do a screen update before starting to load a map

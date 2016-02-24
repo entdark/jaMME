@@ -143,7 +143,7 @@ public:
 static pthread_mutex_t printfLock;
 static pthread_mutex_t pushLock;
 #endif
-void QDECL Com_Printf( const char *fmt, ... ) {
+void QDECL Com_Printf(const char *fmt, ...) {
 #ifdef USE_AIO
 	autolock autolock( &printfLock );
 #endif

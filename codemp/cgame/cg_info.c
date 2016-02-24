@@ -195,10 +195,7 @@ void CG_DrawInformation( void ) {
 	if ( !atoi( buf ) ) {
 		// server hostname
 		Q_strncpyz(buf, Info_ValueForKey( info, "sv_hostname" ), sizeof( buf ) );
-		if (cg.uag.newColors)
-			Q_CleanStrUAG(buf);
-		else
-			Q_CleanStr(buf);
+		Q_CleanStr(buf, cg.uag.newColors);
 		UI_DrawProportionalString( 320, y, buf,
 			UI_CENTER|UI_INFOFONT|UI_DROPSHADOW, colorWhite );
 		y += iPropHeight;

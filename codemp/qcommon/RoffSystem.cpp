@@ -592,6 +592,11 @@ qboolean CROFFSystem::List( int id )
 qboolean CROFFSystem::Play( int entID, int id, qboolean doTranslation, qboolean isClient )
 {
 	sharedEntity_t *ent = SV_GentityNum( entID );
+	
+	if ( ent == 0 )
+	{ // shame on you..
+		return qfalse;
+	}
 
 	ent->r.mIsRoffing = qtrue;
 /*rjr	if(ent->GetPhysics() == PHYSICS_TYPE_NONE)
@@ -599,11 +604,6 @@ qboolean CROFFSystem::Play( int entID, int id, qboolean doTranslation, qboolean 
 		ent->SetPhysics(PHYSICS_TYPE_BRUSHMODEL);
 	}*/
 	//bjg TODO: reset this latter? 
-
-	if ( ent == 0 )
-	{ // shame on you..
-		return qfalse;
-	}
 
 	SROFFEntity *roffing_ent = new SROFFEntity;
 

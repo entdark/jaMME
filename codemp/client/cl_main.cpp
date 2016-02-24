@@ -872,7 +872,7 @@ void CL_Disconnect(qboolean showMainMenu) {
 		CL_WritePacket();
 		CL_WritePacket();
 	}
-	CL_ClearState ();
+	CL_ClearState();
 	// wipe the client connection
 	Com_Memset(&clc, 0, sizeof(clc));
 	Cvar_Set("mme_demoPaused", "0");
@@ -2390,7 +2390,7 @@ void CL_Frame(int msec) {
 	}
 
 	if (!cls.cgameStarted || !clc.newDemoPlayer)
-		CIN_AdjustTime(Sys_Milliseconds()*com_timescale->value);
+		CIN_AdjustTime(-1);
 	
 	// update the screen
 	SCR_UpdateScreen();
@@ -2742,6 +2742,32 @@ void CL_SetForcePowers_f( void ) {
 	return;
 }
 
+void CL_PrintGameState_f(void) {
+	int i;
+	char *data;
+	size_t lenOld, len, offset;
+	for (i = 0; i < MAX_CONFIGSTRINGS; i++) {
+		data = cl.gameState.stringData + cl.gameState.stringOffsets[i];
+		if ( !data[0] ) {
+			continue;		// leave with the default empty string
+		}
+
+		len = strlen(data);
+
+		if (len > 0) {
+			Com_Printf("\n");
+			Com_Printf("gameState at index %d with length %d:\n", i, len);
+		}
+		//2 less bytes because \n\0
+		for (offset = 0; offset < len; offset += 1022) {
+			char print[1022];
+			Com_sprintf(print, sizeof(print), data + offset);
+			Com_Printf("%s\n", print);
+		}
+	}
+	Com_Printf(S_COLOR_YELLOW"gameState data count: %d\n", cl.gameState.dataCount);
+}
+
 #define G2_VERT_SPACE_CLIENT_SIZE 256
 
 /*
@@ -2893,7 +2919,7 @@ void CL_Init( void ) {
 	mme_demoPrecache = Cvar_Get ("mme_demoPrecache", "0", CVAR_ARCHIVE );
 	mme_demoAutoNext = Cvar_Get ("mme_demoAutoNext", "1", CVAR_ARCHIVE );
 	mme_demoPaused = Cvar_Get ("mme_demoPaused", "0", CVAR_INTERNAL );
-	mme_demoPaused = Cvar_Get ("mme_demoExt", "", CVAR_INTERNAL );
+	Cvar_Get ("mme_demoExt", "", CVAR_INTERNAL );
 
 	CL_SetMMEState();
 	//
@@ -2929,6 +2955,7 @@ void CL_Init( void ) {
 	Cmd_AddCommand("demoListNext", CL_DemoListNext_f);
 	Cmd_AddCommand("demoListNext", CL_DemoListNext_f);
 	Cmd_AddCommand("pause", NULL);
+	Cmd_AddCommand("printGameState", CL_PrintGameState_f);
 	CL_InitRef();
 
 	SCR_Init ();

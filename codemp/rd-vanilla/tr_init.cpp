@@ -622,6 +622,25 @@ void R_ScreenShot(const char *shotName, mmeShotFormat_t shotFormat) {
 	Q_strncpyz(cmd->name, shotName, sizeof(cmd->name));
 	cmd->format = shotFormat;
 }
+extern cvar_t *mme_dofFrames;
+void R_ScreenShotDOF(const char *shotName, float focus, float radius) {
+	captureCommand_t *cmd;
+	
+	if ( !tr.registered ) {
+		return;
+	}
+	cmd = (captureCommand_t *)R_GetCommandBuffer( sizeof( *cmd ) );
+	if ( !cmd ) {
+		return;
+	}
+	if (mme_dofFrames->integer > 0)
+		tr.capturingDofOrStereo = qtrue;
+	cmd->commandId = RC_CAPTURE;
+	cmd->fps = -1;
+	cmd->focus = focus;
+	cmd->radius = radius;
+	Q_strncpyz( cmd->name, shotName, sizeof( cmd->name ));
+}
 /* 
 ================== 
 R_ScreenShot_f
@@ -632,16 +651,16 @@ screenshot [filename]
 Doesn't print the pacifier message if there is a second arg
 ================== 
 */
-static qboolean R_ScreenShotName(const char *start, const char *ext, char *fileName) {
+static char *R_ScreenShotName(const char *start, const char *ext, char *fileName) {
 	int i;
 	for (i=0;i<1000;i++) {
 		Com_sprintf(fileName, MAX_OSPATH, "screenshots/%s.%04d.%s", 
 			start, i, ext);
 		if (!ri.FS_FileExists(fileName))
-			return qtrue;
+			return va("screenshots/%s.%04d", start, i);
 	}
 	Com_Printf("Screenshot limit reached\n");
-	return qtrue;
+	return va("screenshots/%s.%04d", start, i); // or should ret NULL?
 }
 static void R_ScreenShot_f(const char *ext, mmeShotFormat_t shotFormat) {
 	char fileName[MAX_OSPATH];
@@ -669,6 +688,29 @@ static void R_ScreenShotJPEG_f(void) {
 } 
 static void R_ScreenShotPNG_f(void) {
 	R_ScreenShot_f("png", mmeShotFormatPNG);
+} 
+static void R_ScreenShotDOF_f(void) {
+	char fileName[MAX_OSPATH], *name;
+	const char *cmd = ri.Cmd_Argv(1);
+	char *ext = mme_screenShotFormat->string;
+	if (mme_dofFrames->integer <= 0) {
+		ri.Printf(PRINT_ALL, "Failed to take a DOF screenshot: mme_dofFrames <= 0 (%d)\n", mme_dofFrames->integer);
+		return;
+	}
+	if (!cmd[0])
+		cmd = "shot";	
+	if (!Q_stricmp(ext, "avi") || !ext[0]) {
+		ext = "png";
+	}
+	if (name = R_ScreenShotName(cmd, ext, fileName)) {
+		float focus = atof(ri.Cmd_Argv(2));
+		float radius = atof(ri.Cmd_Argv(3));
+		if (!focus)
+			focus = 133.7f;
+		if (!radius)
+			radius = 1.337f;
+		R_ScreenShotDOF(name, focus, radius);
+	}
 } 
 //============================================================================
 /*
@@ -1044,6 +1086,7 @@ Ghoul2 Insert End
 	ri.Cmd_AddCommand( "screenshotTGA", R_ScreenShotTGA_f );
 	ri.Cmd_AddCommand( "screenshotJPEG", R_ScreenShotJPEG_f );
 	ri.Cmd_AddCommand( "screenshotPNG", R_ScreenShotPNG_f );
+	ri.Cmd_AddCommand( "screenshotDOF", R_ScreenShotDOF_f );
 	ri.Cmd_AddCommand( "gfxinfo", GfxInfo_f );
 	ri.Cmd_AddCommand( "r_atihack", R_AtiHackToggle_f );
 	ri.Cmd_AddCommand( "r_we", R_WorldEffect_f);
@@ -1191,6 +1234,7 @@ void RE_Shutdown( qboolean destroyWindow ) {
 	ri.Cmd_RemoveCommand ("screenshotTGA");
 	ri.Cmd_RemoveCommand ("screenshotJPEG");
 	ri.Cmd_RemoveCommand ("screenshotPNG");
+	ri.Cmd_RemoveCommand ("screenshotDOF");
 	ri.Cmd_RemoveCommand ("gfxinfo");
 	ri.Cmd_RemoveCommand ("r_atihack");
 	ri.Cmd_RemoveCommand ("r_we");

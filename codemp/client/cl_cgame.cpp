@@ -278,6 +278,7 @@ void CL_DoAutoLODScale(void)
 	Cvar_Set( "r_autolodscalevalue", va("%f", finalLODScaleFactor) );
 }
 
+extern void CL_PrintGameState_f(void);
 /*
 =====================
 CL_ConfigstringModified
@@ -323,6 +324,21 @@ void CL_ConfigstringModified( void ) {
 		len = strlen( dup );
 
 		if ( len + 1 + cl.gameState.dataCount > MAX_GAMESTATE_CHARS ) {
+			gameState_t newGs = cl.gameState;
+			Com_Printf(S_COLOR_RED"gameState data count exceeded: %d\n\n", len + 1 + cl.gameState.dataCount);
+			if (len > 1022) {
+				Com_Printf(S_COLOR_RED"failed string with length %d is too big to print\n\n", len);
+			} else {
+				Com_Printf(S_COLOR_RED"failed string with length %d:\n", len);
+				Com_Printf("%s\n", dup);
+				Com_Printf("\n", dup);
+			}
+			Com_Printf(S_COLOR_CYAN"old gameState:\n\n");
+			cl.gameState = oldGs;
+			CL_PrintGameState_f();
+			Com_Printf(S_COLOR_CYAN"new gameState:\n\n");
+			cl.gameState = newGs;
+			CL_PrintGameState_f();
 			Com_Error( ERR_DROP, "MAX_GAMESTATE_CHARS exceeded" );
 		}
 
@@ -561,7 +577,22 @@ rescan:
 	}
 
 	// we may want to put a "connect to other server" command here
-
+	
+	if (!strcmp(cmd, "lchat") && Cmd_Argc() > 3) {
+		cvar_t *cg_teamChatsOnly = Cvar_FindVar("cg_teamChatsOnly");
+		if (cg_teamChatsOnly && !cg_teamChatsOnly->integer)
+			Con_SetFilter(CON_FILTER_CHAT);
+	} else if (!strcmp(cmd, "ltchat") && Cmd_Argc() > 3) {
+		Con_SetFilter(CON_FILTER_TEAMCHAT);
+	} else if (!strcmp(cmd, "chat")) {
+		cvar_t *cg_teamChatsOnly = Cvar_FindVar("cg_teamChatsOnly");
+		if (cg_teamChatsOnly && !cg_teamChatsOnly->integer)
+			Con_SetFilter(CON_FILTER_CHAT);
+	} else if (!strcmp(cmd, "tchat")) {
+		Con_SetFilter(CON_FILTER_TEAMCHAT);
+	} else if (!strcmp(cmd, "print")) {
+		Con_SetFilter(CON_FILTER_SERVER);
+	}
 	// cgame can now act on the command
 	return qtrue;
 }

@@ -100,7 +100,9 @@ void R_MME_SaveShot( mmeShot_t *shot, int width, int height, float fps, byte *in
 		return;
 	}
 
-	if (shot->counter < 0) {
+	if (aSize < 0) {
+		Com_sprintf( fileName, sizeof(fileName), "%s.%s", shot->name, extension );
+	} else if (shot->counter < 0) {
 		int counter = 0;
 		while ( counter < 1000000000) {
 			Com_sprintf( fileName, sizeof(fileName), "%s.%010d.%s", shot->name, counter, extension);
@@ -117,8 +119,10 @@ void R_MME_SaveShot( mmeShot_t *shot, int width, int height, float fps, byte *in
 		}
 	} 
 
-	Com_sprintf( fileName, sizeof(fileName), "%s.%010d.%s", shot->name, shot->counter, extension );
-	shot->counter++;
+	if (aSize >= 0) {
+		Com_sprintf( fileName, sizeof(fileName), "%s.%010d.%s", shot->name, shot->counter, extension );
+		shot->counter++;
+	}
 
 	outSize = width * height * 4 + 2048;
 	outBuf = (char *)ri.Hunk_AllocateTempMemory( outSize );

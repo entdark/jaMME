@@ -329,7 +329,7 @@ static void CG_DisplayTeamStat(team_t t) {
 		if (!(cg.enhanced.stats[i].team == TEAM_RED
 			|| cg.enhanced.stats[i].team == TEAM_BLUE))
 			continue;
-		int nameLen = Q_PrintStrlen(cg.enhanced.stats[i].name);
+		int nameLen = Q_PrintStrlen(cg.enhanced.stats[i].name, qfalse);
 		if (nameLen > nameLenMax)
 			nameLenMax = nameLen;
 		if (cg.enhanced.stats[i].team != t)
@@ -359,7 +359,7 @@ static void CG_DisplayTeamStat(team_t t) {
 			CG_Printf(S_COLOR_RED"RED  ");
 		else if (t == TEAM_BLUE)
 			CG_Printf(S_COLOR_BLUE"BLUE ");
-		nameLen = Q_PrintStrlen(cg.enhanced.stats[i].name);
+		nameLen = Q_PrintStrlen(cg.enhanced.stats[i].name, qfalse);
 		CG_Printf(S_COLOR_WHITE"%s", cg.enhanced.stats[i].name);
 		if (nameLen < nameLenMax) {
 			int j, d = nameLenMax - nameLen;

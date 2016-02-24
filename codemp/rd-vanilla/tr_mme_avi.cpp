@@ -16,11 +16,12 @@ static void aviWrite32( void *pos, unsigned int val) {
 	data[3] = (val >> 24) & 0xff;
 }
 
-int aviFillHeader( mmeAviFile_t *aviFile ) {
+int aviFillHeader( mmeAviFile_t *aviFile, qboolean close = qfalse ) {
 	char avi_header[AVI_HEADER_SIZE];
+	char index[16];
 	int main_list, nmain, njunk;
-	int header_pos=0, HEADER_SIZE = aviFile->audio?0:AVI_HEADER_SIZE;
-	int i;
+	int header_pos=0, HEADER_SIZE = aviFile->audio?aviFile->header:AVI_HEADER_SIZE;
+	int framePos, i;
 	qboolean storeMJPEG = (qboolean)aviFile->format;
 
 	if (!aviFile->f)
@@ -169,7 +170,7 @@ int aviFillHeader( mmeAviFile_t *aviFile ) {
 		AVIOUT4("JUNK");
 		AVIOUTd(njunk);
 	}
-	if (header_pos > HEADER_SIZE && !aviFile->audio) {
+	if (header_pos > HEADER_SIZE && (!aviFile->audio || close)) {
 		ri.Error( ERR_FATAL, "Avi Header too large\n" );
 	}
 	/* Fix the size of the main list */
@@ -186,184 +187,13 @@ int aviFillHeader( mmeAviFile_t *aviFile ) {
 	AVIOUT4("LIST");
 	AVIOUTd(aviFile->written+4); /* Length of list in bytes */
 	AVIOUT4("movi");
-	if (aviFile->audio)
-		ri.FS_Write( &avi_header, header_pos, aviFile->f );
-	else
-		ri.FS_Write( &avi_header, HEADER_SIZE, aviFile->f );
-	return header_pos;
-}
-
-void aviClose( mmeAviFile_t *aviFile ) {
-	char avi_header[AVI_HEADER_SIZE];
-	char index[16];
-	int main_list, nmain, njunk;
-	int header_pos=0, HEADER_SIZE = aviFile->audio?aviFile->header:AVI_HEADER_SIZE;
-	int framePos, i;
-	qboolean storeMJPEG = (qboolean)aviFile->format;
-
-	if (!aviFile->f)
-		return;
-	Com_Memset( avi_header, 0, sizeof( avi_header ));
-
-#define AVIOUT4(_S_) memcpy(&avi_header[header_pos],_S_,4);header_pos+=4;
-#define AVIOUTw(_S_) aviWrite16(&avi_header[header_pos], _S_);header_pos+=2;
-#define AVIOUTd(_S_) aviWrite32(&avi_header[header_pos], _S_);header_pos+=4;
-	/* Try and write an avi header */
-	AVIOUT4("RIFF");                    // Riff header 
-	AVIOUTd(HEADER_SIZE + aviFile->written - 8 + aviFile->iframes * 16);
-	AVIOUT4("AVI ");
-	AVIOUT4("LIST");                    // List header
-	main_list = header_pos;
-	AVIOUTd(0);				            // TODO size of list
-	AVIOUT4("hdrl");
-	AVIOUT4("avih");
-	AVIOUTd(56);                         /* # of bytes to follow */
-	AVIOUTd(1000000 / aviFile->fps);     /* Microseconds per frame */
-	AVIOUTd(aviFile->audio?(aviFile->maxSize*aviFile->fps):0);
-	AVIOUTd(0);                         /* PaddingGranularity (whatever that might be) */
-	AVIOUTd(0x110);                     /* Flags,0x10 has index, 0x100 interleaved */
-	AVIOUTd(aviFile->frames);		    /* TotalFrames */
-	AVIOUTd(0);                         /* InitialFrames */
-	if (aviFile->audio) {
-		AVIOUTd(2);
-	} else {
-		AVIOUTd(1);						/* Stream count */
+	if (!close) {
+		if (aviFile->audio)
+			ri.FS_Write( &avi_header, header_pos, aviFile->f );
+		else
+			ri.FS_Write( &avi_header, HEADER_SIZE, aviFile->f );
+		return header_pos;
 	}
-	AVIOUTd(aviFile->audio?(aviFile->maxSize):0); /* SuggestedBufferSize */
-	AVIOUTd(aviFile->width);	        /* Width */
-	AVIOUTd(aviFile->height);		    /* Height */
-	AVIOUTd(0);                         /* TimeScale:  Unit used to measure time */
-	AVIOUTd(0);                         /* DataRate:   Data rate of playback     */
-	AVIOUTd(0);                         /* StartTime:  Starting time of AVI data */
-	AVIOUTd(0);                         /* DataLength: Size of AVI data chunk    */
-
-	/* Video stream list */
-	AVIOUT4("LIST");
-	AVIOUTd(4 + 8 + 56 + 8 + 40);       /* Size of the list */
-	AVIOUT4("strl");
-	/* video stream header */
-    AVIOUT4("strh");
-	AVIOUTd(56);                        /* # of bytes to follow */
-	AVIOUT4("vids");                    /* Type */
-	if ( aviFile->format == 1) { /* Handler */
-		AVIOUT4("MJPG");      		    
-	} else {
-		AVIOUTd(0);
-	}
-	AVIOUTd(0);                         /* Flags */
-	AVIOUTd(0);                         /* Reserved, MS says: wPriority, wLanguage */
-	AVIOUTd(0);                         /* InitialFrames */
-	AVIOUTd(1000000);                   /* Scale */
-	AVIOUTd(1000000 * aviFile->fps);    /* Rate: Rate/Scale == samples/second */
-	AVIOUTd(0);                         /* Start */
-	AVIOUTd(aviFile->frames);           /* Length */
-	AVIOUTd(aviFile->audio?(aviFile->maxSize):0); /* SuggestedBufferSize */
-	AVIOUTd(~0);                        /* Quality */
-	AVIOUTd(0);                         /* SampleSize */
-	if (aviFile->audio) {
-		AVIOUTw(0);                     /* Frame */
-		AVIOUTw(0);                     /* Frame */
-		AVIOUTw(aviFile->width);        /* Frame */
-		AVIOUTw(aviFile->height);       /* Frame */
-	} else {
-		AVIOUTd(0);                     /* Frame */
-		AVIOUTd(0);                     /* Frame */
-	}
-	/* The video stream format */
-	AVIOUT4("strf");
-	AVIOUTd(40);                        /* # of bytes to follow */
-	AVIOUTd(40);                        /* Size */
-	AVIOUTd(aviFile->width);            /* Width */
-	AVIOUTd(aviFile->height);           /* Height */
-	AVIOUTw(1);							/* Planes */
-	if (!storeMJPEG && aviFile->type == mmeShotTypeGray ) {
-		AVIOUTw(8);						/* BitCount */
-	} else {
-		AVIOUTw(24);					/* BitCount */
-	}
-	if ( storeMJPEG ) { /* Compression */
-		AVIOUT4("MJPG");
-		AVIOUTd(aviFile->width * aviFile->height); /* SizeImage (in bytes?) */
-	} else {
-		AVIOUTd(0);
-		AVIOUTd(aviFile->width * aviFile->height*3); /* SizeImage (in bytes?) */
-	}
-	AVIOUTd(0);                  /* XPelsPerMeter */
-	AVIOUTd(0);                  /* YPelsPerMeter */
-	if ( !storeMJPEG && aviFile->type == mmeShotTypeGray ) {
-		AVIOUTd(255);			 /* colorUsed */
-	} else {
-		AVIOUTd(0);				 /* colorUsed */
-	}
-	AVIOUTd(0);                  /* ClrImportant: Number of colors important */
-	if ( !storeMJPEG && aviFile->type == mmeShotTypeGray ) {
-		for(i = 0;i<255;i++) {
-			avi_header[header_pos++] = i;
-			avi_header[header_pos++] = i;
-			avi_header[header_pos++] = i;
-			avi_header[header_pos++] = 0;
-		}
-	}
-	/* Audio stream list */
-	if (aviFile->audio) {
-		AVIOUT4("LIST");
-		AVIOUTd(4 + 8 + 56 + 8 + 18); /* Size of the list */
-		AVIOUT4("strl");
-		AVIOUT4("strh");
-		AVIOUTd(56);			 /* # of bytes to follow */
-		AVIOUT4("auds");
-		AVIOUTd(0);				 /* FCC */
-		AVIOUTd(0);				 /* Flags */
-		AVIOUTd(0);				 /* Priority */
-		AVIOUTd(0);				 /* InitialFrame */
-
-		AVIOUTd((16/8)*2);		 /* Timescale */
-		AVIOUTd(((16/8)*2) * MME_SAMPLERATE); /* DataRate */
-		AVIOUTd(0);				 /* StartTime */
-		AVIOUTd(aviFile->awritten / ((16/8)*2)); /* DataLength */
-
-		AVIOUTd(0);				 /* SuggestedBufferSize */
-		AVIOUTd(~0);			 /* Quality */
-		AVIOUTd(((16/8)*2));	 /* SampleSize */
-		AVIOUTw(0);				 /* Frame */
-		AVIOUTw(0);				 /* Frame */
-		AVIOUTw(0);				 /* Frame */
-		AVIOUTw(0);				 /* Frame */
-
-		AVIOUT4("strf");
-		AVIOUTd(18);			 /* # of bytes to follow */
-		AVIOUTw(1);				 /* FormatTag */
-		AVIOUTw(2);				 /* Channels */
-		AVIOUTd(MME_SAMPLERATE); /* SamplesPerSec */
-		AVIOUTd(((16/8)*2) * MME_SAMPLERATE); /* AvgBytesPerSec */
-		AVIOUTw(((16/8)*2));	 /* BlockAlign */
-		AVIOUTw(16);			 /* BitsPerSample */
-		AVIOUTw(0);				 /* bSize */
-	}
-	nmain = header_pos - main_list - 4;
-	/* Finish stream list, i.e. put number of bytes in the list to proper pos */
-	if (!aviFile->audio) {
-		njunk = AVI_HEADER_SIZE - 8 - 12 - header_pos;
-		AVIOUT4("JUNK");
-		AVIOUTd(njunk);
-	}
-	if (header_pos > HEADER_SIZE) {
-		ri.Error( ERR_FATAL, "Avi Header too large\n" );
-	}
-	/* Fix the size of the main list */
-	if (aviFile->audio) {
-		int last_header_pos = header_pos;
-		header_pos = main_list;
-		AVIOUTd(nmain);
-		header_pos = last_header_pos;
-	} else {
-		header_pos = main_list;
-		AVIOUTd(nmain);
-		header_pos = AVI_HEADER_SIZE - 12;
-	}
-	AVIOUT4("LIST");
-	AVIOUTd(aviFile->written+4); /* Length of list in bytes */
-	AVIOUT4("movi");
 	/* First add the index table to the end */
 	ri.FS_Write( "idx1", 4, aviFile->f );
 	aviWrite32( index, aviFile->iframes * 16 );
@@ -390,6 +220,11 @@ void aviClose( mmeAviFile_t *aviFile ) {
 	ri.FS_Write( &avi_header, HEADER_SIZE, aviFile->f );
 	ri.FS_FCloseFile( aviFile->f );
 	Com_Memset( aviFile, 0, sizeof( *aviFile ));
+	return -1; //let's say -1 == success o:
+}
+
+void aviClose( mmeAviFile_t *aviFile ) {
+	aviFillHeader(aviFile, qtrue);
 }
 
 static qboolean aviOpen( mmeAviFile_t *aviFile, const char *name, mmeShotType_t type, int width, int height, float fps, qboolean audio) {
@@ -404,7 +239,7 @@ static qboolean aviOpen( mmeAviFile_t *aviFile, const char *name, mmeShotType_t 
 	/* First see if the file already exist */
 	for (i = 0;i < AVI_MAX_FILES;i++) {
 		Com_sprintfOld( fileName, sizeof(fileName), "%s.%03d.avi", name, i );
-		if (mme_noAviSizeLimit->integer || !ri.FS_FileExists( fileName ))
+		if (!mme_aviLimit->integer || !ri.FS_FileExists( fileName ))
 			break;
 	}
 	if (i == AVI_MAX_FILES) {
@@ -441,6 +276,7 @@ static qboolean aviOpen( mmeAviFile_t *aviFile, const char *name, mmeShotType_t 
 		aviFile->awritten = 0;
 		aviFile->audio = qtrue;
 	}
+	aviFile->header = 0;
 	aviFile->header = aviFillHeader(aviFile);
 	return qtrue;
 }
@@ -458,7 +294,7 @@ static qboolean aviValid( const mmeAviFile_t *aviFile, const char *name, mmeShot
 		return qfalse;
 	if (Q_stricmp(aviFile->name, name))
 		return qfalse;
-	if (aviFile->written >= AVI_MAX_SIZE && !mme_noAviSizeLimit->integer)
+	if (aviFile->written >= AVI_MAX_SIZE && mme_aviLimit->integer)
 		return qfalse;
 	if (mme_aviFormat->integer != aviFile->format)
 		return qfalse;

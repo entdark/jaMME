@@ -498,7 +498,12 @@ void Conbuf_AppendText( const char *pMsg )
 	//
 	while ( msg[i] && ( ( b - buffer ) < sizeof( buffer ) - 1 ) )
 	{
-		if ( msg[i] == '\n' && msg[i+1] == '\r' )
+		int colorLen = Q_parseColorString( msg + i, 0, qfalse );
+		if ( colorLen ) 
+		{
+			i += colorLen;
+		} 
+		else if ( msg[i] == '\n' && msg[i+1] == '\r' )
 		{
 			b[0] = '\r';
 			b[1] = '\n';
@@ -516,10 +521,6 @@ void Conbuf_AppendText( const char *pMsg )
 			b[0] = '\r';
 			b[1] = '\n';
 			b += 2;
-		}
-		else if ( ( cls.uag.newColors && Q_IsColorStringUAG( &msg[i] ) ) || Q_IsColorStringExt( &msg[i] ) )
-		{
-			i++;
 		}
 		else
 		{

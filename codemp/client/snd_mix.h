@@ -19,7 +19,7 @@ typedef struct mixSound_s {
 
 typedef struct {
 	sfxHandle_t		handle;
-	int				index;
+	int64_t			index;
 	vec3_t			origin;
 	short			entNum;
 	char			entChan;

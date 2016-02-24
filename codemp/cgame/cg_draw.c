@@ -4531,10 +4531,7 @@ void CG_CenterPrint( const char *str, int y, int charWidth ) {
 	// count the number of lines for centering
 	cg.centerPrintLines = 1;
 	s = cg.centerPrint;
-	if (cg.uag.newColors)
-		Q_StripColorNewUAG(s);
-	else
-		Q_StripColorNew(s);
+	Q_StripColorNew(s, cg.uag.newColors);
 	while( *s ) 
 	{
 		//[BugFix19]
@@ -4586,10 +4583,7 @@ static void CG_DrawCenterString( void ) {
 	trap_R_SetColor( color );
 
 	len = strlen(cg.centerPrint);
-	if (cg.uag.newColors)
-		len -= Q_PrintStrlenUAG(cg.centerPrint);
-	else
-		len -= Q_PrintStrlen(cg.centerPrint);
+	len -= Q_PrintStrlen(cg.centerPrint, cg.uag.newColors);
 	if (len < 0) //must never happen
 		len = 0;
 
