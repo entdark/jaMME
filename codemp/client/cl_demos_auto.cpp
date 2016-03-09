@@ -21,11 +21,13 @@ char *demoAutoFormat(const char* name) {
 	qtime_t ct;
 	struct tm tt;
 
-	char playerName[MAX_QPATH], serverName[MAX_QPATH];
-	char *mapName = COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO]), "mapname"));
-	Q_strncpyz(playerName, Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_PLAYERS+cl.snap.ps.clientNum]), "n"), sizeof(playerName));
+	char playerName[MAX_QPATH], serverName[MAX_QPATH], mapName[MAX_QPATH];
+	Q_strncpyz(playerName, COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_PLAYERS+cl.snap.ps.clientNum]), "n")), sizeof(playerName));
+	Q_strncpyz(serverName, COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO]), "sv_hostname")), sizeof(serverName));
+	Q_strncpyz(mapName, COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO]), "mapname")), sizeof(mapName));
 	Q_StripColor(playerName, cls.uag.newColors);
-	Q_StripColor(serverName, COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO]), "sv_hostname")));
+	Q_StripColor(serverName, cls.uag.newColors);
+	Q_StripColor(mapName, cls.uag.newColors);
 	Com_RealTime(&ct);
 	
 	format = cl_autoDemoFormat->string;
@@ -51,8 +53,8 @@ char *demoAutoFormat(const char* name) {
 				tt.tm_sec = ct.tm_sec; tt.tm_min = ct.tm_min; tt.tm_hour = ct.tm_hour;
 				tt.tm_mday = ct.tm_mday; tt.tm_mon = ct.tm_mon; tt.tm_year = ct.tm_year;
 				tt.tm_wday = ct.tm_wday; tt.tm_yday = ct.tm_yday; tt.tm_isdst = ct.tm_isdst;
-				strftime( outBuf + outIndex, outLeft, va( "%%%c", ch ), &tt );
-				outIndex += strlen( outBuf + outIndex );
+				strftime(outBuf + outIndex, outLeft, va("%%%c", ch), &tt);
+				outIndex += strlen(outBuf + outIndex);
 				break;
 			case 'D':		//date
 				Com_sprintf( outBuf + outIndex, outLeft, "%d-%02d-%02d-%02d%02d%02d",
@@ -73,8 +75,8 @@ char *demoAutoFormat(const char* name) {
 				outIndex += strlen( outBuf + outIndex );
 				break;
 			case 's':
-				Com_sprintf( outBuf + outIndex, outLeft, serverName );
-				outIndex += strlen( outBuf + outIndex );
+				Com_sprintf(outBuf + outIndex, outLeft, serverName);
+				outIndex += strlen(outBuf + outIndex);
 				break;
 			case 't':		//timestamp
 				while (demo.record.timeStamps[t] && t < MAX_TIMESTAMPS) {
