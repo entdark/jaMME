@@ -458,7 +458,7 @@ void CL_SystemInfoChanged( void ) {
 					Q_stricmp( key, "pmove_float" ) &&
 					Q_stricmp( key, "sex" ) )
 				{
-					//Com_Printf(S_COLOR_YELLOW "WARNING: server is not allowed to set %s=%s\n", key, value);
+					Com_DPrintf(S_COLOR_YELLOW "WARNING: server is not allowed to set %s=%s\n", key, value);
 					continue;
 				}
 			}
