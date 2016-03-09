@@ -19,10 +19,13 @@ char *demoAutoFormat(const char* name) {
 	int t = 0;
 	char timeStamps[MAX_QPATH] = "";
 	qtime_t ct;
+	struct tm tt;
 
-	char playerName[MAX_QPATH], *mapName = COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO]), "mapname"));
+	char playerName[MAX_QPATH], serverName[MAX_QPATH];
+	char *mapName = COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO]), "mapname"));
 	Q_strncpyz(playerName, Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_PLAYERS+cl.snap.ps.clientNum]), "n"), sizeof(playerName));
 	Q_StripColor(playerName, cls.uag.newColors);
+	Q_StripColor(serverName, COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO]), "sv_hostname")));
 	Com_RealTime(&ct);
 	
 	format = cl_autoDemoFormat->string;
@@ -39,13 +42,25 @@ char *demoAutoFormat(const char* name) {
 			char ch = *format++;
 			haveTag = qfalse;
 			switch (ch) {
-			case 'd':		//date
+			// let strftime handle its tokens, and ignore those with illegal characters
+			case 'a':   case 'A':   case 'b':   case 'B': /*case 'c':*/ case 'd':
+			case 'H':   case 'I':   case 'm':   case 'M':   case 'p':   case 'S':
+			case 'u':   case 'w': /*case 'x':   case 'X':*/ case 'y':   case 'Y':
+			case 'Z':
+				// we can't just cast the struct because of undefined compiler behaviour
+				tt.tm_sec = ct.tm_sec; tt.tm_min = ct.tm_min; tt.tm_hour = ct.tm_hour;
+				tt.tm_mday = ct.tm_mday; tt.tm_mon = ct.tm_mon; tt.tm_year = ct.tm_year;
+				tt.tm_wday = ct.tm_wday; tt.tm_yday = ct.tm_yday; tt.tm_isdst = ct.tm_isdst;
+				strftime( outBuf + outIndex, outLeft, va( "%%%c", ch ), &tt );
+				outIndex += strlen( outBuf + outIndex );
+				break;
+			case 'D':		//date
 				Com_sprintf( outBuf + outIndex, outLeft, "%d-%02d-%02d-%02d%02d%02d",
 								1900+ct.tm_year, ct.tm_mon+1,ct.tm_mday,
 								ct.tm_hour, ct.tm_min, ct.tm_sec);
 				outIndex += strlen( outBuf + outIndex );
 				break;
-			case 'm':		//map
+			case 'N':		//map
 				Com_sprintf( outBuf + outIndex, outLeft, mapName);
 				outIndex += strlen( outBuf + outIndex );
 				break;
@@ -53,8 +68,12 @@ char *demoAutoFormat(const char* name) {
 				Com_sprintf( outBuf + outIndex, outLeft, name);
 				outIndex += strlen( outBuf + outIndex );
 				break;
-			case 'p':		//current player name
+			case 'P':		//current player name
 				Com_sprintf( outBuf + outIndex, outLeft, playerName);
+				outIndex += strlen( outBuf + outIndex );
+				break;
+			case 's':
+				Com_sprintf( outBuf + outIndex, outLeft, serverName );
 				outIndex += strlen( outBuf + outIndex );
 				break;
 			case 't':		//timestamp
