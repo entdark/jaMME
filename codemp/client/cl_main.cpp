@@ -2897,7 +2897,7 @@ void CL_Init( void ) {
 
 	
 	cl_autoDemo = Cvar_Get ("cl_autoDemo", "1", CVAR_ARCHIVE );
-	cl_autoDemoFormat = Cvar_Get ("cl_autoDemoFormat", "%t_%N", CVAR_ARCHIVE );
+	cl_autoDemoFormat = Cvar_Get ("cl_autoDemoFormat", "%t_%m", CVAR_ARCHIVE );
 	Cmd_AddCommand ("saveDemo", demoAutoSave_f);
 	Cmd_AddCommand ("saveDemoLast", demoAutoSaveLast_f);
 
