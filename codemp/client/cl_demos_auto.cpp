@@ -19,10 +19,15 @@ char *demoAutoFormat(const char* name) {
 	int t = 0;
 	char timeStamps[MAX_QPATH] = "";
 	qtime_t ct;
+	struct tm tt;
 
-	char playerName[MAX_QPATH], *mapName = COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO]), "mapname"));
-	Q_strncpyz(playerName, Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_PLAYERS+cl.snap.ps.clientNum]), "n"), sizeof(playerName));
+	char playerName[MAX_QPATH], serverName[MAX_QPATH], mapName[MAX_QPATH];
+	Q_strncpyz(playerName, COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_PLAYERS+cl.snap.ps.clientNum]), "n")), sizeof(playerName));
+	Q_strncpyz(serverName, COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO]), "sv_hostname")), sizeof(serverName));
+	Q_strncpyz(mapName, COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO]), "mapname")), sizeof(mapName));
 	Q_StripColor(playerName, cls.uag.newColors);
+	Q_StripColor(serverName, cls.uag.newColors);
+	Q_StripColor(mapName, cls.uag.newColors);
 	Com_RealTime(&ct);
 	
 	format = cl_autoDemoFormat->string;
@@ -39,6 +44,38 @@ char *demoAutoFormat(const char* name) {
 			char ch = *format++;
 			haveTag = qfalse;
 			switch (ch) {
+			// a: Abbreviated weekday name (Thu)
+			// A: Full weekday name (Thursday)
+			// b: Abbreviated month name (Aug)
+			// B: Full month name (August)
+			// D: Day of the month, zero-padded (01-31)
+			// H: Hour in 24h format (00-23)
+			// I: Hour in 12h format (01-12)
+			// j: Day of the year (001-366)
+			// N: Month as a decimal number (01-12)
+			// M: Minute (00-59)
+			// P: AM or PM designation
+			// S: Second (00-61)
+			// U: Week number with the first Sunday as the first day of week one (00-53)
+			// w: Weekday as a decimal number with Sunday as 0 (0-6)
+			// y: Year, last two digits (00-99)
+			// Y: Year (2001)
+			// Z: Timezone abbreviation (CDT)
+			case 'a':   case 'A':   case 'b':   case 'B': /*case 'c':*/ case 'D':
+			case 'H':   case 'I':   case 'j':   case 'N':   case 'M':   case 'P':
+			case 'S':   case 'U':   case 'w': /*case 'x':   case 'X':*/ case 'y':
+			case 'Y':   case 'Z':
+				// change a few tokens
+				if (ch == 'D') ch = 'd';
+				else if (ch == 'N') ch = 'm';
+				else if (ch == 'P') ch = 'p';
+				// we can't just cast the struct because of undefined compiler behaviour
+				tt.tm_sec = ct.tm_sec; tt.tm_min = ct.tm_min; tt.tm_hour = ct.tm_hour;
+				tt.tm_mday = ct.tm_mday; tt.tm_mon = ct.tm_mon; tt.tm_year = ct.tm_year;
+				tt.tm_wday = ct.tm_wday; tt.tm_yday = ct.tm_yday; tt.tm_isdst = ct.tm_isdst;
+				strftime(outBuf + outIndex, outLeft, va("%%%c", ch), &tt);
+				outIndex += strlen(outBuf + outIndex);
+				break;
 			case 'd':		//date
 				Com_sprintf( outBuf + outIndex, outLeft, "%d-%02d-%02d-%02d%02d%02d",
 								1900+ct.tm_year, ct.tm_mon+1,ct.tm_mday,
@@ -56,6 +93,10 @@ char *demoAutoFormat(const char* name) {
 			case 'p':		//current player name
 				Com_sprintf( outBuf + outIndex, outLeft, playerName);
 				outIndex += strlen( outBuf + outIndex );
+				break;
+			case 's':
+				Com_sprintf(outBuf + outIndex, outLeft, serverName);
+				outIndex += strlen(outBuf + outIndex);
 				break;
 			case 't':		//timestamp
 				while (demo.record.timeStamps[t] && t < MAX_TIMESTAMPS) {
