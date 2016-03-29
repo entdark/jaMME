@@ -276,6 +276,7 @@
     <ClCompile Include="tr_marks.cpp" />
     <ClCompile Include="tr_mesh.cpp" />
     <ClCompile Include="tr_mme.cpp" />
+    <ClCompile Include="tr_mme_pipe.cpp" />
     <ClCompile Include="tr_mme_stereo.cpp" />
     <ClCompile Include="tr_mme_avi.cpp" />
     <ClCompile Include="tr_mme_common.cpp" />

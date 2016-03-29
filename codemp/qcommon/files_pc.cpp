@@ -3754,13 +3754,17 @@ fileHandle_t FS_PipeOpen(const char *qcmd, const char *qpath, const char *mode) 
     ospath = FS_BuildOSPath(fs_homepath->string, fs_gamedir, qpath);
     
     if (fs_debug->integer) {
-        Com_Printf("FS_PipeOpen: %s\n", ospath);
+        Com_Printf("FS_PipeOpen ospath: %s\n", ospath);
     }
     
     if(FS_CreatePath(ospath)) {
         return 0;
     }
     cmd = FS_BuildOSPath(fs_homepath->string, fs_gamedir, qcmd);
+    if (fs_debug->integer) {
+        Com_Printf("FS_PipeOpen cmd: %s\n", cmd);
+    }
+    
     
 #ifdef _WIN32
     fsh[f].handleFiles.file.o = _popen(cmd, mode);

@@ -249,6 +249,7 @@
     <ClCompile Include="..\libpng\pngwutil.c">
       <Filter>libpng</Filter>
     </ClCompile>
+    <ClCompile Include="tr_mme_pipe.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\renderer\mdx_format.h" />
