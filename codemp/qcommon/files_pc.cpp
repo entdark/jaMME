@@ -3742,8 +3742,7 @@ bool FS_LoadMachOBundle( const char *name )
 fileHandle_t FS_PipeOpen(const char *qcmd, const char *qpath, const char *mode) {
     char			*ospath;
     fileHandle_t	f;
-    char            *oscmd;
-    char            cmd[MAX_OSPATH];
+    char            *cmd;
     
     if (!fs_searchpaths) {
         Com_Error(ERR_FATAL, "Filesystem call made without initialization\n");
@@ -3761,8 +3760,7 @@ fileHandle_t FS_PipeOpen(const char *qcmd, const char *qpath, const char *mode) 
     if(FS_CreatePath(ospath)) {
         return 0;
     }
-    oscmd = FS_BuildOSPath(fs_homepath->string, fs_gamedir, qcmd);
-    Com_sprintf(cmd, sizeof(cmd), va("%s %s", oscmd, ospath));
+    cmd = FS_BuildOSPath(fs_homepath->string, fs_gamedir, qcmd);
     
 #ifdef _WIN32
     fsh[f].handleFiles.file.o = _popen(cmd, mode);

@@ -583,12 +583,15 @@ void R_MME_Shutdown(void) {
 	aviClose( &shotData.main.avi );
 	aviClose( &shotData.depth.avi );
 	aviClose( &shotData.stencil.avi );
+    pipeClose( &shotData.main.pipe );
+    pipeClose( &shotData.depth.pipe );
+    pipeClose( &shotData.stencil.pipe );
 }
 
 void R_MME_Init(void) {
 	
     // MME cvars
-    mme_pipeCommand = ri.Cvar_Get ("mme_pipeCommand", "ffmpeg -loglevel debug -r %d -f rawvideo -pix_fmt rgb24 -s %dx%d -threads 0 -preset fast -y -crf 23", CVAR_ARCHIVE);
+    mme_pipeCommand = ri.Cvar_Get ("mme_pipeCommand", "ffmpeg -r %f -f rawvideo -pix_fmt rgb24 -s %wx%h -i - -threads 0 -preset fast -y -pix_fmt yuv420p -crf 17 -vf vflip %o.mp4 2> ffmpeglog.txt", CVAR_ARCHIVE);
     
 	mme_aviFormat = ri.Cvar_Get ("mme_aviFormat", "0", CVAR_ARCHIVE);
 	mme_aviLimit = ri.Cvar_Get ("mme_aviLimit", "1", CVAR_ARCHIVE);

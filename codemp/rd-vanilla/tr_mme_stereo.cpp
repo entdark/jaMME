@@ -477,7 +477,10 @@ void R_MME_CaptureStereo( const char *shotName, float fps, float focus, float ra
 void R_MME_ShutdownStereo(void) {
 	aviClose( &shotData.main.avi );
 	aviClose( &shotData.depth.avi );
-	aviClose( &shotData.stencil.avi );
+    aviClose( &shotData.stencil.avi );
+    pipeClose( &shotData.main.pipe );
+    pipeClose( &shotData.depth.pipe );
+    pipeClose( &shotData.stencil.pipe );
 }
 
 void R_MME_InitStereo(void) {
