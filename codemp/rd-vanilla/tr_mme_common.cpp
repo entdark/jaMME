@@ -97,7 +97,10 @@ void R_MME_SaveShot( mmeShot_t *shot, int width, int height, float fps, byte *in
 		if (audio)
 			mmeAviSound( &shot->avi, shot->name, shot->type, width, height, fps, aBuf, aSize );
 		mmeAviShot( &shot->avi, shot->name, shot->type, width, height, fps, inBuf, audio );
-		return;
+            return;
+    case mmeShotFormatPIPE:
+        mmePipeShot(&shot->pipe, shot->name, shot->type, width, height, fps, inBuf);
+        return;
 	}
 
 	if (aSize < 0) {

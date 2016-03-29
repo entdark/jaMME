@@ -2636,6 +2636,11 @@ void CL_InitRef( void ) {
 	ri.FS_Seek = FS_Seek;
 	ri.FS_Write = FS_Write;
 	ri.FS_WriteFile = FS_WriteFile;
+    
+    ri.FS_PipeOpen = FS_PipeOpen;
+    ri.FS_PipeClose = FS_PipeClose;
+    ri.FS_PipeWrite = FS_PipeWrite;
+    
 	ri.CM_BoxTrace = CM_BoxTrace;
 	ri.CM_DrawDebugSurface = CM_DrawDebugSurface;
 	ri.CM_CullWorldBox = CM_CullWorldBox;

@@ -592,7 +592,7 @@ void demoCaptureCommand_f(void) {
 			CG_DemosAddLog( "Capture looping stopped too" );
 			demo.loop.total = 0;
 		}
-	} else if (!Q_stricmp(cmd, "jpg") || !Q_stricmp(cmd, "tga") || !Q_stricmp(cmd, "png") || !Q_stricmp(cmd, "avi")){
+	} else if (!Q_stricmp(cmd, "jpg") || !Q_stricmp(cmd, "tga") || !Q_stricmp(cmd, "png") || !Q_stricmp(cmd, "avi") || !Q_stricmp(cmd, "pipe")){
 		demo.capture.active = qtrue;
 		demo.capture.locked = qfalse;
 		

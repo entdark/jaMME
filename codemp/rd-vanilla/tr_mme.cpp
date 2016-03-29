@@ -71,6 +71,8 @@ cvar_t	*mme_saveDepth;
 
 cvar_t	*mme_aviLimit;
 
+cvar_t  *mme_pipeCommand;
+
 ID_INLINE byte * R_MME_BlurOverlapBuf( mmeBlurBlock_t *block ) {
 	mmeBlurControl_t* control = block->control;
 	int index = control->overlapIndex % control->overlapFrames;
@@ -518,7 +520,9 @@ const void *R_MME_CaptureShotCmd( const void *data ) {
 		} else if (!Q_stricmp(mme_screenShotFormat->string, "png")) {
 			shotData.main.format = mmeShotFormatPNG;
 		} else if (!Q_stricmp(mme_screenShotFormat->string, "avi")) {
-			shotData.main.format = mmeShotFormatAVI;
+            shotData.main.format = mmeShotFormatAVI;
+        } else if (!Q_stricmp(mme_screenShotFormat->string, "pipe")) {
+            shotData.main.format = mmeShotFormatPIPE;
 		} else {
 			shotData.main.format = mmeShotFormatTGA;
 		}
@@ -583,7 +587,9 @@ void R_MME_Shutdown(void) {
 
 void R_MME_Init(void) {
 	
-	// MME cvars
+    // MME cvars
+    mme_pipeCommand = ri.Cvar_Get ("mme_pipeCommand", "ffmpeg -loglevel debug -r %d -f rawvideo -pix_fmt rgb24 -s %dx%d -threads 0 -preset fast -y -crf 23", CVAR_ARCHIVE);
+    
 	mme_aviFormat = ri.Cvar_Get ("mme_aviFormat", "0", CVAR_ARCHIVE);
 	mme_aviLimit = ri.Cvar_Get ("mme_aviLimit", "1", CVAR_ARCHIVE);
 
