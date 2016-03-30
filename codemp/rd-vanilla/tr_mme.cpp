@@ -591,7 +591,7 @@ void R_MME_Shutdown(void) {
 void R_MME_Init(void) {
 	
     // MME cvars
-    mme_pipeCommand = ri.Cvar_Get ("mme_pipeCommand", "ffmpeg -r %f -f rawvideo -pix_fmt rgb24 -s %wx%h -i - -threads 0 -preset fast -y -pix_fmt yuv420p -crf 17 -vf vflip %o.mp4 2> ffmpeglog.txt", CVAR_ARCHIVE);
+    mme_pipeCommand = ri.Cvar_Get ("mme_pipeCommand", PIPE_COMMAND_DEFAULT, CVAR_ARCHIVE);
     
 	mme_aviFormat = ri.Cvar_Get ("mme_aviFormat", "0", CVAR_ARCHIVE);
 	mme_aviLimit = ri.Cvar_Get ("mme_aviLimit", "1", CVAR_ARCHIVE);

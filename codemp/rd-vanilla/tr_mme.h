@@ -10,6 +10,8 @@
 
 #define BLURMAX 256
 
+#define PIPE_COMMAND_DEFAULT "ffmpeg -f avi -i - -threads 0 -preset fast -y -pix_fmt yuv444p -crf 17 %o.mp4 2> ffmpeglog.txt"
+
 typedef struct mmePipeFile_s {
     char name[MAX_OSPATH];
     fileHandle_t f;
@@ -29,6 +31,7 @@ typedef struct mmeAviFile_s {
 	int header;
 	int format;
 	qboolean audio;
+    qboolean pipe;
 	mmeShotType_t type;
 } mmeAviFile_t;
 

@@ -92,15 +92,18 @@ void R_MME_SaveShot( mmeShot_t *shot, int width, int height, float fps, byte *in
 		break;
 	case mmeShotFormatPNG:
 		extension = "png";
-		break;
+        break;
+    case mmeShotFormatPIPE:
+//        mmePipeShot(&shot->pipe, shot->name, shot->type, width, height, fps, inBuf);
+//        return;
+            if (!shot->avi.f) {
+                shot->avi.pipe = qtrue;
+            }
 	case mmeShotFormatAVI:
 		if (audio)
 			mmeAviSound( &shot->avi, shot->name, shot->type, width, height, fps, aBuf, aSize );
 		mmeAviShot( &shot->avi, shot->name, shot->type, width, height, fps, inBuf, audio );
             return;
-    case mmeShotFormatPIPE:
-        mmePipeShot(&shot->pipe, shot->name, shot->type, width, height, fps, inBuf);
-        return;
 	}
 
 	if (aSize < 0) {

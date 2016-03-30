@@ -699,7 +699,10 @@ static void R_ScreenShotDOF_f(void) {
 	}
 	if (!cmd[0])
 		cmd = "shot";	
-	if (!Q_stricmp(ext, "avi") || !ext[0]) {
+	if ((Q_stricmp(ext, "png")
+        && Q_stricmp(ext, "tga")
+        && Q_stricmp(ext, "jpg"))
+        || !ext[0]) {
 		ext = "png";
 	}
 	if (name = R_ScreenShotName(cmd, ext, fileName)) {
