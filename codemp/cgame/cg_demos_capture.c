@@ -622,7 +622,7 @@ void demoCaptureCommand_f(void) {
 		demo.loop.total = 0;
 	} else {
 		Com_Printf("capture usage:\n" );
-		Com_Printf("capture jpg/tga/png/avi fps filename, start capturing to a specific file\n" );
+		Com_Printf("capture jpg/tga/png/avi/pipe fps filename, start capturing to a specific file\n" );
 		Com_Printf("capture lock, lock capturing to the selected range\n");
 		Com_Printf("capture start/end, set start/end parts of capture range\n");
 		Com_Printf("capture stop, stop capturing\n" );
