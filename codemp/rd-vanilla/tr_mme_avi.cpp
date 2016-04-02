@@ -348,7 +348,7 @@ static qboolean aviOpen( mmeAviFile_t *aviFile, const char *name, mmeShotType_t 
 	aviFile->iframes = 0;
 	aviFile->written = 0;
 	aviFile->maxSize = 0;
-	aviFile->format = mme_aviFormat->integer;
+	aviFile->format = aviFile->pipe ? 0 : mme_aviFormat->integer;
 	aviFile->type = type;
 	Q_strncpyz( aviFile->name, name, sizeof( aviFile->name ));
 
@@ -380,7 +380,7 @@ static qboolean aviValid( const mmeAviFile_t *aviFile, const char *name, mmeShot
 		return qfalse;
 	if (aviFile->written >= AVI_MAX_SIZE && mme_aviLimit->integer && !aviFile->pipe)
 		return qfalse;
-	if (mme_aviFormat->integer != aviFile->format)
+	if (mme_aviFormat->integer != aviFile->format && !aviFile->pipe)
         return qfalse;
     //ffmpeg accepts w/ audio only, let's fool it
 	if (aviFile->audio != audio && !aviFile->pipe)

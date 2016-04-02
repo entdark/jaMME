@@ -3778,7 +3778,6 @@ fileHandle_t FS_PipeOpen(const char *qcmd, const char *qpath, const char *mode) 
         Com_Printf("FS_PipeOpen cmd: %s\n", cmd);
     }
     
-    
 #ifdef _WIN32
     fsh[f].handleFiles.file.o = _popen(cmd, mode);
 #else

@@ -443,7 +443,7 @@ const void *R_MME_CaptureShotCmdStereo( const void *data ) {
 			shotData.stencil.format = mmeShotFormatPIPE;
 		}
 
-		if (shotData.main.format == mmeShotFormatAVI || shotData.main.format == mmeShotFormatPIPE) {
+		if ((shotData.main.format == mmeShotFormatAVI && !mme_aviFormat->integer) || shotData.main.format == mmeShotFormatPIPE) {
 			shotData.main.type = mmeShotTypeBGR;
 		} else {
 			shotData.main.type = mmeShotTypeRGB;
