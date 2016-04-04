@@ -628,6 +628,7 @@ void CL_PlayDemo_f( void ) {
 	Cvar_Set( "mme_demoExt", CL_WalkDemoExt( testName, name, &clc.demofile ) );
 	if (!clc.demofile) {
 		Com_Error( ERR_DROP, "couldn't open %s", name);
+		demoCommandSmoothingEnable(qfalse);
 		return;
 	} else if ( haveConvert ) {
 		char mmeName[MAX_OSPATH];
