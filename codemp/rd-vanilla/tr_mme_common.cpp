@@ -109,10 +109,10 @@ void R_MME_SaveShot( mmeShot_t *shot, int width, int height, float fps, byte *in
                 shot->avi.pipe = qtrue;
             }
 	case mmeShotFormatAVI:
+		mmeAviShot( &shot->avi, shot->name, shot->type, width, height, fps, inBuf, audio );
 		if (audio)
 			mmeAviSound( &shot->avi, shot->name, shot->type, width, height, fps, aBuf, aSize );
-		mmeAviShot( &shot->avi, shot->name, shot->type, width, height, fps, inBuf, audio );
-            return;
+		return;
 	}
 
 	if (aSize < 0) {
