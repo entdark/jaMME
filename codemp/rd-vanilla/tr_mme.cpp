@@ -73,12 +73,6 @@ cvar_t	*mme_aviLimit;
 
 cvar_t  *mme_pipeCommand;
 
-ID_INLINE byte * R_MME_BlurOverlapBuf( mmeBlurBlock_t *block ) {
-	mmeBlurControl_t* control = block->control;
-	int index = control->overlapIndex % control->overlapFrames;
-	return (byte *)( block->overlap + block->count * index );
-}
-
 static void R_MME_MakeBlurBlock( mmeBlurBlock_t *block, int size, mmeBlurControl_t* control ) {
 	memset( block, 0, sizeof( *block ) );
 	size = (size + 15) & ~15;

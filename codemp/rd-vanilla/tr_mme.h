@@ -99,6 +99,6 @@ extern cvar_t	*mme_blurStrength;
 extern cvar_t	*mme_dofFrames;
 extern cvar_t	*mme_dofRadius;
 
-ID_INLINE byte * R_MME_BlurOverlapBuf( mmeBlurBlock_t *block );
+extern ID_INLINE byte * R_MME_BlurOverlapBuf( mmeBlurBlock_t *block );
 
 #endif //TR_MME_H
