@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 
 # Make sure the user is not executing this script directly
-if(NOT InOpenJK)
+if(NOT InjaMME)
 	message(FATAL_ERROR "Use the top-level cmake script!")
-endif(NOT InOpenJK)
+endif(NOT InjaMME)
 
 set(MPUIIncludeDirectories "${MPDir}")
 if(WIN32)
@@ -63,24 +63,22 @@ set(MPUIRendererFiles
 source_group("renderer" FILES ${MPUIRendererFiles})
 set(MPUIFiles ${MPUIFiles} ${MPUIRendererFiles})
 
-add_library(${MPUI} SHARED ${MPUIFiles})
+add_library(${jaMMEUI} SHARED ${MPUIFiles})
 
 if(NOT WIN32)
 	# remove "lib" prefix for .so/.dylib files
-	set_target_properties(${MPUI} PROPERTIES PREFIX "")
+	set_target_properties(${jaMMEUI} PROPERTIES PREFIX "")
 endif(NOT WIN32)
 
 if(WIN32)
-	install(TARGETS ${MPUI} RUNTIME DESTINATION "mme")
+	install(TARGETS ${jaMMEUI} RUNTIME DESTINATION "${jaMMEInstallDir}/mme")
 else(WIN32)
-	install(TARGETS ${MPUI} LIBRARY DESTINATION "mme")
+	install(TARGETS ${jaMMEUI} LIBRARY DESTINATION "${jaMMEInstallDir}/mme")
 endif(WIN32)
-set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPUIDefines};${ReleaseDefines}")
-set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPUIDefines};${ReleaseDefines}")
-set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPUIDefines};${ReleaseDefines}")
-set_target_properties(${MPUI} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPUIDefines};${DebugDefines}")
-set_target_properties(${MPUI} PROPERTIES INCLUDE_DIRECTORIES "${MPUIIncludeDirectories}")
+set_target_properties(${jaMMEUI} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPUIDefines};${ReleaseDefines}")
+set_target_properties(${jaMMEUI} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPUIDefines};${DebugDefines}")
+set_target_properties(${jaMMEUI} PROPERTIES INCLUDE_DIRECTORIES "${MPUIIncludeDirectories}")
 # no libraries used
 if(MPUILibraries)
-	target_link_libraries(${MPUI} ${MPUILibraries})
+	target_link_libraries(${jaMMEUI} ${MPUILibraries})
 endif(MPUILibraries)

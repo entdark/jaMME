@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 
 # Make sure the user is not executing this script directly
-if(NOT InOpenJK)
+if(NOT InjaMME)
 	message(FATAL_ERROR "Use the top-level cmake script!")
-endif(NOT InOpenJK)
+endif(NOT InjaMME)
 
 set(MPGameIncludeDirectories "${MPDir}")
 if(WIN32)
@@ -183,24 +183,22 @@ set(MPGameUiFiles
 source_group("ui" FILES ${MPGameUiFiles})
 set(MPGameFiles ${MPGameFiles} ${MPGameUiFiles})
 
-add_library(${MPGame} SHARED ${MPGameFiles})
+add_library(${jaMMEGame} SHARED ${MPGameFiles})
 
 if(NOT WIN32)
 	# remove "lib" prefix for .so/.dylib files
-	set_target_properties(${MPGame} PROPERTIES PREFIX "")
+	set_target_properties(${jaMMEGame} PROPERTIES PREFIX "")
 endif(NOT WIN32)
 
 if(WIN32)
-	install(TARGETS ${MPGame} RUNTIME DESTINATION "mme")
+	install(TARGETS ${jaMMEGame} RUNTIME DESTINATION "${jaMMEInstallDir}/mme")
 else(WIN32)
-	install(TARGETS ${MPGame} LIBRARY DESTINATION "mme")
+	install(TARGETS ${jaMMEGame} LIBRARY DESTINATION "${jaMMEInstallDir}/mme")
 endif(WIN32)
-set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPGameDefines};${ReleaseDefines}")
-set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPGameDefines};${ReleaseDefines}")
-set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPGameDefines};${ReleaseDefines}")
-set_target_properties(${MPGame} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPGameDefines};${DebugDefines}")
-set_target_properties(${MPGame} PROPERTIES INCLUDE_DIRECTORIES "${MPGameIncludeDirectories}")
+set_target_properties(${jaMMEGame} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPGameDefines};${ReleaseDefines}")
+set_target_properties(${jaMMEGame} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPGameDefines};${DebugDefines}")
+set_target_properties(${jaMMEGame} PROPERTIES INCLUDE_DIRECTORIES "${MPGameIncludeDirectories}")
 # no libraries used
 if(MPGameLibraries)
-	target_link_libraries(${MPGame} ${MPGameLibraries})
+	target_link_libraries(${jaMMEGame} ${MPGameLibraries})
 endif(MPGameLibraries)

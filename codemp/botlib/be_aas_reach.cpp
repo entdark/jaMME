@@ -1519,7 +1519,7 @@ int AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(int area1num, int area2
 				return qtrue;
 			} //end if
 			// if no maximum fall height set or less than the max
-			if (!aassettings.rs_maxfallheight || fabs(ground_bestdist) < aassettings.rs_maxfallheight) {
+			if (!aassettings.rs_maxfallheight || fabsf(ground_bestdist) < aassettings.rs_maxfallheight) {
 				//trace a bounding box vertically to check for solids
 				VectorMA(ground_bestend, INSIDEUNITS, ground_bestnormal, ground_bestend);
 				VectorCopy(ground_bestend, start);
@@ -1550,7 +1550,7 @@ int AAS_Reachability_Step_Barrier_WaterJump_WalkOffLedge(int area1num, int area2
 							VectorCopy(ground_beststart, lreach->start);
 							VectorCopy(ground_bestend, lreach->end);
 							lreach->traveltype = TRAVEL_WALKOFFLEDGE;
-							lreach->traveltime = aassettings.rs_startwalkoffledge + fabs(ground_bestdist) * 50 / aassettings.phys_gravity;
+							lreach->traveltime = aassettings.rs_startwalkoffledge + fabsf(ground_bestdist) * 50 / aassettings.phys_gravity;
 							//if falling from too high and not falling into water
 							if (!AAS_AreaSwim(area2num) && !AAS_AreaJumpPad(area2num))
 							{
@@ -2169,7 +2169,7 @@ int AAS_Reachability_Jump(int area1num, int area2num)
 	{
 //		Log_Write("shortest distance between %d and %d is %f\r\n", area1num, area2num, bestdist);
 		// if very close and almost no height difference then the bot can walk
-		if (bestdist <= 48 && fabs(beststart[2] - bestend[2]) < 8)
+		if (bestdist <= 48 && fabsf(beststart[2] - bestend[2]) < 8)
 		{
 			speed = 400;
 			traveltype = TRAVEL_WALKOFFLEDGE;
@@ -2448,8 +2448,8 @@ int AAS_Reachability_Ladder(int area1num, int area2num)
 		VectorMA(area1point, -32, dir, area1point);
 		VectorMA(area2point, 32, dir, area2point);
 		//
-		ladderface1vertical = abs(DotProduct(plane1->normal, up)) < 0.1;
-		ladderface2vertical = abs(DotProduct(plane2->normal, up)) < 0.1;
+		ladderface1vertical = fabsf(DotProduct(plane1->normal, up)) < 0.1;
+		ladderface2vertical = fabsf(DotProduct(plane2->normal, up)) < 0.1;
 		//there's only reachability between vertical ladder faces
 		if (!ladderface1vertical && !ladderface2vertical) return qfalse;
 		//if both vertical ladder faces
@@ -2457,7 +2457,7 @@ int AAS_Reachability_Ladder(int area1num, int area2num)
 					//and the ladder faces do not make a sharp corner
 					&& DotProduct(plane1->normal, plane2->normal) > 0.7
 					//and the shared edge is not too vertical
-					&& abs(DotProduct(sharededgevec, up)) < 0.7)
+					&& fabsf(DotProduct(sharededgevec, up)) < 0.7)
 		{
 			//create a new reachability link
 			lreach = AAS_AllocReachability();
@@ -2582,7 +2582,7 @@ int AAS_Reachability_Ladder(int area1num, int area2num)
 				if (face2->faceflags & FACE_LADDER)
 				{
 					plane2 = &aasworld.planes[face2->planenum];
-					if (abs(DotProduct(plane2->normal, up)) < 0.1) break;
+					if (fabsf(DotProduct(plane2->normal, up)) < 0.1) break;
 				} //end if
 			} //end for
 			//if from another area without vertical ladder faces
@@ -3643,7 +3643,7 @@ void AAS_Reachability_JumpPad(void)
 			} //end if
 		} //end if
 		//
-		if (fabs(velocity[0]) > 100 || fabs(velocity[1]) > 100) continue;
+		if (fabsf(velocity[0]) > 100 || fabsf(velocity[1]) > 100) continue;
 		//check for areas we can reach with air control
 		for (area2num = 1; area2num < aasworld.numareas; area2num++)
 		{
@@ -4236,7 +4236,7 @@ void AAS_Reachability_WalkOffLedge(int areanum)
 						if (p < numareas)
 							break;
 						// if a maximum fall height is set and the bot would fall down further
-						if (aassettings.rs_maxfallheight && fabs(mid[2] - trace.endpos[2]) > aassettings.rs_maxfallheight)
+						if (aassettings.rs_maxfallheight && fabsf(mid[2] - trace.endpos[2]) > aassettings.rs_maxfallheight)
 							break;
 						//
 						lreach = AAS_AllocReachability();
@@ -4247,7 +4247,7 @@ void AAS_Reachability_WalkOffLedge(int areanum)
 						VectorCopy(mid, lreach->start);
 						VectorCopy(trace.endpos, lreach->end);
 						lreach->traveltype = TRAVEL_WALKOFFLEDGE;
-						lreach->traveltime = aassettings.rs_startwalkoffledge + fabs(mid[2] - trace.endpos[2]) * 50 / aassettings.phys_gravity;
+						lreach->traveltime = aassettings.rs_startwalkoffledge + fabsf(mid[2] - trace.endpos[2]) * 50 / aassettings.phys_gravity;
 						if (!AAS_AreaSwim(reachareanum) && !AAS_AreaJumpPad(reachareanum))
 						{
 							if (AAS_FallDelta(mid[2] - trace.endpos[2]) > aassettings.phys_falldelta5)

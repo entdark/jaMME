@@ -898,6 +898,10 @@ static void S_OggClose( openSound_t *open) {
 #ifdef HAVE_LIBFLAC
 extern "C" {
 #ifdef _WIN32
+#if (_MSC_VER >= 1900) //ms broke everything since vs2015: https://msdn.microsoft.com/en-GB/library/bb531344.aspx
+	FILE _iob[] = { *stdin, *stdout, *stderr };
+	FILE * __cdecl __iob_func(void) { return _iob; }
+#endif
 //ent: important to define FLAC__NO_DLL if we use a static lib
 #define FLAC__NO_DLL
 #define FLAC__HAS_OGG

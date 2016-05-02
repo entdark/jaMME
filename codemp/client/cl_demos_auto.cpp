@@ -156,7 +156,7 @@ void demoAutoSave_f(void) {
 		Q_strncpyz(demo.record.customName, Cmd_Argv( 1 ), sizeof(demo.record.customName));
 	}
 	Com_sprintf(demo.record.demoName, sizeof(demo.record.demoName), demoAutoFormat(demo.record.customName));
-	Com_Printf(S_COLOR_WHITE"Demo will be saved into "S_COLOR_GREEN"%s.dm_26\n", demo.record.demoName);
+	Com_Printf(S_COLOR_WHITE"Demo will be saved into " S_COLOR_GREEN"%s.dm_26\n", demo.record.demoName);
 }
 
 void demoAutoSaveLast_f(void) {

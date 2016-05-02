@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 
 # Make sure the user is not executing this script directly
-if(NOT InOpenJK)
+if(NOT InjaMME)
 	message(FATAL_ERROR "Use the top-level cmake script!")
-endif(NOT InOpenJK)
+endif(NOT InjaMME)
 
 set(MPCGameIncludeDirectories "${MPDir}")
 if(WIN32)
@@ -127,24 +127,22 @@ set(MPCGameGFiles
 source_group("ghoul2" FILES ${MPCGameG2Files})
 set(MPCGameFiles ${MPCGameFiles} ${MPCGameG2Files})
 
-add_library(${MPCGame} SHARED ${MPCGameFiles})
+add_library(${jaMMECGame} SHARED ${MPCGameFiles})
 
 if(NOT WIN32)
 	# remove "lib" prefix for .so/.dylib files
-	set_target_properties(${MPCGame} PROPERTIES PREFIX "")
+	set_target_properties(${jaMMECGame} PROPERTIES PREFIX "")
 endif(NOT WIN32)
 
 if(WIN32)
-	install(TARGETS ${MPCGame} RUNTIME DESTINATION "mme")
+	install(TARGETS ${jaMMECGame} RUNTIME DESTINATION "${jaMMEInstallDir}/mme")
 else(WIN32)
-	install(TARGETS ${MPCGame} LIBRARY DESTINATION "mme")
+	install(TARGETS ${jaMMECGame} LIBRARY DESTINATION "${jaMMEInstallDir}/mme")
 endif(WIN32)
-set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_RELWITHDEBINFO "${MPCGameDefines};${ReleaseDefines}")
-set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_MINSIZEREL "${MPCGameDefines};${ReleaseDefines}")
-set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPCGameDefines};${ReleaseDefines}")
-set_target_properties(${MPCGame} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPCGameDefines};${DebugDefines}")
-set_target_properties(${MPCGame} PROPERTIES INCLUDE_DIRECTORIES "${MPCGameIncludeDirectories}")
+set_target_properties(${jaMMECGame} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPCGameDefines};${ReleaseDefines}")
+set_target_properties(${jaMMECGame} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPCGameDefines};${DebugDefines}")
+set_target_properties(${jaMMECGame} PROPERTIES INCLUDE_DIRECTORIES "${MPCGameIncludeDirectories}")
 # no libraries used
 if(MPCGameLibraries)
-	target_link_libraries(${MPCGame} ${MPCGameLibraries})
+	target_link_libraries(${jaMMECGame} ${MPCGameLibraries})
 endif(MPCGameLibraries)

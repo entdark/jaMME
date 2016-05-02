@@ -695,7 +695,7 @@ static void SV_ConSay_f(void) {
 
 	Cmd_ArgsBuffer( text, sizeof(text) );
 
-	SV_SendServerCommand(NULL, "chat \""SVSAY_PREFIX"%s\"\n", text);
+	SV_SendServerCommand(NULL, "chat \"" SVSAY_PREFIX"%s\"\n", text);
 }
 
 const char *forceToggleNamePrints[NUM_FORCE_POWERS] = {
