@@ -180,6 +180,7 @@ cvar_t	*r_modelpoolmegs;
 
 cvar_t	*r_backEndMegs;
 
+cvar_t	*r_drawAllAreas;
 /*
 Ghoul2 Insert Start
 */
@@ -1078,6 +1079,8 @@ Ghoul2 Insert End
 	r_modelpoolmegs = ri.Cvar_Get("r_modelpoolmegs", "20", CVAR_ARCHIVE);
 	if (ri.Sys_LowPhysicalMemory() )
 		ri.Cvar_Set("r_modelpoolmegs", "0");
+
+	r_drawAllAreas = ri.Cvar_Get("r_drawAllAreas", "0", CVAR_TEMP | CVAR_CHEAT);
 
 	// make sure all the commands added here are also
 	// removed in R_Shutdown
