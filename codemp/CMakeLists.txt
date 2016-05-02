@@ -80,7 +80,7 @@ if(BuildEngine)
 		"${MPDir}/game/surfaceflags.h"
 		"${MPDir}/qcommon/tags.h"
 		)
-	source_group("Header Files" FILES ${MPBotlibHeaderFiles})
+	source_group("botlib" FILES ${MPBotlibHeaderFiles})
 	set(MPBotlibSourceFiles
 		"${MPDir}/botlib/be_aas_bspq3.cpp"
 		"${MPDir}/botlib/be_aas_cluster.cpp"
@@ -111,7 +111,7 @@ if(BuildEngine)
 		"${MPDir}/botlib/l_script.cpp"
 		"${MPDir}/botlib/l_struct.cpp"
 		)
-	source_group("Source Files" FILES ${MPBotlibSourceFiles})
+	source_group("botlib" FILES ${MPBotlibSourceFiles})
 	
 #	add_library(${MPBotLib} STATIC ${MPBotlibHeaderFiles} ${MPBotlibSourceFiles})
 #	set_target_properties(${MPBotLib} PROPERTIES COMPILE_DEFINITIONS "${MPBotlibDefines}")
@@ -150,9 +150,7 @@ if(BuildEngine)
 	set(MPEngineAndDedFiles ${MPEngineAndDedFiles} ${MPEngineAndDedCgameFiles})
 	
 	set(MPEngineAndDedClientFiles
-		"${MPDir}/client/client.h"
 		"${MPDir}/client/keys.h"
-		"${MPDir}/client/snd_public.h"
 		)
 	source_group("client" FILES ${MPEngineAndDedClientFiles})
 	set(MPEngineAndDedFiles ${MPEngineAndDedFiles} ${MPEngineAndDedClientFiles})
@@ -357,7 +355,7 @@ if(BuildEngine)
 	if(WIN32)
 		if(MSVC14)
 			set(MPEngineLibraries ${MPEngineLibraries} legacy_stdio_definitions.lib)
-		endif(MSVC144)
+		endif(MSVC14)
 		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/win32/lib/libmad.lib)
 		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/win32/lib/libFLAC_static.lib)
 		set(MPEngineLibraries ${MPEngineLibraries} ${MPDir}/libs/win32/lib/libogg_static.lib)
@@ -400,6 +398,7 @@ if(BuildEngine)
 	set(MPEngineFiles ${MPEngineFiles} ${MPEngineJpegFiles})
 	
 	set(MPEngineClientFiles
+		"${MPDir}/client/client.h"
 		"${MPDir}/client/cl_cgame.cpp"
 		"${MPDir}/client/cl_cin.cpp"
 		"${MPDir}/client/cl_console.cpp"
@@ -415,6 +414,11 @@ if(BuildEngine)
 		"${MPDir}/client/cl_parse.cpp"
 		"${MPDir}/client/cl_scrn.cpp"
 		"${MPDir}/client/cl_ui.cpp"
+		)
+	source_group("client" FILES ${MPEngineClientFiles})
+	set(MPEngineFiles ${MPEngineFiles} ${MPEngineClientFiles})
+	
+	set(MPEngineEffectsFiles
 		"${MPDir}/client/FXExport.cpp"
 		"${MPDir}/client/FXExport.h"
 		"${MPDir}/client/FxPrimitives.cpp"
@@ -426,6 +430,11 @@ if(BuildEngine)
 		"${MPDir}/client/FxTemplate.cpp"
 		"${MPDir}/client/FxUtil.cpp"
 		"${MPDir}/client/FxUtil.h"
+		)
+	source_group("fx" FILES ${MPEngineEffectsFiles})
+	set(MPEngineFiles ${MPEngineFiles} ${MPEngineEffectsFiles})
+
+	set(MPEngineSoundFiles
 		"${MPDir}/client/snd_ambient.cpp"
 		"${MPDir}/client/snd_ambient.h"
 		"${MPDir}/client/snd_dma.cpp"
@@ -435,10 +444,11 @@ if(BuildEngine)
 		"${MPDir}/client/snd_mem.cpp"
 		"${MPDir}/client/snd_mix.cpp"
 		"${MPDir}/client/snd_mme.cpp"
+		"${MPDir}/client/snd_public.h"
 		)
-	source_group("client" FILES ${MPEngineClientFiles})
-	set(MPEngineFiles ${MPEngineFiles} ${MPEngineClientFiles})
-	
+	source_group("sound" FILES ${MPEngineSoundFiles})
+	set(MPEngineFiles ${MPEngineFiles} ${MPEngineSoundFiles})
+
 	set(MPEngineCommonFiles
 		"${MPDir}/qcommon/cm_terrainmap.cpp"
 		"${MPDir}/qcommon/CNetProfile.cpp"
