@@ -206,8 +206,7 @@ typedef enum {
 	UIMENU_VOICECHAT,
 	UIMENU_CLOSEALL,
 	UIMENU_CLASSSEL
-};
-typedef int uiMenuCommand_t;
+} uiMenuCommand_t;
 
 #define SORT_HOST			0
 #define SORT_MAP			1

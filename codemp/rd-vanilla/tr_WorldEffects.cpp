@@ -1222,7 +1222,7 @@ public:
 		//FIXME use this extension?
 		const float	attenuation[3] =
 		{
-			1, 0.0, 0.0004
+			1.0f, 0.0f, 0.0004f
 		};
 		if (mGLModeEnum == GL_POINTS && qglPointParameterfEXT)
 		{ //fixme use custom parameters but gotta make sure it expects them on same scale first

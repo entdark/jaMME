@@ -68,7 +68,7 @@ extern void trap_MME_SetUIEditingField(qboolean v);
 #endif
 static qboolean g_waitingForKey = qfalse;
 static qboolean g_editingField = qfalse;
-static qboolean setEditingField(qboolean v) {
+static void setEditingField(qboolean v) {
 	g_editingField = v;
 #ifndef CGAME
 	trap_MME_SetUIEditingField(v);

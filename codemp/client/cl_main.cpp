@@ -2751,7 +2751,7 @@ void CL_SetForcePowers_f( void ) {
 void CL_PrintGameState_f(void) {
 	int i;
 	char *data;
-	size_t lenOld, len, offset;
+	size_t len, offset;
 	for (i = 0; i < MAX_CONFIGSTRINGS; i++) {
 		data = cl.gameState.stringData + cl.gameState.stringOffsets[i];
 		if ( !data[0] ) {

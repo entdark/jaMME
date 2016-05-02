@@ -6,6 +6,7 @@
 
 demoMain_t demo;
 
+extern int CG_CalcViewValues( void );
 extern void CG_DamageBlendBlob( void );
 extern void CG_PlayBufferedSounds( void );
 extern void CG_SetupFrustum( void );

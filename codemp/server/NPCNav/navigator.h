@@ -137,11 +137,11 @@ class CNavigator
 
 #if __NEWCOLLECT
 	
-	typedef struct nodeList_t
+	typedef struct
 	{
 		int				nodeID;
 		unsigned int	distance;
-	};
+	} nodeList_t;
 
 	typedef list < nodeList_t >		nodeChain_l;
 
