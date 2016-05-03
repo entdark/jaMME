@@ -1,577 +1,635 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|x64">
-      <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x64">
-      <Configuration>Release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <_ResolveReferenceDependencies>true</_ResolveReferenceDependencies>
+    <ProjectGUID>{2C1EFF02-3953-3962-ACB5-10DF8923EBA3}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>Win32</Platform>
     <ProjectName>jamme</ProjectName>
-    <ProjectGuid>{05674553-F8C6-4B42-840C-C6064BBB187F}</ProjectGuid>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <PlatformToolset>v120_xp</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-    <PlatformToolset>v120</PlatformToolset>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
-    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v140_xp</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\build\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\build\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">E:\entdark\GameSources\JA\jamme\jaMME-source\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">jamme.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">jamme</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.exe</TargetExt>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\build\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\build\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.build\$(Configuration)\$(Platform)\$(ProjectName)\</IntDir>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</GenerateManifest>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">E:\entdark\GameSources\JA\jamme\jaMME-source\Release\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">jamme.dir\Release\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">jamme</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.exe</TargetExt>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
-    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
-    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectName).$(PlatformShortName)</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectName)</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectName).$(PlatformShortName)</TargetName>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\libs\win32\lib;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);</LibraryPath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)\libs\win32;$(LibraryPath)</LibraryPath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)\libs\win32\libdebug;$(LibraryPath)</LibraryPath>
-    <LibraryPath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)\libs\win32;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(ProjectDir)\libs\win32\include;$(IncludePath)</IncludePath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(ProjectDir)\libs\win32\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_DEBUG;WIN32;_WINDOWS;BOTLIB;_JK2;_JK2MP;USE_CURL;CURL_STATICLIB;_WINSOCK_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MinimalRebuild>true</MinimalRebuild>
+      <AdditionalIncludeDirectories>E:\entdark\GameSources\JA\jamme\jaMME-source\codemp;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\zlib;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\libs\win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName).pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)</ObjectFileName>
-      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
-      <BrowseInformation>true</BrowseInformation>
-      <WarningLevel>Level3</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <Link>
-      <AdditionalOptions>/MACHINE:I386 /OPT:NOLBR /NODEFAULTLIB:MSVCRTD %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>winmm.lib;wsock32.lib;libmad.lib;libogg_static.lib;libvorbis_static.lib;win_utf8_io_static.lib;libFLAC_static.lib;Ws2_32.lib;libcurld.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>$(OutDir)$(TargetName).map</MapFileName>
-      <SubSystem>Windows</SubSystem>
-      <StackReserveSize>8388608</StackReserveSize>
-      <AdditionalLibraryDirectories>libs/win32/debug</AdditionalLibraryDirectories>
-      <Profile>false</Profile>
-      <ImageHasSafeExceptionHandlers />
-      <OptimizeReferences>false</OptimizeReferences>
-    </Link>
-    <Midl>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>$(IntDir)$(ProjectName).tlb</TypeLibraryName>
-    </Midl>
-    <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-      <ResourceOutputFileName>$(IntDir)%(Filename).res</ResourceOutputFileName>
-    </ResourceCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>.;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_DEBUG;__WIN64__;WIN64;_WIN64;_WINDOWS;BOTLIB;_JK2;_JK2MP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName).pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)</ObjectFileName>
-      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
-      <BrowseInformation>true</BrowseInformation>
-      <WarningLevel>Level3</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <CompileAs>CompileAsCpp</CompileAs>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_JK2MP;_JK2;FINAL_BUILD;BOTLIB;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
-    <Link>
-      <AdditionalOptions>/MACHINE:I386 /FORCE:MULTIPLE %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>ALut.lib;OpenAL32.lib;winmm.lib;wsock32.lib;libmad.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>$(IntDir)$(ProjectName).pdb</ProgramDatabaseFile>
-      <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>$(IntDir)$(ProjectName).map</MapFileName>
-      <SubSystem>Windows</SubSystem>
-      <StackReserveSize>8388608</StackReserveSize>
-      <AdditionalLibraryDirectories>libs/win32</AdditionalLibraryDirectories>
-      <Profile>true</Profile>
-    </Link>
-    <Midl>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TypeLibraryName>$(IntDir)$(ProjectName).tlb</TypeLibraryName>
-    </Midl>
     <ResourceCompile>
-      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-      <ResourceOutputFileName>$(IntDir)%(Filename).res</ResourceOutputFileName>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_JK2MP;_JK2;FINAL_BUILD;BOTLIB;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\entdark\GameSources\JA\jamme\jaMME-source\codemp;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\zlib;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\libs\win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>E:\entdark\GameSources\JA\jamme\jaMME-source\codemp;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\zlib;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\libs\win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;winmm.lib;wsock32.lib;libs\win32\lib\zlib.lib;legacy_stdio_definitions.lib;libs\win32\lib\libmad.lib;libs\win32\lib\libFLAC_static.lib;libs\win32\lib\libogg_static.lib;libs\win32\lib\libvorbis_static.lib;libs\win32\lib\libcurl.lib;libs\win32\lib\win_utf8_io_static.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>Debug</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>E:/entdark/GameSources/JA/jamme/jaMME-source/codemp/Debug/jamme.lib</ImportLibrary>
+      <ProgramDataBaseFile>E:/entdark/GameSources/JA/jamme/jaMME-source/Debug/jamme.pdb</ProgramDataBaseFile>
+      <SubSystem>Windows</SubSystem>
+      <Version>
+      </Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
+      <AdditionalIncludeDirectories>E:\entdark\GameSources\JA\jamme\jaMME-source\codemp;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\zlib;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\libs\win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>Release/</AssemblerListingLocation>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>.;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <PreprocessorDefinitions>_WIN32;NDEBUG;WIN32;_WINDOWS;BOTLIB;_JK2;_JK2MP;FINAL_BUILD;USE_CURL;CURL_STATICLIB;_WINSOCK_H;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <MinimalRebuild>true</MinimalRebuild>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName).pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <ObjectFileName>$(IntDir)</ObjectFileName>
-      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
-      <WarningLevel>Level4</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>MaxSpeed</Optimization>
-    </ClCompile>
-    <Link>
-      <AdditionalOptions>/MACHINE:I386 /NODEFAULTLIB:MSVCRT %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>winmm.lib;wsock32.lib;libmad.lib;libogg_static.lib;libvorbis_static.lib;win_utf8_io_static.lib;libFLAC_static.lib;Ws2_32.lib;libcurl.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
-      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
-      <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>$(IntDir)$(ProjectName).map</MapFileName>
-      <SubSystem>Windows</SubSystem>
-      <StackReserveSize>8388608</StackReserveSize>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <SetChecksum>true</SetChecksum>
-      <AdditionalLibraryDirectories>libs/win32</AdditionalLibraryDirectories>
-      <SupportNobindOfDelayLoadedDLL>
-      </SupportNobindOfDelayLoadedDLL>
-      <ImportLibrary>$(IntDir)$(TargetName).lib</ImportLibrary>
-    </Link>
-    <Midl>
-      <PreprocessorDefinitions>NDebug;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>$(IntDir)$(ProjectName).tlb</TypeLibraryName>
-    </Midl>
-    <ResourceCompile>
-      <PreprocessorDefinitions>NDebug;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
-    </ResourceCompile>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>.;..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <PreprocessorDefinitions>_WIN32;NDEBUG;WIN32;_WINDOWS;BOTLIB;_JK2;_JK2MP;FINAL_BUILD;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>$(IntDir)$(ProjectName).pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_JK2MP;_JK2;FINAL_BUILD;BOTLIB;CMAKE_INTDIR="Release";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <ProgramDataBaseFileName>$(IntDir)</ProgramDataBaseFileName>
-      <WarningLevel>Level4</WarningLevel>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
     </ClCompile>
-    <Link>
-      <AdditionalOptions>/MACHINE:I386 %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>ALut.lib;OpenAL32.lib;winmm.lib;wsock32.lib;libmad.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>$(IntDir)$(ProjectName).pdb</ProgramDatabaseFile>
-      <GenerateMapFile>true</GenerateMapFile>
-      <MapFileName>$(IntDir)$(ProjectName).map</MapFileName>
-      <SubSystem>Windows</SubSystem>
-      <StackReserveSize>8388608</StackReserveSize>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <SetChecksum>true</SetChecksum>
-      <AdditionalLibraryDirectories>libs/win32</AdditionalLibraryDirectories>
-    </Link>
-    <Midl>
-      <PreprocessorDefinitions>NDebug;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <MkTypLibCompatible>true</MkTypLibCompatible>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <TypeLibraryName>$(IntDir)$(ProjectName).tlb</TypeLibraryName>
-    </Midl>
     <ResourceCompile>
-      <PreprocessorDefinitions>NDebug;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_JK2MP;_JK2;FINAL_BUILD;BOTLIB;CMAKE_INTDIR=\"Release\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>E:\entdark\GameSources\JA\jamme\jaMME-source\codemp;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\zlib;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\libs\win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>E:\entdark\GameSources\JA\jamme\jaMME-source\codemp;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\zlib;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\libs\win32\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalOptions> /machine:X86 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;winmm.lib;wsock32.lib;libs\win32\lib\zlib.lib;legacy_stdio_definitions.lib;libs\win32\lib\libmad.lib;libs\win32\lib\libFLAC_static.lib;libs\win32\lib\libogg_static.lib;libs\win32\lib\libvorbis_static.lib;libs\win32\lib\libcurl.lib;libs\win32\lib\win_utf8_io_static.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>No</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>E:/entdark/GameSources/JA/jamme/jaMME-source/codemp/Release/jamme.lib</ImportLibrary>
+      <ProgramDataBaseFile>E:/entdark/GameSources/JA/jamme/jaMME-source/Release/jamme.pdb</ProgramDataBaseFile>
+      <SubSystem>Windows</SubSystem>
+      <Version>
+      </Version>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="client\cl_curl.h" />
-    <ClInclude Include="client\cl_demos.h" />
-    <ClInclude Include="client\snd_mix.h" />
-    <ClInclude Include="game\anims.h" />
-    <ClInclude Include="game\bg_weapons.h" />
-    <ClInclude Include="qcommon\disablewarnings.h" />
-    <ClInclude Include="qcommon\platform.h" />
-    <ClInclude Include="win32\resource.h" />
-    <ClInclude Include="ui\ui_public.h" />
-    <ClInclude Include="client\FXExport.h" />
-    <ClInclude Include="client\FxPrimitives.h" />
-    <ClInclude Include="client\FxScheduler.h" />
-    <ClInclude Include="client\FxSystem.h" />
-    <ClInclude Include="client\FxUtil.h" />
-    <ClInclude Include="client\client.h" />
-    <ClInclude Include="qcommon\GenericParser2.h" />
-    <ClInclude Include="qcommon\INetProfile.h" />
-    <ClInclude Include="qcommon\MiniHeap.h" />
-    <ClInclude Include="qcommon\RoffSystem.h" />
-    <ClInclude Include="game\bg_public.h" />
-    <ClInclude Include="cgame\cg_public.h" />
-    <ClInclude Include="qcommon\chash.h" />
-    <ClInclude Include="qcommon\cm_draw.h" />
-    <ClInclude Include="qcommon\cm_landscape.h" />
-    <ClInclude Include="qcommon\cm_local.h" />
-    <ClInclude Include="qcommon\cm_patch.h" />
-    <ClInclude Include="qcommon\cm_polylib.h" />
-    <ClInclude Include="qcommon\cm_public.h" />
-    <ClInclude Include="qcommon\cm_randomterrain.h" />
-    <ClInclude Include="qcommon\cm_terrainmap.h" />
-    <ClInclude Include="qcommon\exe_headers.h" />
-    <ClInclude Include="qcommon\files.h" />
-    <ClInclude Include="game\g_public.h" />
-    <ClInclude Include="qcommon\game_version.h" />
-    <ClInclude Include="qcommon\hstring.h" />
-    <ClInclude Include="qcommon\matcomp.h" />
-    <ClInclude Include="ui\keycodes.h" />
-    <ClInclude Include="client\keys.h" />
-    <ClInclude Include="qcommon\q_shared.h" />
-    <ClInclude Include="qcommon\qcommon.h" />
-    <ClInclude Include="qcommon\qfiles.h" />
-    <ClInclude Include="qcommon\sstring.h" />
-    <ClInclude Include="qcommon\stringed_ingame.h" />
-    <ClInclude Include="qcommon\stringed_interface.h" />
-    <ClInclude Include="game\surfaceflags.h" />
-    <ClInclude Include="qcommon\tags.h" />
-    <ClInclude Include="qcommon\timing.h" />
-    <ClInclude Include="qcommon\unzip.h" />
-    <ClInclude Include="win32\glw_win.h" />
-    <ClInclude Include="win32\win_local.h" />
-    <ClInclude Include="server\server.h" />
-    <ClInclude Include="server\NPCNav\navigator.h" />
-    <ClInclude Include="client\snd_ambient.h" />
-    <ClInclude Include="client\snd_local.h" />
-    <ClInclude Include="client\snd_public.h" />
-    <ClInclude Include="zlib\crc32.h" />
-    <ClInclude Include="zlib\deflate.h" />
-    <ClInclude Include="zlib\gzguts.h" />
-    <ClInclude Include="zlib\inffast.h" />
-    <ClInclude Include="zlib\inffixed.h" />
-    <ClInclude Include="zlib\inflate.h" />
-    <ClInclude Include="zlib\inftrees.h" />
-    <ClInclude Include="zlib\ioapi.h" />
-    <ClInclude Include="zlib\trees.h" />
-    <ClInclude Include="zlib\zconf.h" />
-    <ClInclude Include="zlib\zlib.h" />
-    <ClInclude Include="zlib\zutil.h" />
-    <ClInclude Include="renderer\tr_public.h" />
-    <ClInclude Include="renderer\mdx_format.h" />
-    <ClInclude Include="botlib\aasfile.h" />
-    <ClInclude Include="botlib\be_aas_bsp.h" />
-    <ClInclude Include="botlib\be_aas_cluster.h" />
-    <ClInclude Include="botlib\be_aas_debug.h" />
-    <ClInclude Include="botlib\be_aas_def.h" />
-    <ClInclude Include="botlib\be_aas_entity.h" />
-    <ClInclude Include="botlib\be_aas_file.h" />
-    <ClInclude Include="botlib\be_aas_funcs.h" />
-    <ClInclude Include="botlib\be_aas_main.h" />
-    <ClInclude Include="botlib\be_aas_move.h" />
-    <ClInclude Include="botlib\be_aas_optimize.h" />
-    <ClInclude Include="botlib\be_aas_reach.h" />
-    <ClInclude Include="botlib\be_aas_route.h" />
-    <ClInclude Include="botlib\be_aas_routealt.h" />
-    <ClInclude Include="botlib\be_aas_sample.h" />
-    <ClInclude Include="botlib\be_ai_weight.h" />
-    <ClInclude Include="botlib\be_interface.h" />
-    <ClInclude Include="botlib\l_crc.h" />
-    <ClInclude Include="botlib\l_libvar.h" />
-    <ClInclude Include="botlib\l_log.h" />
-    <ClInclude Include="botlib\l_memory.h" />
-    <ClInclude Include="botlib\l_precomp.h" />
-    <ClInclude Include="botlib\l_script.h" />
-    <ClInclude Include="botlib\l_struct.h" />
-    <ClInclude Include="botlib\l_utils.h" />
-    <ClInclude Include="ghoul2\G2.h" />
-    <ClInclude Include="ghoul2\G2_gore.h" />
-    <ClInclude Include="ghoul2\ghoul2_shared.h" />
-    <ClInclude Include="RMG\RM_Area.h" />
-    <ClInclude Include="RMG\RM_Headers.h" />
-    <ClInclude Include="RMG\RM_Instance.h" />
-    <ClInclude Include="RMG\RM_InstanceFile.h" />
-    <ClInclude Include="RMG\RM_Instance_BSP.h" />
-    <ClInclude Include="RMG\RM_Instance_Group.h" />
-    <ClInclude Include="RMG\RM_Instance_Random.h" />
-    <ClInclude Include="RMG\RM_Instance_Void.h" />
-    <ClInclude Include="RMG\RM_Manager.h" />
-    <ClInclude Include="RMG\RM_Mission.h" />
-    <ClInclude Include="RMG\RM_Objective.h" />
-    <ClInclude Include="RMG\RM_Path.h" />
-    <ClInclude Include="RMG\RM_Terrain.h" />
-    <ClInclude Include="icarus\GameInterface.h" />
-    <ClInclude Include="icarus\Q3_Interface.h" />
-    <ClInclude Include="icarus\Q3_Registers.h" />
-    <ClInclude Include="icarus\blockstream.h" />
-    <ClInclude Include="icarus\icarus.h" />
-    <ClInclude Include="icarus\instance.h" />
-    <ClInclude Include="icarus\interface.h" />
-    <ClInclude Include="icarus\interpreter.h" />
-    <ClInclude Include="icarus\sequence.h" />
-    <ClInclude Include="icarus\sequencer.h" />
-    <ClInclude Include="icarus\taskmanager.h" />
-    <ClInclude Include="icarus\tokenizer.h" />
-    <ClInclude Include="Ravl\CVec.h" />
-    <ClInclude Include="Ratl\bits_vs.h" />
-    <ClInclude Include="Ratl\ratl_common.h" />
-    <ClInclude Include="Ratl\vector_vs.h" />
+    <CustomBuild Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Building Custom Rule E:/entdark/GameSources/JA/jamme/jaMME-source/codemp/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">setlocal
+"C:\Program Files (x86)\CMake\bin\cmake.exe" -HE:/entdark/GameSources/JA/jamme/jaMME-source -BE:/entdark/GameSources/JA/jamme/jaMME-source --check-stamp-file E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">E:/entdark/GameSources/JA/jamme/jaMME-source/codemp/CMakeLists.txt;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\CMakeLists.txt;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Building Custom Rule E:/entdark/GameSources/JA/jamme/jaMME-source/codemp/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">setlocal
+"C:\Program Files (x86)\CMake\bin\cmake.exe" -HE:/entdark/GameSources/JA/jamme/jaMME-source -BE:/entdark/GameSources/JA/jamme/jaMME-source --check-stamp-file E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\CMakeFiles\generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">E:/entdark/GameSources/JA/jamme/jaMME-source/codemp/CMakeLists.txt;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\CMakeLists.txt;E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\CMakeLists.txt;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkObjects>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="client\cl_curl.cpp" />
-    <ClCompile Include="client\cl_demos.cpp" />
-    <ClCompile Include="client\cl_demos_auto.cpp" />
-    <ClCompile Include="client\cl_demos_cut.cpp" />
-    <ClCompile Include="client\cl_mme.cpp" />
-    <ClCompile Include="client\FXExport.cpp" />
-    <ClCompile Include="client\FxPrimitives.cpp" />
-    <ClCompile Include="client\FxScheduler.cpp" />
-    <ClCompile Include="client\FxSystem.cpp" />
-    <ClCompile Include="client\FxTemplate.cpp" />
-    <ClCompile Include="client\FxUtil.cpp" />
-    <ClCompile Include="client\cl_cgame.cpp" />
-    <ClCompile Include="client\cl_cin.cpp" />
-    <ClCompile Include="client\cl_console.cpp" />
-    <ClCompile Include="client\cl_input.cpp" />
-    <ClCompile Include="client\cl_keys.cpp" />
-    <ClCompile Include="client\cl_main.cpp" />
-    <ClCompile Include="client\cl_net_chan.cpp" />
-    <ClCompile Include="client\cl_parse.cpp" />
-    <ClCompile Include="client\cl_scrn.cpp" />
-    <ClCompile Include="client\cl_ui.cpp" />
-    <ClCompile Include="client\snd_effects.cpp" />
-    <ClCompile Include="client\snd_main.cpp" />
-    <ClCompile Include="client\snd_mme.cpp" />
-    <ClCompile Include="qcommon\CNetProfile.cpp" />
-    <ClCompile Include="qcommon\GenericParser2.cpp" />
-    <ClCompile Include="qcommon\RoffSystem.cpp" />
-    <ClCompile Include="qcommon\cm_draw.cpp" />
-    <ClCompile Include="qcommon\cm_load.cpp" />
-    <ClCompile Include="qcommon\cm_patch.cpp" />
-    <ClCompile Include="qcommon\cm_polylib.cpp" />
-    <ClCompile Include="qcommon\cm_randomterrain.cpp" />
-    <ClCompile Include="qcommon\cm_shader.cpp" />
-    <ClCompile Include="qcommon\cm_terrain.cpp" />
-    <ClCompile Include="qcommon\cm_terrainmap.cpp" />
-    <ClCompile Include="qcommon\cm_test.cpp" />
-    <ClCompile Include="qcommon\cm_trace.cpp" />
-    <ClCompile Include="qcommon\cmd_common.cpp" />
-    <ClCompile Include="qcommon\cmd_pc.cpp" />
-    <ClCompile Include="qcommon\common.cpp" />
-    <ClCompile Include="qcommon\cvar.cpp" />
-    <ClCompile Include="qcommon\exe_headers.cpp" />
-    <ClCompile Include="qcommon\files_common.cpp" />
-    <ClCompile Include="qcommon\files_pc.cpp" />
-    <ClCompile Include="qcommon\hstring.cpp" />
-    <ClCompile Include="qcommon\huffman.cpp" />
-    <ClCompile Include="qcommon\matcomp.cpp" />
-    <ClCompile Include="qcommon\md4.cpp" />
-    <ClCompile Include="qcommon\msg.cpp" />
-    <ClCompile Include="qcommon\net_chan.cpp" />
-    <ClCompile Include="qcommon\q_math.cpp" />
-    <ClCompile Include="qcommon\q_shared.cpp" />
-    <ClCompile Include="qcommon\stringed_ingame.cpp" />
-    <ClCompile Include="qcommon\stringed_interface.cpp" />
-    <ClCompile Include="qcommon\unzip.cpp" />
-    <ClCompile Include="qcommon\vm.cpp" />
-    <ClCompile Include="qcommon\z_memman_pc.cpp" />
-    <ClCompile Include="sys\snapvector.cpp" />
-    <ClCompile Include="win32\win_input.cpp" />
-    <ClCompile Include="win32\win_main.cpp" />
-    <ClCompile Include="win32\win_net.cpp" />
-    <ClCompile Include="win32\win_shared.cpp" />
-    <ClCompile Include="win32\win_snd.cpp" />
-    <ClCompile Include="win32\win_syscon.cpp" />
-    <ClCompile Include="win32\win_wndproc.cpp" />
-    <ClCompile Include="server\sv_bot.cpp" />
-    <ClCompile Include="server\sv_ccmds.cpp" />
-    <ClCompile Include="server\sv_client.cpp" />
-    <ClCompile Include="server\sv_game.cpp" />
-    <ClCompile Include="server\sv_init.cpp" />
-    <ClCompile Include="server\sv_main.cpp" />
-    <ClCompile Include="server\sv_net_chan.cpp" />
-    <ClCompile Include="server\sv_snapshot.cpp" />
-    <ClCompile Include="server\sv_world.cpp" />
-    <ClCompile Include="server\NPCNav\gameCallbacks.cpp" />
-    <ClCompile Include="server\NPCNav\navigator.cpp" />
-    <ClCompile Include="client\snd_ambient.cpp" />
-    <ClCompile Include="client\snd_dma.cpp" />
-    <ClCompile Include="client\snd_mem.cpp" />
-    <ClCompile Include="client\snd_mix.cpp" />
-    <ClCompile Include="zlib\adler32.c" />
-    <ClCompile Include="zlib\compress.c" />
-    <ClCompile Include="zlib\crc32.c" />
-    <ClCompile Include="zlib\deflate.c" />
-    <ClCompile Include="zlib\gzclose.c" />
-    <ClCompile Include="zlib\gzlib.c" />
-    <ClCompile Include="zlib\gzread.c" />
-    <ClCompile Include="zlib\gzwrite.c" />
-    <ClCompile Include="zlib\infback.c" />
-    <ClCompile Include="zlib\inffast.c" />
-    <ClCompile Include="zlib\inflate.c" />
-    <ClCompile Include="zlib\inftrees.c" />
-    <ClCompile Include="zlib\ioapi.c" />
-    <ClCompile Include="zlib\trees.c" />
-    <ClCompile Include="zlib\uncompr.c" />
-    <ClCompile Include="zlib\zutil.c" />
-    <ClCompile Include="RMG\RM_Area.cpp" />
-    <ClCompile Include="RMG\RM_Instance.cpp" />
-    <ClCompile Include="RMG\RM_InstanceFile.cpp" />
-    <ClCompile Include="RMG\RM_Instance_BSP.cpp" />
-    <ClCompile Include="RMG\RM_Instance_Group.cpp" />
-    <ClCompile Include="RMG\RM_Instance_Random.cpp" />
-    <ClCompile Include="RMG\RM_Instance_Void.cpp" />
-    <ClCompile Include="RMG\RM_Manager.cpp" />
-    <ClCompile Include="RMG\RM_Mission.cpp" />
-    <ClCompile Include="RMG\RM_Objective.cpp" />
-    <ClCompile Include="RMG\RM_Path.cpp" />
-    <ClCompile Include="RMG\RM_Terrain.cpp" />
-    <ClCompile Include="botlib\be_aas_bspq3.cpp" />
-    <ClCompile Include="botlib\be_aas_cluster.cpp" />
-    <ClCompile Include="botlib\be_aas_debug.cpp" />
-    <ClCompile Include="botlib\be_aas_entity.cpp" />
-    <ClCompile Include="botlib\be_aas_file.cpp" />
-    <ClCompile Include="botlib\be_aas_main.cpp" />
-    <ClCompile Include="botlib\be_aas_move.cpp" />
-    <ClCompile Include="botlib\be_aas_optimize.cpp" />
-    <ClCompile Include="botlib\be_aas_reach.cpp" />
-    <ClCompile Include="botlib\be_aas_route.cpp" />
-    <ClCompile Include="botlib\be_aas_routealt.cpp" />
-    <ClCompile Include="botlib\be_aas_sample.cpp" />
-    <ClCompile Include="botlib\be_ai_char.cpp" />
-    <ClCompile Include="botlib\be_ai_chat.cpp" />
-    <ClCompile Include="botlib\be_ai_gen.cpp" />
-    <ClCompile Include="botlib\be_ai_goal.cpp" />
-    <ClCompile Include="botlib\be_ai_move.cpp" />
-    <ClCompile Include="botlib\be_ai_weap.cpp" />
-    <ClCompile Include="botlib\be_ai_weight.cpp" />
-    <ClCompile Include="botlib\be_ea.cpp" />
-    <ClCompile Include="botlib\be_interface.cpp" />
-    <ClCompile Include="botlib\l_crc.cpp" />
-    <ClCompile Include="botlib\l_libvar.cpp" />
-    <ClCompile Include="botlib\l_log.cpp" />
-    <ClCompile Include="botlib\l_memory.cpp" />
-    <ClCompile Include="botlib\l_precomp.cpp" />
-    <ClCompile Include="botlib\l_script.cpp" />
-    <ClCompile Include="botlib\l_struct.cpp" />
-    <ClCompile Include="icarus\BlockStream.cpp" />
-    <ClCompile Include="icarus\GameInterface.cpp" />
-    <ClCompile Include="icarus\Instance.cpp" />
-    <ClCompile Include="icarus\Interface.cpp" />
-    <ClCompile Include="icarus\Memory.cpp" />
-    <ClCompile Include="icarus\Q3_Interface.cpp" />
-    <ClCompile Include="icarus\Q3_Registers.cpp" />
-    <ClCompile Include="icarus\Sequence.cpp" />
-    <ClCompile Include="icarus\Sequencer.cpp" />
-    <ClCompile Include="icarus\TaskManager.cpp" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\cgame\cg_public.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\keys.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\game\anims.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\game\bg_public.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\game\bg_weapons.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\botlib.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\game\g_public.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\game\surfaceflags.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\q_shared.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\chash.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_draw.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_landscape.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_local.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_patch.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_polylib.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_public.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_randomterrain.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_terrainmap.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\disablewarnings.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\game_version.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\GenericParser2.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\MiniHeap.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\matcomp.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\qcommon.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\qfiles.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\RoffSystem.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\sstring.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\stringed_ingame.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\stringed_interface.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\tags.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\timing.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\ghoul2\G2.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\ghoul2\G2_gore.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\ghoul2\ghoul2_shared.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\blockstream.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\GameInterface.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\icarus.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\instance.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\interface.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\interpreter.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\Q3_Interface.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\Q3_Registers.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\sequence.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\sequencer.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\taskmanager.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\tokenizer.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Area.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Headers.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Instance.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Instance_BSP.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Instance_Group.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Instance_Random.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Instance_Void.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_InstanceFile.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Manager.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Mission.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Objective.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Path.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Terrain.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\server\NPCNav\navigator.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\server\server.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\ui\keycodes.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\ui\ui_public.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\unzip.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\zlib\ioapi.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\win32\win_local.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\aasfile.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_bsp.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_cluster.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_debug.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_def.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_entity.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_file.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_funcs.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_main.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_move.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_optimize.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_reach.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_route.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_routealt.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_sample.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_char.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_chat.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_gen.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_goal.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_move.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_weap.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_weight.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ea.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_interface.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_crc.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_libvar.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_log.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_memory.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_precomp.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_script.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_struct.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_utils.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jconfig.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdct.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jerror.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jinclude.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jmemsys.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jmorecfg.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jpegint.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jpeglib.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jversion.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\client.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\FXExport.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\FxPrimitives.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\FxScheduler.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\FxSystem.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\FxUtil.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\snd_ambient.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\snd_local.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\snd_public.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\exe_headers.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\files.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\hstring.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\INetProfile.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\platform.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\Ratl\bits_vs.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\Ratl\ratl_common.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\Ratl\vector_vs.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\Ravl\CVec.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\win32\glw_win.h" />
+    <ClInclude Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\win32\resource.h" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_draw.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_load.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_patch.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_polylib.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_randomterrain.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_shader.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_terrain.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_test.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_trace.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cmd_common.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cmd_pc.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\common.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cvar.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\files_common.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\files_pc.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\GenericParser2.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\huffman.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\md4.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\msg.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\matcomp.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\net_chan.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\q_math.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\q_shared.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\RoffSystem.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\stringed_ingame.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\stringed_interface.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\vm.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\z_memman_pc.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\BlockStream.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\GameInterface.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\Instance.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\Interface.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\Memory.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\Q3_Interface.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\Q3_Registers.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\Sequence.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\Sequencer.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\icarus\TaskManager.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Area.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Instance.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Instance_BSP.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Instance_Group.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Instance_Random.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Instance_Void.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_InstanceFile.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Manager.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Mission.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Objective.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Path.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\RMG\RM_Terrain.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\server\NPCNav\gameCallbacks.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\server\NPCNav\navigator.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\server\sv_bot.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\server\sv_ccmds.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\server\sv_client.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\server\sv_game.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\server\sv_init.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\server\sv_main.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\server\sv_net_chan.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\server\sv_snapshot.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\server\sv_world.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\unzip.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\zlib\ioapi.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\win32\win_net.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\win32\win_shared.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\sys\snapvector.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_bspq3.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_cluster.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_debug.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_entity.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_file.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_main.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_move.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_optimize.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_reach.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_route.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_routealt.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_aas_sample.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_char.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_chat.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_gen.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_goal.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_move.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_weap.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ai_weight.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_ea.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\be_interface.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_crc.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_libvar.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_log.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_memory.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_precomp.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_script.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\botlib\l_struct.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jaricom.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jcapimin.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jcapistd.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jcarith.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jccoefct.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jccolor.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jcdctmgr.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jchuff.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jcinit.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jcmainct.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jcmarker.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jcmaster.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jcomapi.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jcparam.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jcprepct.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jcsample.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jctrans.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdapimin.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdapistd.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdarith.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdatadst.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdatasrc.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdcoefct.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdcolor.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jddctmgr.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdhuff.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdinput.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdmainct.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdmarker.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdmaster.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdmerge.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdpostct.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdsample.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jdtrans.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jerror.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jfdctflt.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jfdctfst.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jfdctint.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jidctflt.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jidctfst.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jidctint.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jmemmgr.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jmemnobs.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jquant1.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jquant2.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\jpeg-8c\jutils.c">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">CompileAsC</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_cgame.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_cin.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_console.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_curl.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_demos.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_demos_auto.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_demos_cut.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_input.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_keys.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_main.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_mme.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_net_chan.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_parse.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_scrn.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\cl_ui.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\FXExport.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\FxPrimitives.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\FxScheduler.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\FxSystem.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\FxTemplate.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\FxUtil.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\snd_ambient.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\snd_dma.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\snd_effects.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\snd_main.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\snd_mem.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\snd_mix.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\client\snd_mme.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\cm_terrainmap.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\CNetProfile.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\exe_headers.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\qcommon\hstring.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\win32\win_input.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\win32\win_main.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\win32\win_snd.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\win32\win_syscon.cpp" />
+    <ClCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\win32\win_wndproc.cpp" />
+    <ResourceCompile Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\win32\jamme.rc" />
+    <None Include="E:\entdark\GameSources\JA\jamme\jaMME-source\codemp\win32\icon.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="win32\icon.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="win32\jamme.rc" />
+    <ProjectReference Include="E:/entdark/GameSources/JA/jamme/jaMME-source/ZERO_CHECK.vcxproj">
+      <Project>AB657D86-ED59-3ED3-ADF5-D624C57A51C8</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
