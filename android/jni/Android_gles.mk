@@ -16,7 +16,7 @@ LOCAL_LDLIBS := $(JK3_BASE_LDLIBS)
 LOCAL_LDLIBS +=  -lGLESv1_CM -lEGL -llog -lz
 LOCAL_SHARED_LIBRARIES := SDL2 jamme #jk3mp is only needed to see the androidSwapped, massive hack
 
-LOCAL_C_INCLUDES :=  $(JK3_BASE_C_INCLUDES) $(TOP_DIR)/libpng $(LOCAL_PATH)/$(MPDir)/rd-gles $(TOP_DIR)
+LOCAL_C_INCLUDES := $(JK3_BASE_C_INCLUDES) $(TOP_DIR)/libpng $(LOCAL_PATH)/$(MPDir)/rd-gles $(TOP_DIR) $(LOCAL_PATH)/android/jni/SDL2/include
 
 JK3_SRC = \
 	../../${MPDir}/rd-gles/G2_API.cpp \

@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.jamme" android:versionCode="1" android:versionName="1.0" android:installLocation="auto">
+	<uses-sdk android:minSdkVersion="16" />
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.VIBRATE" />
+	<application android:label="jaMME" android:icon="@drawable/icon">
+		<activity android:name="com.jamme.jaMME" android:noHistory="false" android:windowSoftInputMode="adjustPan" android:configChanges="orientation|keyboardHidden" android:launchMode="singleTop" android:screenOrientation="sensorLandscape" android:theme="@android:style/Theme.NoTitleBar.Fullscreen" android:label="@string/app_name">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+			<intent-filter android:icon="@drawable/demo" android:label="Jedi Academy Demo (v1.01)" android:priority="1">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="http" />
+				<data android:scheme="https" />
+				<data android:scheme="ftp" />
+				<data android:scheme="file" />
+				<data android:host="*" />
+				<data android:mimeType="*/*" />
+				<data android:pathPattern=".*\\.dm_26" />
+			</intent-filter>
+			<intent-filter android:icon="@drawable/demo" android:label="Jedi Academy Demo (v 1.00)" android:priority="1">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="http" />
+				<data android:scheme="https" />
+				<data android:scheme="ftp" />
+				<data android:scheme="file" />
+				<data android:host="*" />
+				<data android:mimeType="*/*" />
+				<data android:pathPattern=".*\\.dm_25" />
+			</intent-filter>
+			<intent-filter android:icon="@drawable/demo" android:label="jaMME Demo" android:priority="1">
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="http" />
+				<data android:scheme="https" />
+				<data android:scheme="ftp" />
+				<data android:scheme="file" />
+				<data android:host="*" />
+				<data android:mimeType="*/*" />
+				<data android:pathPattern=".*\\.mme" />
+			</intent-filter>
+			<intent-filter>
+				<action android:name="android.intent.action.VIEW" />
+				<category android:name="android.intent.category.DEFAULT" />
+				<category android:name="android.intent.category.BROWSABLE" />
+				<data android:scheme="ja" android:host="*" />
+				<data android:mimeType="*/*" />
+			</intent-filter>
+		</activity>
+	</application>
+</manifest>

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 3.0.2)
 # For checks in subdirectories
 set(InjaMME TRUE)
 
@@ -182,3 +182,8 @@ set(jaMMEInstallDir "${CMAKE_SOURCE_DIR}/build")
 
 # Add projects
 add_subdirectory(${MPDir})
+
+# >= 1900 aka MSVC++14 aka VS 2015
+if(NOT (MSVC_VERSION LESS 1900))
+	include_external_msproject(android "${CMAKE_SOURCE_DIR}/android/Mono/android.csproj")
+endif()

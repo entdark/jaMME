@@ -1415,8 +1415,8 @@ extern	vec4_t		colorLtBlue;
 extern	vec4_t		colorDkBlue;
 
 extern vec3_t defaultColors[10];
-int Q_parseColorString( const char *p, float *color, qboolean uagColours );
-int Q_parseColor( const char *p, const vec3_t *numberColors, float *color );
+extern int Q_parseColorString( const char *p, float *color, qboolean uagColours );
+extern int Q_parseColor( const char *p, const vec3_t *numberColors, float *color );
 
 #define Q_COLOR_ESCAPE	'^'
 // you MUST have the last bit on here about colour strings being less than 7 or taiwanese strings register as colour!!!!
@@ -1765,7 +1765,7 @@ void	Q_strcat( char *dest, int size, const char *src );
 const char *Q_stristr( const char *s, const char *find);
 
 // strlen that discounts Quake color sequences
-int Q_PrintStrlen( const char *string
+extern int Q_PrintStrlen( const char *string
 #if defined (UI_EXPORTS) || (QAGAME)
 #elif defined (CGAME)
 	, qboolean uagColours
@@ -1775,7 +1775,7 @@ int Q_PrintStrlen( const char *string
 );
 
 // removes color sequences from string
-char *Q_CleanStr( char *string
+extern char *Q_CleanStr( char *string
 #if defined (UI_EXPORTS) || (QAGAME)
 #elif defined (CGAME)
 	, qboolean uagColours
@@ -1783,7 +1783,7 @@ char *Q_CleanStr( char *string
 	, qboolean uagColours = qfalse
 #endif
 );
-void Q_StripColor(char *text
+extern void Q_StripColor(char *text
 #if defined (UI_EXPORTS) || (QAGAME)
 #elif defined (CGAME)
 	, qboolean uagColours
@@ -1791,7 +1791,7 @@ void Q_StripColor(char *text
 	, qboolean uagColours = qfalse
 #endif
 );
-void Q_StripColorNew(char *text
+extern void Q_StripColorNew(char *text
 #if defined (UI_EXPORTS) || (QAGAME)
 #elif defined (CGAME)
 	, qboolean uagColours

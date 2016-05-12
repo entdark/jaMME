@@ -19,6 +19,8 @@ LOCAL_LDLIBS := $(JK3_BASE_LDLIBS)
 LOCAL_STATIC_LIBRARIES := curl libcurl libmad# libogg_static libvorbis_static win_utf8_io_static libFLAC_static 
 LOCAL_SHARED_LIBRARIES := SDL2# SDL2_mixer touchcontrols openal
 
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/android/jni/SDL2/include
+
 #############################################################################
 # CLIENT/SERVER
 #############################################################################

@@ -1,0 +1,708 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{5D0A3F60-919A-4514-85C4-4F4AB6F74A66}</ProjectGuid>
+    <ProjectTypeGuids>{EFBA0AD7-5A72-4C68-AF49-83D382785DCF};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>android</RootNamespace>
+    <AssemblyName>jamme</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <AndroidApplication>true</AndroidApplication>
+    <MonoAndroidResourcePrefix>Resources</MonoAndroidResourcePrefix>
+    <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
+    <AndroidResgenClass>Resource</AndroidResgenClass>
+    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+    <AndroidUseLatestPlatformSdk>True</AndroidUseLatestPlatformSdk>
+    <TargetFrameworkVersion>v6.0</TargetFrameworkVersion>
+    <AndroidManifest>Properties\AndroidManifest.xml</AndroidManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AndroidUseSharedRuntime>True</AndroidUseSharedRuntime>
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <MonoAndroidResourcePrefix>Resources</MonoAndroidResourcePrefix>
+    <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
+    <AndroidResgenClass>Resource</AndroidResgenClass>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <CustomCommands>
+      <CustomCommands>
+        <Command type="BeforeBuild" command="/Users/art/Library/Developer/Xamarin/android-ndk/android-ndk-r10e/ndk-build NDK_PROJECT_PATH=${ProjectDir}/../ -j4" workingdir="" />
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
+    <AndroidLinkMode>Full</AndroidLinkMode>
+    <AndroidLinkSkip />
+    <EmbedAssembliesIntoApk>True</EmbedAssembliesIntoApk>
+    <AndroidSupportedAbis>armeabi,armeabi-v7a,x86,x86_64,arm64-v8a</AndroidSupportedAbis>
+    <AndroidStoreUncompressedFileExtensions />
+    <MandroidI18n />
+    <Debugger>Xamarin</Debugger>
+    <DebugSymbols>False</DebugSymbols>
+    <MonoAndroidResourcePrefix>Resources</MonoAndroidResourcePrefix>
+    <AndroidResgenFile>Resources\Resource.Designer.cs</AndroidResgenFile>
+    <AndroidResgenClass>Resource</AndroidResgenClass>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Mono.Android" />
+    <Reference Include="mscorlib" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Mono.Android.Export" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DirectoryChooserDialog.cs" />
+    <Compile Include="JAKeycodes.cs" />
+    <Compile Include="MobileKeycodes.cs" />
+    <Compile Include="RangeSeekBar.cs" />
+    <Compile Include="Resources\Resource.Designer.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="jaMME.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Properties\AndroidManifest.xml">
+      <SubType>Designer</SubType>
+    </None>
+    <AndroidNativeLibrary Include="..\libs\arm64-v8a\librd-jamme_arm.so">
+      <Link>lib\arm64-v8a\librd-jamme_arm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\arm64-v8a\libuiarm.so">
+      <Link>lib\arm64-v8a\libuiarm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\arm64-v8a\libjamme.so">
+      <Link>lib\arm64-v8a\libjamme.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\arm64-v8a\libjampgamearm.so">
+      <Link>lib\arm64-v8a\libjampgamearm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\arm64-v8a\libSDL2.so">
+      <Link>lib\arm64-v8a\libSDL2.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi\libcgamearm.so">
+      <Link>lib\armeabi\libcgamearm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi\libjamme.so">
+      <Link>lib\armeabi\libjamme.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi\libjampgamearm.so">
+      <Link>lib\armeabi\libjampgamearm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi\librd-jamme_arm.so">
+      <Link>lib\armeabi\librd-jamme_arm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi\libSDL2.so">
+      <Link>lib\armeabi\libSDL2.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi\libuiarm.so">
+      <Link>lib\armeabi\libuiarm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi-v7a\libcgamearm.so">
+      <Link>lib\armeabi-v7a\libcgamearm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi-v7a\libjamme.so">
+      <Link>lib\armeabi-v7a\libjamme.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi-v7a\libjampgamearm.so">
+      <Link>lib\armeabi-v7a\libjampgamearm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi-v7a\librd-jamme_arm.so">
+      <Link>lib\armeabi-v7a\librd-jamme_arm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi-v7a\libSDL2.so">
+      <Link>lib\armeabi-v7a\libSDL2.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi-v7a\libuiarm.so">
+      <Link>lib\armeabi-v7a\libuiarm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86\libjamme.so">
+      <Link>lib\x86\libjamme.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86\libjampgamearm.so">
+      <Link>lib\x86\libjampgamearm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86\librd-jamme_arm.so">
+      <Link>lib\x86\librd-jamme_arm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86\libSDL2.so">
+      <Link>lib\x86\libSDL2.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86\libuiarm.so">
+      <Link>lib\x86\libuiarm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86\libcgamearm.so">
+      <Link>lib\x86\libcgamearm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86_64\libcgamearm.so">
+      <Link>lib\x86_64\libcgamearm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86_64\libjamme.so">
+      <Link>lib\x86_64\libjamme.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86_64\libjampgamearm.so">
+      <Link>lib\x86_64\libjampgamearm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86_64\librd-jamme_arm.so">
+      <Link>lib\x86_64\librd-jamme_arm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86_64\libSDL2.so">
+      <Link>lib\x86_64\libSDL2.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86_64\libuiarm.so">
+      <Link>lib\x86_64\libuiarm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\arm64-v8a\libcgamearm.so">
+      <Link>lib\arm64-v8a\libcgamearm.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Assets\" />
+    <Folder Include="Resources\layout\" />
+  </ItemGroup>
+  <ItemGroup>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_check_off_disabled_focused_holo_dark.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_check_off_disabled_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_check_off_disabled_holo_dark.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_check_off_disabled_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_check_off_focused_holo_dark.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_check_off_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_check_off_holo_dark.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_check_off_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_check_off_pressed_holo_dark.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_check_off_pressed_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_check_on_disabled_focused_holo_dark.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_check_on_disabled_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_check_on_disabled_holo_dark.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_check_on_disabled_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_check_on_focused_holo_dark.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_check_on_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_check_on_holo_dark.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_check_on_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_check_on_pressed_holo_dark.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_check_on_pressed_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_default_disabled_focused_holo_dark.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_default_disabled_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_default_disabled_holo_dark.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_default_disabled_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_default_focused_holo_dark.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_default_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_default_normal_holo_dark.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_default_normal_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_btn_default_pressed_holo_dark.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_btn_default_pressed_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_list_activated_holo.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_list_activated_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_list_focused_holo.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_list_focused_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_list_longpressed_holo.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_list_longpressed_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_list_pressed_holo_dark.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_list_pressed_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_list_selector_disabled_holo_dark.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_list_selector_disabled_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_scrubber_control_disabled_holo.png">
+      <Link>Resources\drawable-hdpi\apptheme_scrubber_control_disabled_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_scrubber_control_focused_holo.png">
+      <Link>Resources\drawable-hdpi\apptheme_scrubber_control_focused_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_scrubber_control_normal_holo.png">
+      <Link>Resources\drawable-hdpi\apptheme_scrubber_control_normal_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_scrubber_control_pressed_holo.png">
+      <Link>Resources\drawable-hdpi\apptheme_scrubber_control_pressed_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_scrubber_primary_holo.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_scrubber_primary_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_scrubber_secondary_holo.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_scrubber_secondary_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_scrubber_track_holo_dark.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_scrubber_track_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_textfield_activated_holo_dark.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_textfield_activated_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_textfield_default_holo_dark.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_textfield_default_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_textfield_disabled_focused_holo_dark.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_textfield_disabled_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_textfield_disabled_holo_dark.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_textfield_disabled_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_textfield_focused_holo_dark.9.png">
+      <Link>Resources\drawable-hdpi\apptheme_textfield_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_text_select_handle_left.png">
+      <Link>Resources\drawable-hdpi\apptheme_text_select_handle_left.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_text_select_handle_middle.png">
+      <Link>Resources\drawable-hdpi\apptheme_text_select_handle_middle.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\apptheme_text_select_handle_right.png">
+      <Link>Resources\drawable-hdpi\apptheme_text_select_handle_right.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\select_left.png">
+      <Link>Resources\drawable-hdpi\select_left.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-hdpi\select_right.png">
+      <Link>Resources\drawable-hdpi\select_right.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_check_off_disabled_focused_holo_dark.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_check_off_disabled_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_check_off_disabled_holo_dark.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_check_off_disabled_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_check_off_focused_holo_dark.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_check_off_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_check_off_holo_dark.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_check_off_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_check_off_pressed_holo_dark.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_check_off_pressed_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_check_on_disabled_focused_holo_dark.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_check_on_disabled_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_check_on_disabled_holo_dark.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_check_on_disabled_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_check_on_focused_holo_dark.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_check_on_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_check_on_holo_dark.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_check_on_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_check_on_pressed_holo_dark.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_check_on_pressed_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_default_disabled_focused_holo_dark.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_default_disabled_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_default_disabled_holo_dark.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_default_disabled_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_default_focused_holo_dark.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_default_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_default_normal_holo_dark.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_default_normal_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_btn_default_pressed_holo_dark.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_btn_default_pressed_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_list_activated_holo.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_list_activated_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_list_focused_holo.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_list_focused_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_list_longpressed_holo.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_list_longpressed_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_list_pressed_holo_dark.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_list_pressed_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_list_selector_disabled_holo_dark.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_list_selector_disabled_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_scrubber_control_disabled_holo.png">
+      <Link>Resources\drawable-mdpi\apptheme_scrubber_control_disabled_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_scrubber_control_focused_holo.png">
+      <Link>Resources\drawable-mdpi\apptheme_scrubber_control_focused_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_scrubber_control_normal_holo.png">
+      <Link>Resources\drawable-mdpi\apptheme_scrubber_control_normal_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_scrubber_control_pressed_holo.png">
+      <Link>Resources\drawable-mdpi\apptheme_scrubber_control_pressed_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_scrubber_primary_holo.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_scrubber_primary_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_scrubber_secondary_holo.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_scrubber_secondary_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_scrubber_track_holo_dark.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_scrubber_track_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_textfield_activated_holo_dark.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_textfield_activated_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_textfield_default_holo_dark.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_textfield_default_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_textfield_disabled_focused_holo_dark.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_textfield_disabled_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_textfield_disabled_holo_dark.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_textfield_disabled_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_textfield_focused_holo_dark.9.png">
+      <Link>Resources\drawable-mdpi\apptheme_textfield_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_text_select_handle_left.png">
+      <Link>Resources\drawable-mdpi\apptheme_text_select_handle_left.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_text_select_handle_middle.png">
+      <Link>Resources\drawable-mdpi\apptheme_text_select_handle_middle.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\apptheme_text_select_handle_right.png">
+      <Link>Resources\drawable-mdpi\apptheme_text_select_handle_right.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\select_left.png">
+      <Link>Resources\drawable-mdpi\select_left.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-mdpi\select_right.png">
+      <Link>Resources\drawable-mdpi\select_right.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_check_off_disabled_focused_holo_dark.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_check_off_disabled_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_check_off_disabled_holo_dark.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_check_off_disabled_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_check_off_focused_holo_dark.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_check_off_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_check_off_holo_dark.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_check_off_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_check_off_pressed_holo_dark.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_check_off_pressed_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_check_on_disabled_focused_holo_dark.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_check_on_disabled_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_check_on_disabled_holo_dark.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_check_on_disabled_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_check_on_focused_holo_dark.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_check_on_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_check_on_holo_dark.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_check_on_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_check_on_pressed_holo_dark.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_check_on_pressed_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_default_disabled_focused_holo_dark.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_default_disabled_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_default_disabled_holo_dark.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_default_disabled_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_default_focused_holo_dark.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_default_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_default_normal_holo_dark.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_default_normal_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_btn_default_pressed_holo_dark.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_btn_default_pressed_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_list_activated_holo.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_list_activated_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_list_focused_holo.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_list_focused_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_list_longpressed_holo.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_list_longpressed_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_list_pressed_holo_dark.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_list_pressed_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_list_selector_disabled_holo_dark.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_list_selector_disabled_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_scrubber_control_disabled_holo.png">
+      <Link>Resources\drawable-xhdpi\apptheme_scrubber_control_disabled_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_scrubber_control_focused_holo.png">
+      <Link>Resources\drawable-xhdpi\apptheme_scrubber_control_focused_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_scrubber_control_normal_holo.png">
+      <Link>Resources\drawable-xhdpi\apptheme_scrubber_control_normal_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_scrubber_control_pressed_holo.png">
+      <Link>Resources\drawable-xhdpi\apptheme_scrubber_control_pressed_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_scrubber_primary_holo.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_scrubber_primary_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_scrubber_secondary_holo.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_scrubber_secondary_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_scrubber_track_holo_dark.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_scrubber_track_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_textfield_activated_holo_dark.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_textfield_activated_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_textfield_default_holo_dark.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_textfield_default_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_textfield_disabled_focused_holo_dark.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_textfield_disabled_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_textfield_disabled_holo_dark.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_textfield_disabled_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_textfield_focused_holo_dark.9.png">
+      <Link>Resources\drawable-xhdpi\apptheme_textfield_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_text_select_handle_left.png">
+      <Link>Resources\drawable-xhdpi\apptheme_text_select_handle_left.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_text_select_handle_middle.png">
+      <Link>Resources\drawable-xhdpi\apptheme_text_select_handle_middle.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\apptheme_text_select_handle_right.png">
+      <Link>Resources\drawable-xhdpi\apptheme_text_select_handle_right.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\select_left.png">
+      <Link>Resources\drawable-xhdpi\select_left.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xhdpi\select_right.png">
+      <Link>Resources\drawable-xhdpi\select_right.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_check_off_disabled_focused_holo_dark.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_check_off_disabled_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_check_off_disabled_holo_dark.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_check_off_disabled_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_check_off_focused_holo_dark.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_check_off_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_check_off_holo_dark.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_check_off_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_check_off_pressed_holo_dark.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_check_off_pressed_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_check_on_disabled_focused_holo_dark.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_check_on_disabled_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_check_on_disabled_holo_dark.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_check_on_disabled_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_check_on_focused_holo_dark.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_check_on_focused_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_check_on_holo_dark.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_check_on_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_check_on_pressed_holo_dark.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_check_on_pressed_holo_dark.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_default_disabled_focused_holo_dark.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_default_disabled_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_default_disabled_holo_dark.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_default_disabled_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_default_focused_holo_dark.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_default_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_default_normal_holo_dark.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_default_normal_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_btn_default_pressed_holo_dark.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_btn_default_pressed_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_list_activated_holo.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_list_activated_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_list_focused_holo.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_list_focused_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_list_longpressed_holo.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_list_longpressed_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_list_pressed_holo_dark.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_list_pressed_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_list_selector_disabled_holo_dark.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_list_selector_disabled_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_scrubber_control_disabled_holo.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_scrubber_control_disabled_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_scrubber_control_focused_holo.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_scrubber_control_focused_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_scrubber_control_normal_holo.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_scrubber_control_normal_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_scrubber_control_pressed_holo.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_scrubber_control_pressed_holo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_scrubber_primary_holo.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_scrubber_primary_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_scrubber_secondary_holo.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_scrubber_secondary_holo.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_scrubber_track_holo_dark.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_scrubber_track_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_textfield_activated_holo_dark.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_textfield_activated_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_textfield_default_holo_dark.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_textfield_default_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_textfield_disabled_focused_holo_dark.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_textfield_disabled_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_textfield_disabled_holo_dark.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_textfield_disabled_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_textfield_focused_holo_dark.9.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_textfield_focused_holo_dark.9.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_text_select_handle_left.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_text_select_handle_left.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_text_select_handle_middle.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_text_select_handle_middle.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\apptheme_text_select_handle_right.png">
+      <Link>Resources\drawable-xxhdpi\apptheme_text_select_handle_right.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\select_left.png">
+      <Link>Resources\drawable-xxhdpi\select_left.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable-xxhdpi\select_right.png">
+      <Link>Resources\drawable-xxhdpi\select_right.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable\demo.png">
+      <Link>Resources\drawable\demo.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable\icon.png">
+      <Link>Resources\drawable\icon.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable\jamme.png">
+      <Link>Resources\drawable\jamme.png</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable\jamme_activated_background.xml">
+      <Link>Resources\drawable\jamme_activated_background.xml</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable\jamme_btn.xml">
+      <Link>Resources\drawable\jamme_btn.xml</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable\jamme_checkbox.xml">
+      <Link>Resources\drawable\jamme_checkbox.xml</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable\jamme_control.xml">
+      <Link>Resources\drawable\jamme_control.xml</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable\jamme_edit_text.xml">
+      <Link>Resources\drawable\jamme_edit_text.xml</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\drawable\jamme_progress.xml">
+      <Link>Resources\drawable\jamme_progress.xml</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\values\colors_apptheme.xml">
+      <Link>Resources\values\colors_apptheme.xml</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\values\strings.xml">
+      <Link>Resources\values\strings.xml</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\values\styles_apptheme.xml">
+      <Link>Resources\values\styles_apptheme.xml</Link>
+    </AndroidResource>
+    <AndroidResource Include="..\res\values\themes_apptheme.xml">
+      <Link>Resources\values\themes_apptheme.xml</Link>
+    </AndroidResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>CALL ndk-build "NDK_PROJECT_PATH=$(ProjectDir)/../" -j4</PreBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+     Other similar extension points exist, see Microsoft.Common.targets.
+		<Target Name="BeforeBuild">
+		</Target>
+		<Target Name="AfterBuild">
+		</Target>
+ -->
+</Project>

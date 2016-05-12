@@ -1260,7 +1260,7 @@ Ghoul2 Insert Start
 						}
 					}
 
-  					if (ent->e.ghoul2 && G2API_HaveWeGhoul2Models(*((CGhoul2Info_v *)ent->e.ghoul2)))
+  					if (ent->e.ghoul2 && G2API_HaveWeGhoul2Models(((CGhoul2Info_v *)ent->e.ghoul2)))
   					{
   						R_AddGhoulSurfaces( ent);
   						break;

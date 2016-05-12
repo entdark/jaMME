@@ -138,7 +138,9 @@ void SDL_Android_Init(JNIEnv* mEnv, jclass cls)
     mActivityClass = (jclass)((*mEnv)->NewGlobalRef(mEnv, cls));
 
     midCreateGLContext = (*mEnv)->GetStaticMethodID(mEnv, mActivityClass,
-                                "createGLContext","(II[I)Z");
+                                "createGLContext","(IILjava/lang/Object;)Z");
+//  midCreateGLContext = (*mEnv)->GetStaticMethodID(mEnv, mActivityClass,
+//                                "createGLContext","(II[I)Z");
     midDeleteGLContext = (*mEnv)->GetStaticMethodID(mEnv, mActivityClass,
                                 "deleteGLContext","()V");
     midFlipBuffers = (*mEnv)->GetStaticMethodID(mEnv, mActivityClass,
@@ -146,9 +148,13 @@ void SDL_Android_Init(JNIEnv* mEnv, jclass cls)
     midAudioInit = (*mEnv)->GetStaticMethodID(mEnv, mActivityClass,
                                 "audioInit", "(IZZI)I");
     midAudioWriteShortBuffer = (*mEnv)->GetStaticMethodID(mEnv, mActivityClass,
-                                "audioWriteShortBuffer", "([S)V");
+                                "audioWriteShortBuffer", "(Ljava/lang/Object;)V");
+//  midAudioWriteShortBuffer = (*mEnv)->GetStaticMethodID(mEnv, mActivityClass,
+//                                "audioWriteShortBuffer", "([S)V");
     midAudioWriteByteBuffer = (*mEnv)->GetStaticMethodID(mEnv, mActivityClass,
-                                "audioWriteByteBuffer", "([B)V");
+                                "audioWriteByteBuffer", "(Ljava/lang/Object;)V");
+//  midAudioWriteByteBuffer = (*mEnv)->GetStaticMethodID(mEnv, mActivityClass,
+//                                "audioWriteByteBuffer", "([B)V");
     midAudioQuit = (*mEnv)->GetStaticMethodID(mEnv, mActivityClass,
                                 "audioQuit", "()V");
 
@@ -156,6 +162,7 @@ void SDL_Android_Init(JNIEnv* mEnv, jclass cls)
 
     if(!midCreateGLContext || !midFlipBuffers || !midAudioInit ||
        !midAudioWriteShortBuffer || !midAudioWriteByteBuffer || !midAudioQuit) {
+        __android_log_print(ANDROID_LOG_WARN, "SDL", "SDL: midCreateGLContext: %d, midDeleteGLContext: %d, midFlipBuffers: %d, midAudioInit: %d, midAudioWriteShortBuffer: %d, midAudioWriteByteBuffer: %d, midAudioQuit: %d", midCreateGLContext, midDeleteGLContext, midFlipBuffers, midAudioInit, midAudioWriteShortBuffer, midAudioWriteByteBuffer, midAudioQuit);
         __android_log_print(ANDROID_LOG_WARN, "SDL", "SDL: Couldn't locate Java callbacks, check that they're named and typed correctly");
     }
     __android_log_print(ANDROID_LOG_INFO, "SDL", "SDL_Android_Init() finished!");
@@ -381,8 +388,6 @@ SDL_bool Android_JNI_DeleteContext(void)
     (*env)->CallStaticVoidMethod(env, mActivityClass, midDeleteGLContext);
     return SDL_TRUE;
 }
-
-#include <EGL\egl.h>
 
 void Android_JNI_SwapWindow()
 {
