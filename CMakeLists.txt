@@ -184,6 +184,6 @@ set(jaMMEInstallDir "${CMAKE_SOURCE_DIR}/build")
 add_subdirectory(${MPDir})
 
 # >= 1900 aka MSVC++14 aka VS 2015
-if(NOT (MSVC_VERSION LESS 1900))
+if((MSVC) AND (NOT (MSVC_VERSION LESS 1900)))
 	include_external_msproject(android "${CMAKE_SOURCE_DIR}/android/Mono/android.csproj")
 endif()
