@@ -746,9 +746,6 @@ int main ( int argc, char* argv[] )
 #if defined __linux__ && defined DEDICATED
         Sys_ConfigureFPU();//FIXME: what's this for?
 #endif
-		// make sure mouse and joystick are only called once a frame
-		IN_Frame();
-
 		// run the game
 		Com_Frame();
 	}

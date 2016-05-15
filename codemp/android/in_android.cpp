@@ -519,7 +519,6 @@ int thread_has_run = 0;
 extern void *launchSSetup(void *);
 void PortableFrame(void){
 	pumpEvents();
-	IN_Frame();
 	Com_Frame();
 	if (!thread_has_run) {
 		pthread_create(&thread1, NULL,  launchSSetup, NULL);

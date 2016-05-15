@@ -1279,9 +1279,6 @@ int main( int argc, char **argv )
 			Sleep( 5 );
 //		}
 
-		// make sure mouse and joystick are only called once a frame
-		IN_Frame();
-
 		// run the game
 		Com_Frame();
 	}

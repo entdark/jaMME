@@ -16,6 +16,18 @@
 #include <pthread.h>
 #endif
 
+#if defined (_WIN32)
+#if defined (DEDICATED)
+#include "../null/win_local.h"
+#else
+#include "../win32/win_local.h"
+#endif
+#elif defined (__ANDROID__)
+#include "../android/sys_local.h"
+#else
+#include "../sys/sys_local.h"
+#endif
+
 #define	MAXPRINTMSG	4096
 
 #define MAX_NUM_ARGVS	50
@@ -1653,6 +1665,9 @@ try
 		}
 		msec = com_frameTime - lastTime;
 	} while ( msec < minMsec );
+	// make sure mouse and joystick are only called once a frame
+	IN_Frame();
+
 	Cbuf_Execute ();
 
 	lastTime = com_frameTime;
