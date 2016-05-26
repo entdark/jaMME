@@ -7,7 +7,9 @@
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 #include "../qcommon/exe_headers.h"
+#ifdef _MSC_VER
 #pragma warning( disable : 4512 )
+#endif
 
 // Returns a float min <= x < max (exclusive; will get max - 0.00001; but never max)
 inline float WE_flrand(float min, float max) {
@@ -28,11 +30,13 @@ extern void			SetViewportAndScissor( void );
 #include "tr_local.h"
 #include "tr_WorldEffects.h"
 
-#include "Ravl/CVec.h"
-#include "Ratl/vector_vs.h"
-#include "Ratl/bits_vs.h"
+#include "../Ravl/CVec.h"
+#include "../Ratl/vector_vs.h"
+#include "../Ratl/bits_vs.h"
 
+#ifdef _WIN32
 #include "glext.h"
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Defines
@@ -379,7 +383,7 @@ private:
 	struct SWeatherZone
 	{
 		static bool	mMarkedOutside;
-		ulong*		mPointCache;
+		uint32_t*	mPointCache;
 		SVecRange	mExtents;
 		SVecRange	mSize;
 		int			mWidth;
@@ -512,7 +516,7 @@ public:
 			Wz.mDepth		= ((int)(Wz.mSize.mMaxs[2] - Wz.mSize.mMins[2]) + 31) >> 5;
 			
 			int arraySize	= (Wz.mWidth * Wz.mHeight * Wz.mDepth);
-			Wz.mPointCache  = (ulong *)Z_Malloc(arraySize*sizeof(ulong), TAG_POINTCACHE, qtrue);
+			Wz.mPointCache  = (uint32_t *)Z_Malloc(arraySize*sizeof(uint32_t), TAG_POINTCACHE, qtrue);
 		}
 	}
 
@@ -533,8 +537,8 @@ public:
 		CVec3		Mins;
 		int			x, y, z, q, zbase;
 		bool		curPosOutside;
-		ulong		contents;
-		ulong		bit;
+		uint32_t	contents;
+		uint32_t	bit;
 
 
 		// Record The Extents Of The World Incase No Other Weather Zones Exist
@@ -824,8 +828,17 @@ public:
 		}
 
 		mVertexCount = VertexCount;
+#if  defined(HAVE_GLES)	// Check for point sprite use
+		if (mVertexCount == 1)
+			mGLModeEnum = GL_POINTS;
+		else
+#endif
 
-		mGLModeEnum = (mVertexCount==3)?(GL_TRIANGLES):(GL_QUADS);
+#ifdef HAVE_GLES
+		mGLModeEnum = (mVertexCount == 3) ? (GL_TRIANGLES) : (GL_TRIANGLE_FAN);
+#else
+		mGLModeEnum = (mVertexCount == 3) ? (GL_TRIANGLES) : (GL_QUADS);
+#endif
 	}
 
 
@@ -1219,6 +1232,25 @@ public:
 		}
 		else
 		*/
+#ifdef HAVE_GLES
+		GLfloat tex[2 * 6 * mParticleCount];
+		GLfloat vtx[3 * 6 * mParticleCount];
+		GLfloat col[4 * 6 * mParticleCount];
+		GLfloat curcol[4];
+		qglGetFloatv(GL_CURRENT_COLOR, curcol);
+		GLboolean text = qglIsEnabled(GL_TEXTURE_COORD_ARRAY);
+		GLboolean glcol = qglIsEnabled(GL_COLOR_ARRAY);
+		if (!text)
+			qglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		if (!glcol)
+			qglEnableClientState(GL_COLOR_ARRAY);
+
+		if (mGLModeEnum == GL_POINTS)
+		{
+			qglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+			// Nothing to do ?!
+		}
+#else
 		//FIXME use this extension?
 		const float	attenuation[3] =
 		{
@@ -1231,6 +1263,7 @@ public:
 			qglPointParameterfEXT(GL_POINT_SIZE_MAX_EXT, 4.0);
 			qglPointParameterfvEXT(GL_DISTANCE_ATTENUATION_EXT, (float *)attenuation);
 		}
+#endif
 		else
 		{
 			qglEnable(GL_TEXTURE_2D);
@@ -1251,7 +1284,11 @@ public:
 
 		// Begin
 		//-------
+#ifdef HAVE_GLES
+		int idx = 0;
+#else
 		qglBegin(mGLModeEnum);
+#endif
 		for (particleNum=0; particleNum<mParticleCount; particleNum++)
 		{
 			part = &(mParticles[particleNum]);
@@ -1264,28 +1301,60 @@ public:
 			//------------------------------------------------------
 			if (mBlendMode==0)
 			{
+#ifdef HAVE_GLES
+				curcol[0] = mColor[0]; curcol[1] = mColor[1], curcol[2] = mColor[2]; curcol[3] = part->mAlpha;
+#else
 				qglColor4f(mColor[0], mColor[1], mColor[2], part->mAlpha);
+#endif
 			}
 
 			// Otherwise Apply Alpha To All Channels
 			//---------------------------------------
 			else
 			{
-				qglColor4f(mColor[0]*part->mAlpha, mColor[1]*part->mAlpha, mColor[2]*part->mAlpha, mColor[3]*part->mAlpha);
+#ifdef HAVE_GLES
+				curcol[0] = mColor[0] * part->mAlpha; curcol[1] = mColor[1] * part->mAlpha, curcol[2] = mColor[2] * part->mAlpha; curcol[3] = mColor[3] * part->mAlpha;
+#else
+				qglColor4f(mColor[0] * part->mAlpha, mColor[1] * part->mAlpha, mColor[2] * part->mAlpha, mColor[3] * part->mAlpha);
+#endif
 			}
 
 			// Render A Point
 			//----------------
 			if (mGLModeEnum==GL_POINTS)
 			{
+#ifdef HAVE_GLES
+				memcpy(vtx + idx * 3, part->mPosition.v, 3 * sizeof(GLfloat));
+				memcpy(col + idx * 4, curcol, 4 * sizeof(GLfloat));
+				idx++;
+#else
 				qglVertex3fv(part->mPosition.v);
+#endif
 			}
 
 			// Render A Triangle
 			//-------------------
 			else if (mVertexCount==3)
 			{
- 				qglTexCoord2f(1.0, 0.0);
+#ifdef HAVE_GLES
+				memcpy(col + idx * 4, curcol, 4 * sizeof(GLfloat));
+				tex[idx * 2 + 0] = 1.0f; tex[idx * 2 + 1] = 0.0f;
+				vtx[idx * 3 + 0] = part->mPosition[0];
+				vtx[idx * 3 + 1] = part->mPosition[1];
+				vtx[idx * 3 + 2] = part->mPosition[2];
+				memcpy(col + idx * 4 + 4, curcol, 4 * sizeof(GLfloat));
+				tex[idx * 2 + 2] = 0.0f; tex[idx * 2 + 3] = 1.0f;
+				vtx[idx * 3 + 3] = part->mPosition[0] + mCameraLeft[0];
+				vtx[idx * 3 + 4] = part->mPosition[1] + mCameraLeft[1];
+				vtx[idx * 3 + 5] = part->mPosition[2] + mCameraLeft[2];
+				memcpy(col + idx * 4 + 8, curcol, 4 * sizeof(GLfloat));
+				tex[idx * 2 + 4] = 0.0f; tex[idx * 2 + 5] = 0.0f;
+				vtx[idx * 3 + 6] = part->mPosition[0] + mCameraLeftPlusUp[0];
+				vtx[idx * 3 + 7] = part->mPosition[1] + mCameraLeftPlusUp[1];
+				vtx[idx * 3 + 8] = part->mPosition[2] + mCameraLeftPlusUp[2];
+				idx += 3;
+#else
+				qglTexCoord2f(1.0, 0.0);
 				qglVertex3f(part->mPosition[0],
 							part->mPosition[1],
 							part->mPosition[2]);
@@ -1299,12 +1368,71 @@ public:
 				qglVertex3f(part->mPosition[0] + mCameraLeftPlusUp[0],
 							part->mPosition[1] + mCameraLeftPlusUp[1],
 							part->mPosition[2] + mCameraLeftPlusUp[2]);
+#endif
 			}
 
 			// Render A Quad
 			//---------------
 			else
 			{
+#ifdef HAVE_GLES
+				/*tex[0]=0.0f; tex[1]=0.0f;
+				vtx[0]=part->mPosition[0] - mCameraLeftMinusUp[0];
+				vtx[1]=part->mPosition[1] - mCameraLeftMinusUp[1];
+				vtx[2]=part->mPosition[2] - mCameraLeftMinusUp[2];
+				tex[2]=1.0f; tex[3]=0.0f;
+				vtx[3]=part->mPosition[0] - mCameraLeftPlusUp[0];
+				vtx[4]=part->mPosition[1] - mCameraLeftPlusUp[1];
+				vtx[5]=part->mPosition[2] - mCameraLeftPlusUp[2];
+				tex[4]=1.0f; tex[5]=1.0f;
+				vtx[6]=part->mPosition[0] + mCameraLeftMinusUp[0];
+				vtx[7]=part->mPosition[1] + mCameraLeftMinusUp[1];
+				vtx[8]=part->mPosition[2] + mCameraLeftMinusUp[2];
+				tex[6]=0.0f; tex[7]=1.0f;
+				vtx[9]=part->mPosition[0] + mCameraLeftPlusUp[0];
+				vtx[10]=part->mPosition[1] + mCameraLeftPlusUp[1];
+				vtx[11]=part->mPosition[2] + mCameraLeftPlusUp[2];
+				qglTexCoordPointer( 2, GL_FLOAT, 0, tex );
+				qglVertexPointer  ( 3, GL_FLOAT, 0, vtx );
+				qglDrawArrays( GL_TRIANGLE_FAN, 0, 4 );*/
+				memcpy(col + idx * 4, curcol, 4 * sizeof(GLfloat));
+				tex[idx * 2 + 0] = 0.0f; tex[idx * 2 + 1] = 0.0f;
+				vtx[idx * 3 + 0] = part->mPosition[0] - mCameraLeftMinusUp[0];
+				vtx[idx * 3 + 1] = part->mPosition[1] - mCameraLeftMinusUp[1];
+				vtx[idx * 3 + 2] = part->mPosition[2] - mCameraLeftMinusUp[2];
+				idx++;
+				memcpy(col + idx * 4, curcol, 4 * sizeof(GLfloat));
+				tex[idx * 2 + 0] = 1.0f; tex[idx * 2 + 1] = 0.0f;
+				vtx[idx * 3 + 0] = part->mPosition[0] - mCameraLeftPlusUp[0];
+				vtx[idx * 3 + 1] = part->mPosition[1] - mCameraLeftPlusUp[1];
+				vtx[idx * 3 + 2] = part->mPosition[2] - mCameraLeftPlusUp[2];
+				idx++;
+				memcpy(col + idx * 4, curcol, 4 * sizeof(GLfloat));
+				tex[idx * 2 + 0] = 1.0f; tex[idx * 2 + 1] = 1.0f;
+				vtx[idx * 3 + 0] = part->mPosition[0] + mCameraLeftMinusUp[0];
+				vtx[idx * 3 + 1] = part->mPosition[1] + mCameraLeftMinusUp[1];
+				vtx[idx * 3 + 2] = part->mPosition[2] + mCameraLeftMinusUp[2];
+				idx++;
+				// triangle 2
+				memcpy(col + idx * 4, curcol, 4 * sizeof(GLfloat));
+				tex[idx * 2 + 0] = 0.0f; tex[idx * 2 + 1] = 0.0f;
+				vtx[idx * 3 + 0] = part->mPosition[0] - mCameraLeftMinusUp[0];
+				vtx[idx * 3 + 1] = part->mPosition[1] - mCameraLeftMinusUp[1];
+				vtx[idx * 3 + 2] = part->mPosition[2] - mCameraLeftMinusUp[2];
+				idx++;
+				memcpy(col + idx * 4, curcol, 4 * sizeof(GLfloat));
+				tex[idx * 2 + 0] = 1.0f; tex[idx * 2 + 1] = 1.0f;
+				vtx[idx * 3 + 0] = part->mPosition[0] + mCameraLeftMinusUp[0];
+				vtx[idx * 3 + 1] = part->mPosition[1] + mCameraLeftMinusUp[1];
+				vtx[idx * 3 + 2] = part->mPosition[2] + mCameraLeftMinusUp[2];
+				idx++;
+				memcpy(col + idx * 4, curcol, 4 * sizeof(GLfloat));
+				tex[idx * 2 + 0] = 0.0f; tex[idx * 2 + 1] = 1.0f;
+				vtx[idx * 3 + 0] = part->mPosition[0] + mCameraLeftPlusUp[0];
+				vtx[idx * 3 + 1] = part->mPosition[1] + mCameraLeftPlusUp[1];
+				vtx[idx * 3 + 2] = part->mPosition[2] + mCameraLeftPlusUp[2];
+				idx++;
+#else
 				// Left bottom.
 				qglTexCoord2f( 0.0, 0.0 );
 				qglVertex3f(part->mPosition[0] - mCameraLeftMinusUp[0],
@@ -1328,9 +1456,12 @@ public:
 				qglVertex3f(part->mPosition[0] + mCameraLeftPlusUp[0],
 							part->mPosition[1] + mCameraLeftPlusUp[1], 
 							part->mPosition[2] + mCameraLeftPlusUp[2] );
+#endif
 			}
 		}
+#ifndef HAVE_GLES
 		qglEnd();
+#endif
 
 		if (mGLModeEnum==GL_POINTS)
 		{
@@ -1341,8 +1472,28 @@ public:
 		{
 			//qglEnable(GL_CULL_FACE);
 			//you don't need to do this when you are properly setting cull state.
+#ifdef HAVE_GLES
+//			if (mGLModeEnum==GL_TRIANGLES) {
+				qglTexCoordPointer( 2, GL_FLOAT, 0, tex );
+				qglVertexPointer  ( 3, GL_FLOAT, 0, vtx );
+				qglColorPointer (4, GL_FLOAT, 0, col );
+				qglDrawArrays( GL_TRIANGLES, 0, idx );
+//			}
+#endif
 			qglPopMatrix();
 		}
+#ifdef HAVE_GLES
+		if (!glcol)
+			qglDisableClientState(GL_COLOR_ARRAY);
+		if (mGLModeEnum == GL_POINTS) {
+			if (!text)
+				qglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
+		else {
+			if (text)
+				qglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
+#endif
 
 		mParticlesRendered += mParticleCountRender;
 	}
@@ -1515,7 +1666,7 @@ void RE_WorldEffectCommand(const char *command)
 
 
 	//Die - clean up the whole weather system -rww
-	if (strcmpi(token, "die") == 0)
+	if (Q_stricmp(token, "die") == 0)
 	{
 		R_ShutdownWorldEffects();
 		return;
@@ -1523,7 +1674,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Clear - Removes All Particle Clouds And Wind Zones
 	//----------------------------------------------------
-	else if (strcmpi(token, "clear") == 0)
+	else if (Q_stricmp(token, "clear") == 0)
 	{
 		for (int p=0; p<mParticleClouds.size(); p++)
 		{
@@ -1535,14 +1686,14 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Freeze / UnFreeze - Stops All Particle Motion Updates
 	//--------------------------------------------------------
-	else if (strcmpi(token, "freeze") == 0)
+	else if (Q_stricmp(token, "freeze") == 0)
 	{
 		mFrozen = !mFrozen;
 	}
 
 	// Add a zone
 	//---------------
-	else if (strcmpi(token, "zone") == 0)
+	else if (Q_stricmp(token, "zone") == 0)
 	{
 		vec3_t	mins;
 		vec3_t	maxs;
@@ -1554,7 +1705,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Basic Wind
 	//------------
-	else if (strcmpi(token, "wind") == 0)
+	else if (Q_stricmp(token, "wind") == 0)
 	{
 		if (mWindZones.full())
 		{
@@ -1566,7 +1717,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Constant Wind
 	//---------------
-	else if (strcmpi(token, "constantwind") == 0)
+	else if (Q_stricmp(token, "constantwind") == 0)
 	{
 		if (mWindZones.full())
 		{
@@ -1584,7 +1735,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Gusting Wind
 	//--------------
-	else if (strcmpi(token, "gustingwind") == 0)
+	else if (Q_stricmp(token, "gustingwind") == 0)
 	{
 		if (mWindZones.full())
 		{
@@ -1611,7 +1762,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Create A Rain Storm
 	//---------------------
-	else if (strcmpi(token, "lightrain") == 0)
+	else if (Q_stricmp(token, "lightrain") == 0)
 	{
 		if (mParticleClouds.full())
 		{
@@ -1632,7 +1783,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Create A Rain Storm
 	//---------------------
-	else if (strcmpi(token, "rain") == 0)
+	else if (Q_stricmp(token, "rain") == 0)
 	{
 		if (mParticleClouds.full())
 		{
@@ -1653,7 +1804,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Create A Rain Storm
 	//---------------------
-	else if (strcmpi(token, "acidrain") == 0)
+	else if (Q_stricmp(token, "acidrain") == 0)
 	{
 		if (mParticleClouds.full())
 		{
@@ -1681,7 +1832,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Create A Rain Storm
 	//---------------------
-	else if (strcmpi(token, "heavyrain") == 0)
+	else if (Q_stricmp(token, "heavyrain") == 0)
 	{
 		if (mParticleClouds.full())
 		{
@@ -1702,7 +1853,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Create A Snow Storm
 	//---------------------
-	else if (strcmpi(token, "snow") == 0)
+	else if (Q_stricmp(token, "snow") == 0)
 	{
 		if (mParticleClouds.full())
 		{
@@ -1718,7 +1869,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Create A Some stuff
 	//---------------------
-	else if (strcmpi(token, "spacedust") == 0)
+	else if (Q_stricmp(token, "spacedust") == 0)
 	{
 		int count;
 		if (mParticleClouds.full())
@@ -1749,7 +1900,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Create A Sand Storm
 	//---------------------
-	else if (strcmpi(token, "sand") == 0)
+	else if (Q_stricmp(token, "sand") == 0)
 	{
 		if (mParticleClouds.full())
 		{
@@ -1776,7 +1927,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Create Blowing Clouds Of Fog
 	//------------------------------
-	else if (strcmpi(token, "fog") == 0)
+	else if (Q_stricmp(token, "fog") == 0)
 	{
 		if (mParticleClouds.full())
 		{
@@ -1800,7 +1951,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Create Heavy Rain Particle Cloud
 	//-----------------------------------
-	else if (strcmpi(token, "heavyrainfog") == 0)
+	else if (Q_stricmp(token, "heavyrainfog") == 0)
 	{
 		if (mParticleClouds.full())
 		{
@@ -1827,7 +1978,7 @@ void RE_WorldEffectCommand(const char *command)
 
 	// Create Blowing Clouds Of Fog
 	//------------------------------
-	else if (strcmpi(token, "light_fog") == 0)
+	else if (Q_stricmp(token, "light_fog") == 0)
 	{
 		if (mParticleClouds.full())
 		{
@@ -1852,11 +2003,11 @@ void RE_WorldEffectCommand(const char *command)
 		nCloud.mRotationChangeNext	= 0;
 	}
 
-	else if (strcmpi(token, "outsideshake") == 0)
+	else if (Q_stricmp(token, "outsideshake") == 0)
 	{
 		mOutside.mOutsideShake = !mOutside.mOutsideShake;
 	}
-	else if (strcmpi(token, "outsidepain") == 0)
+	else if (Q_stricmp(token, "outsidepain") == 0)
 	{
 		mOutside.mOutsidePain = !mOutside.mOutsidePain;
 	}

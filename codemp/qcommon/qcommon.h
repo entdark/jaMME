@@ -1150,10 +1150,8 @@ extern huffman_t clientHuffTables;
 inline int Round(float value) {
 	return((int)floorf(value + 0.5f));
 }
-#ifdef __ANDROID__
 // Persistent data store API
 bool PD_Store ( const char *name, const void *data, size_t size );
 const void *PD_Load ( const char *name, size_t *size );
-#endif
 uint8_t ConvertUTF32ToExpectedCharset(uint32_t utf32);
 uint32_t ConvertUTF8ToUTF32(char *utf8CurrentChar, char **utf8NextChar);

@@ -3,7 +3,7 @@
 #include "../client/client.h"
 #include "../sys/sys_local.h"
 
-#include "../rd-gles/tr_local.h"
+#include "../rd-vanilla/tr_local.h"
 
 #include <signal.h>
 #include <stdlib.h>

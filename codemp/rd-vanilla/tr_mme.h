@@ -3,6 +3,10 @@
 
 #include "tr_local.h"
 
+#if defined (X86_OR_64)
+#include <mmintrin.h>
+#endif
+
 #define AVI_MAX_FRAMES	20000
 #define AVI_MAX_SIZE	((2*1024-10)*1024*1024)
 #define AVI_HEADER_SIZE	2048
@@ -58,8 +62,13 @@ typedef struct {
 } mmeBlurControl_t;
 
 typedef struct {
+#if !defined (HAVE_GLES) || defined (X86_OR_64)
 	__m64	*accum;
 	__m64	*overlap;
+#else
+	void	*accum;
+	void	*overlap;
+#endif
 	int		count;
 	mmeBlurControl_t *control;
 } mmeBlurBlock_t;
@@ -80,7 +89,13 @@ void MME_AccumClearSSE( void *w, const void *r, short int mul, int count );
 void MME_AccumAddSSE( void* w, const void* r, short int mul, int count );
 void MME_AccumShiftSSE( const void *r, void *w, int count );
 
-void R_MME_BlurAccumAdd( mmeBlurBlock_t *block, const __m64 *add );
+void R_MME_BlurAccumAdd( mmeBlurBlock_t *block, 
+#if !defined (HAVE_GLES) || defined (X86_OR_64)
+	const __m64 *add
+#else
+	const void *add
+#endif
+);
 void R_MME_BlurOverlapAdd( mmeBlurBlock_t *block, int index );
 void R_MME_BlurAccumShift( mmeBlurBlock_t *block  );
 void blurCreate( mmeBlurControl_t* control, const char* type, int frames );

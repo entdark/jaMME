@@ -1,11 +1,7 @@
 #pragma once
 
 #include "FxSystem.h"
-#ifdef __ANDROID__
-#define MAX_EFFECTS			1337
-#else
 #define MAX_EFFECTS			1<<15
-#endif
 // Generic group flags, used by parser, then get converted to the appropriate specific flags
 #define FX_PARM_MASK		0xC	// use this to mask off any transition types that use a parm
 #define FX_GENERIC_MASK		0xF
@@ -221,11 +217,7 @@ protected:
 	vec3_t		mRGBStart;
 	vec3_t		mRGBEnd;
 	float		mRGBParm;
-#ifdef __ANDROID__
-	CGhoul2Info_v *mGhoul2;
-#else
 	CGhoul2Info_v mGhoul2;
-#endif
 	short		mEntNum;
 	char		mModelNum;
 	char		mBoltNum;
@@ -240,15 +232,6 @@ public:
 	{
 		mEntNum = -1; mModelNum = -1; mBoltNum = -1;
 	}
-#ifdef __ANDROID__
-	inline void SetBoltinfo( CGhoul2Info_v *ghoul2,  int entNum, int modelNum = -1, int boltNum = -1 )
-	{
-		mGhoul2 = ghoul2;
-		mEntNum = entNum;
-		mModelNum = modelNum;
-		mBoltNum = boltNum;
-	}
-#else
 	virtual ~CLight(void)
 	{
 		mGhoul2.kill();	//remove my model ref without actually deleting
@@ -257,7 +240,6 @@ public:
 	{ 
 		mGhoul2 = iGhoul2; mEntNum = entNum; mModelNum = modelNum; mBoltNum = boltNum; 
 	}
-#endif
 
 	virtual bool Update();
 
@@ -295,11 +277,7 @@ protected:
 
 	float		mRotationDelta;
 	float		mElasticity;
-#ifdef __ANDROID__
-	CGhoul2Info_v *mGhoul2;
-#else
 	CGhoul2Info_v mGhoul2;
-#endif
 	short		mEntNum;
 	char		mModelNum;
 	char		mBoltNum;
@@ -310,20 +288,10 @@ protected:
 	void		UpdateAlpha();
 	void		UpdateRotation();
 public:
-#ifdef __ANDROID__
-	inline void SetBoltinfo( CGhoul2Info_v *ghoul2,  int entNum, int modelNum = -1, int boltNum = -1 )
-	{
-		mGhoul2 = ghoul2;
-		mEntNum = entNum;
-		mModelNum = modelNum;
-		mBoltNum = boltNum;
-	}
-#else
 	inline void SetBoltinfo( int iGhoul2,  int entNum, int modelNum = -1, int boltNum = -1 )	
 	{ 
 		mGhoul2 = iGhoul2; mEntNum = entNum; mModelNum = modelNum; mBoltNum = boltNum; 
 	}
-#endif
 
 #ifdef _WIN32
 	inline CParticle::CParticle(void)
@@ -333,7 +301,6 @@ public:
 	{
 		mRefEnt.reType = RT_SPRITE; mEntNum = -1; mModelNum = -1; mBoltNum = -1;
 	}
-#ifndef __ANDROID__
 #ifdef _WIN32
 	virtual CParticle::~CParticle(void)
 #else
@@ -342,7 +309,6 @@ public:
 	{
 		mGhoul2.kill();	//remove my model ref without actually deleting
 	}
-#endif
 	virtual void Init();
 	virtual void Die();
 	virtual bool Update();

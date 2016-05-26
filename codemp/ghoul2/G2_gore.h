@@ -9,7 +9,6 @@
 #define MAX_LODS (8)
 struct GoreTextureCoordinates {
 	float *tex[MAX_LODS];
-#ifndef __ANDROID__
 	GoreTextureCoordinates() {
 		int i;
 		for (i=0;i<MAX_LODS;i++) {
@@ -29,10 +28,6 @@ struct GoreTextureCoordinates {
 			}
 		}
 	}
-#else
-	GoreTextureCoordinates();
-	~GoreTextureCoordinates();
-#endif
 };
 
 int AllocGoreRecord();

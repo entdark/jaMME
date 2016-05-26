@@ -96,6 +96,9 @@ void R_SetGL2DSize (int width, int height) {
 }
 
 void R_DrawQuad( GLuint tex, int width, int height) {
+#ifdef HAVE_GLES
+	//TODO
+#else
 	qglEnable(GL_TEXTURE_2D);
 	if ( glState.currenttextures[0] != tex ) {
 		GL_SelectTexture( 0 );
@@ -109,6 +112,7 @@ void R_DrawQuad( GLuint tex, int width, int height) {
 	  qglTexCoord2f(1.0, 0.0); qglVertex2f(width, height);	
 	  qglTexCoord2f(0.0, 0.0); qglVertex2f(0.0  , height);	
 	qglEnd();	
+#endif
 }
 
 static int CreateTextureBuffer( int width, int height, GLenum internalFormat, GLenum format, GLenum type ) {
@@ -128,6 +132,9 @@ static int CreateTextureBuffer( int width, int height, GLenum internalFormat, GL
 
 static int CreateRenderBuffer( int samples, int width, int height, GLenum bindType) {
 	int ret = 0;
+#ifdef HAVE_GLES
+	//TODO
+#else
 	qglGenRenderbuffers( 1, (GLuint *)&ret );
 	qglBindRenderbuffer( GL_RENDERBUFFER_EXT, ret );
 	if ( samples ) {
@@ -135,6 +142,7 @@ static int CreateRenderBuffer( int samples, int width, int height, GLenum bindTy
 	} else {
 		qglRenderbufferStorage(	GL_RENDERBUFFER_EXT, bindType, width, height );
 	}
+#endif
 	return ret;
 }
 
@@ -147,6 +155,9 @@ static int CreateRenderBuffer( int samples, int width, int height, GLenum bindTy
 
 
 void R_FrameBufferDelete( frameBufferData_t* buffer ) {  
+#ifdef HAVE_GLES
+	//TODO
+#else
 	if ( !buffer )
 		return;
 	qglDeleteFramebuffers(1, &(buffer->fbo));
@@ -171,9 +182,14 @@ void R_FrameBufferDelete( frameBufferData_t* buffer ) {
 		}
 	}
 	free( buffer );
+#endif
 }
 
 frameBufferData_t* R_FrameBufferCreate( int width, int height, int flags ) {
+#ifdef HAVE_GLES
+	//TODO
+	return NULL;
+#else
 	frameBufferData_t *buffer;
 	GLuint status;
 	int samples = 0;
@@ -261,9 +277,13 @@ frameBufferData_t* R_FrameBufferCreate( int width, int height, int flags ) {
 		return 0;
 	}		
 	return buffer;
+#endif
 }
 
 void R_FrameBuffer_Init( void ) {
+#ifdef HAVE_GLES
+	//TODO
+#else
 	int flags, width, height;
 
 	memset( &fbo, 0, sizeof( fbo ) );
@@ -338,12 +358,16 @@ void R_FrameBuffer_Init( void ) {
 	}
 
 	qglBindFramebuffer(GL_FRAMEBUFFER_EXT, 0 );
+#endif
 }
 
 static qboolean usedFloat;
 
 /* Startframe checks if the framebuffer is still active or was just activated */
 void R_FrameBuffer_StartFrame( void ) {
+#ifdef HAVE_GLES
+	//TODO
+#else
 	if ( !fbo.main ) {
 		return;
 	}
@@ -355,9 +379,14 @@ void R_FrameBuffer_StartFrame( void ) {
 	}
 	qglDrawBuffer( GL_COLOR_ATTACHMENT0_EXT );
 	usedFloat = qfalse;
+#endif
 }
 
 qboolean R_FrameBuffer_Blur( float scale, int frame, int total ) {
+#ifdef HAVE_GLES
+	//TODO
+	return qfalse;
+#else
 	float c;
 	if ( !fbo.blur )
 		return qfalse;
@@ -383,9 +412,13 @@ qboolean R_FrameBuffer_Blur( float scale, int frame, int total ) {
 		R_DrawQuad(	fbo.blur->color, glConfig.vidWidth, glConfig.vidHeight );
 	}
 	return qtrue;
+#endif
 }
 
 void R_FrameBuffer_EndFrame( void ) {
+#ifdef HAVE_GLES
+	//TODO
+#else
 	if ( !fbo.main ) {
 		return;
 	}
@@ -407,6 +440,7 @@ void R_FrameBuffer_EndFrame( void ) {
 		R_DrawQuad(	fbo.main->color, fbo.screenWidth, fbo.screenHeight );
 	}
 	usedFloat = qfalse;
+#endif
 }
 
 void R_FrameBuffer_Shutdown( void ) {

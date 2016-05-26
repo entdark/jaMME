@@ -1157,13 +1157,8 @@ Ghoul2 Insert Start
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
 			int modelIndex = args[10];
-#ifdef __ANDROID__
-			return re.G2API_GetBoneAnim(g2, modelIndex, (const char*)VMA(2), args[3], (float *)VMA(4), (int *)VMA(5),
-								(int *)VMA(6), (int *)VMA(7), (float *)VMA(8), (int *)VMA(9));
-#else
 			return re.G2API_GetBoneAnim(&g2[modelIndex], (const char*)VMA(2), args[3], (float *)VMA(4), (int *)VMA(5),
 								(int *)VMA(6), (int *)VMA(7), (float *)VMA(8), (int *)VMA(9));
-#endif
 		}
 
 	case UI_G2_GETBONEFRAME:
@@ -1172,13 +1167,8 @@ Ghoul2 Insert Start
 			int modelIndex = args[6];
 			int iDontCare1 = 0, iDontCare2 = 0, iDontCare3 = 0;
 			float fDontCare1 = 0;
-#ifdef __ANDROID__
-			return re.G2API_GetBoneAnim(g2, modelIndex, (const char*)VMA(2), args[3], (float *)VMA(4), &iDontCare1,
-								&iDontCare2, &iDontCare3, &fDontCare1, (int *)VMA(5));
-#else
 			return re.G2API_GetBoneAnim(&g2[modelIndex], (const char*)VMA(2), args[3], (float *)VMA(4), &iDontCare1,
 								&iDontCare2, &iDontCare3, &fDontCare1, (int *)VMA(5));
-#endif
 		}
 
 	case UI_G2_GETGLANAME:
@@ -1271,11 +1261,7 @@ Ghoul2 Insert End
 			char *local;
 			int modelindex = args[3];
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-#ifdef __ANDROID__
-			local = re.G2API_GetSurfaceName(g2, modelindex, args[2]);
-#else
 			local = re.G2API_GetSurfaceName(&g2[modelindex], args[2]);
-#endif
 			if (local)
 			{
 				strcpy(point, local);
@@ -1286,11 +1272,7 @@ Ghoul2 Insert End
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
 			int modelIndex = args[2];
-#ifdef __ANDROID__
-			return re.G2API_SetSkin(g2, modelIndex, args[3], args[4]);
-#else
 			return re.G2API_SetSkin(&g2[modelIndex], args[3], args[4]);
-#endif
 		}
 	case UI_G2_ATTACHG2MODEL:
 		{

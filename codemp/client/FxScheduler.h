@@ -377,11 +377,7 @@ private:
 		short	mEntNum;		// used to determine which entity this ghoul model is attached to.
 		bool	mPortalEffect;	// rww - render this before skyportals, and not in the normal world view.
 		bool	mIsRelative;	// bolt this puppy on keep it updated
-#ifdef __ANDROID__
-		CGhoul2Info_v *ghoul2;
-#else
 		int		iGhoul2;
-#endif
 		vec3_t	mOrigin;
 		vec3_t	mAxis[3];
 
@@ -398,11 +394,7 @@ private:
 	{
 		int		mId;			// effect id
 		int		mBoltInfo;		// used to determine which bolt on the ghoul2 model we should be attaching this effect to
-#ifdef __ANDROID__
-		CGhoul2Info_v *mGhoul2;
-#else
 		CGhoul2Info_v mGhoul2;
-#endif
 		int		mNextTime;		//time to render again
 		int		mLoopStopTime;	//time to die
 		bool	mPortalEffect;	// rww - render this before skyportals, and not in the normal world view.
@@ -411,11 +403,7 @@ private:
 
 	SLoopedEffect	mLoopedEffectArray[MAX_LOOPED_FX];
 
-#ifdef __ANDROID__
-	int		ScheduleLoopedEffect( int id, int boltInfo, CGhoul2Info_v *ghoul2, bool isPortal, int iLoopTime, bool isRelative );
-#else
 	int		ScheduleLoopedEffect( int id, int boltInfo, int iGhoul2, bool isPortal, int iLoopTime, bool isRelative );
-#endif
 	void	AddLoopedEffects( );
 
 
@@ -462,11 +450,7 @@ private:
 	void	AddPrimitiveToEffect( SEffectTemplate *fx, CPrimitiveTemplate *prim );
 	int		ParseEffect( const char *file, CGPGroup *base );
 
-#ifdef __ANDROID__
-	void	CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, matrix3_t axis, int lateTime, int fxParm = -1,  CGhoul2Info_v *ghoul2 = NULL, int entNum = -1, int modelNum = -1, int boltNum = -1);
-#else
 	void	CreateEffect( CPrimitiveTemplate *fx, const vec3_t origin, vec3_t axis[3], float lateTime, int fxParm = -1,  int iGhoul2 = 0, int entNum = -1, int modelNum = -1, int boltNum = -1);
-#endif
 	void	CreateEffect( CPrimitiveTemplate *fx, SScheduledEffect *schedFx );
 
 public:
@@ -479,22 +463,12 @@ public:
 	//rww - maybe this should be done differently.. it's more than a bit confusing.
 	//Remind me when I don't have 50 files checked out.
 	void	PlayEffect( int id, vec3_t org, vec3_t fwd, int vol = -1, int rad = -1, bool isPortal = false );				// builds arbitrary perp. right vector, does a cross product to define up
-#ifdef __ANDROID__
-	void	PlayEffect( int id, vec3_t origin, vec3_t axis[3], const int boltInfo=-1, CGhoul2Info_v *ghoul2 = NULL,
-				int fxParm = -1, int vol = -1, int rad = -1, bool isPortal = false, int iLoopTime = false, bool isRelative = false  );
-#else
 	void	PlayEffect( int id, vec3_t origin, vec3_t axis[3], const int boltInfo=-1, int iGhoul2 = 0,
 				int fxParm = -1, int vol = -1, int rad = -1, bool isPortal = false, int iLoopTime = false, bool isRelative = false  );
-#endif
 	void	PlayEffect( const char *file, vec3_t org, int vol = -1, int rad = -1 );					// uses a default up axis
 	void	PlayEffect( const char *file, vec3_t org, vec3_t fwd, int vol = -1, int rad = -1 );		// builds arbitrary perp. right vector, does a cross product to define up
-#ifdef __ANDROID__
-	void	PlayEffect( const char *file, vec3_t origin,
-				matrix3_t axis, const int boltInfo = -1, CGhoul2Info_v *ghoul2 = NULL, int fxParm = -1, int vol = -1, int rad = -1, int iLoopTime = false, bool isRelative = false );
-#else
 	void	PlayEffect( const char *file, vec3_t origin, 
 				vec3_t axis[3], const int boltInfo = -1, int iGhoul2 = 0, int fxParm = -1, int vol = -1, int rad = -1, int iLoopTime = false, bool isRelative = false );
-#endif
 
 	void	StopEffect( const char *file, const int boltInfo, bool isPortal = false );	//find a scheduled Looping effect with these parms and kill it
 	void	AddScheduledEffects( bool portal );								// call once per CGame frame

@@ -24,11 +24,7 @@ Ghoul2 Insert Start
 
 #include "../qcommon/stringed_ingame.h"
 #include "../ghoul2/G2_gore.h"
-#ifndef __ANDROID__
-extern CMiniHeap *G2VertSpaceClient;
-#else
 extern IHeapAllocator *G2VertSpaceClient;
-#endif
 #include "snd_ambient.h"
 #include "../qcommon/timing.h"
 
@@ -1160,16 +1156,9 @@ intptr_t CL_CgameSystemCalls(intptr_t *args) {
 		//( int id, vec3_t org, void *pGhoul2, const int boltNum, const int entNum, const int modelNum, int iLooptime, qboolean isRelative );
 		CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[3]);
 		int boltInfo=0;
-#ifdef __ANDROID__
-		if ( re.G2API_AttachEnt( &boltInfo, g2, args[6], args[4], args[5], args[6] ) )
-		{
-			FX_PlayBoltedEffectID(args[1], (float *)VMA(2), boltInfo, &g2, args[7], (qboolean)args[8] );
-
-#else
 		if ( re.G2API_AttachEnt( &boltInfo, &g2[args[6]], args[4], args[5], args[6] ) )
 		{
 			FX_PlayBoltedEffectID(args[1], (float *)VMA(2), boltInfo, g2.mItem, args[7], (qboolean)args[8] );
-#endif
 			return 1;
 		}
 		return 0;
@@ -1378,11 +1367,7 @@ Ghoul2 Insert Start
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
 			int modelIndex = args[2];
-#ifdef __ANDROID__
-			return re.G2API_SetSkin(g2, modelIndex, args[3], args[4]);
-#else
 			return re.G2API_SetSkin(&g2[modelIndex], args[3], args[4]);
-#endif
 		}
 
 	case CG_G2_COLLISIONDETECT:
@@ -1437,13 +1422,8 @@ Ghoul2 Insert Start
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
 			int modelIndex = args[10];
-#ifdef __ANDROID__
-			return re.G2API_GetBoneAnim(g2, modelIndex, (const char*)VMA(2), args[3], (float *)VMA(4), (int *)VMA(5),
-								(int *)VMA(6), (int *)VMA(7), (float *)VMA(8), (int *)VMA(9));
-#else
 			return re.G2API_GetBoneAnim(&g2[modelIndex], (const char*)VMA(2), args[3], (float *)VMA(4), (int *)VMA(5),
 								(int *)VMA(6), (int *)VMA(7), (float *)VMA(8), (int *)VMA(9));
-#endif
 		}
 
 	case CG_G2_GETBONEFRAME:
@@ -1452,13 +1432,8 @@ Ghoul2 Insert Start
 			int modelIndex = args[6];
 			int iDontCare1 = 0, iDontCare2 = 0, iDontCare3 = 0;
 			float fDontCare1 = 0;
-#ifdef __ANDROID__
-			return re.G2API_GetBoneAnim(g2, modelIndex, (const char*)VMA(2), args[3], (float *)VMA(4), &iDontCare1,
-								&iDontCare2, &iDontCare3, &fDontCare1, (int *)VMA(5));
-#else
 			return re.G2API_GetBoneAnim(&g2[modelIndex], (const char*)VMA(2), args[3], (float *)VMA(4), &iDontCare1,
 								&iDontCare2, &iDontCare3, &fDontCare1, (int *)VMA(5));
-#endif
 		}
 
 	case CG_G2_GETGLANAME:
@@ -1502,22 +1477,14 @@ Ghoul2 Insert Start
 	case CG_G2_SKINLESSMODEL:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-#ifdef __ANDROID__
-			return re.G2API_SkinlessModel(g2, args[2]);
-#else
 			return re.G2API_SkinlessModel(&g2[args[2]]);
-#endif
 		}
 
 	case CG_G2_GETNUMGOREMARKS:
 #ifdef _G2_GORE
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-#ifdef __ANDROID__
-			return re.G2API_GetNumGoreMarks(g2, args[2]);
-#else
 			return re.G2API_GetNumGoreMarks(&g2[args[2]]);
-#endif
 		}
 #endif
 		return 0;
@@ -1546,11 +1513,7 @@ Ghoul2 Insert Start
 //				G2API_AttachEnt(int *boltInfo, CGhoul2Info *ghlInfoTo, int toBoltIndex, int entNum, int toModelNum)
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[2]);
-#ifdef __ANDROID__
-			return	re.G2API_AttachEnt( (int*)VMA(1), g2, 0, args[3], args[4], args[5] );
-#else
 			return	re.G2API_AttachEnt( (int*)VMA(1), &g2[0], args[3], args[4], args[5] );
-#endif
 		}
 
 	case CG_G2_SETBOLTON:
@@ -1577,21 +1540,13 @@ Ghoul2 Insert End
 	case CG_G2_DOESBONEEXIST:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-#ifdef __ANDROID__
-			return re.G2API_DoesBoneExist(g2, args[2], (const char *)VMA(3));
-#else
 			return re.G2API_DoesBoneExist(&g2[args[2]], (const char *)VMA(3));
-#endif
 		}
 
 	case CG_G2_GETSURFACERENDERSTATUS:
 	{
 		CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-#ifdef __ANDROID__
-		return re.G2API_GetSurfaceRenderStatus(g2, args[2], (const char *)VMA(3));
-#else
 		return re.G2API_GetSurfaceRenderStatus(&g2[args[2]], (const char *)VMA(3));
-#endif
 	}
 
 	case CG_G2_GETTIME:
@@ -1603,9 +1558,7 @@ Ghoul2 Insert End
 
 	case CG_G2_SETTIMEFRACTION:
 //entTODO: add timefraction thing to another new G2API
-#ifndef __ANDROID__
 		re.G2API_SetTimeFraction(VMF(1));
-#endif
 		return 0;
 
 	case CG_G2_ABSURDSMOOTHING:
@@ -1697,11 +1650,7 @@ Ghoul2 Insert End
 	case CG_G2_REMOVEBONE:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-#ifdef __ANDROID__
-			return re.G2API_RemoveBone(g2, args[3], (const char *)VMA(2));
-#else
 			return re.G2API_RemoveBone(&g2[args[3]], (const char *)VMA(2));
-#endif
 		}
 
 	case CG_G2_ATTACHINSTANCETOENTNUM:
@@ -1718,11 +1667,7 @@ Ghoul2 Insert End
 	case CG_G2_OVERRIDESERVER:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-#ifdef __ANDROID__
-			return re.G2API_OverrideServerWithClientData(g2, 0);
-#else
 			return re.G2API_OverrideServerWithClientData(&g2[0]);
-#endif
 		}
 
 	case CG_G2_GETSURFACENAME:
@@ -1732,11 +1677,7 @@ Ghoul2 Insert End
 			int modelindex = args[3];
 
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-#ifdef __ANDROID__
-			local = re.G2API_GetSurfaceName(g2, modelindex, args[2]);
-#else
 			local = re.G2API_GetSurfaceName(&g2[modelindex], args[2]);
-#endif
 			if (local)
 			{
 				strcpy(point, local);
@@ -1825,26 +1766,18 @@ Ghoul2 Insert End
 		Key_SetOverstrikeMode( (qboolean)args[1] );
 		return 0;
 	case CG_MME_CAPTURE:
-#ifndef __ANDROID__
 		re.Capture( (char *)VMA(1), VMF(2), VMF(3), VMF(4) );
 		re.CaptureStereo( (char *)VMA(1), VMF(2), VMF(3), VMF(4) );
 		S_MMERecord( (char *)VMA(1), 1.0f / VMF(2) );
-#endif
 		return 0;
 	case CG_MME_BLURINFO:
-#ifndef __ANDROID__
 		re.BlurInfo( (int *)VMA(1), (int *)VMA(2) );
-#endif
 		return 0;
 	case CG_MME_MUSIC:
-#ifndef __ANDROID__
 		S_MMEMusic( (const char *)VMA(1), VMF(2), VMF(3) );
-#endif
         return 0; 	
 	case CG_MME_TIMEFRACTION:
-#ifndef __ANDROID__
 		re.TimeFraction(VMF(1));
-#endif
 		return 0;
 	case CG_MME_NEWUAGCOLORS:
 		cls.uag.newColors = (qboolean)args[1];
@@ -1854,9 +1787,7 @@ Ghoul2 Insert End
 		re.FontRatioFix(VMF(1));
         return 0; 	
 	case CG_R_RANDOMSEED:
-#ifndef __ANDROID__
 		re.DemoRandomSeed( args[1], VMF(2) );
-#endif
         return 0; 
 	case CG_FX_RANDOMSEED:
 		FX_DemoRandomSeed( args[1], VMF(2) );

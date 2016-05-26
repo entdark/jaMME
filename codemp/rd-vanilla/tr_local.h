@@ -6,7 +6,19 @@
 
 #ifdef _WIN32
 	#include "qgl.h"
+#elif defined (HAVE_GLES)
+	#include "qgl.h"
+	#include "GLES/glext.h"
+
+#ifndef GL_RGBA4
+	#define GL_RGBA4				0x8056
+#endif
+
+#ifndef GL_RGB5
+	#define GL_RGB5					0x8050
+#endif
 #else
+#error("oh")
 	#include "../sdl/sdl_qgl.h"
 	#include <mmintrin.h>
 	#include <emmintrin.h>
@@ -14,8 +26,13 @@
 
 #include "../ghoul2/ghoul2_shared.h" //rwwRMG - added
 
+#if defined(_XBOX) || defined(HAVE_GLES)
+#define GL_INDEX_TYPE		GL_UNSIGNED_SHORT
+typedef unsigned short glIndex_t;
+#else
 #define GL_INDEX_TYPE		GL_UNSIGNED_INT
 typedef unsigned int glIndex_t;
+#endif
 
 #ifndef _WIN32
 	#include "../qcommon/platform.h"
@@ -375,7 +392,7 @@ typedef struct {
 
 	byte			constantColor[4];			// for CGEN_CONST and AGEN_CONST
 
-	unsigned int	stateBits;					// GLS_xxxx mask
+	uint32_t		stateBits;					// GLS_xxxx mask
 
 	acff_t			adjustColorsForFog;
 
@@ -1383,7 +1400,7 @@ void	GL_SelectTexture( int unit );
 void	GL_TextureMode( const char *string );
 void	GL_Anisotropy( int level );
 void	GL_CheckErrors( void );
-void	GL_State( unsigned long stateVector );
+void	GL_State( uint32_t stateVector );
 void	GL_TexEnv( int env );
 void	GL_Cull( int cullType );
 
@@ -1741,7 +1758,9 @@ void R_AddAnimSurfaces( trRefEntity_t *ent );
 /*
 Ghoul2 Insert Start
 */
+#ifdef _MSC_VER
 #pragma warning (disable: 4512)	//default assignment operator could not be gened
+#endif
 class CRenderableSurface
 {
 public:

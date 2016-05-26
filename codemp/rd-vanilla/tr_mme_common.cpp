@@ -5,14 +5,35 @@ void R_MME_GetShot( void* output, mmeShotType_t type ) {
 	GLenum format;
 	switch (type) {
 	case mmeShotTypeBGR:
+#ifdef HAVE_GLES
+		format = GL_BGRA_EXT;
+#else
 		format = GL_BGR_EXT;
+#endif
 		break;
 	default:
+#ifdef HAVE_GLES
+		format = GL_RGBA;
+#else
 		format = GL_RGB;
+#endif
 		break;
 	}
+#ifdef HAVE_GLES
+	byte *outBuf;
+	int i, j, k, res;
+	res = glConfig.vidWidth * glConfig.vidHeight;
+	outBuf = (byte *)ri.Hunk_AllocateTempMemory(res * 4);
+	qglReadPixels(0, 0, glConfig.vidWidth, glConfig.vidHeight, format, GL_UNSIGNED_BYTE, outBuf);
+	for (i = 0, j = 0, k = 0; k < res; i += 4, j += 3, k++) {
+		((byte *)output)[j + 0] = outBuf[i + 0];
+		((byte *)output)[j + 1] = outBuf[i + 1];
+		((byte *)output)[j + 2] = outBuf[i + 2];
+	}
+	ri.Hunk_FreeTempMemory(outBuf);
+#else
 	if (!mme_pbo->integer || r_stereoSeparation->value != 0) {
-		qglReadPixels( 0, 0, glConfig.vidWidth, glConfig.vidHeight, format, GL_UNSIGNED_BYTE, output ); 
+		qglReadPixels( 0, 0, glConfig.vidWidth, glConfig.vidHeight, format, GL_UNSIGNED_BYTE, output );
 	} else {
 		static int index = 0;
 		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, pboIds[index]);
@@ -29,6 +50,7 @@ void R_MME_GetShot( void* output, mmeShotType_t type ) {
 		// back to conventional pixel operation
 		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, 0);
 	}
+#endif
 }
 
 void R_MME_GetStencil( void *output ) {
@@ -162,7 +184,11 @@ void R_MME_SaveShot( mmeShot_t *shot, int width, int height, float fps, byte *in
 ID_INLINE byte * R_MME_BlurOverlapBuf(mmeBlurBlock_t *block) {
 	mmeBlurControl_t* control = block->control;
 	int index = control->overlapIndex % control->overlapFrames;
+#if !defined (HAVE_GLES) || defined (X86_OR_64)
 	return (byte *)(block->overlap + block->count * index);
+#else
+	return ((byte *)block->overlap + block->count * index);
+#endif
 }
 
 void blurCreate( mmeBlurControl_t* control, const char* type, int frames ) {
@@ -268,10 +294,13 @@ void blurCreate( mmeBlurControl_t* control, const char* type, int frames ) {
 	control->overlapFrames = 0;
 	control->overlapIndex = 0;
 
+#if !defined (HAVE_GLES) || defined (X86_OR_64)
 	_mm_empty();
+#endif
 }
 
 static void MME_AccumClearMMX( void* w, const void* r, short mul, int count ) {
+#if !defined (HAVE_GLES) || defined (X86_OR_64)
 	const __m64 * reader = (const __m64 *) r;
 	__m64 *writer = (__m64 *) w;
 	int i; 
@@ -289,9 +318,11 @@ static void MME_AccumClearMMX( void* w, const void* r, short mul, int count ) {
 		 writer += 2;
 	 }
 	 _mm_empty();
+#endif
 }
 
 static void MME_AccumAddMMX( void *w, const void* r, short mul, int count ) {
+#if !defined (HAVE_GLES) || defined (X86_OR_64)
 	const __m64 * reader = (const __m64 *) r;
 	__m64 *writer = (__m64 *) w;
 	int i;
@@ -308,10 +339,12 @@ static void MME_AccumAddMMX( void *w, const void* r, short mul, int count ) {
 		 writer += 2;
 	 }
 	 _mm_empty();
+#endif
 }
 
 
 static void MME_AccumShiftMMX( const void  *r, void *w, int count ) {
+#if !defined (HAVE_GLES) || defined (X86_OR_64)
 	const __m64 * reader = (const __m64 *) r;
 	__m64 *writer = (__m64 *) w;
 
@@ -329,9 +362,16 @@ static void MME_AccumShiftMMX( const void  *r, void *w, int count ) {
 		writer += 2;
 	}
 	_mm_empty();
+#endif
 }
 
-void R_MME_BlurAccumAdd( mmeBlurBlock_t *block, const __m64 *add ) {
+void R_MME_BlurAccumAdd( mmeBlurBlock_t *block,
+#if !defined (HAVE_GLES) || defined (X86_OR_64)
+	const __m64 *add
+#else
+	const void *add
+#endif
+) {
 	mmeBlurControl_t* control = block->control;
 	int index = control->totalIndex;
 	if ( mme_cpuSSE2->integer ) {
@@ -352,7 +392,11 @@ void R_MME_BlurAccumAdd( mmeBlurBlock_t *block, const __m64 *add ) {
 void R_MME_BlurOverlapAdd( mmeBlurBlock_t *block, int index ) {
 	mmeBlurControl_t* control = block->control;
 	index = ( index + control->overlapIndex ) % control->overlapFrames;
+#if !defined (HAVE_GLES) || defined (X86_OR_64)
 	R_MME_BlurAccumAdd( block, block->overlap + block->count * index );
+#else
+	R_MME_BlurAccumAdd(block, (byte *)block->overlap + block->count * index);
+#endif
 }
 
 void R_MME_BlurAccumShift( mmeBlurBlock_t *block  ) {

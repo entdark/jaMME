@@ -9,7 +9,7 @@
 #include "../qcommon/MiniHeap.h"
 #include "../qcommon/qcommon.h"
 #include "G2_local.h"
-#include "libpng/png.h"
+#include "../libpng/png.h"
 //#include "zlib/zlib.h" // used for old mme stuff
 
 //#ifdef __USEA3D
@@ -328,7 +328,35 @@ void R_Splash()
 	const float y1 = 240 - height / 2;
 	const float y2 = 240 + height / 2;
 
-
+#ifdef HAVE_GLES
+	GLimp_EndFrame();
+	GLfloat tex[] = {
+		0,0 ,
+		1,0,
+		0,1,
+		1,1
+	};
+	GLfloat vtx[] = {
+		x1, y1,
+		x2, y1,
+		x1, y2,
+		x2, y2
+	};
+	GLboolean text = qglIsEnabled(GL_TEXTURE_COORD_ARRAY);
+	GLboolean glcol = qglIsEnabled(GL_COLOR_ARRAY);
+	if (glcol)
+		qglDisableClientState(GL_COLOR_ARRAY);
+	if (!text)
+		qglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	qglEnableClientState(GL_VERTEX_ARRAY);
+	qglTexCoordPointer(2, GL_FLOAT, 0, tex);
+	qglVertexPointer(2, GL_FLOAT, 0, vtx);
+	qglDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+	if (glcol)
+		qglDisableClientState(GL_COLOR_ARRAY);
+	if (!text)
+		qglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
 	qglBegin (GL_TRIANGLE_STRIP);
 		qglTexCoord2f( 0,  0 );
 		qglVertex2f(x1, y1);
@@ -339,6 +367,7 @@ void R_Splash()
 		qglTexCoord2f( 1, 1 );
 		qglVertex2f(x2, y2);
 	qglEnd();
+#endif
 
 	GLimp_EndFrame();
 }
@@ -511,15 +540,25 @@ RB_TakeScreenshotCmd
 const void *RB_ScreenShotCmd( const void *data ) {
 	const screenShotCommand_t *cmd = (const screenShotCommand_t *)data;
 	byte *inBuf, *outBuf;
-	int w, h, outSize;
+	int w, h, outSize, i, j, k, res;
 
 	w = glConfig.vidWidth;
 	h = glConfig.vidHeight;
-	outSize = w * h * 4;
+	res = w * h;
+	outSize = res * 4;
 	inBuf = (byte *)ri.Hunk_AllocateTempMemory( outSize * 2 );
 	outBuf = inBuf + outSize;
 
-	qglReadPixels( 0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, inBuf ); 
+#ifdef HAVE_GLES
+	qglReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, inBuf);
+	for (i = 0, j = 0, k = 0; k < res; i += 4, j += 3, k++) {
+		inBuf[j + 0] = inBuf[i + 0];
+		inBuf[j + 1] = inBuf[i + 1];
+		inBuf[j + 2] = inBuf[i + 2];
+	}
+#else
+	qglReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, inBuf);
+#endif
 	if ( ( mme_screenShotGamma->integer || (tr.overbrightBits > 0) ) && (glConfig.deviceSupportsGamma ) ) {
 		R_GammaCorrect( inBuf, outSize );
 	}
@@ -561,6 +600,8 @@ static void R_LevelShot( void ) {
 	int			r, g, b;
 	float		xScale, yScale;
 	int			xx, yy;
+	int			i, j, k, res;
+	res = glConfig.vidWidth * glConfig.vidHeight;
 
 	Com_sprintf( checkname, sizeof(checkname), "levelshots/%s.tga", tr.world->baseName );
 	
@@ -575,7 +616,16 @@ static void R_LevelShot( void ) {
 	buffer[15] = LEVELSHOTSIZE >> 8;
 	buffer[16] = 24;	// pixel size
 	
-	qglReadPixels( 0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGB, GL_UNSIGNED_BYTE, source ); 
+#ifdef HAVE_GLES
+	qglReadPixels(0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGBA, GL_UNSIGNED_BYTE, source);
+	for (i = 0, j = 0, k = 0; k < res; i += 4, j += 3, k++) {
+		source[j + 0] = source[i + 0];
+		source[j + 1] = source[i + 1];
+		source[j + 2] = source[i + 2];
+	}
+#else
+	qglReadPixels(0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGB, GL_UNSIGNED_BYTE, source);
+#endif
 
 	// resample from source
 	xScale = glConfig.vidWidth / (4.0*LEVELSHOTSIZE);
@@ -754,12 +804,19 @@ void GL_SetDefaultState( void ) {
 	//
 	glState.glStateBits = GLS_DEPTHTEST_DISABLE | GLS_DEPTHMASK_TRUE;
 
-	qglPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
+#ifndef HAVE_GLES
+	qglPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+#endif
 	qglDepthMask( GL_TRUE );
 	qglDisable( GL_DEPTH_TEST );
 	qglEnable( GL_SCISSOR_TEST );
 	qglDisable( GL_CULL_FACE );
 	qglDisable( GL_BLEND );
+
+#ifdef HAVE_GLES
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+#endif
 }
 
 
@@ -1088,7 +1145,11 @@ Ghoul2 Insert End
 	ri.Cmd_AddCommand( "shaderlist", R_ShaderList_f );
 	ri.Cmd_AddCommand( "skinlist", R_SkinList_f );
 	ri.Cmd_AddCommand( "fontlist", R_FontList_f );
-	ri.Cmd_AddCommand( "screenshot", R_ScreenShotTGA_f );
+#ifdef __ANDROID__
+	ri.Cmd_AddCommand("screenshot", R_ScreenShotPNG_f);
+#else
+	ri.Cmd_AddCommand("screenshot", R_ScreenShotTGA_f);
+#endif
 	ri.Cmd_AddCommand( "screenshotTGA", R_ScreenShotTGA_f );
 	ri.Cmd_AddCommand( "screenshotJPEG", R_ScreenShotJPEG_f );
 	ri.Cmd_AddCommand( "screenshotPNG", R_ScreenShotPNG_f );
@@ -1211,6 +1272,7 @@ void R_Init( void ) {
 		Com_Printf ( "glGetError() = 0x%x\n", err);
 
 //	Com_Printf ("----- finished R_Init -----\n" );
+#ifndef HAVE_GLES
 	{
 		// create 2 pixel buffer objects, you need to delete them when program exits.
 		// glBufferDataARB with NULL pointer reserves only memory space.
@@ -1223,6 +1285,7 @@ void R_Init( void ) {
 
 		qglBindBufferARB(GL_PIXEL_PACK_BUFFER_ARB, 0);
 	}
+#endif
 }
 
 /*
@@ -1255,6 +1318,7 @@ void RE_Shutdown( qboolean destroyWindow ) {
 	ri.Cmd_RemoveCommand ("capturestop");
 	ri.Cmd_RemoveCommand ("capturestopstereo");
 
+#ifndef HAVE_GLES
 	if ( r_DynamicGlow && r_DynamicGlow->integer )
 	{
 		// Release the Glow Vertex Shader.
@@ -1287,6 +1351,7 @@ void RE_Shutdown( qboolean destroyWindow ) {
 		// Release the blur texture.
 		qglDeleteTextures( 1, &tr.blurImage );
 	}
+#endif
 
 	R_TerrainShutdown(); //rwwRMG - added
 

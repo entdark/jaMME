@@ -14,11 +14,7 @@
 #include "../qcommon/cm_local.h"
 #include "../qcommon/cm_landscape.h"
 #include "../ghoul2/G2.h"
-#ifndef __ANDROID__
 #include "../qcommon/MiniHeap.h"
-#else
-#include "../rd-gles/miniheap.h"
-#endif
 #ifdef _DONETPROFILE_
 #include "../qcommon/INetProfile.h"
 #endif
@@ -101,12 +97,10 @@ netadr_t rcon_address;
 // Structure containing functions exported from refresh DLL
 refexport_t	re = {0};
 static void	*rendererLib = NULL;
-#ifndef __ANDROID__
 //RAZFIXME: BAD BAD, maybe? had to move it out of ghoul2_shared.h -> CGhoul2Info_v at the least..
 IGhoul2InfoArray &_TheGhoul2InfoArray( void ) {
 	return re.TheGhoul2InfoArray();
 }
-#endif
 ping_t	cl_pinglist[MAX_PINGREQUESTS];
 
 typedef struct serverStatus_s
@@ -121,11 +115,7 @@ typedef struct serverStatus_s
 
 serverStatus_t cl_serverStatusList[MAX_SERVERSTATUSREQUESTS];
 int serverStatusCount;
-#ifndef __ANDROID__
-CMiniHeap *G2VertSpaceClient = 0;
-#else
 IHeapAllocator *G2VertSpaceClient = 0;
-#endif
 #if defined __USEA3D && defined __A3D_GEOM
 	void hA3Dg_ExportRenderGeom (refexport_t *incoming_re);
 #endif
@@ -726,11 +716,7 @@ void CL_ShutdownAll(qboolean shutdownRef) {
 	if(shutdownRef)
 		CL_ShutdownRef();
 	if (re.Shutdown) {
-#ifdef __ANDROID__
-		re.Shutdown(qfalse, qfalse); // don't destroy window or context
-#else
 		re.Shutdown(qfalse); // don't destroy window or context
-#endif
 	}
 	cls.uiStarted = qfalse;
 	cls.cgameStarted = qfalse;
@@ -2300,7 +2286,6 @@ void CL_Frame(int msec) {
 		S_StopAllSounds();
 		VM_Call(uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN);
 	}
-#ifndef __ANDROID__
 	if (cl_avidemo->integer > 0 && msec) {
 		// save the current screen
 		if (cls.state == CA_ACTIVE || cl_forceavidemo->integer) {
@@ -2329,7 +2314,6 @@ void CL_Frame(int msec) {
 			S_MMERecord(shotName, 1.0f / fps);
 		}
 	}
-#endif
 	if (cl_autoDemo->integer && !clc.demoplaying) {
 		if (cls.state != CA_ACTIVE && clc.demorecording)
 			demoAutoComplete();
@@ -2444,11 +2428,7 @@ void CL_ShutdownRef(void) {
 	if (!re.Shutdown) {
 		return;
 	}
-#ifndef __ANDROID__
 	re.Shutdown(qtrue);
-#else
-	re.Shutdown(qtrue, qfalse);
-#endif
 	Com_Memset(&re, 0, sizeof(re));
 }
 /*
@@ -2540,25 +2520,13 @@ extern void SV_GetConfigstring( int index, char *buffer, int bufferSize );
 extern void SV_SetConfigstring( int index, const char *val );
 
 #define G2_VERT_SPACE_SERVER_SIZE 256
-#ifdef __ANDROID__
 IHeapAllocator *G2VertSpaceServer = NULL;
-#else
-CMiniHeap *G2VertSpaceServer = NULL;
-#endif
 CMiniHeap CMiniHeap_singleton(G2_VERT_SPACE_SERVER_SIZE * 1024);
-#ifdef __ANDROID__
 static IHeapAllocator *GetG2VertSpaceServer(void) {
-#else
-static CMiniHeap *GetG2VertSpaceServer(void) {
-#endif
 	return G2VertSpaceServer;
 }
 void CL_InitRef( void ) {
-#ifdef __ANDROID__
 	static refimport_t	ri;
-#else
-	refimport_t	ri = {0};
-#endif
 	refexport_t	*ret;
 	GetRefAPI_t	GetRefAPI;
 	char		dllName[MAX_OSPATH];
@@ -2581,9 +2549,7 @@ void CL_InitRef( void ) {
 	if ( !rendererLib ) {
 		Com_Error( ERR_FATAL, "Failed to load renderer" );
 	}
-#ifdef __ANDROID__
 	memset( &ri, 0, sizeof( ri ) );
-#endif
 	GetRefAPI = (GetRefAPI_t)Sys_LoadFunction( rendererLib, "GetRefAPI" );
 	if ( !GetRefAPI )
 		Com_Error( ERR_FATAL, "Can't load symbol GetRefAPI: '%s'", Sys_LibraryError() );
@@ -2683,13 +2649,10 @@ void CL_InitRef( void ) {
 	//RAZFIXME: Might have to do something about this...
 	ri.GetG2VertSpaceServer = GetG2VertSpaceServer;
 	G2VertSpaceServer = &CMiniHeap_singleton;
-#ifdef __ANDROID__
-	ri.PD_Store = PD_Store;
-	ri.PD_Load = PD_Load;
-#else
+//	ri.PD_Store = PD_Store;
+//	ri.PD_Load = PD_Load;
 	//mme
 	ri.S_MMEAviImport = S_MMEAviImport;
-#endif
 	ret = GetRefAPI( REF_API_VERSION, &ri );
 #if defined __USEA3D && defined __A3D_GEOM
 	hA3Dg_ExportRenderGeom (ret);

@@ -9,7 +9,7 @@
 class CRagDollUpdateParams;
 //rww - RAGDOLL_END
 
-class CMiniHeap;
+class IHeapAllocator;
 
 #define		GHOUL2_CRAZY_SMOOTH						0x2000		//hack for smoothing during ugly situations. forgive me.
 
@@ -66,9 +66,9 @@ void		G2_TraceModels(CGhoul2Info_v &ghoul2, vec3_t rayStart, vec3_t rayEnd, Coll
 #endif
 void		TransformAndTranslatePoint (const vec3_t in, vec3_t out, mdxaBone_t *mat);
 #ifdef _G2_GORE
-void		G2_TransformModel(CGhoul2Info_v *ghoul2, const int frameNum, vec3_t scale, CMiniHeap *G2VertSpace, int useLod, bool ApplyGore);
+void		G2_TransformModel(CGhoul2Info_v *ghoul2, const int frameNum, vec3_t scale, IHeapAllocator *G2VertSpace, int useLod, bool ApplyGore);
 #else
-void		G2_TransformModel(CGhoul2Info_v *ghoul2, const int frameNum, vec3_t scale, CMiniHeap *G2VertSpace, int useLod);
+void		G2_TransformModel(CGhoul2Info_v *ghoul2, const int frameNum, vec3_t scale, IHeapAllocator *G2VertSpace, int useLod);
 #endif
 void		G2_GenerateWorldMatrix(const vec3_t angles, const vec3_t origin);
 void		TransformPoint (const vec3_t in, vec3_t out, mdxaBone_t *mat);
@@ -139,8 +139,8 @@ qboolean	G2API_SetGhoul2ModelFlags(CGhoul2Info *ghlInfo, const int flags);
 int			G2API_GetGhoul2ModelFlags(CGhoul2Info *ghlInfo);
 
 qboolean	G2API_GetAnimFileName(CGhoul2Info *ghlInfo, char **filename);
-void		G2API_CollisionDetect(CollisionRecord_t *collRecMap, CGhoul2Info_v *ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, CMiniHeap *G2VertSpace, int traceFlags, int useLod, float fRadius);
-void		G2API_CollisionDetectCache(CollisionRecord_t *collRecMap, CGhoul2Info_v *ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, CMiniHeap *G2VertSpace, int traceFlags, int useLod, float fRadius);
+void		G2API_CollisionDetect(CollisionRecord_t *collRecMap, CGhoul2Info_v *ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, IHeapAllocator *G2VertSpace, int traceFlags, int useLod, float fRadius);
+void		G2API_CollisionDetectCache(CollisionRecord_t *collRecMap, CGhoul2Info_v *ghoul2, const vec3_t angles, const vec3_t position, int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, IHeapAllocator *G2VertSpace, int traceFlags, int useLod, float fRadius);
 
 void		G2API_GiveMeVectorFromMatrix(mdxaBone_t *boltMatrix, Eorientations flags, vec3_t vec);
 int			G2API_CopyGhoul2Instance(CGhoul2Info_v *g2From, CGhoul2Info_v *g2To, int modelIndex);

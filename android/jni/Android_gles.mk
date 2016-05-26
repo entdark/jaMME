@@ -8,7 +8,13 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := rd-jamme_arm
 
 
-LOCAL_CFLAGS :=  $(JK3_BASE_CFLAGS) -DHAVE_GLES
+LOCAL_CFLAGS := $(JK3_BASE_CFLAGS) -DHAVE_GLES
+ifeq ($(TARGET_ARCH),x86)
+    LOCAL_CFLAGS := $(LOCAL_CFLAGS) -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32 -DX86_OR_64
+endif
+ifeq ($(TARGET_ARCH),x86_64)
+    LOCAL_CFLAGS := $(LOCAL_CFLAGS) -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel -DX86_OR_64
+endif
 LOCAL_CPPFLAGS := $(JK3_BASE_CPPFLAGS) 
 
 LOCAL_LDLIBS := $(JK3_BASE_LDLIBS)
@@ -16,50 +22,50 @@ LOCAL_LDLIBS := $(JK3_BASE_LDLIBS)
 LOCAL_LDLIBS +=  -lGLESv1_CM -lEGL -llog -lz
 LOCAL_SHARED_LIBRARIES := SDL2 jamme #jk3mp is only needed to see the androidSwapped, massive hack
 
-LOCAL_C_INCLUDES := $(JK3_BASE_C_INCLUDES) $(TOP_DIR)/libpng $(LOCAL_PATH)/$(MPDir)/rd-gles $(TOP_DIR) $(LOCAL_PATH)/android/jni/SDL2/include
+LOCAL_C_INCLUDES := $(JK3_BASE_C_INCLUDES) $(TOP_DIR)/libpng $(LOCAL_PATH)/$(MPDir)/rd-vanilla $(TOP_DIR) $(LOCAL_PATH)/android/jni/SDL2/include
 
 JK3_SRC = \
-	../../${MPDir}/rd-gles/G2_API.cpp \
-	../../${MPDir}/rd-gles/G2_bolts.cpp \
-	../../${MPDir}/rd-gles/G2_bones.cpp \
-	../../${MPDir}/rd-gles/G2_gore.cpp \
-	../../${MPDir}/rd-gles/G2_misc.cpp \
-	../../${MPDir}/rd-gles/G2_surfaces.cpp \
-	../../${MPDir}/rd-gles/tr_arioche.cpp \
-	../../${MPDir}/rd-gles/tr_backend.cpp \
-	../../${MPDir}/rd-gles/tr_bsp.cpp \
-	../../${MPDir}/rd-gles/tr_cmds.cpp \
-	../../${MPDir}/rd-gles/tr_curve.cpp \
-	../../${MPDir}/rd-gles/tr_decals.cpp \
-	../../${MPDir}/rd-gles/tr_ghoul2.cpp \
-	../../${MPDir}/rd-gles/tr_image.cpp \
-	../../${MPDir}/rd-gles/tr_init.cpp \
-	../../${MPDir}/rd-gles/tr_light.cpp \
-	../../${MPDir}/rd-gles/tr_main.cpp \
-	../../${MPDir}/rd-gles/tr_marks.cpp \
-	../../${MPDir}/rd-gles/tr_mesh.cpp \
-	../../${MPDir}/rd-gles/tr_model.cpp \
-	../../${MPDir}/rd-gles/tr_quicksprite.cpp \
-	../../${MPDir}/rd-gles/tr_scene.cpp \
-	../../${MPDir}/rd-gles/tr_shade.cpp \
-	../../${MPDir}/rd-gles/tr_shade_calc.cpp \
-	../../${MPDir}/rd-gles/tr_shader.cpp \
-	../../${MPDir}/rd-gles/tr_shadows.cpp \
-	../../${MPDir}/rd-gles/tr_skin.cpp \
-	../../${MPDir}/rd-gles/tr_sky.cpp \
-	../../${MPDir}/rd-gles/tr_subs.cpp \
-	../../${MPDir}/rd-gles/tr_surface.cpp \
-	../../${MPDir}/rd-gles/tr_surfacesprites.cpp \
-	../../${MPDir}/rd-gles/tr_terrain.cpp \
-	../../${MPDir}/rd-gles/tr_world.cpp \
-	../../${MPDir}/rd-gles/tr_WorldEffects.cpp \
-	../../${MPDir}/rd-gles/tr_font.cpp \
-	../../${MPDir}/rd-gles/tr_image_load.cpp \
-	../../${MPDir}/rd-gles/tr_image_manipulation.cpp \
-	../../${MPDir}/rd-gles/tr_image_jpg.cpp \
-	../../${MPDir}/rd-gles/tr_image_tga.cpp \
-	../../${MPDir}/rd-gles/tr_image_png.cpp \
-	../../${MPDir}/rd-gles/tr_noise.cpp \
+	../../${MPDir}/rd-vanilla/G2_API.cpp \
+	../../${MPDir}/rd-vanilla/G2_bolts.cpp \
+	../../${MPDir}/rd-vanilla/G2_bones.cpp \
+	../../${MPDir}/rd-vanilla/G2_misc.cpp \
+	../../${MPDir}/rd-vanilla/G2_surfaces.cpp \
+	../../${MPDir}/rd-vanilla/tr_arioche.cpp \
+	../../${MPDir}/rd-vanilla/tr_backend.cpp \
+	../../${MPDir}/rd-vanilla/tr_bsp.cpp \
+	../../${MPDir}/rd-vanilla/tr_bloom.cpp \
+	../../${MPDir}/rd-vanilla/tr_cmds.cpp \
+	../../${MPDir}/rd-vanilla/tr_curve.cpp \
+	../../${MPDir}/rd-vanilla/tr_font.cpp \
+	../../${MPDir}/rd-vanilla/tr_framebuffer.cpp \
+	../../${MPDir}/rd-vanilla/tr_ghoul2.cpp \
+	../../${MPDir}/rd-vanilla/tr_image.cpp \
+	../../${MPDir}/rd-vanilla/tr_init.cpp \
+	../../${MPDir}/rd-vanilla/tr_light.cpp \
+	../../${MPDir}/rd-vanilla/tr_main.cpp \
+	../../${MPDir}/rd-vanilla/tr_marks.cpp \
+	../../${MPDir}/rd-vanilla/tr_mesh.cpp \
+	../../${MPDir}/rd-vanilla/tr_mme.cpp \
+	../../${MPDir}/rd-vanilla/tr_mme_avi.cpp \
+	../../${MPDir}/rd-vanilla/tr_mme_common.cpp \
+	../../${MPDir}/rd-vanilla/tr_mme_pipe.cpp \
+	../../${MPDir}/rd-vanilla/tr_mme_sse2.cpp \
+	../../${MPDir}/rd-vanilla/tr_mme_stereo.cpp \
+	../../${MPDir}/rd-vanilla/tr_model.cpp \
+	../../${MPDir}/rd-vanilla/tr_noise.cpp \
+	../../${MPDir}/rd-vanilla/tr_quicksprite.cpp \
+	../../${MPDir}/rd-vanilla/tr_scene.cpp \
+	../../${MPDir}/rd-vanilla/tr_shade.cpp \
+	../../${MPDir}/rd-vanilla/tr_shade_calc.cpp \
+	../../${MPDir}/rd-vanilla/tr_shader.cpp \
+	../../${MPDir}/rd-vanilla/tr_shadows.cpp \
+	../../${MPDir}/rd-vanilla/tr_sky.cpp \
+	../../${MPDir}/rd-vanilla/tr_subs.cpp \
+	../../${MPDir}/rd-vanilla/tr_surface.cpp \
+	../../${MPDir}/rd-vanilla/tr_surfacesprites.cpp \
+	../../${MPDir}/rd-vanilla/tr_terrain.cpp \
+	../../${MPDir}/rd-vanilla/tr_world.cpp \
+	../../${MPDir}/rd-vanilla/tr_WorldEffects.cpp \
 	../../${MPDir}/qcommon/GenericParser2.cpp \
 	../../${MPDir}/qcommon/matcomp.cpp \
 	../../${MPDir}/qcommon/q_math.cpp \
@@ -145,6 +151,8 @@ JK3_SRC = \
 	../../${MPDir}/jpeg-8c/jquant1.c \
 	../../${MPDir}/jpeg-8c/jquant2.c \
 	../../${MPDir}/jpeg-8c/jutils.c \
+	\
+	../../${MPDir}/png/rpng.cpp \
 	
 LOCAL_SRC_FILES += $(JK3_SRC) 
 

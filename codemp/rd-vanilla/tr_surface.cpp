@@ -4,6 +4,10 @@
 // tr_surf.c
 #include "tr_local.h"
 
+#ifdef NEON
+#include <arm_neon.h>
+#endif
+
 /*
 
   THIS ENTIRE FILE IS BACK END
@@ -410,12 +414,32 @@ static void RB_SurfaceBeam( void ) {
 
 	qglColor3f( 1, 0, 0 );
 
+#ifdef HAVE_GLES
+	GLboolean text = qglIsEnabled(GL_TEXTURE_COORD_ARRAY);
+	GLboolean glcol = qglIsEnabled(GL_COLOR_ARRAY);
+	if (glcol)
+		qglDisableClientState(GL_COLOR_ARRAY);
+	if (text)
+		qglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	GLfloat vtx[NUM_BEAM_SEGS * 6 + 6];
+	for (i = 0; i <= NUM_BEAM_SEGS; i++) {
+		memcpy(vtx + i * 6, start_points[i % NUM_BEAM_SEGS], sizeof(GLfloat) * 3);
+		memcpy(vtx + i * 6 + 3, end_points[i % NUM_BEAM_SEGS], sizeof(GLfloat) * 3);
+	}
+	qglVertexPointer(3, GL_FLOAT, 0, vtx);
+	qglDrawArrays(GL_TRIANGLE_STRIP, 0, NUM_BEAM_SEGS * 2 + 2);
+	if (glcol)
+		qglEnableClientState(GL_COLOR_ARRAY);
+	if (text)
+		qglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+#else
 	qglBegin( GL_TRIANGLE_STRIP );
 	for ( i = 0; i <= NUM_BEAM_SEGS; i++ ) {
 		qglVertex3fv( start_points[ i % NUM_BEAM_SEGS] );
 		qglVertex3fv( end_points[ i % NUM_BEAM_SEGS] );
 	}
 	qglEnd();
+#endif
 }
 
 //------------------
@@ -1134,9 +1158,13 @@ static void LerpMeshVertexes (md3Surface_t *surf, float backlerp)
 			outXyz += 4, outNormal += 4) 
 		{
 
+#ifdef NEON
+			vst1q_f32(outXyz, vmulq_n_f32(vcvtq_f32_s32(vmovl_s16(vld1_s16(newXyz))), newXyzScale));
+#else
 			outXyz[0] = newXyz[0] * newXyzScale;
 			outXyz[1] = newXyz[1] * newXyzScale;
 			outXyz[2] = newXyz[2] * newXyzScale;
+#endif
 
 			lat = ( newNormals[0] >> 8 ) & 0xff;
 			lng = ( newNormals[0] & 0xff );
@@ -1173,9 +1201,14 @@ static void LerpMeshVertexes (md3Surface_t *surf, float backlerp)
 			vec3_t uncompressedOldNormal, uncompressedNewNormal;
 
 			// interpolate the xyz
+#ifdef NEON
+			vst1q_f32(outXyz, vaddq_f32(vmulq_n_f32(vcvtq_f32_s32(vmovl_s16(vld1_s16(newXyz))), newXyzScale),
+				vmulq_n_f32(vcvtq_f32_s32(vmovl_s16(vld1_s16(oldXyz))), oldXyzScale)));
+#else
 			outXyz[0] = oldXyz[0] * oldXyzScale + newXyz[0] * newXyzScale;
 			outXyz[1] = oldXyz[1] * oldXyzScale + newXyz[1] * newXyzScale;
 			outXyz[2] = oldXyz[2] * oldXyzScale + newXyz[2] * newXyzScale;
+#endif
 
 			// FIXME: interpolate lat/long instead?
 			lat = ( newNormals[0] >> 8 ) & 0xff;
@@ -1549,7 +1582,39 @@ Draws x/y/z lines from the origin for orientation debugging
 */
 static void RB_SurfaceAxis( void ) {
 	GL_Bind( tr.whiteImage );
+	GL_State(GLS_DEFAULT);
 	qglLineWidth( 3 );
+#ifdef HAVE_GLES
+	static GLfloat col[] = {
+		1.0f,0.0f,0.0f, 1.0f,
+		1.0f,0.0f,0.0f, 1.0f,
+		0.0f,1.0f,0.0f, 1.0f,
+		0.0f,1.0f,0.0f, 1.0f,
+		0.0f,0.0f,1.0f, 1.0f,
+		0.0f,0.0f,1.0f, 1.0f
+	};
+	static GLfloat vtx[] = {
+		0.0f,0.0f,0.0f,
+		16.0f,0.0f,0.0f,
+		0.0f,0.0f,0.0f,
+		0.0f,16.0f,0.0f,
+		0.0f,0.0f,0.0f,
+		0.0f,0.0f,16.0f
+	};
+	GLboolean text = qglIsEnabled(GL_TEXTURE_COORD_ARRAY);
+	GLboolean glcol = qglIsEnabled(GL_COLOR_ARRAY);
+	if (text)
+		qglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+	if (!glcol)
+		qglEnableClientState(GL_COLOR_ARRAY);
+	qglColorPointer(4, GL_UNSIGNED_BYTE, 0, col);
+	qglVertexPointer(3, GL_FLOAT, 0, vtx);
+	qglDrawArrays(GL_LINES, 0, 6);
+	if (text)
+		qglEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	if (!glcol)
+		qglDisableClientState(GL_COLOR_ARRAY);
+#else
 	qglBegin( GL_LINES );
 	qglColor3f( 1,0,0 );
 	qglVertex3f( 0,0,0 );
@@ -1561,6 +1626,7 @@ static void RB_SurfaceAxis( void ) {
 	qglVertex3f( 0,0,0 );
 	qglVertex3f( 0,0,16 );
 	qglEnd();
+#endif
 	qglLineWidth( 1 );
 }
 
@@ -1671,6 +1737,9 @@ static bool RB_TestZFlare( vec3_t point) {
 	float			screenZ;
 
 	// read back the z buffer contents
+#if defined(HAVE_GLES)
+	depth = 0.0f;
+#else
 	if ( r_flares->integer !=1 ) {	//skipping the the z-test
 		return true;
 	}
@@ -1678,6 +1747,7 @@ static bool RB_TestZFlare( vec3_t point) {
 	// don't bother with another sync
 	glState.finishCalled = qfalse;
 	qglReadPixels( backEnd.viewParms.viewportX + window[0],backEnd.viewParms.viewportY + window[1], 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth );
+#endif
 
 	screenZ = backEnd.viewParms.projectionMatrix[14] / 
 		( ( 2*depth - 1 ) * backEnd.viewParms.projectionMatrix[11] - backEnd.viewParms.projectionMatrix[10] );
@@ -1743,7 +1813,11 @@ void RB_SurfaceFlare( srfFlare_t *surf ) {
 void RB_SurfaceDisplayList( srfDisplayList_t *surf ) {
 	// all apropriate state must be set in RB_BeginSurface
 	// this isn't implemented yet...
+#ifdef HAVE_GLES
+	assert(0);
+#else
 	qglCallList( surf->listNum );
+#endif
 }
 
 void RB_SurfaceSkip( void *surf ) {

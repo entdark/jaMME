@@ -1222,14 +1222,14 @@ static void ParseSurfaceSprites( const char *_text, shaderStage_t *stage )
 	stage->ss->facing = SURFSPRITE_FACING_NORMAL;
 
 	// A vertical parameter that needs a default regardless
-	stage->ss->vertSkew;
+	stage->ss->vertSkew = 0.0f;
 
 	// These are effect parameters that need defaults nonetheless.
-	stage->ss->fxDuration = 1000;		// 1 second
-	stage->ss->fxGrow[0] = 0.0;
-	stage->ss->fxGrow[1] = 0.0;
-	stage->ss->fxAlphaStart = 1.0;	
-	stage->ss->fxAlphaEnd = 0.0;
+	stage->ss->fxDuration = 1000.0f;		// 1 second
+	stage->ss->fxGrow[0] = 0.0f;
+	stage->ss->fxGrow[1] = 0.0f;
+	stage->ss->fxAlphaStart = 1.0f;	
+	stage->ss->fxAlphaEnd = 0.0f;
 }
 
 
@@ -4675,7 +4675,8 @@ static void CreateInternalShaders( void ) {
 	shader.defaultShader = qtrue;
 
 	
-	#define GL_PROGRAM_ERROR_STRING_ARB						0x8874
+#ifndef HAVE_GLES
+#define GL_PROGRAM_ERROR_STRING_ARB						0x8874
 	#define GL_PROGRAM_ERROR_POSITION_ARB					0x864B
 
 	// Allocate and Load the global 'Glow' Vertex Program. - AReis
@@ -4754,6 +4755,7 @@ static void CreateInternalShaders( void ) {
 		qglGetIntegerv( GL_PROGRAM_ERROR_POSITION_ARB, &iErrPos );
 		assert( iErrPos == -1 );
 	}
+#endif //HAVE_GLES
 }
 
 static void CreateExternalShaders( void ) {

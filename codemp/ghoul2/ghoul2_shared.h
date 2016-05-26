@@ -313,7 +313,6 @@ public:
 		mFileName[0] = 0;
 	}
 }; 
-#ifndef __ANDROID__
 class CGhoul2Info_v;
 class IGhoul2InfoArray {
 public:
@@ -426,9 +425,6 @@ public:
 		mItem=0;
 	}
 };
-#else
-class CGhoul2Info_v;
-#endif
 // collision detection stuff
 #define G2_FRONTFACE 1
 #define	G2_BACKFACE	 0

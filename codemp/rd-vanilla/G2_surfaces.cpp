@@ -6,7 +6,9 @@
 #include "../renderer/tr_types.h"
 #include "../ghoul2/G2.h"
 #include "G2_local.h"
+#ifdef _MSC_VER
 #pragma warning(disable : 4512)		//assignment op could not be genereated
+#endif
 
 class CConstructBoneList
 {
@@ -40,10 +42,8 @@ extern void G2_ConstructUsedBoneList(CConstructBoneList &CBL);
 // find a particular surface in the surface override list
 surfaceInfo_t *G2_FindOverrideSurface(int surfaceNum, surfaceInfo_v &surfaceList)
 {
-	int i; 
-	
 	// look through entire list
-	for(i=0; i<surfaceList.size(); i++)
+	for (size_t i = 0; i<surfaceList.size(); i++)
 	{
 		if (surfaceList[i].surface == surfaceNum)
 		{
@@ -64,7 +64,7 @@ int G2_IsSurfaceLegal(void *mod, const char *surfaceName, int *flags)
 
 	for ( int i = 0 ; i < mod_m->mdxm->numSurfaces ; i++) 
 	{
-	 	if (!stricmp(surfaceName, surf->name))
+	 	if (!Q_stricmp(surfaceName, surf->name))
 	 	{
 			*flags = surf->flags;
 			return i;
@@ -118,7 +118,7 @@ mdxmSurface_t *G2_FindSurface(CGhoul2Info *ghlInfo, surfaceInfo_v &slist, const 
 			surfInfo = (mdxmSurfHierarchy_t *)((byte *)surfIndexes + surfIndexes->offsets[surf->thisSurfaceIndex]);
 
   			// are these the droids we're looking for?
-			if (!stricmp (surfInfo->name, surfaceName))
+			if (!Q_stricmp(surfInfo->name, surfaceName))
 			{
 				// yup
 				if (surfIndex)
@@ -244,7 +244,7 @@ int G2_IsSurfaceOff (CGhoul2Info *ghlInfo, surfaceInfo_v &slist, const char *sur
 
 	for ( int i = 0 ; i < mod->mdxm->numSurfaces ; i++) 
 	{
-	 	if (!stricmp(surfaceName, surface->name))
+	 	if (!Q_stricmp(surfaceName, surface->name))
 	 	{
 			return surface->flags;
 		}
@@ -298,10 +298,8 @@ void G2_FindRecursiveSurface(model_t *currentModel, int surfaceNum, surfaceInfo_
 
 void G2_RemoveRedundantGeneratedSurfaces(surfaceInfo_v &slist, int *activeSurfaces)
 {
-	int		i;
-
 	// walk the surface list, removing surface overrides or generated surfaces that are pointing at surfaces that aren't active anymore
-	for (i=0; i<slist.size(); i++)
+	for (size_t i = 0; i<slist.size(); i++)
 	{
 		if (slist[i].surface != -1)
 		{
@@ -510,7 +508,7 @@ int G2_AddSurface(CGhoul2Info *ghoul2, int surfaceNumber, int polyNumber, float 
 	lod = G2_DecideTraceLod(*(CGhoul2Info *)(ghoul2), lod);
 
 	// first up, see if we have a free one already set up  - look only from the end of the constant surfaces onwards
-	for (int i=0; i<ghoul2->mSlist.size(); i++)
+	for (size_t i=0; i<ghoul2->mSlist.size(); i++)
 	{
 		// is the surface count -1? That would indicate it's free
 		if (ghoul2->mSlist[i].surface == -1)

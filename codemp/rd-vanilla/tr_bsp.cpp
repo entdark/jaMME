@@ -2055,8 +2055,8 @@ void RE_LoadWorldMap_Actual( const char *name, world_t &worldData, int index )
 	}
 
 	// swap all the lumps
-	for (i=0 ; i<sizeof(dheader_t)/4 ; i++) {
-		((int *)header)[i] = LittleLong ( ((int *)header)[i]);
+	for (size_t j=0 ; j<sizeof(dheader_t)/4 ; j++) {
+		((int *)header)[j] = LittleLong ( ((int *)header)[j]);
 	}
 
 	// load into heap

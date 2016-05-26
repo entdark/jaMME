@@ -4,6 +4,9 @@
 ** QGL.H
 */
 
+#ifndef __QGL_H__
+#define __QGL_H__
+
 #if defined( __LINT__ )
 
 #include <GL/gl.h>
@@ -27,8 +30,13 @@
 
 #elif defined( __linux__ )
 
+#ifdef HAVE_GLES
+#include <GLES/gl.h>
+#include <EGL/egl.h>
+#else
 #include <GL/gl.h>
 #include <GL/glx.h>
+#endif
 // bk001129 - from cvs1.17 (mkv)
 #if defined(__FX__)
 #include <GL/fxmesa.h>
@@ -50,6 +58,9 @@
 
 #ifndef APIENTRY
 #define APIENTRY
+#endif
+#ifndef APIENTRYP
+#define APIENTRYP APIENTRY *
 #endif
 #ifndef WINAPI
 #define WINAPI
@@ -119,6 +130,32 @@ typedef char GLchar;
 #define GL_READ_FRAMEBUFFER_EXT           0x8CA8
 #define GL_DRAW_FRAMEBUFFER_EXT           0x8CA9
 
+
+#ifdef HAVE_GLES
+#define GLdouble	GLfloat
+extern	void (APIENTRY * qglMultiTexCoord2fARB)(GLenum texture, GLfloat s, GLfloat t);
+extern	void (APIENTRY * qglActiveTextureARB)(GLenum texture);
+extern	void (APIENTRY * qglClientActiveTextureARB)(GLenum texture);
+
+extern	void (APIENTRY * qglPointParameterfEXT)(GLenum, GLfloat);
+extern	void (APIENTRY * qglPointParameterfvEXT)(GLenum, GLfloat const *);
+
+extern void(*qglLockArraysEXT) (GLint first, GLsizei count);
+extern void(*qglUnlockArraysEXT) (void);
+
+extern void myglClear(GLbitfield mask);
+extern void myglTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
+extern void myglDrawBuffer(GLenum mode);
+extern void myglViewport(GLint x, GLint y, GLsizei width, GLsizei height);
+extern void myglScissor(GLint x, GLint y, GLsizei width, GLsizei height);
+#ifndef GL_STENCIL_INDEX
+#define GL_STENCIL_INDEX					0x1901
+#endif
+#ifndef GL_DEPTH_COMPONENT
+#define GL_DEPTH_COMPONENT					0x1902
+#endif
+
+#else
 /*
 ** multitexture extension definitions
 */
@@ -253,6 +290,7 @@ typedef void (APIENTRY * PFNGLCLIENTACTIVETEXTUREARBPROC) (GLenum target);
 #define GL_SPARE1_NV						0x852F
 #define GL_UNSIGNED_IDENTITY_NV				0x8536
 #define GL_UNSIGNED_INVERT_NV				0x8537
+#endif //HAVE_GLES
 
 typedef void (APIENTRY *PFNGLCOMBINERPARAMETERFVNV) (GLenum pname,const GLfloat *params);
 typedef void (APIENTRY *PFNGLCOMBINERPARAMETERIVNV) (GLenum pname,const GLint *params);
@@ -287,6 +325,7 @@ extern PFNGLGETCOMBINEROUTPUTPARAMETERFVNV		qglGetCombinerOutputParameterfvNV;
 extern PFNGLGETCOMBINEROUTPUTPARAMETERIVNV		qglGetCombinerOutputParameterivNV;
 extern PFNGLGETFINALCOMBINERINPUTPARAMETERFVNV	qglGetFinalCombinerInputParameterfvNV;
 extern PFNGLGETFINALCOMBINERINPUTPARAMETERIVNV	qglGetFinalCombinerInputParameterivNV;
+#ifndef HAVE_GLES
 
 
 #ifdef _WIN32
@@ -387,6 +426,7 @@ extern PFNWGLSETPBUFFERATTRIBARBPROC		qwglSetPbufferAttribARB;
 // only including the ones I use (to reduce code clutter), so if you need any of the other flags, just add them.
 #define GL_VERTEX_PROGRAM_ARB                       0x8620
 #define GL_PROGRAM_FORMAT_ASCII_ARB                 0x8875
+#endif //HAVE_GLES
 
 typedef void (APIENTRY * PFNGLPROGRAMSTRINGARBPROC) (GLenum target, GLenum format, GLsizei len, const GLvoid *string); 
 typedef void (APIENTRY * PFNGLBINDPROGRAMARBPROC) (GLenum target, GLuint program);
@@ -446,6 +486,7 @@ extern PFNGLMAPBUFFERARBPROC qglMapBufferARB;
 extern PFNGLUNMAPBUFFERARBPROC qglUnmapBufferARB;
 
 
+#ifndef HAVE_GLES
 /*
 ** extension constants
 */
@@ -471,11 +512,16 @@ extern	void ( APIENTRY * qglPointParameterfvEXT)( GLenum, GLfloat *);
 //3d textures -rww
 extern	void ( APIENTRY * qglTexImage3DEXT) (GLenum, GLint, GLenum, GLsizei, GLsizei, GLsizei, GLint, GLenum, GLenum, const GLvoid *);
 extern	void ( APIENTRY * qglTexSubImage3DEXT) (GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei, GLsizei, GLenum, GLenum, const GLvoid *);
+#else
+// Added 10/23/02 by Aurelio Reis.
+extern	void (APIENTRY * qglPointParameteriNV)(GLenum, GLint);
+extern	void (APIENTRY * qglPointParameterivNV)(GLenum, const GLint *);
+#endif //HAVE_GLES
 
 //===========================================================================
 
 // non-windows systems will just redefine qgl* to gl*
-#if !defined( _WIN32 ) && !defined(MACOS_X) && !defined( __linux__ ) && !defined( __FreeBSD__ ) // rb010123
+#if (!defined( _WIN32 ) && !defined(MACOS_X) && !defined( __linux__ ) && !defined( __FreeBSD__ )) || defined(HAVE_GLES) // rb010123
 
 #include "qgl_linked.h"
 
@@ -907,3 +953,5 @@ typedef void (APIENTRYP PFNGLUNIFORM1IARBPROC) (GLint location, GLint v0);
 typedef void (APIENTRYP PFNGLVALIDATEPROGRAMARBPROC) (GLhandleARB programObj);
 typedef void (APIENTRYP PFNGLUNIFORM4FARBPROC) (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
 typedef void (APIENTRYP PFNGLGETOBJECTPARAMETERIVARBPROC) (GLhandleARB obj, GLenum pname, GLint *params);
+
+#endif

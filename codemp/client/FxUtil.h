@@ -18,11 +18,7 @@ CParticle *FX_AddParticle( vec3_t org, vec3_t vel, vec3_t accel,
 							int deathID, int impactID,
 							int killTime, qhandle_t shader, int flags = 0,
 							EMatImpactEffect matImpactFX = MATIMPACTFX_NONE, int fxParm = -1, 
-#ifdef __ANDROID__
-							CGhoul2Info_v *ghoul2 = NULL,
-#else
 							int iGhoul2=0,
-#endif
 							int entNum=-1, int modelNum=-1, int boltNum=-1);
 CLine *FX_AddLine( vec3_t start, vec3_t end, 
 							float size1, float size2, float sizeParm,
@@ -30,22 +26,14 @@ CLine *FX_AddLine( vec3_t start, vec3_t end,
 							vec3_t rgb1, vec3_t rgb2, float rgbParm,
 							int killTime, qhandle_t shader, int flags = 0,
 							EMatImpactEffect matImpactFX = MATIMPACTFX_NONE, int fxParm = -1,
-#ifdef __ANDROID__
-							CGhoul2Info_v *ghoul2 = NULL,
-#else
 							int iGhoul2=0,
-#endif
 							int entNum=-1, int modelNum=-1, int boltNum=-1);
 CElectricity *FX_AddElectricity( vec3_t start, vec3_t end, float size1, float size2, float sizeParm,
 							float alpha1, float alpha2, float alphaParm,
 							vec3_t sRGB, vec3_t eRGB, float rgbParm,
 							float chaos, int killTime, qhandle_t shader, int flags = 0,
 							EMatImpactEffect matImpactFX = MATIMPACTFX_NONE, int fxParm = -1,
-#ifdef __ANDROID__
-							CGhoul2Info_v *ghoul2 = NULL,
-#else
 							int iGhoul2=0,
-#endif
 							int entNum=-1, int modelNum=-1, int boltNum=-1);
 CTail *FX_AddTail( vec3_t org, vec3_t vel, vec3_t accel, 
 							float size1, float size2, float sizeParm, 
@@ -56,11 +44,7 @@ CTail *FX_AddTail( vec3_t org, vec3_t vel, vec3_t accel,
 							int deathID, int impactID,
 							int killTime, qhandle_t shader, int flags = 0,
 							EMatImpactEffect matImpactFX = MATIMPACTFX_NONE, int fxParm = -1,
-#ifdef __ANDROID__
-							CGhoul2Info_v *ghoul2 = NULL,
-#else
 							int iGhoul2=0,
-#endif
 							int entNum=-1, int modelNum=-1, int boltNum=-1);
 CCylinder *FX_AddCylinder( vec3_t start, vec3_t normal, 
 							float size1s, float size1e, float size1Parm,
@@ -70,11 +54,7 @@ CCylinder *FX_AddCylinder( vec3_t start, vec3_t normal,
 							vec3_t rgb1, vec3_t rgb2, float rgbParm,
 							int killTime, qhandle_t shader, int flags = 0,
 							EMatImpactEffect matImpactFX = MATIMPACTFX_NONE, int fxParm = -1,
-#ifdef __ANDROID__
-							CGhoul2Info_v *ghoul2 = NULL,
-#else
 							int iGhoul2=0,
-#endif
 							int entNum=-1, int modelNum=-1, int boltNum=-1,
 							qboolean traceEnd = qfalse);
 CEmitter *FX_AddEmitter( vec3_t org, vec3_t vel, vec3_t accel,
@@ -87,21 +67,13 @@ CEmitter *FX_AddEmitter( vec3_t org, vec3_t vel, vec3_t accel,
 							float density, float variance,
 							int killTime, qhandle_t model, int flags = 0,
 							EMatImpactEffect matImpactFX = MATIMPACTFX_NONE, int fxParm = -1,
-#ifdef __ANDROID__
-							CGhoul2Info_v *ghoul2 = NULL,
-#else
 							int iGhoul2=0,
-#endif
 							int entNum=-1, int modelNum=-1, int boltNum=-1);
 CLight *FX_AddLight( vec3_t org, float size1, float size2, float sizeParm,
 							vec3_t rgb1, vec3_t rgb2, float rgbParm,
 							int killTime, int flags = 0,
 							EMatImpactEffect matImpactFX = MATIMPACTFX_NONE, int fxParm = -1,
-#ifdef __ANDROID__
-							CGhoul2Info_v *ghoul2 = NULL,
-#else
 							int iGhoul2=0,
-#endif
 							int entNum=-1, int modelNum=-1, int boltNum=-1);
 COrientedParticle *FX_AddOrientedParticle( vec3_t org, vec3_t norm, vec3_t vel, vec3_t accel,
 							float size1, float size2, float sizeParm,
@@ -112,11 +84,7 @@ COrientedParticle *FX_AddOrientedParticle( vec3_t org, vec3_t norm, vec3_t vel, 
 							int deathID, int impactID,
 							int killTime, qhandle_t shader, int flags = 0,
 							EMatImpactEffect matImpactFX = MATIMPACTFX_NONE, int fxParm = -1,
-#ifdef __ANDROID__
-							CGhoul2Info_v *ghoul2 = NULL,
-#else
 							int iGhoul2=0,
-#endif
 							int entNum=-1, int modelNum=-1, int boltNum=-1);
 CPoly *FX_AddPoly( vec3_t *verts, vec2_t *st, int numVerts,
 							vec3_t vel, vec3_t accel,

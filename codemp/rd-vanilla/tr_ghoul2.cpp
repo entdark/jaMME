@@ -97,7 +97,7 @@ extern cvar_t	*r_Ghoul2UnSqashAfterSmooth;
 
 static inline int G2_Find_Bone_ByNum(const model_t *mod, boneInfo_v &blist, const int boneNum)
 {
-	int i = 0;
+	size_t i = 0;
 
 	while (i < blist.size())
 	{
@@ -112,10 +112,12 @@ static inline int G2_Find_Bone_ByNum(const model_t *mod, boneInfo_v &blist, cons
 }
 
 const static mdxaBone_t		identityMatrix = 
-{ 
-	0.0f, -1.0f, 0.0f, 0.0f,
-	1.0f, 0.0f, 0.0f, 0.0f,
-	0.0f, 0.0f, 1.0f, 0.0f
+{
+	{
+		{ 0.0f, -1.0f, 0.0f, 0.0f },
+		{ 1.0f, 0.0f, 0.0f, 0.0f },
+		{ 0.0f, 0.0f, 1.0f, 0.0f }
+	}
 };
 
 // I hate doing this, but this is the simplest way to get this into the routines it needs to be
@@ -323,8 +325,8 @@ public:
 	float			mSmoothFactor;
 
 	CBoneCache(const model_t *amod,const mdxaHeader_t *aheader) :
-		mod(amod),
-		header(aheader)
+		header(aheader),
+		mod(amod)
 	{
 		assert(amod);
 		assert(aheader);
@@ -678,7 +680,7 @@ void G2_GetBoneMatrixLow(CGhoul2Info &ghoul2,int boneNum,const vec3_t scale,mdxa
 	{
 		for ( int j = 0; j < 4; j++ )
 		{
-			assert( !_isnan(retMatrix.matrix[i][j]));
+			assert( !Q_isnan(retMatrix.matrix[i][j]));
 		}
 	}
 #endif// _DEBUG
@@ -1705,10 +1707,12 @@ void G2_TransformBone (int child,CBoneCache &BC)
 			Multiply_3x4Matrix(&temp,&firstPass, &skel->BasePoseMat);
 			float	matrixScale = VectorLength((float*)&temp);
 			static mdxaBone_t		toMatrix = 
-			{ 
-				1.0f, 0.0f, 0.0f, 0.0f,
-				0.0f, 1.0f, 0.0f, 0.0f,
-				0.0f, 0.0f, 1.0f, 0.0f
+			{
+				{
+					{ 1.0f, 0.0f, 0.0f, 0.0f },
+					{ 0.0f, 1.0f, 0.0f, 0.0f },
+					{ 0.0f, 0.0f, 1.0f, 0.0f }
+				}
 			};
 			toMatrix.matrix[0][0]=matrixScale;
 			toMatrix.matrix[1][1]=matrixScale;
@@ -1993,7 +1997,7 @@ void G2_SetUpBolts( mdxaHeader_t *header, CGhoul2Info &ghoul2, mdxaBone_v &boneP
 	mdxaSkelOffsets_t *offsets;
 	offsets = (mdxaSkelOffsets_t *)((byte *)header + sizeof(mdxaHeader_t));
 
-	for (int i=0; i<boltList.size(); i++)
+	for (size_t i=0; i<boltList.size(); i++)
 	{
 		if (boltList[i].boneNumber != -1)
 		{
@@ -2096,8 +2100,7 @@ void G2_TransformGhoulBones(boneInfo_v &rootBoneList,mdxaBone_t &rootMatrix, CGh
 			}
 			else if(ghoul2.mFlags & GHOUL2_RAG_STARTED)
 			{
-				int k;
-				for (k=0;k<rootBoneList.size();k++)
+				for (size_t k=0;k<rootBoneList.size();k++)
 				{
 					boneInfo_t &bone=rootBoneList[k];
 					if (bone.flags&BONE_ANGLES_RAGDOLL)
@@ -2391,7 +2394,7 @@ void G2_ProcessGeneratedSurfaceBolts(CGhoul2Info &ghoul2, mdxaBone_v &bonePtr, m
 	G2PerformanceTimer_G2_ProcessGeneratedSurfaceBolts.Start();
 #endif
 	// look through the surfaces off the end of the pre-defined model surfaces
-	for (int i=0; i< ghoul2.mSlist.size(); i++)
+	for (size_t i=0; i< ghoul2.mSlist.size(); i++)
 	{
 		// only look for bolts if we are actually a generated surface, and not just an overriden one
 		if (ghoul2.mSlist[i].offFlags & G2SURFACEFLAG_GENERATED)
@@ -3150,8 +3153,7 @@ void G2_GetBoltMatrixLow(CGhoul2Info &ghoul2,int boltNum,const vec3_t scale,mdxa
 	{
 		const surfaceInfo_t *surfInfo=0;
 		{
-			int i;
-			for (i=0;i<ghoul2.mSlist.size();i++)
+			for (size_t i=0;i<ghoul2.mSlist.size();i++)
 			{
 				surfaceInfo_t &t=ghoul2.mSlist[i];
 				if (t.surface==boltList[boltNum].surfaceNumber)

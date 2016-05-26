@@ -1310,11 +1310,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
 			int modelIndex = args[2];
-#ifdef __ANDROID__
-			return re.G2API_SetSkin(g2, modelIndex, args[3], args[4]);
-#else
 			return re.G2API_SetSkin(&g2[modelIndex], args[3], args[4]);
-#endif
 		}
 
 	case G_G2_SIZE:
@@ -1341,13 +1337,8 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
 			int modelIndex = args[10];
-#ifdef __ANDROID__
-			return re.G2API_GetBoneAnim(g2, modelIndex, (const char*)VMA(2), args[3], (float *)VMA(4), (int *)VMA(5),
-								(int *)VMA(6), (int *)VMA(7), (float *)VMA(8), (int *)VMA(9));
-#else
 			return re.G2API_GetBoneAnim(&g2[modelIndex], (const char*)VMA(2), args[3], (float *)VMA(4), (int *)VMA(5),
 								(int *)VMA(6), (int *)VMA(7), (float *)VMA(8), (int *)VMA(9));
-#endif
 		}
 
 	case G_G2_GETGLANAME:
@@ -1446,21 +1437,13 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 	case G_G2_DOESBONEEXIST:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-#ifdef __ANDROID__
-			return re.G2API_DoesBoneExist(g2, args[2], (const char *)VMA(3));
-#else
 			return re.G2API_DoesBoneExist(&g2[args[2]], (const char *)VMA(3));
-#endif
 		}
 
 	case G_G2_GETSURFACERENDERSTATUS:
 	{
 		CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-#ifdef __ANDROID__
-		return re.G2API_GetSurfaceRenderStatus(g2, args[2], (const char *)VMA(3));
-#else
 		return re.G2API_GetSurfaceRenderStatus(&g2[args[2]], (const char *)VMA(3));
-#endif
 	}
 
 	case G_G2_ABSURDSMOOTHING:
@@ -1551,11 +1534,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 	case G_G2_REMOVEBONE:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-#ifdef __ANDROID__
-			return re.G2API_RemoveBone(g2, args[3], (const char *)VMA(2));
-#else
 			return re.G2API_RemoveBone(&g2[args[3]], (const char *)VMA(2));
-#endif
 		}
 
 	case G_G2_ATTACHINSTANCETOENTNUM:
@@ -1572,11 +1551,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 	case G_G2_OVERRIDESERVER:
 		{
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-#ifdef __ANDROID__
-			return re.G2API_OverrideServerWithClientData(g2, 0);
-#else
 			return re.G2API_OverrideServerWithClientData(&g2[0]);
-#endif
 		}
 
 	case G_G2_GETSURFACENAME:
@@ -1585,11 +1560,7 @@ intptr_t SV_GameSystemCalls( intptr_t *args ) {
 			char *local;
 			int modelindex = args[3];
 			CGhoul2Info_v &g2 = *((CGhoul2Info_v *)args[1]);
-#ifdef __ANDROID__
-			local = re.G2API_GetSurfaceName(g2, modelindex, args[2]);
-#else
 			local = re.G2API_GetSurfaceName(&g2[modelindex], args[2]);
-#endif
 			if (local)
 			{
 				strcpy(point, local);

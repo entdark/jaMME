@@ -54,19 +54,11 @@ void FX_PlayEffectID( int id, vec3_t org, vec3_t fwd, int vol, int rad, qboolean
 
 	theFxScheduler.PlayEffect(id, org, fwd, vol, rad, !!isPortal );
 }
-#ifdef __ANDROID__
-void FX_PlayBoltedEffectID( int id, vec3_t org,
-						   const int boltInfo, CGhoul2Info_v *ghoul2, int iLooptime, qboolean isRelative )
-{
-	theFxScheduler.PlayEffect(id, org, 0, boltInfo, ghoul2, -1, -1, -1, qfalse, iLooptime, !!isRelative  );
-}
-#else
 void FX_PlayBoltedEffectID( int id, vec3_t org, 
 						   const int boltInfo, int iGhoul2, int iLooptime, qboolean isRelative )
 {
 	theFxScheduler.PlayEffect(id, org, 0, boltInfo, iGhoul2, -1, -1, -1, qfalse, iLooptime, !!isRelative  );
 }
-#endif
 void FX_PlayEntityEffectID( int id, vec3_t org, 
 						vec3_t axis[3], const int boltInfo, const int entNum, int vol, int rad )
 {

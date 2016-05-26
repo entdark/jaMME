@@ -137,11 +137,7 @@ bool CParticle::Update(void)
 
 	if ( mFlags & FX_RELATIVE )
 	{
-#ifdef __ANDROID__
-		if (!re.G2API_IsGhoul2InfovValid(*mGhoul2))
-#else
 		if ( !mGhoul2.IsValid())
-#endif
 		{	// the thing we are bolted to is no longer valid, so we may as well just die.
 			return false;
 		}
@@ -150,11 +146,7 @@ bool CParticle::Update(void)
 		vec3_t	ax[3];
 
 		// Get our current position and direction
-#ifdef __ANDROID__
-		if (!theFxHelper.GetOriginAxisFromBolt(mGhoul2, mEntNum, mModelNum, mBoltNum, org, ax))
-#else
 		if (!theFxHelper.GetOriginAxisFromBolt(&mGhoul2, mEntNum, mModelNum, mBoltNum, org, ax))
-#endif
 		{	//could not get bolt
 			return false;
 		}
@@ -753,11 +745,7 @@ bool COrientedParticle::Update(void)
 		
 	if ( mFlags & FX_RELATIVE )
 	{
-#ifdef __ANDROID__
-		if (!re.G2API_IsGhoul2InfovValid(*mGhoul2))
-#else
 		if ( !mGhoul2.IsValid())
-#endif
 		{	// the thing we are bolted to is no longer valid, so we may as well just die.
 			return false;
 		}
@@ -766,11 +754,7 @@ bool COrientedParticle::Update(void)
 		vec3_t	ax[3];
 
 		// Get our current position and direction
-#ifdef __ANDROID__
-		if (!theFxHelper.GetOriginAxisFromBolt(mGhoul2, mEntNum, mModelNum, mBoltNum, org, ax))
-#else
 		if (!theFxHelper.GetOriginAxisFromBolt(&mGhoul2, mEntNum, mModelNum, mBoltNum, org, ax))
-#endif
 		{	//could not get bolt
 			return false;
 		}
@@ -868,21 +852,13 @@ bool CLine::Update(void)
 
 	if ( mFlags & FX_RELATIVE )
 	{
-#ifdef __ANDROID__
-		if (!re.G2API_IsGhoul2InfovValid(*mGhoul2))
-#else
 		if ( !mGhoul2.IsValid())
-#endif
 		{	// the thing we are bolted to is no longer valid, so we may as well just die.
 			return false;
 		}
 		vec3_t	ax[3];
 		// Get our current position and direction
-#ifdef __ANDROID__
-		if (!theFxHelper.GetOriginAxisFromBolt(mGhoul2, mEntNum, mModelNum, mBoltNum, mOrigin1, ax))
-#else
 		if (!theFxHelper.GetOriginAxisFromBolt(&mGhoul2, mEntNum, mModelNum, mBoltNum, mOrigin1, ax))
-#endif
 		{	//could not get bolt
 			return false;
 		}
@@ -968,21 +944,13 @@ bool CElectricity::Update(void)
 
 	if ( mFlags & FX_RELATIVE )
 	{
-#ifdef __ANDROID__
-		if (!re.G2API_IsGhoul2InfovValid(*mGhoul2))
-#else
 		if ( !mGhoul2.IsValid())
-#endif
 		{	// the thing we are bolted to is no longer valid, so we may as well just die.
 			return false;
 		}
 		vec3_t	ax[3];
 		// Get our current position and direction
-#ifdef __ANDROID__
-		if (!theFxHelper.GetOriginAxisFromBolt(mGhoul2, mEntNum, mModelNum, mBoltNum, mOrigin1, ax))
-#else
 		if (!theFxHelper.GetOriginAxisFromBolt(&mGhoul2, mEntNum, mModelNum, mBoltNum, mOrigin1, ax))
-#endif
 		{	//could not get bolt
 			return false;
 		}
@@ -1043,11 +1011,7 @@ bool CTail::Update(void)
 		
 	if ( mFlags & FX_RELATIVE )
 	{
-#ifdef __ANDROID__
-		if (!re.G2API_IsGhoul2InfovValid(*mGhoul2))
-#else
 		if ( !mGhoul2.IsValid())
-#endif
 		{	// the thing we are bolted to is no longer valid, so we may as well just die.
 			return false;
 		}
@@ -1057,11 +1021,7 @@ bool CTail::Update(void)
 		vec3_t	ax[3];
 		if (mModelNum>=0 && mBoltNum>=0)	//bolt style
 		{
-#ifdef __ANDROID__
-			if (!theFxHelper.GetOriginAxisFromBolt(mGhoul2, mEntNum, mModelNum, mBoltNum, org, ax))
-#else
 			if (!theFxHelper.GetOriginAxisFromBolt(&mGhoul2, mEntNum, mModelNum, mBoltNum, org, ax))
-#endif
 			{	//could not get bolt
 				return false;
 			}
@@ -1377,22 +1337,14 @@ bool CCylinder::Update(void)
 
 	if ( mFlags & FX_RELATIVE )
 	{
-#ifdef __ANDROID__
-		if (!re.G2API_IsGhoul2InfovValid(*mGhoul2))
-#else
 		if ( !mGhoul2.IsValid())
-#endif
 		{	// the thing we are bolted to is no longer valid, so we may as well just die.
 			return false;
 		}
 
 		vec3_t	ax[3];
 		// Get our current position and direction
-#ifdef __ANDROID__
-		if (!theFxHelper.GetOriginAxisFromBolt(mGhoul2, mEntNum, mModelNum, mBoltNum, mOrigin1, ax))
-#else
 		if (!theFxHelper.GetOriginAxisFromBolt(&mGhoul2, mEntNum, mModelNum, mBoltNum, mOrigin1, ax))
-#endif
 		{	//could not get bolt
 			return false;
 		}
@@ -1528,11 +1480,7 @@ bool CEmitter::Update(void)
 
 	if ( mFlags & FX_RELATIVE )
 	{
-#ifdef __ANDROID__
-		if (!re.G2API_IsGhoul2InfovValid(*mGhoul2))
-#else
 		if ( !mGhoul2.IsValid())
-#endif
 		{	// the thing we are bolted to is no longer valid, so we may as well just die.
 			return false;
 		}
@@ -1637,22 +1585,14 @@ bool CLight::Update(void)
 
 	if ( mFlags & FX_RELATIVE )
 	{
-#ifdef __ANDROID__
-		if (!re.G2API_IsGhoul2InfovValid(*mGhoul2))
-#else
 		if ( !mGhoul2.IsValid())
-#endif
 		{	// the thing we are bolted to is no longer valid, so we may as well just die.
 			return false;
 		}
 
 		vec3_t	ax[3];
 		// Get our current position and direction
-#ifdef __ANDROID__
-		if (!theFxHelper.GetOriginAxisFromBolt(mGhoul2, mEntNum, mModelNum, mBoltNum, mOrigin1, ax))
-#else
 		if (!theFxHelper.GetOriginAxisFromBolt(&mGhoul2, mEntNum, mModelNum, mBoltNum, mOrigin1, ax))
-#endif
 		{	//could not get bolt
 			return false;
 		}

@@ -1707,7 +1707,7 @@ void R_ReloadFonts_f(void)
 		//
 		// and re-register our fonts in the same order as before (note that some menu items etc cache the string lengths so really a vid_restart is better, but this is just for my testing)
 		//
-		for (int iFont = 0; iFont < vstrFonts.size(); iFont++)
+		for (size_t iFont = 0; iFont < vstrFonts.size(); iFont++)
 		{
 #ifdef _DEBUG
 			int iNewFontHandle = RE_RegisterFont( vstrFonts[iFont].c_str() );

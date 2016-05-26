@@ -67,6 +67,9 @@ static struct {
 
 
 static void ID_INLINE R_Bloom_Quad( int width, int height, float texX, float texY, float texWidth, float texHeight ) {
+#ifdef HAVE_GLES
+	//TODO
+#else
 	int x = 0;
 	int y = 0;
 	x = 0;
@@ -90,6 +93,7 @@ static void ID_INLINE R_Bloom_Quad( int width, int height, float texX, float tex
 	qglTexCoord2f(	texWidth,					texHeight	);	
 	qglVertex2f(	width,						y	);				
 	qglEnd ();
+#endif
 }
 
 
@@ -165,10 +169,14 @@ R_Bloom_DrawEffect
 */
 static void R_Bloom_DrawEffect( void )
 {
+#ifdef HAVE_GLES
+	//TODO
+#else
 	GL_Bind( bloom.effect.texture );
 	GL_State( GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE );
 	qglColor4f( r_bloom_alpha->value, r_bloom_alpha->value, r_bloom_alpha->value, 1.0f );
 	R_Bloom_Quad( glConfig.vidWidth, glConfig.vidHeight, 0, 0, bloom.effect.readW, bloom.effect.readW );
+#endif
 }
 
 
@@ -179,6 +187,9 @@ R_Bloom_GeneratexDiamonds
 */
 static void R_Bloom_WarsowEffect( void )
 {
+#ifdef HAVE_GLES
+	//TODO
+#else
 	int		i, j, k;
 	float	intensity, scale, *diamond;
 
@@ -254,6 +265,7 @@ static void R_Bloom_WarsowEffect( void )
 		}
 	}
 	qglCopyTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, 0, 0, bloom.work.width, bloom.work.height );
+#endif
 }											
 
 /*
@@ -263,8 +275,12 @@ Backup the full original screen to a texture for downscaling and later restorati
 =================
 */
 static void R_Bloom_BackupScreen( void ) {
+#ifdef HAVE_GLES
+	//TODO
+#else
 	GL_Bind( bloom.screen.texture );
 	qglCopyTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, 0, 0, glConfig.vidWidth, glConfig.vidHeight );
+#endif
 }
 /*
 =================
@@ -273,12 +289,16 @@ Restore the temporary framebuffer section we used with the backup texture
 =================
 */
 static void R_Bloom_RestoreScreen( void ) {
+#ifdef HAVE_GLES
+	//TODO
+#else
 	GL_State( GLS_DEPTHTEST_DISABLE | GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO );
 	GL_Bind( bloom.screen.texture );
 	qglColor4f( 1, 1, 1, 1 );
 	R_Bloom_Quad( bloom.work.width, bloom.work.height, 0, 0,
 		bloom.work.width / (float)bloom.screen.width,
 		bloom.work.height / (float)bloom.screen.height );
+#endif
 }
  
 
@@ -290,6 +310,9 @@ Scale the copied screen back to the sample size used for subsequent passes
 */
 static void R_Bloom_DownsampleView( void )
 {
+#ifdef HAVE_GLES
+	//TODO
+#else
 	/* TODO, Provide option to control the color strength here */
 //	qglColor4f( r_bloom_darken->value, r_bloom_darken->value, r_bloom_darken->value, 1.0f );
 	qglColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
@@ -316,9 +339,13 @@ static void R_Bloom_DownsampleView( void )
 	/* Copy the result to the effect texture */
 	GL_Bind( bloom.effect.texture );
 	qglCopyTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, 0, 0, bloom.work.width, bloom.work.height );
+#endif
 }
 
 static void R_Bloom_CreateEffect( void ) {
+#ifdef HAVE_GLES
+	//TODO
+#else
 	int dir, x;
 	int range;
 
@@ -360,6 +387,7 @@ static void R_Bloom_CreateEffect( void ) {
 	}
 	GL_Bind( bloom.effect.texture );
 	qglCopyTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, 0, 0, bloom.work.width, bloom.work.height );
+#endif
 }
 
 /*
@@ -369,6 +397,9 @@ R_BloomScreen
 */
 void R_BloomScreen( void )
 {
+#ifdef HAVE_GLES
+	//TODO
+#else
 	return; // doesn't work at all :(
 	if( !r_bloom->integer )
 		return;
@@ -414,6 +445,7 @@ void R_BloomScreen( void )
 	R_Bloom_RestoreScreen();
 	// Do the final pass using the bloom texture for the final effect
 	R_Bloom_DrawEffect ();
+#endif
 }
 
 

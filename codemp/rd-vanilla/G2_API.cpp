@@ -15,10 +15,13 @@
 
 #include <set>
 
+#ifdef _MSC_VER
 #pragma warning (push, 3)	//go back down to 3 for the stl include
+#endif
 #include <list>
-#include <string>
+#ifdef _MSC_VER
 #pragma warning (pop)
+#endif
 
 #ifdef _FULL_G2_LEAK_CHECKING
 int g_Ghoul2Allocations = 0;
@@ -313,13 +316,12 @@ class Ghoul2InfoArray : public IGhoul2InfoArray
 	void DeleteLow(int idx)
 	{
 		{
-			int				model;
-			for (model=0; model< mInfos[idx].size(); model++)
+			for (size_t model = 0; model< mInfos[idx].size(); model++)
 			{
 				if (mInfos[idx][model].mBoneCache)
 				{
 					RemoveBoneCache(mInfos[idx][model].mBoneCache);
-					mInfos[idx][model].mBoneCache=0;
+					mInfos[idx][model].mBoneCache = 0;
 				}
 			}
 		}
@@ -1303,7 +1305,7 @@ qboolean G2API_SetBoneAngles(CGhoul2Info_v *ghoul2, const int modelIndex, const 
 							 const Eorientations up, const Eorientations left, const Eorientations forward,
 							 qhandle_t *modelList, int blendTime, int currentTime )
 {
-	if ((intptr_t)&ghoul2 && ghoul2->size()>modelIndex)
+	if (ghoul2 && ghoul2->size()>modelIndex)
 	{
 		CGhoul2Info *ghlInfo = &(*ghoul2)[modelIndex];
 		qboolean setPtrs = qfalse;
@@ -1733,7 +1735,7 @@ qboolean G2API_GetBoltMatrix_SPMethod(CGhoul2Info_v *ghoul2, const int modelInde
 {
 	assert(ghoul2->size() > modelIndex);
 
-	if ((intptr_t)&ghoul2 && (ghoul2->size() > modelIndex))
+	if (ghoul2 && (ghoul2->size() > modelIndex))
 	{
 		CGhoul2Info *ghlInfo = &(*ghoul2)[modelIndex];
 
@@ -1803,10 +1805,12 @@ qboolean G2API_GetBoltMatrix(CGhoul2Info_v *ghoul2, const int modelIndex, const 
 	G2ERROR(matrix,"NULL matrix");
 	G2ERROR(modelIndex>=0&&modelIndex<ghoul2->size(),"Invalid ModelIndex");
 	const static mdxaBone_t		identityMatrix = 
-	{ 
-		0.0f, -1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f, 0.0f
+	{
+		{
+			{ 0.0f, -1.0f, 0.0f, 0.0f },
+			{ 1.0f, 0.0f, 0.0f, 0.0f },
+			{ 0.0f, 0.0f, 1.0f, 0.0f }
+		}
 	};
 	G2_GenerateWorldMatrix(angles, position);
 	if (G2_SetupModelPointers(ghoul2))
@@ -1817,7 +1821,7 @@ qboolean G2API_GetBoltMatrix(CGhoul2Info_v *ghoul2, const int modelIndex, const 
 			CGhoul2Info *ghlInfo = &(*ghoul2)[modelIndex];
 			G2ERROR(boltIndex >= 0 && (boltIndex < ghlInfo->mBltlist.size()),va("Invalid Bolt Index (%d:%s)",boltIndex,ghlInfo->mFileName));
 
-			if (boltIndex >= 0 && ghlInfo && (boltIndex < ghlInfo->mBltlist.size()) )
+			if (boltIndex >= 0 && ghlInfo && (boltIndex < (int)ghlInfo->mBltlist.size()) )
 			{
 				mdxaBone_t bolt;
 
@@ -2006,7 +2010,7 @@ static int QDECL QsortDistance( const void *a, const void *b ) {
 
 static inline bool G2_NeedRetransform(CGhoul2Info *g2, int frameNum)
 { //see if we need to do another transform
-	int i = 0;
+	size_t i = 0;
 	bool needTrans = false;
 	while (i < g2->mBlist.size())
 	{
@@ -2037,7 +2041,7 @@ static inline bool G2_NeedRetransform(CGhoul2Info *g2, int frameNum)
 }
 
 void G2API_CollisionDetectCache(CollisionRecord_t *collRecMap, CGhoul2Info_v *ghoul2, const vec3_t angles, const vec3_t position,
-										  int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, CMiniHeap *G2VertSpace, int traceFlags, int useLod, float fRadius)
+										  int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, IHeapAllocator *G2VertSpace, int traceFlags, int useLod, float fRadius)
 { //this will store off the transformed verts for the next trace - this is slower, but for models that do not animate
 	//frequently it is much much faster. -rww
 #if 0 // UNUSED
@@ -2128,7 +2132,7 @@ void G2API_CollisionDetectCache(CollisionRecord_t *collRecMap, CGhoul2Info_v *gh
 
 
 void G2API_CollisionDetect(CollisionRecord_t *collRecMap, CGhoul2Info_v *ghoul2, const vec3_t angles, const vec3_t position,
-										  int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, CMiniHeap *G2VertSpace, int traceFlags, int useLod, float fRadius)
+										  int frameNumber, int entNum, vec3_t rayStart, vec3_t rayEnd, vec3_t scale, IHeapAllocator *G2VertSpace, int traceFlags, int useLod, float fRadius)
 {
 	/*
 	if (1)

@@ -186,6 +186,12 @@ JK3_SRC = \
 		../../${MPDir}/zlib/trees.c \
 		../../${MPDir}/zlib/uncompr.c \
 		../../${MPDir}/zlib/zutil.c \
+		\
+		../../${MPDir}/Ratl/bits_vs.h \
+		../../${MPDir}/Ratl/ratl_common.h \
+		../../${MPDir}/Ratl/vector_vs.h \
+		\
+		../../${MPDir}/Ravl/CVec.h \
 		
 LOCAL_SRC_FILES += $(JK3_SRC) $(JK3MP_ANDROID_SRC)
 
