@@ -669,14 +669,16 @@ JAVA_FUNC(keypress)(JNIEnv *env, jobject obj,jint down, jint keycode, jint unico
 	//LOGI("keypress %d",keycode);
 	PortableKeyEvent(down,keycode,unicode);
 }
-static unsigned char p[256];
+static std::string p;
 void EXPORT_ME
-JAVA_FUNC(textPaste)(JNIEnv *env, jobject obj, jbyteArray paste) {
+JAVA_FUNC(textPaste)(JNIEnv *env, jobject obj, jstring paste) {
 /*	jbyte *b = env->GetByteArrayElements(paste, 0);
 	env->ReleaseByteArrayElements(paste, b);*/
-    int len = env->GetArrayLength(paste);
-    env->GetByteArrayRegion(paste, 0, len, reinterpret_cast<jbyte*>(p));
-	PortableTextPaste((const char *)p);
+/*	int len = env->GetArrayLength(paste);
+	env->GetByteArrayRegion(paste, 0, len, reinterpret_cast<jbyte*>(p));
+	PortableTextPaste((const char *)p);*/
+	p = (char *)(env)->GetStringUTFChars(paste, 0);
+	PortableTextPaste(p.c_str());
 }
 jstring EXPORT_ME
 JAVA_FUNC(getLoadingMsg)(JNIEnv *env, jobject obj, jstring paste) {
