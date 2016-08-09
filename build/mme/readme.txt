@@ -20,14 +20,14 @@ features and some new ones.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   Author: ent
-  Contributors: ent, Scooper, redsaurus, teh
-  Version: 1.9
-!  Date: 21.08.2015
-!  Filesize: 9.14 MB
+  Contributors: ent, Scooper, redsaurus, teh, loda, Alpha/Avygeil
+  Version: 1.10
+!  Date: 10.08.2016
+!  Filesize: 7.42 MB
 
   Installation: extract the archive to "GameData" folder.
 
-  Credits: 
+  Credits:
     - q3mme crew and their q3mme mod
     - Raz0r and his JA++ code for JA+ and JA++ compatibiliy, also he helped
     a lot
@@ -42,4 +42,4 @@ features and some new ones.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Copyrights: ©2015 ent; jaMME source code is opened under GPLv2 license
+  Copyrights: ©2013-2016 ent
