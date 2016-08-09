@@ -51,6 +51,7 @@ mov_absorbColour        [0..9, a..t, xHEXCOL] Set a colour for absorb shield
 mov_protectColour       [0..9, a..t, xHEXCOL] Set a colour for protect shield
 mov_rageColour          [0..9, a..t, xHEXCOL] Set a colour for rage shield
 mov_spLightning         [0, 1] Use force lightning looping sound from SP
+mov_headTurn            [0, 1] Let the players' heads turn toward other players
 
 fx_Vibrate              [-1, 0..?.?] Set power of camera shake: -1 = no shake, 0 = default shake, >0 = mme style shake
 fx_vfps                 [1..1000] Fix for effects that could disappear or effects that look too bright
@@ -156,7 +157,26 @@ cl_drawRecording        [0, 1, 2, 3] Change style of demo recording notifier:
                         2 = draw the red circle and REC in left down corner, 3 = same as 2, but the red circle blinks		
 cl_autoDemo             [0, 1] Disable/enable autorecording demos
 cl_autoDemoFormat       [text, %format] Set the autorecording demo name with certain formatting:
-                        %d = date, %m = map, %n = custom name (2nd arguement in saveDemo command), %p = player name, %t = time stamps, %% = %
+                        %d = date, %m = map, %n = custom name (2nd arguement in saveDemo command),
+                        %p = player name, %t = time stamps, %s = server name, %% = %;
+                        special date formatting:
+                        %a: Abbreviated weekday name (Thu)
+                        %A: Full weekday name (Thursday)
+                        %b: Abbreviated month name (Aug)
+                        %B: Full month name (August)
+                        %D: Day of the month, zero-padded (01-31)
+                        %H: Hour in 24h format (00-23)
+                        %I: Hour in 12h format (01-12)
+                        %j: Day of the year (001-366)
+                        %N: Month as a decimal number (01-12)
+                        %M: Minute (00-59)
+                        %P: AM or PM designation
+                        %S: Second (00-61)
+                        %U: Week number with the first Sunday as the first day of week one (00-53)
+                        %w: Weekday as a decimal number with Sunday as 0 (0-6)
+                        %y: Year, last two digits (00-99)
+                        %Y: Year (2001)
+                        %Z: Timezone abbreviation (CDT)
 
 cl_dlURL                [text] Set a download URL where to automatically download maps from (cl_allowDownload 0, yes, has to be "0")
 
@@ -167,7 +187,8 @@ con_timestamps          [0, 1] Hide/show timestamps in the console
 JAMME RENDERER
 
 mme_aviFormat           [0, 1] Compress AVI output with mpeg
-mme_screenShotFormat    [jpg, png, tga, avi] Set output format
+mme_aviLimit            [0, 1] Limit AVI file size to 2 GB (unlimited AVI file may work wrong on some players)
+mme_screenShotFormat    [jpg, png, tga, avi, pipe] Set output format
 mme_screenShotGamma     [0, 1] Correct gamma in output
 mme_screenShotAlpha     [0, 1] Capture alpha channel for PNG or TGA outputs
 
@@ -204,6 +225,8 @@ mme_saveDepth           [0, 1, 2] Save depth of field mask outputs:
 
 mme_cpuSSE2             [0, 1] Use SSE2 instruction to make motion blur (faster way, may crash on old CPUs)
 mme_pbo                 [0, 1] Use PBO instruction to increase capture speed in times (r_stereoSeparation 0.0)
+mme_pipeCommand         [text, %format] Set the command that opens its stdin for reading from the game raw input and set the supported output with the given format:
+                        %o = output name, %f = fps (from capture command), %w = game width, %h = game height
 
 r_zproj                 [0..?.?] Stereo focus position
 r_stereoSeparation      [-?.?..?.?] Camera stereo offset by horizontal left-to-right axis by stereo focus position;
@@ -212,6 +235,10 @@ r_stereoSeparation      [-?.?..?.?] Camera stereo offset by horizontal left-to-r
 r_multiSample           [0, 2, 4, 8] Anti-aliasing factor; use together with mme_renderWidth and mme_renderHeight in demoList feature
 r_multiSampleNvidia     [0, 1] Let the game use Nvidia cards for anti-aliasing (r_multiSample > 0)
 r_anisotropy            [0, 2, 4, 8, 16] Anisotropic filter factor
+
+r_drawAllAreas          [0, 1] Allow drawing all the map rooms independantly on where the followed player is
+
+r_ext_multisample       [0, 2, 4, 8] Anti-aliasing factor for SDL only
 
 FRAME BUFFER OBJECT
 r_fbo                   [0, 1] Use framebuffer object feature (r_fboWidth > 0 and r_fboHeight > 0)
