@@ -677,7 +677,9 @@ JAVA_FUNC(textPaste)(JNIEnv *env, jobject obj, jstring paste) {
 /*	int len = env->GetArrayLength(paste);
 	env->GetByteArrayRegion(paste, 0, len, reinterpret_cast<jbyte*>(p));
 	PortableTextPaste((const char *)p);*/
-	p = (char *)(env)->GetStringUTFChars(paste, 0);
+	const char *pa = env->GetStringUTFChars(paste, 0);
+	p = pa;
+	env->ReleaseStringUTFChars(paste, pa);
 	PortableTextPaste(p.c_str());
 }
 jstring EXPORT_ME
