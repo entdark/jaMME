@@ -54,5 +54,10 @@
 				<data android:mimeType="*/*" />
 			</intent-filter>
 		</activity>
+    <service android:name="com.jamme.jaMMEService" android:enabled="true">
+      <intent-filter>
+        <action android:name="com.jamme.jaMMEService" />
+      </intent-filter>
+    </service>
 	</application>
 </manifest>

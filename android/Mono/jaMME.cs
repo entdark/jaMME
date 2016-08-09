@@ -47,6 +47,8 @@ namespace android {
 		private float density = 1.0f;
 		private bool gameReady = false;
 		private string gamePath, gameArgs = "", demoName = null;
+		private Intent service;
+		public static bool ServiceRunning = false, KillService = false;
 
 		private jaMMEView view;
 		private jaMMERenderer renderer;
@@ -511,12 +513,15 @@ namespace android {
 			base.OnPause();
 //			view.OnPause();
 			if (gameReady) {
+				this.service = new Intent(this, typeof(jaMMEService));
+				this.StartService(this.service);
 				jaMME.nativePause();
 			}
 		}
 		protected override void OnResume() {
 			Log.Info("jaMME", "OnResume");
 			base.OnResume();
+			this.stopService();
 			view.OnResume();
 			if (gameReady) {
 				jaMME.nativeResume();
@@ -525,6 +530,7 @@ namespace android {
 		protected override void OnRestart() {
 			Log.Info("jaMME", "OnRestart");
 			base.OnRestart();
+			this.stopService();
 		}
 		protected override void OnStop() {
 			Log.Info("jaMME", "OnStop");
@@ -533,6 +539,7 @@ namespace android {
 		protected override void OnDestroy() {
 			Log.Info("jaMME", "OnDestroy");
 			base.OnDestroy();
+			this.stopService();
 			if (!gameReady) {
 				return;
 			}
@@ -562,6 +569,14 @@ namespace android {
 				}
 			}
 			System.Environment.Exit(0);
+		}
+		private void stopService() {
+			if (this.service != null) {
+				jaMME.KillService = true;
+				bool result = this.StopService(this.service);
+				this.service.Dispose();
+				this.service = null;
+			}
 		}
 		//gay way, but fastest
 		private static bool equals(string s1, string s2) {
@@ -1133,6 +1148,8 @@ namespace android {
 			
 			public void OnDrawFrame(IGL10 gl) {
 				if (!this.jamme.gameReady)
+					return;
+				if (jaMME.ServiceRunning)
 					return;
 				this.jamme._handler.PostDelayed(this.jamme._loadingMessage, LOADING_MESSAGE_TIME);
 				if (!inited) {
