@@ -136,7 +136,7 @@ const mixSound_t *S_MixGetSound( sfxHandle_t sfxHandle ) {
 	sound->handle = sfxHandle;
 	sound->lastUsed = com_frameTime;
 	sound->samples = S_SoundRead( openSound, qfalse, openSound->totalSamples, sound->data );
-	isMP3 = strchr(entry->name, '.mp3'); // MP3s aren't being opened fully sometimes, could spam the console
+	isMP3 = strstr(entry->name, ".mp3"); // MP3s aren't being opened fully sometimes, could spam the console
 	if (sound->samples != openSound->totalSamples && !isMP3) {
 		Com_Printf( "Mixer:Failed to load %s fully\n", entry->name );
 	}
