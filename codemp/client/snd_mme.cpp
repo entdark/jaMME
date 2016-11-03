@@ -8,6 +8,8 @@
 #define MME_SNDCHANNELS 128
 #define MME_LOOPCHANNELS 128
 
+#define MME_AVIIMPORT (mme_saveWav->integer == 2)
+
 extern	cvar_t	*mme_saveWav;
 
 typedef struct {
@@ -76,8 +78,8 @@ qboolean S_MMEAviImport(byte *out, int *size) {
 	const char *format = Cvar_VariableString("mme_screenShotFormat");
 	const int shot = Cvar_VariableIntegerValue("mme_saveShot");
 	const int depth = Cvar_VariableIntegerValue("mme_saveDepth");
-	if (mme_saveWav->integer != 2
-        || (!Q_stricmp(format, "avi") && !Q_stricmp(format, "pipe"))
+	if (!MME_AVIIMPORT
+        || (!(!Q_stricmp(format, "avi") || !Q_stricmp(format, "pipe")))
         || (!shot && !depth))
 		return qfalse;
 	*size = 0;
@@ -104,10 +106,10 @@ void S_MMEUpdate( float scale ) {
 	int mixTemp[MAXUPDATE*2];
 	short mixClip[MAXUPDATE*2];
 
-	if (!mmeSound.fileHandle && mme_saveWav->integer != 2)
+	if (!mmeSound.fileHandle && !MME_AVIIMPORT)
 		return;
 	if (!mmeSound.gotFrame) {
-		if (mme_saveWav->integer != 2)
+		if (!MME_AVIIMPORT)
 			S_MMEWavClose();
 		return;
 	}
@@ -129,9 +131,9 @@ void S_MMEUpdate( float scale ) {
 		S_MixEffects( &mmeSound.effect, speed, count, mixTemp );
 	}	
 	S_MixClipOutput( count, mixTemp, mixClip, 0, MAXUPDATE - 1 );
-	if (mme_saveWav->integer != 2) {
+	if (!MME_AVIIMPORT) {
 		FS_Write( mixClip, count*4, mmeSound.fileHandle );
-	} else if (mme_saveWav->integer == 2) {
+	} else if (MME_AVIIMPORT) {
 		Com_Memcpy(&wavExportBuf[bytesInBuf], mixClip, count*4 );
 		bytesInBuf += count*4;
 	}
@@ -143,9 +145,9 @@ void S_MMERecord( const char *baseName, float deltaTime ) {
 	const char *format = Cvar_VariableString("mme_screenShotFormat");
 	const int shot = Cvar_VariableIntegerValue("mme_saveShot");
 	const int depth = Cvar_VariableIntegerValue("mme_saveDepth");
-	if (!mme_saveWav->integer || (mme_saveWav->integer == 2 && ((!Q_stricmp(format, "avi") && !Q_stricmp(format, "pipe")) || (!shot && !depth))))
+	if (!mme_saveWav->integer || (MME_AVIIMPORT && ((!(!Q_stricmp(format, "avi") || !Q_stricmp(format, "pipe"))) || (!shot && !depth))))
 		return;
-	if (Q_stricmp(baseName, mmeSound.baseName) && mme_saveWav->integer != 2) {
+	if (Q_stricmp(baseName, mmeSound.baseName) && !MME_AVIIMPORT) {
 		char fileName[MAX_OSPATH];
 		if (mmeSound.fileHandle)
 			S_MMEWavClose();
@@ -169,7 +171,7 @@ void S_MMERecord( const char *baseName, float deltaTime ) {
        		}
 			mmeSound.fileSize = WAV_HEADERSIZE;
 		}
-	} else if (Q_stricmp(baseName, mmeSound.baseName) && mme_saveWav->integer == 2) {
+	} else if (Q_stricmp(baseName, mmeSound.baseName) && MME_AVIIMPORT) {
 		Q_strncpyz( mmeSound.baseName, baseName, sizeof( mmeSound.baseName ));
 		mmeSound.deltaSamples = 0;
 		mmeSound.sampleRate = MME_SAMPLERATE;
