@@ -541,6 +541,8 @@ void G2_TransformSurfaces(int surfaceNum, surfaceInfo_v &rootSList,
 	}
 }
 
+extern void G2_TransformGhoulBones(boneInfo_v &rootBoneList, mdxaBone_t &rootMatrix, CGhoul2Info &ghoul2, int time, bool smooth = true);
+extern mdxaBone_t identityMatrix;
 // main calling point for the model transform for collision detection. At this point all of the skeleton has been transformed.
 #ifdef _G2_GORE
 void G2_TransformModel(CGhoul2Info_v *ghoul2, const int frameNum, vec3_t scale, IHeapAllocator *G2VertSpace, int useLod, bool ApplyGore)
@@ -588,7 +590,11 @@ void G2_TransformModel(CGhoul2Info_v *ghoul2, const int frameNum, vec3_t scale, 
 		{
 			continue;
 		}
-		assert(g.mBoneCache);
+		//this is so fucking gay, but if we don't init mBoneCache then it crashes afterward
+		if (!g.mBoneCache) {
+			assert(g.mBoneCache);
+			G2_TransformGhoulBones(g.mBlist, identityMatrix, g, G2API_GetTime(tr.refdef.time));
+		}
 //		assert(G2_MODEL_OK(&g));
 		// stop us building this model more than once per frame
 		g.mMeshFrameNum = frameNum;

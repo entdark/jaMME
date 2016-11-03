@@ -111,7 +111,7 @@ static inline int G2_Find_Bone_ByNum(const model_t *mod, boneInfo_v &blist, cons
 	return -1;
 }
 
-const static mdxaBone_t		identityMatrix = 
+ mdxaBone_t identityMatrix = 
 {
 	{
 		{ 0.0f, -1.0f, 0.0f, 0.0f },
