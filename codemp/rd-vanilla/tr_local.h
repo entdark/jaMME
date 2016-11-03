@@ -1134,9 +1134,7 @@ typedef struct {
 	qboolean capturingDofOrStereo;
 	qboolean latestDofOrStereoFrame;
 
-	struct {
-		qboolean		newColors;
-	} uag;
+	colorTable_t cTable;
 } trGlobals_t;
 
 

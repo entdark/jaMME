@@ -864,7 +864,7 @@ void CL_Disconnect(qboolean showMainMenu) {
 	Com_Memset(&clc, 0, sizeof(clc));
 	Cvar_Set("mme_demoPaused", "0");
 	cls.state = CA_DISCONNECTED;
-	cls.uag.newColors = qfalse;
+	cls.cTable = CT_DEFAULT;
 	// allow cheats locally
 	Cvar_Set("sv_cheats", "1");
 	// not connected to a pure server anymore

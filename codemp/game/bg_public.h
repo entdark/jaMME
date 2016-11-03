@@ -235,7 +235,11 @@ and some other output data.  Used for local prediction on the client game and tr
 movement on the server game.
 ===================================================================================
 */
-
+#ifndef UI_EXPORTS
+#ifndef QAGAME
+extern qboolean rpmodDetected;
+#endif
+#endif
 
 #pragma pack(push, 1)
 typedef struct animation_s {
@@ -250,7 +254,7 @@ typedef struct animation_s {
 extern qboolean			BGPAFtextLoaded;
 extern animation_t		bgHumanoidAnimations[MAX_TOTALANIMATIONS];
 
-#define MAX_ANIM_FILES	16
+#define MAX_ANIM_FILES	64//<-RPMod //16
 #define MAX_ANIM_EVENTS 300
 
 typedef enum

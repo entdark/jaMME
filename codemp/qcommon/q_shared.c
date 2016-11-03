@@ -73,12 +73,20 @@ stringID_table_t ClassTable[] = {
 GetIDForString 
 -------------------------
 */
-
-
+#ifdef CGAME
+#include "../game/anims.h"
+extern stringID_table_t animTable[MAX_ANIMATIONS+1];
+extern stringID_table_t animTableRpmod[MAX_ANIMATIONS+1];
+extern qboolean rpmodDetected;
+#endif
 int GetIDForString ( stringID_table_t *table, const char *string )
 {
 	int	index = 0;
-
+#ifdef CGAME
+	if (table == animTable && rpmodDetected) {
+		table = animTableRpmod;
+	}
+#endif
 	while ( ( table[index].name != NULL ) &&
 			( table[index].name[0] != 0 ) )
 	{
@@ -96,7 +104,6 @@ int GetIDForString ( stringID_table_t *table, const char *string )
 GetStringForID
 -------------------------
 */
-
 const char *GetStringForID( stringID_table_t *table, int id )
 {
 	int	index = 0;
@@ -1181,10 +1188,93 @@ vec3_t uagColors[43] =
 	{ 0.725f, 0.725f, 0.725f }, // 'Y' 0x59 89: 185 185 185
 	{ 0.329f, 0.329f, 0.329f }, // 'Z' 0x5A 90:  84  84  84
 };
+vec3_t rpmodColors[75] = // RPMod: add more text colors
+{
+	{ 0.0f, 0.0f, 0.0f }, // 0: black
+	{ 1.0f, 0.0f, 0.0f }, // 1: red
+	{ 0.0f, 1.0f, 0.0f }, // 2: green
+	{ 1.0f, 1.0f, 0.0f }, // 3: yellow
+	{ 0.0f, 0.0f, 1.0f }, // 4: blue
+	{ 0.0f, 1.0f, 1.0f }, // 5: cyan
+	{ 1.0f, 0.0f, 1.0f }, // 6: magenta
+	{ 1.0f, 1.0f, 1.0f }, // 7: white
+	{ 1.0f, 0.5f, 0.0f }, // 8: orange
+	{ 0.5f, 0.0f, 0.8f }, // 9: purple
+	{ 1.0f, 1.0f, 1.0f }, // (padding)
+	{ 1.0f, 1.0f, 1.0f }, // (padding)
+	{ 1.0f, 1.0f, 1.0f }, // (padding)
+	{ 1.0f, 1.0f, 1.0f }, // (padding)
+	{ 1.0f, 1.0f, 1.0f }, // (padding)
+	{ 1.0f, 1.0f, 1.0f }, // (padding)
+	{ 1.0f, 1.0f, 1.0f }, // (padding)
+	{ 0.59f, 0.29f, 0.00f }, // A
+	{ 1.00f, 0.80f, 0.64f }, // B
+	{ 0.00f, 0.80f, 0.80f }, // C
+	{ 0.00f, 0.00f, 0.50f }, // D
+	{ 0.31f, 0.15f, 0.51f }, // E
+	{ 1.00f, 0.75f, 0.80f }, // F
+	{ 0.00f, 0.48f, 0.65f }, // G
+	{ 0.00f, 0.29f, 0.33f }, // H
+	{ 0.97f, 0.51f, 0.47f }, // I
+	{ 0.00f, 0.50f, 0.50f }, // J
+	{ 0.50f, 0.00f, 0.00f }, // K
+	{ 0.64f, 0.35f, 0.32f }, // L
+	{ 0.25f, 0.51f, 0.43f }, // M
+	{ 0.50f, 0.00f, 1.00f }, // N
+	{ 0.75f, 0.75f, 0.75f }, // O
+	{ 0.21f, 0.27f, 0.31f }, // P
+	{ 0.40f, 0.60f, 0.80f }, // Q
+	{ 0.89f, 0.26f, 0.20f }, // R
+	{ 0.77f, 0.38f, 0.06f }, // S
+	{ 0.85f, 0.56f, 0.35f }, // T
+	{ 0.91f, 0.38f, 0.00f }, // U
+	{ 0.80f, 0.80f, 1.00f }, // V
+	{ 0.69f, 0.88f, 0.90f }, // W
+	{ 0.68f, 0.85f, 0.90f }, // X
+	{ 0.54f, 0.81f, 0.94f }, // Y
+	{ 0.00f, 0.00f, 1.00f }, // Z
+	{ 1.0f, 1.0f, 1.0f }, // (padding)
+	{ 1.0f, 1.0f, 1.0f }, // (padding)
+	{ 1.0f, 1.0f, 1.0f }, // (padding)
+	{ 1.0f, 1.0f, 1.0f }, // (padding)
+	{ 1.0f, 1.0f, 1.0f }, // (padding)
+	{ 1.0f, 1.0f, 1.0f }, // (padding)
+	{ 0.25f, 0.00f, 1.00f }, // a
+	{ 0.00f, 0.00f, 0.55f }, // b
+	{ 0.11f, 0.16f, 0.32f }, // c
+	{ 1.00f, 1.00f, 0.80f }, // d
+	{ 0.94f, 0.80f, 0.00f }, // e
+	{ 1.00f, 0.83f, 0.00f }, // f
+	{ 1.00f, 0.94f, 0.00f }, // g
+	{ 1.00f, 1.00f, 0.47f }, // h
+	{ 0.98f, 0.85f, 0.37f }, // i
+	{ 1.00f, 0.84f, 0.00f }, // j
+	{ 0.76f, 0.69f, 0.57f }, // k
+	{ 0.50f, 0.50f, 0.00f }, // l
+	{ 0.88f, 0.07f, 0.37f }, // m
+	{ 1.00f, 0.08f, 0.58f }, // n
+	{ 1.00f, 0.44f, 1.00f }, // o
+	{ 0.40f, 0.01f, 0.24f }, // p
+	{ 0.47f, 0.32f, 0.66f }, // q
+	{ 0.44f, 0.16f, 0.39f }, // r
+	{ 0.47f, 0.09f, 0.29f }, // s
+	{ 0.56f, 0.59f, 0.47f }, // t
+	{ 0.53f, 0.66f, 0.42f }, // u
+	{ 0.34f, 0.51f, 0.01f }, // v
+	{ 0.68f, 1.00f, 0.18f }, // w
+	{ 0.27f, 0.30f, 0.22f }, // x
+	{ 0.00f, 0.34f, 0.25f }, // y
+	{ 0.54f, 0.60f, 0.36f }, // z
+};
 
 int Q_parseColor( const char *p, const vec3_t *numberColors, float *color ) {
 	char c = *p++;
-	if (((c >= '0' && c <='9') || (c >= 'A' && c <= 'Z')) && numberColors == &(uagColors[0])) {
+	if (((c >= '0' && c <='9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')) && numberColors == &(rpmodColors[0])) {
+		if (!color)
+			return 1;
+		memcpy( color, numberColors + c - '0', sizeof( vec3_t ));
+		return 1;
+	} else if (((c >= '0' && c <='9') || (c >= 'A' && c <= 'Z')) && numberColors == &(uagColors[0])) {
 		if (!color)
 			return 1;
 		memcpy( color, numberColors + c - '0', sizeof( vec3_t ));
@@ -1254,14 +1344,27 @@ int Q_parseColor( const char *p, const vec3_t *numberColors, float *color ) {
 	return -1;
 }
 
-int Q_parseColorString( const char *p, float *color, qboolean uagColours) {
+int Q_parseColorString( const char *p, float *color, colorTable_t cTable) {
 	char c;
+	const vec3_t *table;
 	if (!p )
 		return 0;
 	c = *p;
 	if (!c || c!= Q_COLOR_ESCAPE || (c== Q_COLOR_ESCAPE && !p[1]))
 		return 0;
-	return 1 + Q_parseColor( p+1, !(uagColours)?(defaultColors):(uagColors), color );
+	switch (cTable) {
+	default:
+	case CT_DEFAULT:
+		table = defaultColors;
+		break;
+	case CT_UAG:
+		table = uagColors;
+		break;
+	case CT_RPMOD:
+		table = rpmodColors;
+		break;
+	}
+	return 1 + Q_parseColor( p+1, table, color );
 }
 
 /*
@@ -1297,13 +1400,13 @@ const char *Q_stristr( const char *s, const char *find)
 }
 
 #if defined (UI_EXPORTS) || (QAGAME)
-static const qboolean uagColours = qfalse;
+static const colorTable_t cTable = qfalse;
 #else
 #endif
 int Q_PrintStrlen( const char *string
 #if defined (UI_EXPORTS) || (QAGAME)
 #else
-	, qboolean uagColours
+	, colorTable_t cTable
 #endif
 	) {
 	int			len;
@@ -1316,7 +1419,7 @@ int Q_PrintStrlen( const char *string
 	len = 0;
 	p = string;
 	while( *p ) {
-		int colorLen = Q_parseColorString( p, 0, uagColours);
+		int colorLen = Q_parseColorString( p, 0, cTable);
 		if( colorLen ) {
 			p += colorLen;
 			continue;
@@ -1332,7 +1435,7 @@ int Q_PrintStrlen( const char *string
 char *Q_CleanStr( char *string
 #if defined (UI_EXPORTS) || (QAGAME)
 #else
-	, qboolean uagColours
+	, colorTable_t cTable
 #endif
 	) {
 	char*	d;
@@ -1342,7 +1445,7 @@ char *Q_CleanStr( char *string
 	s = string;
 	d = string;
 	while ((c = *s) != 0 ) {
-		int colorLen = Q_parseColorString( s, 0, uagColours);
+		int colorLen = Q_parseColorString( s, 0, cTable);
 		if ( colorLen ) {
 			s += colorLen;
 			continue;
@@ -1369,7 +1472,7 @@ Strips coloured strings in-place using multiple passes: "fgs^^56fds" -> "fgs^6fd
 void Q_StripColor(char *text
 #if defined (UI_EXPORTS) || (QAGAME)
 #else
-	, qboolean uagColours
+	, colorTable_t cTable
 #endif
 	) {
 	qboolean doPass = qtrue;
@@ -1382,7 +1485,7 @@ void Q_StripColor(char *text
 		read = write = text;
 		while ( *read )
 		{
-			int colorLen = Q_parseColorString( read, 0, uagColours);
+			int colorLen = Q_parseColorString( read, 0, cTable);
 			if( colorLen ) {
 				doPass = qtrue;
 				read += colorLen;
@@ -1416,7 +1519,7 @@ Strips coloured strings in-place: "fgs^^^223fds" -> "fgs^^23fds"
 void Q_StripColorNew(char *text
 #if defined (UI_EXPORTS) || (QAGAME)
 #else
-	, qboolean uagColours
+	, colorTable_t cTable
 #endif
 	) {
 	char *read;
@@ -1424,7 +1527,7 @@ void Q_StripColorNew(char *text
 
 	read = write = text;
 	while ( *read ) {
-		int colorLen = Q_parseColorString( read, 0, uagColours);
+		int colorLen = Q_parseColorString( read, 0, cTable);
 		if( colorLen ) {
 			read += colorLen;
 		} else {

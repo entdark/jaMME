@@ -1378,7 +1378,7 @@ void RE_Shutdown( qboolean destroyWindow ) {
 
 	tr.registered = qfalse;
 
-	tr.uag.newColors = qfalse;
+	tr.cTable = CT_DEFAULT;
 }
 
 /*
@@ -1424,8 +1424,8 @@ static void R_DemoRandomSeed(int time, float timeFraction) {
 	srand(time + timeFraction);
 }
 
-static void R_NewUAGColors(qboolean newUAGColors) {
-	tr.uag.newColors = newUAGColors;
+static void R_ExtendedColors(colorTable_t cTable) {
+	tr.cTable = cTable;
 }
 
 static void SetRangedFog( float range ) { tr.rangedFog = range; }
@@ -1672,7 +1672,7 @@ Q_EXPORT refexport_t* QDECL GetRefAPI( int apiVersion, refimport_t *rimp ) {
 	re.TimeFraction = R_MME_TimeFraction;
 	
 	re.DemoRandomSeed = R_DemoRandomSeed;
-	re.NewUAGColors = R_NewUAGColors;
+	re.ExtendedColors = R_ExtendedColors;
 
 	re.FontRatioFix = RE_FontRatioFix;
 	re.RotatePic2RatioFix = RE_RotatePic2RatioFix;

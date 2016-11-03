@@ -442,7 +442,7 @@ void CL_ConsolePrint(const char *txt) {
 	txt = CL_ConsolePrintTimeStamp(txt);
 	while ((c = (unsigned char)*txt) != 0) {
 		vec4_t newColor;
-		int colorLen = Q_parseColorString( txt, newColor, cls.uag.newColors );
+		int colorLen = Q_parseColorString( txt, newColor, cls.cTable );
 		if ( colorLen ) {
 			color = ((int)(newColor[0] * 0xff)) << 8 |
 					((int)(newColor[1] * 0xff)) << 16 |

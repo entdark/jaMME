@@ -498,7 +498,7 @@ void Conbuf_AppendText( const char *pMsg )
 	//
 	while ( msg[i] && ( ( b - buffer ) < sizeof( buffer ) - 1 ) )
 	{
-		int colorLen = Q_parseColorString( msg + i, 0, qfalse );
+		int colorLen = Q_parseColorString( msg + i, 0, CT_DEFAULT );
 		if ( colorLen ) 
 		{
 			i += colorLen;

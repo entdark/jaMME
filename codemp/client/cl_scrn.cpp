@@ -194,7 +194,7 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 	s = string;
 	xx = x;
 	while ( *s ) {
-		int colorLen = Q_parseColorString( s, 0, cls.uag.newColors );
+		int colorLen = Q_parseColorString( s, 0, cls.cTable );
 		if ( !noColorEscape && colorLen ) {
 			s += colorLen;
 			continue;
@@ -210,7 +210,7 @@ void SCR_DrawStringExt( int x, int y, float size, const char *string, float *set
 	xx = x;
 	re.SetColor( setColor );
 	while ( *s ) {
-		int colorLen = Q_parseColorString( s, color, cls.uag.newColors );
+		int colorLen = Q_parseColorString( s, color, cls.cTable );
 		if ( colorLen ) {
 			if ( !forceColor ) {
 				color[3] = setColor[3];
@@ -239,7 +239,7 @@ void SCR_DrawStringExt2( float x, float y, float charWidth, float charHeight, co
 	s = string;
 	xx = x;
 	while ( *s ) {
-		int colorLen = Q_parseColorString( s, 0, cls.uag.newColors );
+		int colorLen = Q_parseColorString( s, 0, cls.cTable );
 		if ( !noColorEscape && colorLen ) {
 			s += colorLen;
 			continue;
@@ -255,7 +255,7 @@ void SCR_DrawStringExt2( float x, float y, float charWidth, float charHeight, co
 	xx = x;
 	re.SetColor( setColor );
 	while ( *s ) {
-		int colorLen = Q_parseColorString( s, color, cls.uag.newColors );
+		int colorLen = Q_parseColorString( s, color, cls.cTable );
 		if ( colorLen ) {
 			if ( !forceColor ) {
 				color[3] = setColor[3];
@@ -307,7 +307,7 @@ void SCR_DrawSmallStringExt( int x, int y, const char *string, float *setColor, 
 	xx = x;
 	re.SetColor( setColor );
 	while ( *s ) {
-		int colorLen = Q_parseColorString( s, color, cls.uag.newColors );
+		int colorLen = Q_parseColorString( s, color, cls.cTable );
 		if ( colorLen ) {
 			if ( !forceColor ) {
 				color[3] = setColor[3];
@@ -335,7 +335,7 @@ static int SCR_Strlen( const char *str ) {
 	int count = 0;
 
 	while ( *s ) {
-		int colorLen = Q_parseColorString( s, 0, cls.uag.newColors);
+		int colorLen = Q_parseColorString( s, 0, cls.cTable);
 		if( colorLen ) {
 			s += colorLen;
 			continue;

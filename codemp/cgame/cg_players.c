@@ -1614,7 +1614,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	v = ConfigValue( strings, "n" );
 	Q_strncpyz( newInfo.name, v, sizeof( newInfo.name ) );
 	Q_strncpyz( newInfo.cleanname, v, sizeof( newInfo.cleanname ) );
-	Q_StripColor( newInfo.cleanname, cg.uag.newColors );
+	Q_StripColor( newInfo.cleanname, CG_SwitchColorTable() );
 
 	// colors
 	skipColor = qfalse;

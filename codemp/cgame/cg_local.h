@@ -1114,6 +1114,9 @@ Ghoul2 Insert End
 			int			teamEnergizes;
 		} stats[MAX_CLIENTS];
 	} enhanced;
+	struct {
+		qboolean		detected;
+	} rpmod;
 	
 	int					chargeTime;
 	qboolean			charging;
@@ -1865,6 +1868,7 @@ void CG_PrevForcePower_f(void);
 
 float CG_Cvar_Get(const char *cvar);
 
+colorTable_t CG_SwitchColorTable(void);
 //
 // cg_view.c
 //

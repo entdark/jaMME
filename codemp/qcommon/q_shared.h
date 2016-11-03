@@ -1398,6 +1398,12 @@ CT_HUD_ORANGE,
 CT_MAX
 } ct_table_t;
 
+typedef enum {
+	CT_DEFAULT,
+	CT_UAG,
+	CT_RPMOD
+} colorTable_t;
+
 extern vec4_t colorTable[CT_MAX];
 
 extern	vec4_t		colorBlack;
@@ -1415,7 +1421,7 @@ extern	vec4_t		colorLtBlue;
 extern	vec4_t		colorDkBlue;
 
 extern vec3_t defaultColors[10];
-extern int Q_parseColorString( const char *p, float *color, qboolean uagColours );
+extern int Q_parseColorString( const char *p, float *color, colorTable_t ctable );
 extern int Q_parseColor( const char *p, const vec3_t *numberColors, float *color );
 
 #define Q_COLOR_ESCAPE	'^'
@@ -1768,9 +1774,9 @@ const char *Q_stristr( const char *s, const char *find);
 extern int Q_PrintStrlen( const char *string
 #if defined (UI_EXPORTS) || (QAGAME)
 #elif defined (CGAME)
-	, qboolean uagColours
+	, colorTable_t ctable
 #else
-	, qboolean uagColours = qfalse
+	, colorTable_t ctable = CT_DEFAULT
 #endif
 );
 
@@ -1778,25 +1784,25 @@ extern int Q_PrintStrlen( const char *string
 extern char *Q_CleanStr( char *string
 #if defined (UI_EXPORTS) || (QAGAME)
 #elif defined (CGAME)
-	, qboolean uagColours
+	, colorTable_t ctable
 #else
-	, qboolean uagColours = qfalse
+	, colorTable_t ctable = CT_DEFAULT
 #endif
 );
 extern void Q_StripColor(char *text
 #if defined (UI_EXPORTS) || (QAGAME)
 #elif defined (CGAME)
-	, qboolean uagColours
+	, colorTable_t ctable
 #else
-	, qboolean uagColours = qfalse
+	, colorTable_t ctable = CT_DEFAULT
 #endif
 );
 extern void Q_StripColorNew(char *text
 #if defined (UI_EXPORTS) || (QAGAME)
 #elif defined (CGAME)
-	, qboolean uagColours
+	, colorTable_t ctable
 #else
-	, qboolean uagColours = qfalse
+	, colorTable_t ctable = CT_DEFAULT
 #endif
 );
 void Q_strstrip( char *string, const char *strip, const char *repl );

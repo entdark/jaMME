@@ -1779,9 +1779,9 @@ Ghoul2 Insert End
 	case CG_MME_TIMEFRACTION:
 		re.TimeFraction(VMF(1));
 		return 0;
-	case CG_MME_NEWUAGCOLORS:
-		cls.uag.newColors = (qboolean)args[1];
-		re.NewUAGColors(cls.uag.newColors);
+	case CG_MME_EXTENDEDCOLORS:
+		cls.cTable = (colorTable_t)args[1];
+		re.ExtendedColors(cls.cTable);
         return 0; 	
 	case CG_MME_FONTRATIOFIX:
 		re.FontRatioFix(VMF(1));

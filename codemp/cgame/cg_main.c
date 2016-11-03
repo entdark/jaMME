@@ -634,15 +634,27 @@ static void CG_Set2DRatio(void) {
 		trap_MME_FontRatioFix(cgs.widthRatioCoef);
 }
 
-extern void trap_MME_NewUAGColors( qboolean newUAGColors );
-static void CG_SetNewUAGColours(void) {
+colorTable_t CG_SwitchColorTable(void) {
+	colorTable_t cTable;
+	if (cg.rpmod.detected) {
+		cTable = CT_RPMOD;
+	} else if (cg.uag.newColors) {
+		cTable = CT_UAG;
+	} else {
+		cTable = CT_DEFAULT;
+	}
+	return cTable;
+}
+
+extern void trap_MME_ExtendedColors( colorTable_t cTable );
+void CG_SetExtendedColours(void) {
 	if (cg_UAGColours.integer == 2)
 		cg.uag.newColors = qtrue;
 	else if (cg_UAGColours.integer)
 		cg.uag.newColors = cg.uag.detected;
 	else
 		cg.uag.newColors = qfalse;
-	trap_MME_NewUAGColors(cg.uag.newColors);
+	trap_MME_ExtendedColors(CG_SwitchColorTable());
 }
 
 static void CG_SetMovementKeysPos( void ) {
@@ -3098,7 +3110,7 @@ Ghoul2 Insert End
 
 	CG_ParseServerinfo();
 
-	CG_SetNewUAGColours();
+	CG_SetExtendedColours();
 
 	// load the new map
 //	CG_LoadingString( "collision map" );

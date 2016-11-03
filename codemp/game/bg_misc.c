@@ -17,6 +17,7 @@
 #ifndef UI_EXPORTS
 #ifndef QAGAME
 #include "../cgame/cg_local.h"
+qboolean rpmodDetected = qfalse;
 #endif
 #endif
 

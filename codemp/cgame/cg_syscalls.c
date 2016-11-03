@@ -1266,8 +1266,8 @@ void trap_MME_Music( const char *musicName, float time, float length ) {
 void trap_MME_TimeFraction( float timeFraction ) {
 	Q_syscall( CG_MME_TIMEFRACTION, PASSFLOAT(timeFraction) );
 }
-void trap_MME_NewUAGColors( qboolean newUAGColors ) {
-	Q_syscall( CG_MME_NEWUAGCOLORS, newUAGColors );
+void trap_MME_ExtendedColors( colorTable_t cTable ) {
+	Q_syscall( CG_MME_EXTENDEDCOLORS, (int)cTable );
 }
 void trap_MME_FontRatioFix( float ratio ) {
 	Q_syscall( CG_MME_FONTRATIOFIX, PASSFLOAT(ratio) );

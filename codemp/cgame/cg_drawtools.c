@@ -254,7 +254,7 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 			s = string;
 			xx = x;
 			while ( *s ) {
-				int colorLen = Q_parseColorString( s, 0, cg.uag.newColors );
+				int colorLen = Q_parseColorString( s, 0, CG_SwitchColorTable() );
 				if ( colorLen ) {
 					s += colorLen;
 					continue;
@@ -270,7 +270,7 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 		xx = x;
 		trap_R_SetColor( setColor );
 		while ( *s ) {
-			int colorLen = Q_parseColorString( s, color, cg.uag.newColors );
+			int colorLen = Q_parseColorString( s, color, CG_SwitchColorTable() );
 			if ( colorLen ) {
 				s += colorLen;
 				color[3] = setColor[3];
@@ -321,7 +321,7 @@ int CG_DrawStrlen( const char *str ) {
 	int count = 0;
 
 	while ( *s ) {
-		int colorLen = Q_parseColorString( s, 0, cg.uag.newColors);
+		int colorLen = Q_parseColorString( s, 0, CG_SwitchColorTable() );
 		if( colorLen ) {
 			s += colorLen;
 			continue;

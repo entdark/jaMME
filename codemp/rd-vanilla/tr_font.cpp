@@ -1344,11 +1344,14 @@ int RE_Font_StrLenPixels(const char *psText, const int iFontHandle, const float 
 		unsigned int uiLetter = AnyLanguage_ReadCharFromString( psText, &iAdvanceCount, NULL );
 		psText += iAdvanceCount;
 		if (uiLetter == '^' ) {
-			if (*psText >= '0' && *psText <= '9') {
-				uiLetter = AnyLanguage_ReadCharFromString( psText, &iAdvanceCount, NULL );
-				psText += iAdvanceCount;
+			psText -= iAdvanceCount; //that is necessary because Q_parseColorString works with strings that start with ^
+			int colorLen = Q_parseColorString(psText, NULL, tr.cTable);
+			if (colorLen) {
+				colorLen *= iAdvanceCount;
+				psText += colorLen;
 				continue;
 			}
+			psText += iAdvanceCount;
 		}
 		if (uiLetter == 0x0A) {
 			iThisWidth = 0.0f;
@@ -1420,7 +1423,6 @@ void RE_Font_DrawString(float ox, float oy, const char *psText, const float *rgb
 {
 	static qboolean gbInShadow = qfalse;	// MUST default to this
 	float				x, y, offset;
-	int					colour;
 	const glyphInfo_t	*pLetter;
 	qhandle_t			hShader;
 
@@ -1540,9 +1542,9 @@ void RE_Font_DrawString(float ox, float oy, const char *psText, const float *rgb
 			// else drop through and display as normal...
 		case '^':
 			if (uiLetter != '_') {	// necessary because of fallthrough above
-				psText--; //that is necessary because Q_parseColorString works with strings that start with ^
 				vec4_t color;
-				int colorLen = Q_parseColorString( psText, color, tr.uag.newColors);
+				psText--; //that is necessary because Q_parseColorString works with strings that start with ^
+				int colorLen = Q_parseColorString( psText, color, tr.cTable);
 				if ( colorLen ) {
 					psText += colorLen;
 					if ( !gbInShadow ) {

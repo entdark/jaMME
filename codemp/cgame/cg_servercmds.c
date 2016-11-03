@@ -258,6 +258,10 @@ void CG_ParseServerinfo( void ) {
 				cg.enhanced.flags |= BASE_ENHANCED_ALL_REWARDS;
 			}
 		}
+	} else if (!Q_stricmpn(gamename, "RPMod", 5)) {
+		cg.rpmod.detected = qtrue;
+		rpmodDetected = qtrue;
+		CG_Printf("RPMod");
 	} else if (!Q_stricmpn(gamename, "MakerMod", 8)) {
 		CG_Printf("MakerMod");
 	} else if (!Q_stricmpn(gamename, "Lugormod", 8)) {

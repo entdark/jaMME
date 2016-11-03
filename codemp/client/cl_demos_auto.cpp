@@ -25,9 +25,9 @@ char *demoAutoFormat(const char* name) {
 	Q_strncpyz(playerName, COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_PLAYERS+cl.snap.ps.clientNum]), "n")), sizeof(playerName));
 	Q_strncpyz(serverName, COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO]), "sv_hostname")), sizeof(serverName));
 	Q_strncpyz(mapName, COM_SkipPath(Info_ValueForKey((cl.gameState.stringData + cl.gameState.stringOffsets[CS_SERVERINFO]), "mapname")), sizeof(mapName));
-	Q_StripColor(playerName, cls.uag.newColors);
-	Q_StripColor(serverName, cls.uag.newColors);
-	Q_StripColor(mapName, cls.uag.newColors);
+	Q_StripColor(playerName, cls.cTable);
+	Q_StripColor(serverName, cls.cTable);
+	Q_StripColor(mapName, cls.cTable);
 	Com_RealTime(&ct);
 	
 	format = cl_autoDemoFormat->string;
