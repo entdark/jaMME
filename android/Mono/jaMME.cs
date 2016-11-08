@@ -41,7 +41,7 @@ namespace android {
 	)]
 	public class jaMME : Activity {
 		public static IntPtr jaMMEHandle = JNIEnv.FindClass("com/jamme/jaMME");
-		public static Context context = null;
+		public static Context Context = null;
 
 		private Vibrator vibrator;
 		private float density = 1.0f;
@@ -103,7 +103,7 @@ namespace android {
 		}
 		[Export]
 		public static Android.Content.Context getContext() {
-			return jaMME.context;
+			return jaMME.Context;
 		}
 		protected static Javax.Microedition.Khronos.Egl.EGLDisplay mEGLDisplay;
 		protected static Javax.Microedition.Khronos.Egl.EGLSurface mEGLSurface;
@@ -402,6 +402,7 @@ namespace android {
 		}
 
 		private void InitVariables() {
+			jaMME.NullJavaObject(this._longPressed);
 			this._longPressed = new Java.Lang.Runnable(() => {
 				if (this.twoPointers) {
 					jaMME.quickCommand("screenshot");
@@ -431,6 +432,7 @@ namespace android {
 				}
 				this.longPress = true;
 			});
+			jaMME.NullJavaObject(this._loadingMessage);
 			this._loadingMessage = new Java.Lang.Runnable(() => {
 				this.loadingMsg = jaMME.getLoadingMsg();
 				this.RunOnUiThread(() => {
@@ -448,13 +450,15 @@ namespace android {
 				});
 				this._handler.PostDelayed(this._loadingMessage, LOADING_MESSAGE_UPDATE_TIME);
 			});
+			jaMME.NullJavaObject(this.renderer);
 			this.renderer = new jaMMERenderer(this);
 		}
 
 		protected override void OnCreate(Bundle savedInstanceState) {
 			base.OnCreate(savedInstanceState);
 
-			jaMME.context = this.ApplicationContext;
+			jaMME.NullJavaObject(jaMME.Context);
+			jaMME.Context = this.ApplicationContext;
 
 			JavaSystem.LoadLibrary("SDL2");
 			JavaSystem.LoadLibrary("jamme");
@@ -467,6 +471,7 @@ namespace android {
 			this.Window.SetFlags(WindowManagerFlags.Fullscreen, WindowManagerFlags.Fullscreen);
 			// keep screen on 
 			this.Window.SetFlags(WindowManagerFlags.KeepScreenOn, WindowManagerFlags.KeepScreenOn);
+			jaMME.NullJavaObject(this.view);
 			this.view = new jaMMEView(this);
 			this.view.SetEGLConfigChooser(new BestEglChooser(this.ApplicationContext));
 			this.view.SetRenderer(this.renderer);
@@ -532,6 +537,7 @@ namespace android {
 		protected override void OnDestroy() {
 			Log.Info("jaMME", "OnDestroy");
 			base.OnDestroy();
+			jaMME.NullJavaObject(jaMME.Context);
 			this.stopService();
 			jaMME.GameRunning = false;
 			if (!gameReady) {
@@ -544,8 +550,6 @@ namespace android {
 				this.flags = jaMME.frame();
 			} while ((flags & DEMO_PLAYBACK) != 0);
 
-			jaMME.nativeQuit();
-
 			//if user closed the application from OS side on the demo playback after opening them externally
 			if (gamePath != null && demoName != null) {
 				int i = 0;
@@ -553,23 +557,34 @@ namespace android {
 					string demosFolder = gamePath + "/base/demos/";
 					if (demoName.Contains(".mme"))
 						demosFolder = gamePath + "/base/mmedemos/";
-					var demo = new Java.IO.File(demosFolder + demoName + demoExtList[i]);
-					Log.Info("jaMME", "OnDestroy: removing " + demo.ToString());
-					if (demo.Exists()) {
-						Log.Info("jaMME", "OnDestroy: removed");
-						demo.Delete();
+					using (var demo = new File(demosFolder + demoName + demoExtList[i])) {
+						Log.Info("jaMME", "OnDestroy: removing " + demo.ToString());
+						if (demo.Exists()) {
+							Log.Info("jaMME", "OnDestroy: removed");
+							demo.Delete();
+						}
+						i++;
 					}
-					i++;
 				}
 			}
-			System.Environment.Exit(0);
+
+			jaMME.nativeQuit();
 		}
 		private void stopService() {
 			if (this.service != null) {
-				jaMME.KillService = true;
-				bool result = this.StopService(this.service);
+				if (!isServiceRunning(typeof(jaMMEService))) {
+					jaMME.KillService = false;
+					jaMME.ServiceRunning = false;
+				} else {
+					jaMME.KillService = true;
+//					bool result = this.StopService(this.service);
+				}
 				this.service.Dispose();
 				this.service = null;
+			} else {
+				if (isServiceRunning(typeof(jaMMEService))) {
+					jaMME.KillService = true;
+				}
 			}
 		}
 		//gay way, but fastest
@@ -590,7 +605,9 @@ namespace android {
 				var from = new File(demo);
 				var to = new File(demosFolder + "_" + demoExtList[i]);
 				while (to.Exists()) {
-					to = new File(demosFolder + "_" + to.Name);
+					string name = string.Copy(to.Name);
+					to.Dispose();
+					to = new File(demosFolder + "_" + name);
 				}
 
 				copyFile(from, to);
@@ -600,6 +617,8 @@ namespace android {
 					demoName = demoName.Substring(0, pos);
 				}
 				gameArgs = "+demo \"" + demoName + "\" del";
+				to.Dispose();
+				from.Dispose();
 				return true;
 			}
 			return false;
@@ -638,9 +657,11 @@ namespace android {
 			} finally {
 				if (source != null) {
 					source.Close();
+					source.Dispose();
 				}
 				if (destination != null) {
 					destination.Close();
+					destination.Dispose();
 				}
 			}
 		}
@@ -653,10 +674,12 @@ namespace android {
 /* LAYOUT */
 			Drawable bg = Resources.GetDrawable(Resource.Drawable.jamme);
 			bg.SetAlpha(0x17);
+			jaMME.NullJavaObject(layout);
 			layout = new RelativeLayout(this);
 			layout.SetBackgroundColor(Color.Argb(0xFF, 0x13, 0x13, 0x13));
 			layout.Background = bg;
 /* ARGS */
+			jaMME.NullJavaObject(args);
 			args = new EditText(context);
 			args.SetMaxLines(1);
 			args.InputType = (InputTypes.ClassText | InputTypes.TextVariationShortMessage);
@@ -675,6 +698,7 @@ namespace android {
 			argsParams.AddRule(LayoutRules.CenterHorizontal);
 			argsParams.AddRule(LayoutRules.CenterVertical);
 /* START */
+			jaMME.NullJavaObject(startGame);
 			startGame = new Button(context);
 			startGame.Background = Resources.GetDrawable(Resource.Drawable.jamme_btn);
 			startGame.Click += (object sender, EventArgs e) => {
@@ -700,13 +724,15 @@ namespace android {
 					removeView(layout);
 					gameReady = true;
 				} else {
-					AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
-					alertDialogBuilder.SetTitle("Missing assets[0-3].pk3");
-					alertDialogBuilder
-						.SetMessage("Select base folder where assets[0-3].pk3 are placed in")
-						.SetNeutralButton("Ok", (se, ev) => {});
-					AlertDialog alertDialog = alertDialogBuilder.Create();
-					alertDialog.Show();
+					using (var alertDialogBuilder = new AlertDialog.Builder(context)) {
+						alertDialogBuilder.SetTitle("Missing assets[0-3].pk3");
+						alertDialogBuilder
+							.SetMessage("Select base folder where assets[0-3].pk3 are placed in")
+							.SetNeutralButton("Ok", (se, ev) => { });
+						using (var alertDialog = alertDialogBuilder.Create()) {
+							alertDialog.Show();
+						}
+					}
 				}
 			};
 			startGame.Text = "Start";
@@ -718,6 +744,7 @@ namespace android {
 			startParams.AddRule(LayoutRules.CenterHorizontal);
 			startParams.SetMargins(0, (int)(3.5f* d), 0, 0);
 /* BASE DIRECTORY EDITABLE */
+			jaMME.NullJavaObject(baseDirET);
 			baseDirET = new EditText(context);
 			baseDirET.SetMaxLines(1);
 			baseDirET.InputType = (InputTypes.ClassText | InputTypes.TextVariationShortMessage);
@@ -737,6 +764,7 @@ namespace android {
 			baseDirETParams.AddRule(LayoutRules.CenterVertical);
 			baseDirETParams.SetMargins(0, 0, 0, (int)(3.5f* d));
 /* BASE DIRECTORY */
+			jaMME.NullJavaObject(baseDir);
 			baseDir = new Button(context);
 			baseDir.Background = Resources.GetDrawable(Resource.Drawable.jamme_btn);
 			baseDir.Click += (object sender, EventArgs e) => {
@@ -756,6 +784,7 @@ namespace android {
 			baseDirParams.AddRule(LayoutRules.CenterHorizontal);
 			baseDirParams.SetMargins(0, 0, 0, (int)(3.5f* d));
 /* LOGGING */
+			jaMME.NullJavaObject(logSave);
 			logSave = new CheckBox(context);
 			logSave.Checked = saveLog;
 			logSave.SetButtonDrawable(Resources.GetDrawable(Resource.Drawable.jamme_checkbox));
@@ -798,9 +827,10 @@ namespace android {
 			if (!TextUtils.IsEmpty(value)) {
 				string[] paths = value.Split(new char[] {':'});
 				foreach (string path in paths) {
-					var file = new File(path);
-					if (file.IsDirectory) {
-						return file.ToString();
+					using (var file = new File(path)) {
+						if (file.IsDirectory) {
+							return file.ToString();
+						}
 					}
 				}
 			}
@@ -817,47 +847,52 @@ namespace android {
 				dirs.Add(baseRoot);
 			}
 			foreach (var d in dirs) {
-				var dir = new File(d + "/base");
-				if (dir.Exists() && dir.IsDirectory) {
-					for (int i = 0; i < 3; i++) {
-						var assets = new File(d + "/base/assets" + i + ".pk3");
-						if (!assets.Exists()) {
-							return false;
+				using (var dir = new File(d + "/base")) {
+					if (dir.Exists() && dir.IsDirectory) {
+						for (int i = 0; i < 3; i++) {
+							using (var assets = new File(d + "/base/assets" + i + ".pk3")) {
+								if (!assets.Exists()) {
+									return false;
+								}
+							}
 						}
+						gamePath = d;
+						return true;
 					}
-					gamePath = d;
-					return true;
 				}
 			}
 			return false;
 		}
 		private string[] loadParameters() {
 			string [] ret = { "",""};
-			var f = new File(this.FilesDir.ToString() + "/parameters");
-			if (f.Exists()) {
-				long length = f.Length();
-				byte[] buffer = new byte[length];
-				var input = new FileInputStream(f);
-				try {
-					input.Read(buffer);
-				} finally {
-					input.Close();
+			using (var f = new File(this.FilesDir.ToString() + "/parameters")) {
+				if (f.Exists()) {
+					long length = f.Length();
+					byte[] buffer = new byte[length];
+					var input = new FileInputStream(f);
+					try {
+						input.Read(buffer);
+					} finally {
+						input.Close();
+						input.Dispose();
+					}
+					string s = System.Text.Encoding.Default.GetString(buffer);
+					ret = s.Split(new string[] { "\n\n\n\n\n" }, StringSplitOptions.None);
 				}
-				string s = System.Text.Encoding.Default.GetString(buffer);
-				ret = s.Split(new string[] {"\n\n\n\n\n"}, StringSplitOptions.None);
+				return ret;
 			}
-			return ret;
 		}
 		private void saveParameters(string[] parameters) {
-			var f = new File(this.FilesDir.ToString() + "/parameters");
-			var stream = new FileOutputStream(f);
-			try {
-				foreach (string p in parameters) {
-					string s = p+"\n\n\n\n\n";
-					stream.Write(System.Text.Encoding.ASCII.GetBytes(s));
+			using (var f = new File(this.FilesDir.ToString() + "/parameters"))
+			using (var stream = new FileOutputStream(f)) {
+				try {
+					foreach (string p in parameters) {
+						string s = p + "\n\n\n\n\n";
+						stream.Write(System.Text.Encoding.ASCII.GetBytes(s));
+					}
+				} finally {
+					stream.Close();
 				}
-			} finally {
-				stream.Close();
 			}
 		}
 		private bool ignoreAfter = false;
@@ -1026,11 +1061,12 @@ namespace android {
 			}
 			public override IInputConnection OnCreateInputConnection(EditorInfo outAttrs) {
 				Log.Debug(LOG, "onCreateInputConnection");
-				var fic = new BaseInputConnection(this, true);
-				outAttrs.ActionLabel = null;
-				outAttrs.InputType = InputTypes.ClassText;
-				outAttrs.ImeOptions = (ImeFlags.NoExtractUi | ImeFlags.NoFullscreen);
-				return fic;
+				using (var fic = new BaseInputConnection(this, true)) {
+					outAttrs.ActionLabel = null;
+					outAttrs.InputType = InputTypes.ClassText;
+					outAttrs.ImeOptions = (ImeFlags.NoExtractUi | ImeFlags.NoFullscreen);
+					return fic;
+				}
 			}
 		}
 		private class jaMMETextWatcher : Java.Lang.Object, ITextWatcher {
@@ -1079,12 +1115,12 @@ namespace android {
 				}
 			}
 		}
-		public Handler _handler = new Handler();
+		private Handler _handler = new Handler();
 		ProgressDialog pd = null;
-		public string loadingMsg = "Loading...", lmLast = "Loading...";
-		public static int LOADING_MESSAGE_TIME = 2000;
-		public static int LOADING_MESSAGE_UPDATE_TIME = 1337;
-		public Java.Lang.Runnable _loadingMessage;
+		private string loadingMsg = "Loading...", lmLast = "Loading...";
+		private static int LOADING_MESSAGE_TIME = 2000;
+		private static int LOADING_MESSAGE_UPDATE_TIME = 1337;
+		private Java.Lang.Runnable _loadingMessage;
 		private bool logging = false;
 		private void saveLog() {
 			if (!logging)
@@ -1398,6 +1434,24 @@ namespace android {
 				this._handler.RemoveCallbacks(_longPressed);
 			}
 			return true;
+		}
+		private bool isServiceRunning(Type serviceClass) {
+			ActivityManager manager = (ActivityManager)GetSystemService(Context.ActivityService);
+			foreach (var service in manager.GetRunningServices(int.MaxValue)) {
+				if (serviceClass.Name.Equals(service.Service.ClassName)) {
+					Log.Debug("jaMME", "service " + serviceClass.Name + " has been already running");
+					return true;
+				}
+			}
+			Log.Debug("jaMME", "service " + serviceClass.Name + " is not yet started");
+			return false;
+		}
+
+		public static void NullJavaObject(Java.Lang.Object obj) {
+			if (obj != null) {
+				obj.Dispose();
+				obj = null;
+			}
 		}
 
 		private string[] createArgs(string appArgs) {

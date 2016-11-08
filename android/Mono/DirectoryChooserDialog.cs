@@ -36,11 +36,14 @@ namespace android {
 			m_sdcardDirectory = Android.OS.Environment.ExternalStorageDirectory.AbsolutePath;
 			m_chosenDirectoryListener = chosenDirectoryListener;
 
+			File sdcardDirectory = null;
 			try {
-				m_sdcardDirectory = new File(m_sdcardDirectory).CanonicalPath;
+				sdcardDirectory = new File(m_sdcardDirectory);
+				m_sdcardDirectory = sdcardDirectory.CanonicalPath;
 			} catch (IOException exception) {
 				exception.PrintStackTrace();
 			}
+			jaMME.NullJavaObject(sdcardDirectory);
 		}
 
 		///////////////////////////////////////////////////////////////////////
@@ -77,12 +80,15 @@ namespace android {
 				// Navigate into the sub-directory
 				this.dirChooser.m_dir += "/" + ((AlertDialog)dialog).ListView.Adapter.GetItem(item);
 
+				File dir = null;
 				try {
-					this.dirChooser.m_dir =  new File(this.dirChooser.m_dir).CanonicalPath;
+					dir = new File(this.dirChooser.m_dir);
+					this.dirChooser.m_dir = dir.CanonicalPath;
 				} catch (IOException exception) {
 					// TODO Auto-generated catch block
 					exception.PrintStackTrace();
 				}
+				jaMME.NullJavaObject(dir);
 
 				this.dirChooser.updateDirectory();
 			}
@@ -93,83 +99,87 @@ namespace android {
 		////////////////////////////////////////////////////////////////////////////////
 
 		public void chooseDirectory(string dir) {
-			File dirFile = new File(dir);
+			using (var dirFile = new File(dir)) {
+				Log.Debug("dir", "dir = " + dir);
 
-			Log.Debug("dir", "dir = " + dir);
-
-			if (!dirFile.Exists() || !dirFile.IsDirectory) {
-				dir = m_sdcardDirectory;
-			}
-
-			try {
-				dir = new File(dir).CanonicalPath;
-			} catch (IOException ioe) {
-				return;
-			}
-
-			m_dir = dir;
-
-			m_subdirs = getDirectories(dir);
-
-			AlertDialog.Builder dialogBuilder =
-				createDirectoryChooserDialog(dir, m_subdirs, new DirectoryOnClickListener(this));
-			dialogBuilder.SetPositiveButton("OK", (sender, ev) => {
-				// Current directory chosen
-				if (m_chosenDirectoryListener != null) {
-					// Call registered listener supplied with the chosen directory
-					m_chosenDirectoryListener.onChosenDir(m_dir);
+				if (!dirFile.Exists() || !dirFile.IsDirectory) {
+					dir = m_sdcardDirectory;
 				}
-			}).SetNegativeButton("Cancel", (sender, ev) => { });
-			AlertDialog dirsDialog = dialogBuilder.Create();
-			Button b = dirsDialog.GetButton((int)DialogButtonType.Negative);
-			if (b != null) {
-				b.Background = m_context.Resources.GetDrawable(Resource.Drawable.jamme_btn, m_context.Theme);
-			}
-			b = dirsDialog.GetButton((int)DialogButtonType.Neutral);
-			if (b != null) {
-				b.Background = m_context.Resources.GetDrawable(Resource.Drawable.jamme_btn, m_context.Theme);
-			}
-			b = dirsDialog.GetButton((int)DialogButtonType.Positive);
-			if (b != null) {
-				b.Background = m_context.Resources.GetDrawable(Resource.Drawable.jamme_btn, m_context.Theme);
-			}
-			dirsDialog.KeyPress += (sender, ev) => {
-				if (ev.KeyCode == Keycode.Back && ev.Event.Action == KeyEventActions.Down) {
-					// Back button pressed
-					if (m_dir.Equals("/")) {
-						// The very top level directory, do nothing
-						ev.Handled = false;
-						return;
-					} else {
-						// Navigate back to an upper directory
-						m_dir = new File(m_dir).Parent;
-						this.updateDirectory();
+
+				try {
+					dir = new File(dir).CanonicalPath;
+				} catch (IOException ioe) {
+					return;
+				}
+
+				m_dir = dir;
+
+				m_subdirs = getDirectories(dir);
+
+				using (var dialogBuilder = createDirectoryChooserDialog(dir, m_subdirs, new DirectoryOnClickListener(this))) {
+					dialogBuilder.SetPositiveButton("OK", (sender, ev) => {
+						// Current directory chosen
+						if (m_chosenDirectoryListener != null) {
+							// Call registered listener supplied with the chosen directory
+							m_chosenDirectoryListener.onChosenDir(m_dir);
+						}
+					}).SetNegativeButton("Cancel", (sender, ev) => { });
+					using (var dirsDialog = dialogBuilder.Create()) {
+						Button b = dirsDialog.GetButton((int)DialogButtonType.Negative);
+						if (b != null) {
+							b.Background = m_context.Resources.GetDrawable(Resource.Drawable.jamme_btn, m_context.Theme);
+						}
+						b = dirsDialog.GetButton((int)DialogButtonType.Neutral);
+						if (b != null) {
+							b.Background = m_context.Resources.GetDrawable(Resource.Drawable.jamme_btn, m_context.Theme);
+						}
+						b = dirsDialog.GetButton((int)DialogButtonType.Positive);
+						if (b != null) {
+							b.Background = m_context.Resources.GetDrawable(Resource.Drawable.jamme_btn, m_context.Theme);
+						}
+						dirsDialog.KeyPress += (sender, ev) => {
+							if (ev.KeyCode == Keycode.Back && ev.Event.Action == KeyEventActions.Down) {
+								// Back button pressed
+								if (m_dir.Equals("/")) {
+									// The very top level directory, do nothing
+									ev.Handled = false;
+									return;
+								} else {
+									// Navigate back to an upper directory
+									m_dir = new File(m_dir).Parent;
+									this.updateDirectory();
+								}
+								ev.Handled = true;
+								return;
+							} else {
+								ev.Handled = false;
+								return;
+							}
+						};
+						// Show directory chooser dialog
+						dirsDialog.Show();
 					}
-					ev.Handled = true;
-					return;
-				} else {
-					ev.Handled = false;
-					return;
 				}
-			};
-			// Show directory chooser dialog
-			dirsDialog.Show();
+			}
 		}
 		private bool createSubDir(string newDir) {
-			File newDirFile = new File(newDir);
-			if (!newDirFile.Exists()) {
-				return newDirFile.Mkdir();
+			using (File newDirFile = new File(newDir)) {
+				if (!newDirFile.Exists()) {
+					return newDirFile.Mkdir();
+				}
+				return false;
 			}
-			return false;
 		}
 		private List<string> getDirectories(string dir) {
 			var dirs = new List<string>();
 
 			dirs.Add("..");
 
+			File dirFile = null;
 			try {
-				File dirFile = new File(dir);
+				dirFile = new File(dir);
 				if (!dirFile.Exists() || !dirFile.IsDirectory) {
+					dirFile.Dispose();
 					return dirs;
 				}
 
@@ -181,6 +191,7 @@ namespace android {
 			} catch (Java.Lang.Exception exception) {
 				exception.PrintStackTrace();
 			}
+			jaMME.NullJavaObject(dirFile);
 
 			dirs.Sort(delegate (string o1, string o2) {
 				return o1.CompareTo(o2);
