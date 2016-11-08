@@ -1347,7 +1347,6 @@ int RE_Font_StrLenPixels(const char *psText, const int iFontHandle, const float 
 			psText -= iAdvanceCount; //that is necessary because Q_parseColorString works with strings that start with ^
 			int colorLen = Q_parseColorString(psText, NULL, tr.cTable);
 			if (colorLen) {
-				colorLen *= iAdvanceCount;
 				psText += colorLen;
 				continue;
 			}
