@@ -3016,6 +3016,7 @@ FS_Startup
 */
 void FS_Startup( const char *gameName ) {
 	const char *homePath;
+	char fs_gamedirLast[MAX_OSPATH];
 
 	Com_Printf( "----- FS_Startup -----\n" );
 
@@ -3078,6 +3079,10 @@ void FS_Startup( const char *gameName ) {
 		}
 	}
 
+	//if we don't have the mod folder (fs_game), but have the extra mods folders (fs_extraGames),
+	//then the last one from the extra mods folders will be treated as the mod folder,
+	//so we have to store the last game directory and readd it later
+	Q_strncpyz(fs_gamedirLast, fs_gamedir, sizeof(fs_gamedirLast));
 	/* Read the fs_extragames after the base */
 	if ( fs_extragamedirs->string[0] ) {
 		int i;
@@ -3107,6 +3112,9 @@ void FS_Startup( const char *gameName ) {
 		if (fs_homepath->string[0] && !Sys_PathCmp(fs_homepath->string, fs_basepath->string)) {
 			FS_AddGameDirectory(fs_homepath->string, fs_gamedirvar->string);
 		}
+	//readd the last game directory
+	} else {
+		Q_strncpyz(fs_gamedir, fs_gamedirLast, sizeof(fs_gamedir));
 	}
 
 	// add our commands
