@@ -592,7 +592,6 @@ void G2_TransformModel(CGhoul2Info_v *ghoul2, const int frameNum, vec3_t scale, 
 		}
 		//this is so fucking gay, but if we don't init mBoneCache then it crashes afterward
 		if (!g.mBoneCache) {
-			assert(g.mBoneCache);
 			G2_TransformGhoulBones(g.mBlist, identityMatrix, g, G2API_GetTime(tr.refdef.time));
 		}
 //		assert(G2_MODEL_OK(&g));
