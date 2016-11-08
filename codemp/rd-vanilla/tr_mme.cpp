@@ -660,7 +660,13 @@ void R_MME_Init(void) {
 	mme_saveStencil = ri.Cvar_Get ( "mme_saveStencil", "0", CVAR_INTERNAL);//CVAR_ARCHIVE ); //need to rewrite tr_backend.cpp :s
 	mme_saveDepth = ri.Cvar_Get ( "mme_saveDepth", "0", CVAR_ARCHIVE );
 	mme_saveShot = ri.Cvar_Get ( "mme_saveShot", "1", CVAR_ARCHIVE );
-	mme_workMegs = ri.Cvar_Get ( "mme_workMegs", "128", CVAR_LATCH | CVAR_ARCHIVE );
+	mme_workMegs = ri.Cvar_Get ( "mme_workMegs",
+#ifdef __ANDROID__
+		"32",
+#else
+		"128",
+#endif
+		CVAR_LATCH | CVAR_ARCHIVE );
 
 	mme_worldShader->modified = qtrue;
 

@@ -8,7 +8,11 @@
 
 static	mixSound_t		*mixSounds[SFX_SOUNDS];
 
+#ifdef __ANDROID__
+#define DEF_COMSOUNDMEGS "16"
+#else
 #define DEF_COMSOUNDMEGS "32"
+#endif
 static  mixSound_t		*mixAllocSounds = 0;
 static  mixSound_t		mixEmptySound;
 
