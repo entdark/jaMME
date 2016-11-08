@@ -1,5 +1,5 @@
 using System;
-using System.Threading;
+using System.Threading.Tasks;
 
 using Android.App;
 using Android.Content;
@@ -15,17 +15,18 @@ namespace android {
 		public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId) {
 			//update the game with 20fps (1000 / 50)
 			jaMME.ServiceRunning = true;
-			new Thread(() => {
+			Task.Run(async () => {
 				while (true) {
-					Thread.Sleep(50);
-					if (jaMME.KillService) {
+					await Task.Delay(50);
+					if (jaMME.KillService || !jaMME.GameRunning) {
 						jaMME.KillService = false;
 						jaMME.ServiceRunning = false;
 						break;
 					}
 					int jammeFlags = jaMME.frame();
 				}
-			}).Start();
+				this.StopSelf();
+			});
 			return StartCommandResult.Sticky;
 		}
 		public override void OnDestroy() {
