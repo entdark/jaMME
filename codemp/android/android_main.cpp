@@ -381,7 +381,7 @@ void *Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ..
 			continue;
 		} else {
 			abi = androidAbi[i];
-			Com_sprintf(filename, sizeof(filename), "%s/lib%s" ARCH_STRING DLL_EXT, name);
+			Com_sprintf(filename, sizeof(filename), "lib%s" ARCH_STRING DLL_EXT, name);
 		}
 		if (!Sys_UnpackDLL(abi, filename)) {
 			i++;
