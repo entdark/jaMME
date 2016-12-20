@@ -14,7 +14,7 @@
 
 #define BLURMAX 256
 
-#define PIPE_COMMAND_DEFAULT "ffmpeg -f avi -i - -threads 0 -preset ultrafast -y -pix_fmt yuv444p -crf 23 %o.mp4 2> ffmpeglog.txt"
+#define PIPE_COMMAND_DEFAULT "ffmpeg -f avi -i - -threads 0 -preset ultrafast -y -pix_fmt yuv420p -crf 23 %o.mp4 2> ffmpeglog.txt"
 
 typedef struct mmePipeFile_s {
     char name[MAX_OSPATH];

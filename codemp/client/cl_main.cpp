@@ -2871,7 +2871,7 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("saveDemoLast", demoAutoSaveLast_f);
 
 	// MME cvars
-	mme_saveWav = Cvar_Get ("mme_saveWav", "1", CVAR_ARCHIVE );
+	mme_saveWav = Cvar_Get ("mme_saveWav", "2", CVAR_ARCHIVE );
 //	mme_anykeystopsdemo = Cvar_Get ("mme_anykeystopsdemo", "0", CVAR_ARCHIVE );
 //	mme_gameOverride = Cvar_Get ("mme_gameOverride", "", 0 );
 	mme_demoConvert = Cvar_Get ("mme_demoConvert", "1", CVAR_ARCHIVE );
