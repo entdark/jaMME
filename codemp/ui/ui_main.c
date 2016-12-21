@@ -4824,54 +4824,105 @@ static int UI_GetDemos(char *folder, char *demolist, int demolistSize, char *dem
 	return ret;
 }
 
+static char mod_folders[64][MAX_QPATH];
+
+static void UI_MakeModFolders(void) {
+	char game[MAX_CVAR_VALUE_STRING], extraGames[MAX_CVAR_VALUE_STRING];
+	int count = 0;
+
+	memset(mod_folders, 0, sizeof(mod_folders));
+
+	trap_Cvar_VariableStringBuffer("fs_game", game, sizeof(game));
+	if (!stricmp(game, "")) {
+	} else {
+		Com_sprintf(mod_folders[count++], MAX_QPATH, game);
+	}
+
+	trap_Cvar_VariableStringBuffer("fs_extraGames", extraGames, sizeof(extraGames));
+	//entTODO: very simple parser, prolly need to enhance it
+	if (Q_stricmp(extraGames, "")) {
+		char *extraGame = strtok(extraGames, " \t");
+		//no tokens but the whole string is a big token
+		if (extraGame == NULL) {
+			Com_sprintf(mod_folders[count++], MAX_QPATH, extraGame);
+		} else {
+			while (extraGame != NULL) {
+				if (*extraGame != '\0') {
+					int i = 0;
+					qboolean found = qfalse;
+					//what if we already have such a mod added?
+					while (mod_folders[i]) {
+						if (!Q_stricmp(mod_folders[i], extraGame)) {
+							found = qtrue;
+							break;
+						}
+						i++;
+						if (i >= 62)
+							break;
+					}
+					if (!found) {
+						Com_sprintf(mod_folders[count++], MAX_QPATH, extraGame);
+						//leave the last one with \0
+						if (count >= 62)
+							break;
+					}
+				}
+				extraGame = strtok(NULL, " \t");
+			}
+		}
+	}
+
+	Com_sprintf(mod_folders[count++], MAX_QPATH, "base");
+}
+
 static void UI_LoadDemos( void ) {
-	int d = 0;
+	int d = 0, e = 0;
 	char demolist[4096*20];
 	char demoExt[32];
 	char *demoname;
 	int i, len;
-	char game[32];
 	int bottom = 0, top = 0;
+
+	UI_MakeModFolders();
 
 	uiInfo.demoCount = 0;
 	while(demo_protocols[d]) {
-		trap_Cvar_VariableStringBuffer("fs_game",game,sizeof(game));
+		e = 0;
+		while (Q_stricmp(mod_folders[e], "")) {
+			Com_sprintf(demoExt, sizeof(demoExt), "dm_%d", demo_protocols[d]);
 
-		if (!strcmp(game, ""))
-			strcpy(game,"base");
+			//SMod - fix for specific jka mod, we go back and forth so we end up in desired folder
+			//(otherwise we would always end up in base/demos)
+			uiInfo.demoCount = UI_GetDemos( va("..\\%s\\demos%s",mod_folders[e],uiCurrentDemoFolder), demolist, sizeof( demolist ), demoExt, (d>0)?qtrue:qfalse );
 
-		Com_sprintf(demoExt, sizeof(demoExt), "dm_%d", demo_protocols[d]);
+			Com_sprintf(demoExt, sizeof(demoExt), ".dm_%d", demo_protocols[d]);
 
-		//SMod - fix for specific jka mod, we go back and forth so we end up in desired folder
-		//(otherwise we would always end up in base/demos)
-		uiInfo.demoCount = UI_GetDemos( va("..\\%s\\demos%s",game,uiCurrentDemoFolder), demolist, sizeof( demolist ), demoExt, (d>0)?qtrue:qfalse );
-
-		Com_sprintf(demoExt, sizeof(demoExt), ".dm_%d", demo_protocols[d]);
-
-		if (uiInfo.demoCount) 
-		{
-			if (uiInfo.demoCount > MAX_DEMOS){
-				Com_Printf("^1Too many demo files and folders found, can't show them all. (%i > %i)\n",uiInfo.demoCount,MAX_DEMOS);
-				uiInfo.demoCount = MAX_DEMOS;
-			}
-
-			top += uiInfo.demoCount;
-
-			demoname = demolist;
-			for ( i = top - 1; i >= bottom ; i-- ) 
+			if (uiInfo.demoCount) 
 			{
-				len = strlen( demoname );
+				if (uiInfo.demoCount > MAX_DEMOS){
+					Com_Printf("^1Too many demo files and folders found, can't show them all. (%i > %i)\n",uiInfo.demoCount,MAX_DEMOS);
+					uiInfo.demoCount = MAX_DEMOS;
+				}
 
-				if (!Q_stricmp(demoname + len - strlen(demoExt), demoExt))
-					demoname[len-strlen(demoExt)] = '\0';
+				top += uiInfo.demoCount;
 
-				//Q_strupr(demoname);
-				//uiInfo.demoList[i] = String_Alloc(demoname);
-				Com_sprintf(uiInfo.demoList[i], 2048, String_Alloc(demoname));
+				demoname = demolist;
+				for ( i = top - 1; i >= bottom ; i-- ) 
+				{
+					len = strlen( demoname );
+
+					if (!Q_stricmp(demoname + len - strlen(demoExt), demoExt))
+						demoname[len-strlen(demoExt)] = '\0';
+
+					//Q_strupr(demoname);
+					//uiInfo.demoList[i] = String_Alloc(demoname);
+					Com_sprintf(uiInfo.demoList[i], MAX_QPATH, String_Alloc(demoname));
 			
-				demoname += len + 1;
+					demoname += len + 1;
+				}
+				bottom += uiInfo.demoCount;
 			}
-			bottom += uiInfo.demoCount;
+			e++;
 		}
 		d++;
 	}
