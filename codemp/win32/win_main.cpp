@@ -1441,6 +1441,22 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLin
 			return 0;
 		}
 	}
+	//it's a unique instance so reset current directory to the program path
+	//if it was called to open external demo
+	TCHAR path[512] = { 0 }, *sep = NULL, *lastSep = NULL;
+	DWORD gotPath = GetModuleFileName(NULL, path, sizeof(path));
+	if (gotPath) {
+		sep = strchr(path, '\\');
+		do {
+			lastSep = sep;
+			sep = strchr(sep+1, '\\');
+		} while (sep);
+		//cut off the executable name
+		if (lastSep && lastSep[0] && (lastSep+1) && lastSep[1]) {
+			*(lastSep+1) = '\0';
+		}
+		SetCurrentDirectory(path);
+	}
 
 	int    argc = ParseCommandLine(cmdline, NULL);
 	char **argv = (char **)alloca(sizeof(char *) * argc + 1);
