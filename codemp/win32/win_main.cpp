@@ -1271,7 +1271,7 @@ bool AddRegistry(const HKEY key, const char *subkey, const char *value, const ch
 void RegisterProtocol(char *program) {
 	string action="open";
 	string app = program + string(" %1");
-	string protocol = "ja";
+	string protocol = "Software\\Classes\\ja";
 	string icon = protocol + string("\\DefaultIcon");
 
 	string path=protocol+
@@ -1282,13 +1282,13 @@ void RegisterProtocol(char *program) {
 	bool refresh = false;
 	//using | to be able to call all 3 functions even if true got returned
 	//register the protocol
-	refresh |= AddRegistry(HKEY_CLASSES_ROOT, protocol.c_str(), "")
+	refresh |= AddRegistry(HKEY_CURRENT_USER, protocol.c_str(), "")
 	//register application association
-	| AddRegistry(HKEY_CLASSES_ROOT, protocol.c_str(), "", "URL Protocol")
+	| AddRegistry(HKEY_CURRENT_USER, protocol.c_str(), "", "URL Protocol")
 	//register application association
-	| AddRegistry(HKEY_CLASSES_ROOT, path.c_str(), app.c_str())
+	| AddRegistry(HKEY_CURRENT_USER, path.c_str(), app.c_str())
 	//register icon for the protocol
-	| AddRegistry(HKEY_CLASSES_ROOT, icon.c_str(), program);
+	| AddRegistry(HKEY_CURRENT_USER, icon.c_str(), program);
 	if (refresh) {
 		SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
 	}
@@ -1299,7 +1299,7 @@ void RegisterFileTypes(char *program) {
 	bool refresh = false; //once true - forever true
 	for (int i = 0; i < ARRAY_LEN(et); i++) {
 		string app = program + string(" +set fs_game \"mme\" +set fs_extraGames \"japlus japp\" +demo \"%1\" del");
-		string extension = et[i].extension;
+		string extension = "Software\\Classes\\" + et[i].extension;
 		string desc = et[i].desc;
 		string icon = extension + string("\\DefaultIcon");
 
@@ -1310,11 +1310,11 @@ void RegisterFileTypes(char *program) {
 	
 		//using | to be able to call all 3 functions even if true got returned
 		//register the filetype extension
-		refresh |= AddRegistry(HKEY_CLASSES_ROOT, extension.c_str(), desc.c_str())
+		refresh |= AddRegistry(HKEY_CURRENT_USER, extension.c_str(), desc.c_str())
 		//register application association
-		| AddRegistry(HKEY_CLASSES_ROOT, path.c_str(), app.c_str())
+		| AddRegistry(HKEY_CURRENT_USER, path.c_str(), app.c_str())
 		//register icon for the filetype
-		| AddRegistry(HKEY_CLASSES_ROOT, icon.c_str(), program);
+		| AddRegistry(HKEY_CURRENT_USER, icon.c_str(), program);
 	}
 	if (refresh) {
 		SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, NULL, NULL);
