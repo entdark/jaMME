@@ -54,6 +54,7 @@ typedef struct {
 	short		entNum;
 	char		entChan;
 	char		hasOrigin;
+	char		interrupt; //1 - any case, 2 - channel dependant
 	unsigned char volume;
 } channelQueue_t;
 
