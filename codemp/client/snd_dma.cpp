@@ -75,7 +75,7 @@ void S_DMA_Update( float scale ) {
 	int				lastWrite, lastRead;
 	int				bufSize, bufDone;
 	int				speed;
-	int				buf[2048];
+	int				buf[MIX_SIZE*2];
 	int				thisTime;
 	static int		lastTime = 0;
 

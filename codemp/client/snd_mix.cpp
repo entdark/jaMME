@@ -514,7 +514,7 @@ void S_MixLoops( mixLoop_t *mixLoops, int loopCount, int speed, int count, int *
 
 void S_MixBackground( mixBackground_t *background, int speed, int count, int *output ) {
 	int		volumeMul;
-	short	buf[2048][2];
+	short	buf[MIX_SIZE*2][2];
 
 	speed = (MIX_SPEED << MIX_SHIFT) / dma.speed;
 	if ( s_background.playing ) {

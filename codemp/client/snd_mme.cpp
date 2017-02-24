@@ -100,11 +100,10 @@ S_MME_Update
 Called from CL_Frame() in cl_main.c when shooting avidemo
 ===================
 */
-#define MAXUPDATE 4096
 void S_MMEUpdate( float scale ) {
 	int count, speed;
-	int mixTemp[MAXUPDATE*2];
-	short mixClip[MAXUPDATE*2];
+	int mixTemp[MIX_SIZE*2];
+	short mixClip[MIX_SIZE*2];
 
 	if (!mmeSound.fileHandle && !MME_AVIIMPORT)
 		return;
@@ -117,8 +116,8 @@ void S_MMEUpdate( float scale ) {
 	if (!count)
 		return;
 	mmeSound.deltaSamples -= count;
-	if (count > MAXUPDATE)
-		count = MAXUPDATE;
+	if (count > MIX_SIZE)
+		count = MIX_SIZE;
 
 	speed = (scale * (MIX_SPEED << MIX_SHIFT)) / MME_SAMPLERATE;
 	if (speed < 0 || (speed == 0 && scale) )
@@ -130,7 +129,7 @@ void S_MMEUpdate( float scale ) {
 		S_MixLoops( mmeSound.loops, MME_LOOPCHANNELS, speed, count, mixTemp );
 		S_MixEffects( &mmeSound.effect, speed, count, mixTemp );
 	}	
-	S_MixClipOutput( count, mixTemp, mixClip, 0, MAXUPDATE - 1 );
+	S_MixClipOutput( count, mixTemp, mixClip, 0, MIX_SIZE - 1 );
 	if (!MME_AVIIMPORT) {
 		FS_Write( mixClip, count*4, mmeSound.fileHandle );
 	} else if (MME_AVIIMPORT) {
