@@ -62,13 +62,8 @@ typedef struct {
 } mmeBlurControl_t;
 
 typedef struct {
-#if !defined (HAVE_GLES) || defined (X86_OR_64)
-	__m64	*accum;
-	__m64	*overlap;
-#else
 	void	*accum;
 	void	*overlap;
-#endif
 	int		count;
 	mmeBlurControl_t *control;
 } mmeBlurBlock_t;
@@ -85,17 +80,13 @@ void aviClose( mmeAviFile_t *aviFile );
 void mmePipeShot(mmePipeFile_t *pipeFile, const char *name, mmeShotType_t type, int width, int height, float fps, byte *inBuf);
 void pipeClose(mmePipeFile_t *pipeFile);
 
-void MME_AccumClearSSE( void *w, const void *r, short int mul, int count );
-void MME_AccumAddSSE( void* w, const void* r, short int mul, int count );
-void MME_AccumShiftSSE( const void *r, void *w, int count );
-
-void R_MME_BlurAccumAdd( mmeBlurBlock_t *block, 
 #if !defined (HAVE_GLES) || defined (X86_OR_64)
-	const __m64 *add
-#else
-	const void *add
+void MME_AccumClearSSE( void* Q_RESTRICT w, const void* Q_RESTRICT r, short int mul, int count );
+void MME_AccumAddSSE( void* Q_RESTRICT w, const void* Q_RESTRICT r, short int mul, int count );
+void MME_AccumShiftSSE( const void *r, void *w, int count );
 #endif
-);
+
+void R_MME_BlurAccumAdd( mmeBlurBlock_t *block, const void *add);
 void R_MME_BlurOverlapAdd( mmeBlurBlock_t *block, int index );
 void R_MME_BlurAccumShift( mmeBlurBlock_t *block  );
 void blurCreate( mmeBlurControl_t* control, const char* type, int frames );
