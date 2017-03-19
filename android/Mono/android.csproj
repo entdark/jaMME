@@ -82,6 +82,66 @@
     <Compile Include="jaMME.cs" />
   </ItemGroup>
   <ItemGroup>
+    <AndroidNativeLibrary Include="..\libs\arm64-v8a\libcgamearm64-v8a.so">
+      <Link>lib\arm64-v8a\libcgamearm64-v8a.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\arm64-v8a\libjampgamearm64-v8a.so">
+      <Link>lib\arm64-v8a\libjampgamearm64-v8a.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\arm64-v8a\libuiarm64-v8a.so">
+      <Link>lib\arm64-v8a\libuiarm64-v8a.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi-v7a\libcgamearmeabi-v7a.so">
+      <Link>lib\armeabi-v7a\libcgamearmeabi-v7a.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi-v7a\libjampgamearmeabi-v7a.so">
+      <Link>lib\armeabi-v7a\libjampgamearmeabi-v7a.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi-v7a\libuiarmeabi-v7a.so">
+      <Link>lib\armeabi-v7a\libuiarmeabi-v7a.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi\libcgamearmeabi.so">
+      <Link>lib\armeabi\libcgamearmeabi.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi\libjampgamearmeabi.so">
+      <Link>lib\armeabi\libjampgamearmeabi.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\armeabi\libuiarmeabi.so">
+      <Link>lib\armeabi\libuiarmeabi.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86\libcgamex86.so">
+      <Link>lib\x86\libcgamex86.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86\libjampgamex86.so">
+      <Link>lib\x86\libjampgamex86.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86\libuix86.so">
+      <Link>lib\x86\libuix86.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86_64\libcgamex86_64.so">
+      <Link>lib\x86_64\libcgamex86_64.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86_64\libjampgamex86_64.so">
+      <Link>lib\x86_64\libjampgamex86_64.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
+    <AndroidNativeLibrary Include="..\libs\x86_64\libuix86_64.so">
+      <Link>lib\x86_64\libuix86_64.so</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </AndroidNativeLibrary>
     <None Include="Properties\AndroidManifest.xml">
       <SubType>Designer</SubType>
     </None>
@@ -89,32 +149,16 @@
       <Link>lib\arm64-v8a\librd-jamme.so</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\arm64-v8a\libui.so">
-      <Link>lib\arm64-v8a\libui.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
     <AndroidNativeLibrary Include="..\libs\arm64-v8a\libjamme.so">
       <Link>lib\arm64-v8a\libjamme.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\arm64-v8a\libjampgame.so">
-      <Link>lib\arm64-v8a\libjampgame.so</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidNativeLibrary>
     <AndroidNativeLibrary Include="..\libs\arm64-v8a\libSDL2.so">
       <Link>lib\arm64-v8a\libSDL2.so</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\armeabi\libcgame.so">
-      <Link>lib\armeabi\libcgame.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
     <AndroidNativeLibrary Include="..\libs\armeabi\libjamme.so">
       <Link>lib\armeabi\libjamme.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\armeabi\libjampgame.so">
-      <Link>lib\armeabi\libjampgame.so</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidNativeLibrary>
     <AndroidNativeLibrary Include="..\libs\armeabi\librd-jamme.so">
@@ -125,20 +169,8 @@
       <Link>lib\armeabi\libSDL2.so</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\armeabi\libui.so">
-      <Link>lib\armeabi\libui.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\armeabi-v7a\libcgame.so">
-      <Link>lib\armeabi-v7a\libcgame.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
     <AndroidNativeLibrary Include="..\libs\armeabi-v7a\libjamme.so">
       <Link>lib\armeabi-v7a\libjamme.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\armeabi-v7a\libjampgame.so">
-      <Link>lib\armeabi-v7a\libjampgame.so</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidNativeLibrary>
     <AndroidNativeLibrary Include="..\libs\armeabi-v7a\librd-jamme.so">
@@ -149,16 +181,8 @@
       <Link>lib\armeabi-v7a\libSDL2.so</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\armeabi-v7a\libui.so">
-      <Link>lib\armeabi-v7a\libui.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
     <AndroidNativeLibrary Include="..\libs\x86\libjamme.so">
       <Link>lib\x86\libjamme.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\x86\libjampgame.so">
-      <Link>lib\x86\libjampgame.so</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidNativeLibrary>
     <AndroidNativeLibrary Include="..\libs\x86\librd-jamme.so">
@@ -169,24 +193,8 @@
       <Link>lib\x86\libSDL2.so</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\x86\libui.so">
-      <Link>lib\x86\libui.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\x86\libcgame.so">
-      <Link>lib\x86\libcgame.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\x86_64\libcgame.so">
-      <Link>lib\x86_64\libcgame.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
     <AndroidNativeLibrary Include="..\libs\x86_64\libjamme.so">
       <Link>lib\x86_64\libjamme.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\x86_64\libjampgame.so">
-      <Link>lib\x86_64\libjampgame.so</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidNativeLibrary>
     <AndroidNativeLibrary Include="..\libs\x86_64\librd-jamme.so">
@@ -195,14 +203,6 @@
     </AndroidNativeLibrary>
     <AndroidNativeLibrary Include="..\libs\x86_64\libSDL2.so">
       <Link>lib\x86_64\libSDL2.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\x86_64\libui.so">
-      <Link>lib\x86_64\libui.so</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </AndroidNativeLibrary>
-    <AndroidNativeLibrary Include="..\libs\arm64-v8a\libcgame.so">
-      <Link>lib\arm64-v8a\libcgame.so</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </AndroidNativeLibrary>
   </ItemGroup>

@@ -371,23 +371,23 @@ void *Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ..
 		//check given ABIs at first
 		if (i == -2) {
 			abi = getAndroidAbi();
-			Com_sprintf(filename, sizeof(filename), "lib%s" DLL_EXT, name);
+			Com_sprintf(filename, sizeof(filename), "lib%s" ARCH_STRING DLL_EXT, name);
 		} else if (i == -1) {
 			abi = getAndroidAbiAlt();
-			Com_sprintf(filename, sizeof(filename), "lib%s" DLL_EXT, name);
+			Com_sprintf(filename, sizeof(filename), "lib%s" ARCH_STRING DLL_EXT, name);
 		//ignore primary and alt
 		} else if (!Q_stricmp(androidAbi[i], getAndroidAbi()) || !Q_stricmp(androidAbi[i], getAndroidAbiAlt())) {
 			i++;
 			continue;
 		} else {
 			abi = androidAbi[i];
-			Com_sprintf(filename, sizeof(filename), "lib%s" DLL_EXT, name);
+			Com_sprintf(filename, sizeof(filename), "lib%s" ARCH_STRING DLL_EXT, name);
 		}
 		if (!Sys_UnpackDLL(abi, filename)) {
 			i++;
 			continue;
 		}
-		Com_sprintf(filename, sizeof(filename), "%s/lib%s" DLL_EXT, abi, name);
+		Com_sprintf(filename, sizeof(filename), "%s/lib%s" ARCH_STRING DLL_EXT, abi, name);
 #if 0
 		libHandle = Sys_LoadLibrary( filename );
 #endif
@@ -459,7 +459,7 @@ void *Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ..
 										if ( !libHandle ) {
 											char  lib_path[512];
 											Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", fn, Sys_LibraryError() );
-    										sprintf(lib_path,"%s/lib%s" DLL_EXT, getAppPath(), name);
+    										sprintf(lib_path,"%s/lib%s" ARCH_STRING DLL_EXT, getAppPath(), name);
     										LOGI("Trying to load Android lib: %s", lib_path);
 											libHandle = Sys_LoadLibrary( lib_path );
 											if ( !libHandle ) {
@@ -484,7 +484,7 @@ void *Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ..
 	}
 	if ( !libHandle ) {
 		char  lib_path[512];
-    	sprintf(lib_path,"%s/lib%s" DLL_EXT, getLibPath(), name);
+    	sprintf(lib_path,"%s/lib%s" ARCH_STRING DLL_EXT, getLibPath(), name);
     	LOGI("Trying to load Android lib: %s", lib_path);
 		libHandle = Sys_LoadLibrary( lib_path );
 		if ( !libHandle ) {
@@ -520,7 +520,7 @@ void *Sys_LoadGameDll( const char *name, void *(QDECL **moduleAPI)(int, ...) )
 	char	*fn;
 	char	filename[MAX_OSPATH];
 
-	Com_sprintf (filename, sizeof(filename), "%s" DLL_EXT, name);
+	Com_sprintf (filename, sizeof(filename), "%s" ARCH_STRING DLL_EXT, name);
 
 #if 0
 	libHandle = Sys_LoadLibrary( filename );
