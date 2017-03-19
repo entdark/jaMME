@@ -5,7 +5,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 
-LOCAL_MODULE    := jampgamearm
+LOCAL_MODULE    := jampgame
 
 
 LOCAL_CFLAGS :=  $(JK3_BASE_CFLAGS) -D_GAME -DNDEBUG -DMISSIONPACK -DQAGAME -D_JK2 -DFINAL_BUILD

@@ -5,7 +5,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 
-LOCAL_MODULE    := cgamearm
+LOCAL_MODULE    := cgame
 
 
 LOCAL_CFLAGS :=  $(JK3_BASE_CFLAGS) -D_CGAME -DNDEBUG -DMISSIONPACK -DCGAME -D_JK2 -DFINAL_BUILD

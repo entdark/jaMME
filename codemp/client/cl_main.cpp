@@ -2534,15 +2534,21 @@ void CL_InitRef( void ) {
 	Com_Printf( "----- Initializing Renderer ----\n" );
 
 	cl_renderer = Cvar_Get( "cl_renderer", "rd-jamme", CVAR_ARCHIVE|CVAR_LATCH );
-
+#ifdef __ANDROID__
+	Com_sprintf( dllName, sizeof( dllName ), "%s" DLL_EXT, cl_renderer->string );
+#else
 	Com_sprintf( dllName, sizeof( dllName ), "%s_" ARCH_STRING DLL_EXT, cl_renderer->string );
-
+#endif
 	if( !(rendererLib = Sys_LoadDll( dllName, qfalse )) && strcmp( cl_renderer->string, cl_renderer->resetString ) )
 	{
 		Com_Printf( "failed: trying to load fallback renderer\n" );
 		Cvar_ForceReset( "cl_renderer" );
 
+#ifdef __ANDROID__
+		Com_sprintf( dllName, sizeof( dllName ), "rd-jamme" DLL_EXT );
+#else
 		Com_sprintf( dllName, sizeof( dllName ), "rd-jamme_" ARCH_STRING DLL_EXT );
+#endif
 		rendererLib = Sys_LoadDll( dllName, qfalse );
 	}
 

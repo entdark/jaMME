@@ -5,14 +5,14 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 
-LOCAL_MODULE    := rd-jamme_arm
+LOCAL_MODULE    := rd-jamme
 
 
 LOCAL_CFLAGS := $(JK3_BASE_CFLAGS) -DHAVE_GLES
-ifeq ($(TARGET_ARCH),x86)
+ifeq ($(TARGET_ARCH_ABI),x86)
     LOCAL_CFLAGS := $(LOCAL_CFLAGS) -march=i686 -mtune=intel -mssse3 -mfpmath=sse -m32 -DX86_OR_64
 endif
-ifeq ($(TARGET_ARCH),x86_64)
+ifeq ($(TARGET_ARCH_ABI),x86_64)
     LOCAL_CFLAGS := $(LOCAL_CFLAGS) -march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel -DX86_OR_64
 endif
 LOCAL_CPPFLAGS := $(JK3_BASE_CPPFLAGS) 
