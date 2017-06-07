@@ -2492,7 +2492,7 @@ void CG_DrawVehicleDamage(const centity_t *veh,int brokenLimbs,const menuDef_t	*
 		{
 			if (item->window.rect.x <= SCREEN_WIDTH / 2) {
 				CG_DrawPic( 
-					item->window.rect.x, 
+					item->window.rect.x*cgs.widthRatioCoef,
 					item->window.rect.y, 
 					item->window.rect.w*cgs.widthRatioCoef, 
 					item->window.rect.h, 
@@ -2551,7 +2551,7 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 			}
 			if (item->window.rect.x <= SCREEN_WIDTH / 2) {
 				CG_DrawPic( 
-					item->window.rect.x, 
+					item->window.rect.x*cgs.widthRatioCoef,
 					item->window.rect.y, 
 					item->window.rect.w*cgs.widthRatioCoef, 
 					item->window.rect.h, 
@@ -2575,7 +2575,7 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 			trap_R_SetColor( item->window.foreColor );
 			if (item->window.rect.x <= SCREEN_WIDTH / 2) {
 				CG_DrawPic( 
-					item->window.rect.x, 
+					item->window.rect.x*cgs.widthRatioCoef,
 					item->window.rect.y, 
 					item->window.rect.w*cgs.widthRatioCoef, 
 					item->window.rect.h, 
@@ -2601,7 +2601,7 @@ void CG_DrawVehicleDamageHUD(const centity_t *veh,int brokenLimbs,float percShie
 			trap_R_SetColor( color );
 			if (item->window.rect.x <= SCREEN_WIDTH / 2) {
 				CG_DrawPic( 
-					item->window.rect.x, 
+					item->window.rect.x*cgs.widthRatioCoef,
 					item->window.rect.y, 
 					item->window.rect.w*cgs.widthRatioCoef, 
 					item->window.rect.h, 
@@ -5487,7 +5487,7 @@ void CG_DottedLine( float x1, float y1, float x2, float y2, float dotSize, int n
 		x = x1 + (xStep*dotNum) - (dotSize*0.5f);
 		y = y1 + (yStep*dotNum) - (dotSize*0.5f);
 
-		CG_DrawPic( x, y, dotSize, dotSize, cgs.media.whiteShader );
+		CG_DrawPic( x, y, dotSize*cgs.widthRatioCoef, dotSize, cgs.media.whiteShader );
 	}
 }
 
@@ -5594,7 +5594,7 @@ void CG_BracketEntity( centity_t *cent, float radius )
 	//always visible width
 	lineWidth = 1.0f;
 
-	x -= (size*0.5f);
+	x -= (size*0.5f)*cgs.widthRatioCoef;
 	y -= (size*0.5f);
 
 	/*
@@ -5604,24 +5604,24 @@ void CG_BracketEntity( centity_t *cent, float radius )
 	{//brackets would be drawn on the screen, so draw them
 	//upper left corner
 		//horz
-        CG_DrawPic( x, y, lineLength, lineWidth, cgs.media.whiteShader );
+        CG_DrawPic( x, y, lineLength*cgs.widthRatioCoef, lineWidth, cgs.media.whiteShader );
 		//vert
-        CG_DrawPic( x, y, lineWidth, lineLength, cgs.media.whiteShader );
-	//upper right corner
+		CG_DrawPic( x, y, lineWidth*cgs.widthRatioCoef, lineLength, cgs.media.whiteShader );
+		//upper right corner
 		//horz
-        CG_DrawPic( x+size-lineLength, y, lineLength, lineWidth, cgs.media.whiteShader );
+		CG_DrawPic( x+(size-lineLength)*cgs.widthRatioCoef, y, lineLength*cgs.widthRatioCoef, lineWidth, cgs.media.whiteShader );
 		//vert
-        CG_DrawPic( x+size-lineWidth, y, lineWidth, lineLength, cgs.media.whiteShader );
-	//lower left corner
+		CG_DrawPic( x+(size-lineWidth)*cgs.widthRatioCoef, y, lineWidth*cgs.widthRatioCoef, lineLength, cgs.media.whiteShader );
+		//lower left corner
 		//horz
-        CG_DrawPic( x, y+size-lineWidth, lineLength, lineWidth, cgs.media.whiteShader );
+		CG_DrawPic( x, y+size-lineWidth, lineLength*cgs.widthRatioCoef, lineWidth, cgs.media.whiteShader );
 		//vert
-        CG_DrawPic( x, y+size-lineLength, lineWidth, lineLength, cgs.media.whiteShader );
-	//lower right corner
+		CG_DrawPic( x, y+size-lineLength, lineWidth*cgs.widthRatioCoef, lineLength, cgs.media.whiteShader );
+		//lower right corner
 		//horz
-        CG_DrawPic( x+size-lineLength, y+size-lineWidth, lineLength, lineWidth, cgs.media.whiteShader );
+		CG_DrawPic( x+(size-lineLength)*cgs.widthRatioCoef, y+size-lineWidth, lineLength*cgs.widthRatioCoef, lineWidth, cgs.media.whiteShader );
 		//vert
-        CG_DrawPic( x+size-lineWidth, y+size-lineLength, lineWidth, lineLength, cgs.media.whiteShader );
+		CG_DrawPic( x+(size-lineWidth)*cgs.widthRatioCoef, y+size-lineLength, lineWidth*cgs.widthRatioCoef, lineLength, cgs.media.whiteShader );
 	}
 	//Lead Indicator...
 	if ( cg_drawVehLeadIndicator.integer )
@@ -5671,7 +5671,7 @@ void CG_BracketEntity( centity_t *cent, float radius )
 								CG_DottedLine( x, y, leadX, leadY, 1, 10, g_color_table[ColorIndex(COLOR_RED)], 0.5f );
 								//now draw the lead indicator
 								trap_R_SetColor ( g_color_table[ColorIndex(COLOR_RED)] );
-								CG_DrawPic( leadX-8, leadY-8, 16, 16, trap_R_RegisterShader( "gfx/menus/radar/lead" ) );
+								CG_DrawPic( leadX-8*cgs.widthRatioCoef, leadY-8, 16*cgs.widthRatioCoef, 16, trap_R_RegisterShader( "gfx/menus/radar/lead" ) );
 							}
 						}
 					}
