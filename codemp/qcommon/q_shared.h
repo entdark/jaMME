@@ -260,7 +260,7 @@ float FloatSwap( const float *f );
 	static inline float __fctiw(register float f) {
 		register float fi;
 
-		asm("fctiw %0,%1" : "=f" (fi) : "f" (f));
+		asm("fctiw %0,%1" : "=r" (fi) : "f" (f));
 		return fi;
 	}
 
