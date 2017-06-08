@@ -1437,7 +1437,9 @@ namespace android {
 		private bool isServiceRunning(Type serviceClass) {
 			ActivityManager manager = (ActivityManager)GetSystemService(Context.ActivityService);
 			foreach (var service in manager.GetRunningServices(int.MaxValue)) {
-				if (serviceClass.Name.Equals(service.Service.ClassName)) {
+				string className = service.Service.ClassName;
+				if (className.Equals(serviceClass.Name)
+					|| (className.Contains(serviceClass.Name)/* && className.Contains("md5")*/)) {
 					Log.Debug("jaMME", "service " + serviceClass.Name + " has been already running");
 					return true;
 				}
