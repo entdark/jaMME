@@ -39,6 +39,42 @@ namespace android {
 		, HardwareAccelerated = false
 #endif
 	)]
+	[IntentFilter(new string[] { Intent.ActionView },
+		Icon = "@drawable/demo",
+		Label = "Jedi Academy Demo (v1.01)",
+		Priority = 1,
+		Categories = new string[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
+		DataHost = "*",
+		DataMimeType = "*/*",
+		DataPathPattern = ".*\\\\.dm_26",
+		DataSchemes = new string[] { "http", "https", "ftp", "file" }
+	)]
+	[IntentFilter(new string[] { Intent.ActionView },
+		Icon = "@drawable/demo",
+		Label = "Jedi Academy Demo (v1.00)",
+		Priority = 1,
+		Categories = new string[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
+		DataHost = "*",
+		DataMimeType = "*/*",
+		DataPathPattern = ".*\\\\.dm_25",
+		DataSchemes = new string[] { "http", "https", "ftp", "file" }
+	)]
+	[IntentFilter(new string[] { Intent.ActionView },
+		Icon = "@drawable/demo",
+		Label = "jaMME Demo",
+		Priority = 1,
+		Categories = new string[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
+		DataHost = "*",
+		DataMimeType = "*/*",
+		DataPathPattern = ".*\\\\.mme",
+		DataSchemes = new string[] { "http", "https", "ftp", "file" }
+	)]
+	[IntentFilter(new string[] { Intent.ActionView },
+		Categories = new string[] { Intent.CategoryDefault, Intent.CategoryBrowsable },
+		DataHost = "*",
+		DataMimeType = "*/*",
+		DataScheme = "ja"
+	)]
 	public class jaMME : Activity {
 		public static IntPtr jaMMEHandle = JNIEnv.FindClass("com/jamme/jaMME");
 		public static Context Context = null;
