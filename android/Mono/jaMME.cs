@@ -737,7 +737,7 @@ namespace android {
 			jaMME.NullJavaObject(startGame);
 			startGame = new Button(context);
 			startGame.Background = Resources.GetDrawable(Resource.Drawable.jamme_btn);
-			startGame.Click += (object sender, EventArgs e) => {
+			startGame.Click += (sender, ev) => {
 				string gp = "";
 				if (baseDirET != null && baseDirET.Text != null && baseDirET.Text.ToString() != null)
 					gp = baseDirET.Text.ToString();
@@ -764,7 +764,7 @@ namespace android {
 						alertDialogBuilder.SetTitle("Missing assets[0-3].pk3");
 						alertDialogBuilder
 							.SetMessage("Select base folder where assets[0-3].pk3 are placed in")
-							.SetNeutralButton("Ok", (se, ev) => { });
+							.SetNeutralButton("Ok", (sender2, ev2) => { });
 						using (var alertDialog = alertDialogBuilder.Create()) {
 							alertDialog.Show();
 						}
@@ -803,7 +803,7 @@ namespace android {
 			jaMME.NullJavaObject(baseDir);
 			baseDir = new Button(context);
 			baseDir.Background = Resources.GetDrawable(Resource.Drawable.jamme_btn);
-			baseDir.Click += (object sender, EventArgs e) => {
+			baseDir.Click += (sender, ev) => {
 				DirectoryChooserDialog directoryChooserDialog =
 					new DirectoryChooserDialog(context, new jaMMEChosenDirectoryListener(baseDirET));
 				string chooseDir = "";
