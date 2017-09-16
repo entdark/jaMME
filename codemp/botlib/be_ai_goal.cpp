@@ -28,6 +28,7 @@
 #include "be_ai_weight.h"
 #include "be_ai_goal.h"
 #include "be_ai_move.h"
+#include <cstddef>
 
 //#define DEBUG_AI_GOAL
 #ifdef RANDOMIZE
@@ -117,7 +118,7 @@ typedef struct iteminfo_s
 	int number;							//number of the item info
 } iteminfo_t;
 
-#define ITEMINFO_OFS(x)	(size_t)&(((iteminfo_t *)0)->x)
+#define ITEMINFO_OFS(x)	offsetof(iteminfo_t, x)
 
 fielddef_t iteminfo_fields[] =
 {
