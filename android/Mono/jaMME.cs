@@ -973,8 +973,8 @@ namespace android {
 								return;
 							}
 						}
-						jaMME.keypress(1, MobileKeycodes.GetMobileKey((int)keyCode, uc), uc);
-						jaMME.keypress(0, MobileKeycodes.GetMobileKey((int)keyCode, uc), uc);
+						jaMME.keypress(1, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
+						jaMME.keypress(0, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
 						ev.Handled = true;
 						return;
 					}
@@ -1259,6 +1259,7 @@ namespace android {
 								} else {
 									//getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 									im.HideSoftInputFromWindow(this.jamme.view.WindowToken, 0);
+									this.jamme.et?.ClearFocus();
 									this.jamme.keyboardActive = false;
 								}
 							} else {
@@ -1322,16 +1323,16 @@ namespace android {
 		}
 		public override bool OnKeyDown(Keycode keyCode, KeyEvent ev) {
 			int uc = 0;
-			if (ev !=null)
+			if (ev != null)
 				uc = ev.UnicodeChar;
 			if (keyCode == Keycode.VolumeDown) {
 				jaMME.quickCommand("chase targetNext");
 			} else if (keyCode == Keycode.VolumeUp) {
 				jaMME.quickCommand("chase targetPrev");
-			} else/* if (keyCode == Keycode.Escape
-				   || keyCode == Keycode.Back
-				   || keyCode == Keycode.Menu
-				   || keyCode == Keycode.Del)*/ {
+			} else if (/*keyCode == Keycode.Escape
+				   || */keyCode == Keycode.Back
+				   || keyCode == Keycode.Menu/*
+				   || keyCode == Keycode.Del*/) {
 				if (((this.flags & CONSOLE_ACTIVE) != 0 || (this.flags & CONSOLE_ACTIVE_FULLSCREEN) != 0)
 						&& keyCode == Keycode.Back) {
 					jaMME.quickCommand("toggleconsole");
@@ -1340,14 +1341,32 @@ namespace android {
 					jaMME.quickCommand("toggleconsole");
 					return true;
 				}
-				jaMME.keypress(1, MobileKeycodes.GetMobileKey((int)keyCode, uc), uc);
-				jaMME.keypress(0, MobileKeycodes.GetMobileKey((int)keyCode, uc), uc);
+				jaMME.keypress(1, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
+				jaMME.keypress(0, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
 				if (keyCode == Keycode.Del && this.et != null) {
 					this.et.Text = "";
 				}
-			}/* else {
-				return base.OnKeyDown(keyCode, ev); 
-			}*/
+			}
+			return true;
+		}
+		//TODO: implement key holding since all keyevents are always sent as down-up without delays
+		public override bool DispatchKeyEvent(KeyEvent ev) {
+			var keyCode = ev.KeyCode;
+			System.Diagnostics.Debug.WriteLine(keyCode);
+			if (keyCode == Keycode.VolumeDown
+				   || keyCode == Keycode.VolumeUp
+				   || keyCode == Keycode.Back
+				   || keyCode == Keycode.Menu) {
+				return base.DispatchKeyEvent(ev);
+			}
+			int uc = 0;
+			if (ev != null)
+				uc = ev.UnicodeChar;
+			if (ev.Action == KeyEventActions.Down) {
+				jaMME.keypress(1, MobileKeycodes.GetMobileKey(keyCode, uc), 0);
+			} else if (ev.Action == KeyEventActions.Up) {
+				jaMME.keypress(0, MobileKeycodes.GetMobileKey(keyCode, uc), 0);
+			}
 			return true;
 		}
 		private string PasteFromClipboard() {
