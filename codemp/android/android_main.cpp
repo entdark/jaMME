@@ -364,9 +364,10 @@ void *Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ..
 	char	*fn;
 	char	filename[MAX_OSPATH];
 	int		i = -2;
+	const char *abi;
 
 	while (i < 0 || androidAbi[i]) {
-		const char *abi;
+		abi = NULL;
 //		Com_Printf("Sys_LoadLegacyGameDll: i=%d\n", i);
 		//check given ABIs at first
 		if (i == -2) {
@@ -501,7 +502,7 @@ void *Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ..
 		return NULL;
 	}
 
-	Com_Printf ( "Sys_LoadGameDll(%s) found vmMain function at %p\n", name, *vmMain );
+	Com_Printf ( "Sys_LoadGameDll(%s) with CPU ABI %s (supported CPU ABIs: %s, %s) found vmMain function at %p\n", name, abi, getAndroidAbi(), getAndroidAbiAlt(), *vmMain );
 	dllEntry( systemcalls );
 
 	return libHandle;
