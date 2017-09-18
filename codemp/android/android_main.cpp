@@ -465,6 +465,8 @@ void *Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ..
 											libHandle = Sys_LoadLibrary( lib_path );
 											if ( !libHandle ) {
 												Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", lib_path, Sys_LibraryError() );
+											} else {
+												abi = ARCH_STRING;
 											}
 										}
 #ifdef MACOS_X
@@ -491,6 +493,8 @@ void *Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ..
 		if ( !libHandle ) {
 			Com_Printf( "Sys_LoadGameDll(%s) failed: \"%s\"\n", lib_path, Sys_LibraryError() );
 			return NULL;
+		} else {
+			abi = ARCH_STRING;
 		}
 	}
 
