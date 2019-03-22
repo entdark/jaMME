@@ -389,7 +389,7 @@ if(BuildEngine)
 
 	#    Source Files
 	
-	set(MPEngineDefines ${MPSharedDefines} ${MPBotlibDefines})
+	set(MPEngineDefines ${MPEngineDefines} ${MPBotlibDefines})
 	set(MPEngineFiles ${MPEngineFiles} ${MPBotlibHeaderFiles})
 	set(MPEngineFiles ${MPEngineFiles} ${MPBotlibSourceFiles})
 	# TODO: Allow for use of external library
