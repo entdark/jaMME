@@ -1799,7 +1799,6 @@ skipDisintegration:
 			beamID = cgs.effects.tripmineLaserFX;
 
 			VectorCopy(cent->currentState.pos.trDelta, beamDirection);
-			CG_StartBehindCamera(beamOrg, NULL, cg.refdef.vieworg, cg.refdef.viewaxis, beamDirection);
 
 			if ((cg.playerPredicted && cg.snap->ps.fd.forcePowersActive & (1 << FP_SEE))
 				|| (!cg.playerPredicted && cg.playerCent && (cg.playerCent->currentState.forcePowersActive & (1 << FP_SEE)))) {

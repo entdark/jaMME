@@ -2631,10 +2631,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				CG_RailSpiral(&cgs.clientinfo[cent->currentState.eventParm], start, end);
 			else if ( (cg_newFX.integer & NEWFX_RUPTOR) )
 				CG_RailTrail(&cgs.clientinfo[cent->currentState.eventParm], start, end);
-			else {
-				CG_StartBehindCamera(start, end, cg.refdef.vieworg, cg.refdef.viewaxis, NULL);
+			else
 				FX_DisruptorMainShot(start, end);
-			}
 		}
 		break;
 
@@ -2664,10 +2662,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 				CG_RailSpiral(&cgs.clientinfo[cent->currentState.eventParm], start, end);
 			else if ( (cg_newFX.integer & NEWFX_RUPTOR) )
 				CG_RailTrail(&cgs.clientinfo[cent->currentState.eventParm], start, end);
-			else {
-				CG_StartBehindCamera(start, end, cg.refdef.vieworg, cg.refdef.viewaxis, NULL);
+			else
 				FX_DisruptorAltShot(start, end, cent->currentState.shouldtarget);
-			}
 		}
 		break;
 

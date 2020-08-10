@@ -378,8 +378,8 @@ public:
 	virtual ~CLine() {}
 
 	virtual void Die() {}
-
 	virtual bool Update();
+	virtual bool Cull(void);
 
 	inline void SetOrigin2( vec3_t org2 )	{ VectorCopy( org2, mOrigin2 ); }
 };
