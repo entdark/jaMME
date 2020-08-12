@@ -34,10 +34,10 @@ void demoCutCommand_f(void) {
 			CG_DemosAddLog("Invalid cut range: <= 50 msecs");
 		}
 	} else if (!Q_stricmp(cmd, "start")) { 
-		demo.cut.start = demo.play.time;
+		demo.cut.start = demo.line.time;
 		CG_DemosAddLog("Cut start at %s", timeConvert(demo.cut.start));
 	} else if (!Q_stricmp(cmd, "end")) { 
-		demo.cut.end = demo.play.time;
+		demo.cut.end = demo.line.time;
 		CG_DemosAddLog("Cut end at %s", timeConvert(demo.cut.end));
 	} else {
 		Com_Printf("cut usage:\n" );
