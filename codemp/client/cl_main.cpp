@@ -3416,7 +3416,23 @@ void CL_GlobalServers_f( void ) {
 		Com_Printf("usage: globalservers <master# 0-%d> <protocol> [keywords]\n", MAX_MASTER_SERVERS - 1);
 		return;
 	}
-	Com_sprintf(command, sizeof(command), "sv_master%d", masterNum + 1);
+	if (masterNum == 0) {
+		int numAddress = 0;
+		for (i = 1; i <= MAX_MASTER_SERVERS; i++) {
+			Com_sprintf(command, sizeof(command), "sv_master%d", i);
+			masteraddress = Cvar_VariableString(command);
+			if (!*masteraddress)
+				continue;
+			numAddress++;
+			Com_sprintf(command, sizeof(command), "globalservers %d %s %s\n", i, Cmd_Argv(2), Cmd_ArgsFrom(3));
+			Cbuf_AddText(command);
+		}
+		if (!numAddress) {
+			Com_Printf("CL_GlobalServers_f: Error: No master server addresses.\n");
+		}
+		return;
+	}
+	Com_sprintf(command, sizeof(command), "sv_master%d", masterNum);
 	masteraddress = Cvar_VariableString(command);
 	if (!*masteraddress) {
 		Com_Printf("CL_GlobalServers_f: Error: No master server address given.\n");
@@ -3427,17 +3443,6 @@ void CL_GlobalServers_f( void ) {
 	i = NET_StringToAdr(masteraddress, &to);
 	if (!i) {
 		Com_Printf("CL_GlobalServers_f: Error: could not resolve address of master %s\n", masteraddress);
-		masterNum++;
-		if (masterNum <= MAX_MASTER_SERVERS - 1) {
-			Com_Printf("CL_GlobalServers_f: trying an alternative master server\n");
-			//try the next master server
-			Com_sprintf(command, sizeof(command), "globalservers %d", masterNum);
-			for (i = 2; i < count; i++) {
-				Q_strcat(command, sizeof(command), " ");
-				Q_strcat(command, sizeof(command), Cmd_Argv(i));
-			}
-			Cbuf_AddText(command);
-		}
 		return;
 	}
 	to.type = NA_IP;
