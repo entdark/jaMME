@@ -3084,6 +3084,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			//steal the bezier effect from the disruptor
 			FX_DisruptorAltMiss(position, dir);
 		}
+
+		CG_GetEventStuff(CG_EventCoeff(WP_CONCUSSION, qtrue), cg.time, Distance(position, cg.refdef.vieworg));
 		break;
 
 	case EV_MISSILE_STICK:
