@@ -817,7 +817,7 @@ intptr_t CL_CgameSystemCalls(intptr_t *args) {
 #ifdef __ANDROID__
 		S_StopSound(args[1], args[2], args[3] );
 #else
-		if (cls.mmeState >= MME_STATE_DEFAULT) {
+		if (cls.mmeStateCGame >= MME_STATE_DEFAULT) {
 			S_StopSound(args[1], args[2], args[3] );
 		} else {
 			S_StopSound(args[1], args[2], -1 );
@@ -893,7 +893,7 @@ intptr_t CL_CgameSystemCalls(intptr_t *args) {
 		re.Font_DrawString( VMF(1), VMF(2), (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );
 #else
 		{float ox, oy;
-		if (cls.mmeState >= MME_STATE_DEFAULT) {
+		if (cls.mmeStateCGame >= MME_STATE_DEFAULT) {
 			ox = VMF(1); oy = VMF(2);
 		} else {
 			ox = args[1]; oy = args[2];
@@ -1185,7 +1185,7 @@ intptr_t CL_CgameSystemCalls(intptr_t *args) {
 #ifdef __ANDROID__
 		FX_AdjustTime(args[1], VMF(2), VMF(3));
 #else
-		if (cls.mmeState >= MME_STATE_DEFAULT) {
+		if (cls.mmeStateCGame >= MME_STATE_DEFAULT) {
 			FX_AdjustTime(args[1], VMF(2), VMF(3));
 		} else {
 			FX_AdjustTime(args[1], cl.serverTime-cl.serverTimeLast, 0.0f);
@@ -1810,6 +1810,9 @@ Ghoul2 Insert End
 		return FloatAsInt(demoProgress());
 	case CG_MME_DEMOLENGTH:
 		return demoLength();
+	case CG_MME_REQUESTFEATURES:
+		cls.mmeStateCGame = MME_STATE_DEFAULT;
+		return 0;
 	default:
 	        assert(0); // bk010102
 		Com_Error( ERR_DROP, "Bad cgame system trap: %ld", (long int) args[0] );

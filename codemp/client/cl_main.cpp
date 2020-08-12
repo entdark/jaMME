@@ -548,8 +548,8 @@ void CL_PlayDemo_f( void ) {
 	}
 	Q_strncpyz( testNameActual, Cmd_Argv(1), sizeof( testNameActual ) );
 #else
-	haveConvert = (qboolean)(mme_demoConvert->integer && cls.mmeState >= MME_STATE_DEFAULT);
-	if (haveConvert && cls.mmeState == MME_STATE_DEFAULT)
+	haveConvert = (qboolean)(mme_demoConvert->integer && cls.mmeStateCGame >= MME_STATE_DEFAULT);
+	if (haveConvert && cls.mmeStateCGame == MME_STATE_DEFAULT)
 		demoCommandSmoothingEnable(qtrue);
 	if (del) {
 		ext = strstr(Cmd_Argv(1), ".mme");
@@ -1161,14 +1161,16 @@ void CL_ResetPureClientAtServer( void ) {
 }
 
 void CL_SetMMEState(void) {
+	mmeState_t state;
 	cvar_t *fs_game = Cvar_FindVar("fs_game");
 	if (fs_game && !Q_stricmp(fs_game->string, "mme")) {
-		cls.mmeState = MME_STATE_DEFAULT;
+		state = MME_STATE_DEFAULT;
 	} else if (fs_game && !Q_stricmpn(fs_game->string, "mme", 3)) {
-		cls.mmeState = MME_STATE_CUSTOM;
+		state = MME_STATE_CUSTOM;
 	} else {
-		cls.mmeState = MME_STATE_NONE;
+		state = MME_STATE_NONE;
 	}
+	cls.mmeStateCGame = cls.mmeStateUI = state;
 }
 
 /*
@@ -1183,6 +1185,7 @@ doesn't know what graphics to reload
 */
 extern bool g_nOverrideChecked;
 void CL_Vid_Restart_f( void ) {
+	CL_SetMMEState();
 	//rww - sort of nasty, but when a user selects a mod
 	//from the menu all it does is a vid_restart, so we
 	//have to check for new net overrides for the mod then.
@@ -1227,7 +1230,6 @@ void CL_Vid_Restart_f( void ) {
 
 	// startup all the client stuff
 	CL_StartHunkUsers();
-
 	// start the cgame if connected
 	if ( cls.state > CA_CONNECTED && cls.state != CA_CINEMATIC ) {
 		cls.cgameStarted = qtrue;
@@ -1235,7 +1237,6 @@ void CL_Vid_Restart_f( void ) {
 		// send pure checksums
 		CL_SendPureChecksums();
 	}
-	CL_SetMMEState();
 }
 
 /*

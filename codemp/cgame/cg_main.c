@@ -2933,12 +2933,15 @@ Called after every level change or subsystem restart
 Will perform callbacks to make the loading info screen update.
 =================
 */
+extern void trap_MME_RequestFeatures( void );
 void CG_Init( int serverMessageNum, int serverCommandSequence, int clientNum )
 {
 	static gitem_t *item;
 	char buf[64];
 	const char	*s;
 	int i = 0;
+
+	trap_MME_RequestFeatures();
 
 	BG_InitAnimsets(); //clear it out
 

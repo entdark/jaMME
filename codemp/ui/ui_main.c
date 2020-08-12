@@ -10276,9 +10276,12 @@ static void UI_BuildPlayerModel_List( qboolean inGameLoad )
 UI_Init
 =================
 */
+extern void trap_MME_RequestFeatures( void );
 void _UI_Init( qboolean inGameLoad ) {
 	const char *menuSet;
 	int start;
+
+	trap_MME_RequestFeatures();
 
 	//register this freakin thing now
 //	vmCvar_t siegeTeamSwitch;

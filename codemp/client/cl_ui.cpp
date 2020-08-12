@@ -1004,7 +1004,7 @@ intptr_t CL_UISystemCalls(intptr_t *args) {
 		re.Font_DrawString( VMF(1), VMF(2), (const char *)VMA(3), (const float *) VMA(4), args[5], args[6], VMF(7) );
 #else
 		{float ox, oy;
-		if (cls.mmeState >= MME_STATE_DEFAULT) {
+		if (cls.mmeStateUI >= MME_STATE_DEFAULT) {
 			ox = VMF(1); oy = VMF(2);
 		} else {
 			ox = args[1]; oy = args[2];
@@ -1290,6 +1290,9 @@ Ghoul2 Insert End
 	case UI_MME_EDITINGFIELD:
 		cls.uiEditingField = (qboolean)args[1];
         return 0;	
+	case UI_MME_REQUESTFEATURES:
+		cls.mmeStateUI = MME_STATE_DEFAULT;
+		return 0;
 	default:
 		Com_Error( ERR_DROP, "Bad UI system trap: %ld", (long int) args[0] );
 

@@ -1298,3 +1298,6 @@ float trap_MME_ProgressTime( void ) {
 int trap_MME_DemoLength( void ) {
 	return Q_syscall( CG_MME_DEMOLENGTH );
 }
+void trap_MME_RequestFeatures( void ) {
+	return Q_syscall( CG_MME_REQUESTFEATURES );
+}
