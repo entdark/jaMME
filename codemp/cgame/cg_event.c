@@ -2605,7 +2605,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_DISRUPTOR_MAIN_SHOT:
 		DEBUGNAME("EV_DISRUPTOR_MAIN_SHOT");
-		{
+		if (!cg.enhanced.unlaggedActive || !cg.enhanced.unlaggedActive(cent->currentState.eventParm)) {
 			vec3_t start, end;
 
 			if ((cg.playerCent && (cent->currentState.eventParm != cg.playerCent->currentState.number
@@ -2638,7 +2638,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_DISRUPTOR_SNIPER_SHOT:
 		DEBUGNAME("EV_DISRUPTOR_SNIPER_SHOT");
-		{
+		if (!cg.enhanced.unlaggedActive || !cg.enhanced.unlaggedActive(cent->currentState.eventParm)) {
 			vec3_t start, end;
 
 			if ((!cg.playerCent && !(cg.lastFPFlashPoint[0] || cg.lastFPFlashPoint[1] || cg.lastFPFlashPoint[2]))
@@ -3065,7 +3065,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	//
 	case EV_CONC_ALT_IMPACT:
 		DEBUGNAME("EV_CONC_ALT_IMPACT");
-		{
+		if (!cg.enhanced.unlaggedActive || !cg.enhanced.unlaggedActive(es->owner)) {
 			float dist;
 			float shotDist = VectorNormalize(es->angles);
 			vec3_t spot;

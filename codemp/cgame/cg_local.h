@@ -1098,6 +1098,7 @@ Ghoul2 Insert End
 		qboolean		detected;
 		int				flags;
 		qboolean		statsGenerated;
+		qboolean		(*unlaggedActive)(int);
 		struct {
 			team_t		team;
 			char		name[64];
@@ -2701,3 +2702,4 @@ void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end );
 #define	SDISABLE_JETPACK		0x200000
 
 #define BASE_ENHANCED_ALL_REWARDS	0x01
+#define BASE_ENHANCED_UNLAGGED		0x02

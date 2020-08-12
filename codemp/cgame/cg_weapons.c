@@ -642,9 +642,9 @@ getFlash:
 	memset (&flash, 0, sizeof(flash));
 	CG_PositionEntityOnTag( &flash, &gun, gun.hModel, "tag_flash");
 
-	if (!thirdPerson && !cg.zoomMode && cg.playerCent && cg.playerCent == cent)
+	if ((!cg.demoPlayback || (!thirdPerson && !cg.zoomMode)) && cg.playerCent && cg.playerCent == cent)
 		VectorCopy(flash.origin, cg.lastFPFlashPoint);
-	if (cg.zoomMode)
+	if (cg.demoPlayback == 2 && cg.zoomMode)
 		return;
 	// Do special charge bits
 	//-----------------------
@@ -1999,6 +1999,98 @@ void CG_FireWeapon( centity_t *cent, qboolean altFire ) {
 		&& cg.playerCent && cg.playerCent->currentState.weapon == WP_DISRUPTOR
 		&& ent->number == cg.playerCent->currentState.number)
 		cg.charging = qfalse;
+
+	if (cg.enhanced.unlaggedActive && cg.enhanced.unlaggedActive(ent->number)) {
+		int weapontype;
+		vec3_t forward, right, up, muzzle, muzzleOffPoint;
+		vec3_t start, end;
+		trace_t tr;
+		playerState_t *ps = &cg.predictedPlayerState;
+		AngleVectors(ps->viewangles, forward, right, up);
+
+		weapontype = ent->weapon;
+		VectorCopy(ps->origin, muzzle);
+
+		VectorCopy(WP_MuzzlePoint[weapontype], muzzleOffPoint);
+
+		// Use the table to generate the muzzlepoint;
+		// Crouching.  Use the add-to-Z method to adjust vertically.
+		VectorMA(muzzle, muzzleOffPoint[0], forward, muzzle);
+		VectorMA(muzzle, muzzleOffPoint[1], right, muzzle);
+		muzzle[2] += ps->viewheight + muzzleOffPoint[2];
+
+		if (ent->weapon == WP_DISRUPTOR) {
+			VectorCopy(ps->origin, start);
+			start[2] += ps->viewheight;//By eyes
+			VectorMA(start, 8192.0f, forward, end);
+			CG_G2Trace(&tr, start, NULL, NULL, end, ent->number, MASK_SHOT);
+
+			if (cg.zoomMode) {
+
+			} else if (
+				//[TrueView])
+				cg.trueView
+				|| cg.renderingThirdPerson )
+				//[/TrueView]
+			{ //h4q3ry
+				CG_GetClientWeaponMuzzleBoltPoint(ent->number, muzzle);
+			} else {
+				if (cg.lastFPFlashPoint[0] ||cg.lastFPFlashPoint[1] || cg.lastFPFlashPoint[2])
+				{ //get the position of the muzzle flash for the first person weapon model from the last frame
+					VectorCopy(cg.lastFPFlashPoint, muzzle);
+				}
+			}
+
+			if (fx_disruptSpiral.integer)
+				CG_RailSpiral(&cgs.clientinfo[cent->currentState.number], muzzle, tr.endpos);
+			else if ((cg_newFX.integer & NEWFX_RUPTOR))
+				CG_RailTrail(&cgs.clientinfo[cent->currentState.number], muzzle, tr.endpos);
+			else if (altFire) {
+				float charge = (cg.time - ps->weaponChargeTime) / 50.0f;
+				FX_DisruptorAltShot(muzzle, tr.endpos, charge >= 30.0f);
+			} else
+				FX_DisruptorMainShot(muzzle, tr.endpos);
+		} else if (ent->weapon == WP_CONCUSSION && altFire) {
+			vec3_t shot_mins, shot_maxs, dir;
+			int skip;
+			//Make it a little easier to hit guys at long range
+			VectorSet(shot_mins, -1, -1, -1);
+			VectorSet(shot_maxs, 1, 1, 1);
+			VectorCopy(muzzle, start);
+			CG_Trace(&tr, ps->origin, vec3_origin, vec3_origin, start, ent->number, MASK_SOLID | CONTENTS_SHOTCLIP);
+			if (!tr.startsolid && !tr.allsolid && tr.fraction < 1.0f)
+				VectorCopy(tr.endpos, start);
+			skip = ent->number;
+			for (i = 0; i < 3; i++) {
+				VectorMA(start, 8192.0f, forward, end);
+				CG_G2Trace(&tr, start, shot_mins, shot_maxs, end, skip, MASK_SHOT);
+				if (tr.fraction >= 1.0f) {
+					// draw the beam but don't do anything else
+					break;
+				}
+				VectorCopy(tr.endpos, start);
+				skip = tr.entityNum;
+			}
+			// now go along the trail and make sight events
+			VectorSubtract(tr.endpos, muzzle, dir);
+			{float dist;
+			vec3_t spot;
+			float shotDist = VectorNormalize(dir);
+
+			for (dist = 0.0f; dist < shotDist; dist += 64.0f)
+			{ //one effect would be.. a whole lot better
+				VectorMA(muzzle, dist, dir, spot);
+				trap_FX_PlayEffectID(cgs.effects.mConcussionAltRing, spot, forward, -1, -1);
+			}
+
+			CG_MissileHitWall(WP_CONCUSSION, ent->number, tr.endpos, tr.plane.normal, IMPACTSOUND_DEFAULT, qtrue, 0);
+
+			FX_ConcAltShot(muzzle, spot);
+
+			//steal the bezier effect from the disruptor
+			FX_DisruptorAltMiss(tr.endpos, tr.plane.normal);}
+		}
+	}
 
 	// play a sound
 	if (altFire) {

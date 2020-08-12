@@ -2891,7 +2891,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 	cg.trueView = (cg.playerCent->currentState.weapon == WP_SABER && cg_trueSaber.integer)
 		|| (cg.playerCent->currentState.weapon == WP_MELEE && cg_trueMelee.integer)
 		|| (cg.playerCent->currentState.weapon != WP_SABER && cg.playerCent->currentState.weapon != WP_MELEE && cg_trueGuns.integer);
-	cg.zoomMode = cg.snap->ps.zoomMode || cg.predictedPlayerState.zoomMode;
+	cg.zoomMode = cg.predictedPlayerState.zoomMode;
 	CG_SetPredictedThirdPerson();
 
 	// build cg.refdef

@@ -176,6 +176,10 @@ static void CG_ParseTeamInfo( void ) {
 	}
 }
 
+static qboolean CG_UnlaggedActive(int clientNum) {
+	return !cg.demoPlayback && cg.snap && clientNum == cg.snap->ps.clientNum && !(cg.snap->ps.pm_flags & PMF_FOLLOW) && (cg.enhanced.flags & BASE_ENHANCED_UNLAGGED);
+}
+
 /*
 ================
 CG_ParseServerinfo
@@ -248,14 +252,23 @@ void CG_ParseServerinfo( void ) {
 		cg.enhanced.detected = qtrue;
 		if (*version) {
 			int verMajor = 0, verMinor = 0;
+			char *verSep;
 			CG_Printf(" v%s", version);
 			verMajor = atoi(version);
-			if (version = strchr(version, '.')) {
-				version++;
-				verMinor = atoi(version);
+			if ((verSep = strchr(version, '.')) || (verSep = strchr(version, 'w'))) {
+				verSep++;
+				verMinor = atoi(verSep);
 			}
 			if (verMajor >= 1) {
 				cg.enhanced.flags |= BASE_ENHANCED_ALL_REWARDS;
+				if (verMajor > 20 || (verMajor == 20 && verMinor >= 18)) {
+					//special config string that contains features
+					const char *finfo = CG_ConfigString(CS_BOTINFO);
+					if (strstr(finfo, "unlg ")) {
+						cg.enhanced.flags |= BASE_ENHANCED_UNLAGGED;
+						cg.enhanced.unlaggedActive = CG_UnlaggedActive;
+					}
+				}
 			}
 		}
 	} else if (!Q_stricmpn(gamename, "RPMod", 5)) {
