@@ -711,6 +711,12 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 				cent->ghoul2 = NULL;
 			}
 		}
+		for (i = 0; i < MAX_CLIENTS; i++) {
+			centity_t *cent = &cg_entities[i];
+			if (cent->ghoul2) {
+				trap_G2API_ClearSkinGore(cent->ghoul2);
+			}
+		}
 		CG_LoadDeferredPlayers();
 	} else if (cg.frametime > 100) {
 		hadSkip = qtrue;
