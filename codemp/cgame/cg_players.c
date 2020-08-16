@@ -1786,7 +1786,7 @@ void CG_NewClientInfo( int clientNum, qboolean entitiesInitialized ) {
 	}
 #else
 
-	if ( cg_forceModel.integer && clientNum != cg.clientNum ) {
+	if ( cg_forceModel.integer == 1 || ( cg_forceModel.integer == 2 && ( clientNum != ( cg.snap ? cg.snap->ps.clientNum : cg.clientNum ) ) ) ) {
 		char modelStr[MAX_QPATH] = {0};
 		char *skin = NULL;
 
