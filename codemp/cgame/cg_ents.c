@@ -3264,7 +3264,7 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 		CG_Error( "CG_InterpoateEntityPosition: cg.nextSnap == NULL" );
 		return;
 	}
-	if ( cent->currentState.number == cg.predictedPlayerState.clientNum ) {
+	if ( cent->currentState.number == cg.predictedPlayerState.clientNum && cg.demoPlayback ) {
 		f = cg.playerInterpolation;
 	} else {
 		f = cg.frameInterpolation;

@@ -501,6 +501,9 @@ void CG_InterpolatePlayerState( qboolean grabAngles ) {
 	if ( !nextps ) {
 		return;
 	}
+	if ( cg.demoPlayback != 2 && ( next->serverTime <= prev->serverTime ) ) {
+		return;
+	}
 #ifdef _DEBUG
 	if ( !( currentTime <= cg.time + (double) cg.timeFraction && nextTime >= cg.time + (double) cg.timeFraction ) ) {
 		Com_Printf( "WARNING: Couldn't locate slots with correct time\n" );
@@ -522,7 +525,8 @@ void CG_InterpolatePlayerState( qboolean grabAngles ) {
 		f = 0;
 	}
 	*out = *curps;
-	out->stats[STAT_HEALTH] = cg.snap->ps.stats[STAT_HEALTH];
+	if (cg.demoPlayback == 2)
+		out->stats[STAT_HEALTH] = cg.snap->ps.stats[STAT_HEALTH];
 	// if we are still allowing local input, short circuit the view angles
 	if ( grabAngles ) {
 		usercmd_t	cmd;
@@ -553,6 +557,8 @@ void CG_InterpolatePlayerState( qboolean grabAngles ) {
 		out->velocity[i] = curps->velocity[i] + 
 			f * (nextps->velocity[i] - curps->velocity[i] );
 	}
+	if (cg.demoPlayback != 2)
+		return;
 	// requires commandSmooth 2, since it needs entity state history of the mover
 	if (cg_commandSmooth.integer > 1 && cg.demoPlayback == 2) {
 		// adjust for the movement of the groundentity

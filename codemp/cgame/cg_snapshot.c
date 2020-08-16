@@ -80,6 +80,9 @@ static void CG_TransitionEntity( centity_t *cent ) {
 
 void CG_AddToHistory( int serverTime, entityState_t *state, centity_t *cent ) {
 	timedEntityState_t *tstate = &cent->stateHistory.states[cent->stateHistory.nextSlot % MAX_STATE_HISTORY], *prev = NULL;
+	if ( cg.demoPlayback != 2 ) {
+		return;
+	}
 	if ( state->number >= MAX_CLIENTS && state->eType != ET_MOVER ) {
 		return;
 	}
@@ -253,9 +256,15 @@ void CG_SetInitialSnapshot( snapshot_t *snap ) {
 	// what the server has indicated the current weapon is
 	CG_Respawn();
 
-	CG_UpdateTps( snap, qtrue );
-	BG_PlayerStateToEntityStateExtraPolate( &snap->ps, &pes, snap->ps.commandTime, qfalse );
-	CG_AddToHistory( snap->serverTime, &pes, &cg_entities[ snap->ps.clientNum ] );
+	if (cg.demoPlayback == 2) {
+		CG_UpdateTps(snap, qtrue);
+		BG_PlayerStateToEntityStateExtraPolate(&snap->ps, &pes, snap->ps.commandTime, qfalse);
+		CG_AddToHistory(snap->serverTime, &pes, &cg_entities[snap->ps.clientNum]);
+	} else if (!cg.demoPlayback) {
+		// init force selection to SPEED
+		cg.forceSelect = cg.snap->ps.fd.forcePowerSelected = FP_SPEED;
+		trap_SetUserCmdValue(cg.weaponSelect, cg.zoomSensitivity, 0.0f, 0.0f, 0.0f, cg.forceSelect, cg.itemSelect, qfalse);
+	}
 
 	for ( i = 0 ; i < cg.snap->numEntities ; i++ ) {
 		state = &cg.snap->entities[ i ];
@@ -266,7 +275,8 @@ void CG_SetInitialSnapshot( snapshot_t *snap ) {
 		cent->interpolate = qfalse;
 		cent->currentValid = qtrue;
 
-		CG_AddToHistory( snap->serverTime, state, cent );
+		if (cg.demoPlayback == 2)
+			CG_AddToHistory( snap->serverTime, state, cent );
 
 		CG_ResetEntity( cent );
 
@@ -313,8 +323,10 @@ void CG_SetNextSnap( snapshot_t *snap ) {
 	BG_PlayerStateToEntityState( &snap->ps, &cg_entities[ snap->ps.clientNum ].nextState, qfalse );
 	//cg_entities[ cg.snap->ps.clientNum ].interpolate = qtrue;
 	//No longer want to do this, as the cg_entities[clnum] and cg.predictedPlayerEntity are one in the same.
-	BG_PlayerStateToEntityStateExtraPolate( &snap->ps, &pes, snap->ps.commandTime, qfalse );
-	CG_AddToHistory( snap->serverTime, &pes, &cg_entities[ snap->ps.clientNum ] );
+	if (cg.demoPlayback == 2) {
+		BG_PlayerStateToEntityStateExtraPolate(&snap->ps, &pes, snap->ps.commandTime, qfalse);
+		CG_AddToHistory(snap->serverTime, &pes, &cg_entities[snap->ps.clientNum]);
+	}
 	//cg_entities[snap->ps.clientNum].interpolate = qtrue;
 
 	// check for extrapolation errors
@@ -334,12 +346,13 @@ void CG_SetNextSnap( snapshot_t *snap ) {
 			cent->interpolate = qtrue;
 		}
 
-		CG_AddToHistory( snap->serverTime, es, cent );
+		if (cg.demoPlayback == 2)
+			CG_AddToHistory( snap->serverTime, es, cent );
 	}
 
 	cg.nextFrameTeleport = CG_IsTeleport( cg.snap, snap );
 
-	if ( cg.nextNextSnap == NULL ) {
+	if ( cg.nextNextSnap == NULL && cg.demoPlayback == 2 ) {
 		CG_UpdateTps( snap, cg.nextFrameTeleport );
 	}
 
@@ -473,7 +486,11 @@ snapshot_t *CG_ReadNextSnapshot( void ) {
 
 	while ( cgs.processedSnapshotNum < cg.latestSnapshotNum ) {
 		// decide which of the two slots to load it into
-		if ( !cg.snap ) {
+		if ( cg.demoPlayback != 2 && cg.snap == &cg.activeSnapshots[0] ) {
+			dest = &cg.activeSnapshots[1];
+		} else if ( cg.demoPlayback != 2 ) {
+			dest = &cg.activeSnapshots[0];
+		} else if ( !cg.snap ) {
 			dest = &cg.activeSnapshots[0];
 		} else {
 			// pick slot not already used
@@ -605,7 +622,7 @@ void CG_ProcessSnapshots( void ) {
 				CG_Error( "CG_ProcessSnapshots: Server time went backwards" );
 			}
 		}
-		if ( !cg.nextNextSnap ) {
+		if ( cg.demoPlayback == 2 && !cg.nextNextSnap ) {
 			snap = CG_ReadNextSnapshot();
 
 			// if we still don't have a nextframe, we will just have to
