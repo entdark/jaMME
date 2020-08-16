@@ -6694,9 +6694,9 @@ static void CG_DrawVote(void) {
 	{
 		s = va("%s(%i):<%s> %s:%i %s:%i",    sVote, sec, sCmd,        sYes, cgs.voteYes, sNo, cgs.voteNo);
 	}
-	CG_DrawSmallString( 4, 58, s, 1.0F );
+	CG_DrawStringExt( 4.0f*cgs.widthRatioCoef, 58.0f, s, colorWhite, qfalse, qtrue, SMALLCHAR_WIDTH*cgs.widthRatioCoef, SMALLCHAR_HEIGHT, 0 );
 	s = CG_GetStringEdString("MP_INGAME", "OR_PRESS_ESC_THEN_CLICK_VOTE");	//	s = "or press ESC then click Vote";
-	CG_DrawSmallString( 4, 58 + SMALLCHAR_HEIGHT + 2, s, 1.0F );
+	CG_DrawStringExt( 4.0f*cgs.widthRatioCoef, 58.0f + SMALLCHAR_HEIGHT + 2.0f, s, colorWhite, qfalse, qtrue, SMALLCHAR_WIDTH*cgs.widthRatioCoef, SMALLCHAR_HEIGHT, 0 );
 }
 
 /*
@@ -6769,7 +6769,7 @@ static void CG_DrawTeamVote(void) {
 		s = va("TEAMVOTE(%i):%s yes:%i no:%i", sec, cgs.teamVoteString[cs_offset],
 								cgs.teamVoteYes[cs_offset], cgs.teamVoteNo[cs_offset] );
 	}
-	CG_DrawSmallString( 4, 90, s, 1.0F );
+	CG_DrawStringExt( 4.0f*cgs.widthRatioCoef, 90.0f, s, colorWhite, qfalse, qtrue, SMALLCHAR_WIDTH*cgs.widthRatioCoef, SMALLCHAR_HEIGHT, 0 );
 }
 
 static qboolean CG_DrawScoreboard() {
