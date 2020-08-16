@@ -332,6 +332,7 @@ typedef struct {
 	qhandle_t	whiteShader;
 	qhandle_t	consoleShader;
 	qhandle_t	recordingShader;
+	qhandle_t	recordingShaderNew;
 	float		ratioFix;
 	qboolean	uiEditingField;
 	

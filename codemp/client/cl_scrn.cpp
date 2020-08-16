@@ -374,7 +374,11 @@ void SCR_DrawDemoRecording( void ) {
 		return;
 	}
 
-	if (cl_drawRecording->integer >= 2 && cls.recordingShader) {
+	if (cl_drawRecording->integer >= 2 && cls.recordingShaderNew) {
+		static const float width = 60.0f, height = 15.0f;
+		re.SetColor(NULL);
+		re.DrawStretchPic(0*ratio, SCREEN_HEIGHT-height, width*ratio, height, 0, 0, 1, 1, cls.recordingShaderNew);
+	} else if (cl_drawRecording->integer >= 2 && cls.recordingShader) {
 		vec4_t colour = {1.0f, 0.1f, 0.1f, 1.0f};
 		const float size = 10.0f;
 		re.SetColor(colour);
