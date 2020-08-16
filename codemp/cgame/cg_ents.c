@@ -3280,9 +3280,8 @@ static void CG_InterpolateEntityPosition( centity_t *cent ) {
 #ifdef _DEBUG
 			Com_Printf( "Missing nextEsh for client %d\n", currentState->number );
 #endif
-			// TODO: timeFraction???
-			BG_EvaluateTrajectory( &currentState->pos, cg.time, cent->lerpOrigin );
-			BG_EvaluateTrajectory( &currentState->apos, cg.time, cent->lerpAngles );
+			demoNowTrajectory( &currentState->pos, cent->lerpOrigin );
+			demoNowTrajectory( &currentState->apos, cent->lerpAngles );
 			return;
 		}
 		nextState = &nextEsh->es;
