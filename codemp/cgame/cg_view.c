@@ -2898,6 +2898,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 	inwater = CG_CalcViewValues();
 	if (fx_Vibrate.value > 0.0f) {
 		FX_VibrateView(1.0f, cg.refdef.vieworg, cg.refdef.viewangles);
+		AnglesToAxis(cg.refdef.viewangles, cg.refdef.viewaxis);
 	}
 	CG_SetupFrustum();
 	
