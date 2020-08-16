@@ -1415,7 +1415,7 @@ notZoom:
 
 	if (cg.predictedPlayerState.zoomMode)
 	{
-		cg.zoomSensitivity = zoomFov/cgFov;
+		cg.zoomSensitivity = (zoomFov/cgFov)*cg_relativeZoomSensitivity.value;
 	}
 	else if ( !cg.zoomed ) {
 		cg.zoomSensitivity = 1;
