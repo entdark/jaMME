@@ -222,7 +222,7 @@ Coordinates are at 640 by 480 virtual resolution
 ==================
 */
 #include "../ui/menudef.h"	// for "ITEM_TEXTSTYLE_SHADOWED"
-void CG_DrawStringExt( int x, int y, const char *string, const float *setColor, 
+void CG_DrawStringExt( float x, float y, const char *string, const float *setColor, 
 		qboolean forceColor, qboolean shadow, int charWidth, int charHeight, int maxChars )
 {
 	if (trap_Language_IsAsian())
