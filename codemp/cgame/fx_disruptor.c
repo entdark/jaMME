@@ -179,8 +179,17 @@ void CG_RailSpiral( clientInfo_t *ci, vec3_t start, vec3_t end ) {
 			VectorCopy(coreColor, spiralColor);	//let's take colour from core
 		}
 	} else {
-		VectorCopy(ci->color1, coreColor);
-		VectorCopy(ci->color1, spiralColor);
+		vec3_t color;
+		//colours are stolen from saber blades
+		if (ci->team == TEAM_RED) {
+			VectorSet( color, 1.0f, 0.0f, 0.0f );
+		} else if (ci->team == TEAM_BLUE) {
+			VectorSet( color, 0.0f, 0.25f, 1.0f );
+		} else {
+			VectorSet( color, 1.0f, 1.0f, 0.0f );
+		}
+		VectorCopy(color, coreColor);
+		VectorCopy(color, spiralColor);
 	}
 
 	//Glow
