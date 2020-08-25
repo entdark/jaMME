@@ -633,7 +633,7 @@ void CG_DrawHealth( menuDef_t *menuHUD )
 	ps = &cg.snap->ps;
 
 	// What's the health?
-	healthAmt = ps->stats[STAT_HEALTH];
+	healthAmt = cg.playerPredicted ? ps->stats[STAT_HEALTH] : cgs.clientinfo[cg.playerCent->currentState.number].health;
 	if (healthAmt > ps->stats[STAT_MAX_HEALTH])
 	{
 		healthAmt = ps->stats[STAT_MAX_HEALTH];
@@ -678,6 +678,7 @@ void CG_DrawHealth( menuDef_t *menuHUD )
 		currValue -= inc;
 	}
 
+	healthAmt = cg.playerPredicted ? ps->stats[STAT_HEALTH] : cgs.clientinfo[cg.playerCent->currentState.number].health;
 	// Print the mueric amount
 	focusItem = Menu_FindItemByName(menuHUD, "healthamount");
 	if (focusItem)
@@ -689,7 +690,7 @@ void CG_DrawHealth( menuDef_t *menuHUD )
 			focusItem->window.rect.x*cgs.widthRatioCoef, 
 			focusItem->window.rect.y, 
 			3, 
-			ps->stats[STAT_HEALTH], 
+			healthAmt,
 			focusItem->window.rect.w*cgs.widthRatioCoef, 
 			focusItem->window.rect.h, 
 			NUM_FONT_SMALL,
@@ -723,7 +724,7 @@ void CG_DrawArmor( menuDef_t *menuHUD )
 
 	maxArmor = ps->stats[STAT_MAX_HEALTH];
 
-	currValue = ps->stats[STAT_ARMOR];
+	currValue = cg.playerPredicted ? ps->stats[STAT_ARMOR] : cgs.clientinfo[cg.playerCent->currentState.number].armor;
 	inc = (float) maxArmor / MAX_HUD_TICS;
 
 	memcpy(calcColor, colorTable[CT_WHITE], sizeof(vec4_t));
@@ -777,6 +778,8 @@ void CG_DrawArmor( menuDef_t *menuHUD )
 		currValue -= inc;
 	}
 
+	currValue = cg.playerPredicted ? ps->stats[STAT_ARMOR] : cgs.clientinfo[cg.playerCent->currentState.number].armor;
+
 	focusItem = Menu_FindItemByName(menuHUD, "armoramount");
 
 	if (focusItem)
@@ -788,7 +791,7 @@ void CG_DrawArmor( menuDef_t *menuHUD )
 			focusItem->window.rect.x*cgs.widthRatioCoef, 
 			focusItem->window.rect.y, 
 			3, 
-			ps->stats[STAT_ARMOR], 
+			currValue,
 			focusItem->window.rect.w*cgs.widthRatioCoef, 
 			focusItem->window.rect.h, 
 			NUM_FONT_SMALL,
@@ -796,12 +799,12 @@ void CG_DrawArmor( menuDef_t *menuHUD )
 	}
 
 	// If armor is low, flash a graphic to warn the player
-	if (ps->stats[STAT_ARMOR])	// Is there armor? Draw the HUD Armor TIC
+	if (currValue)	// Is there armor? Draw the HUD Armor TIC
 	{
 		quarterArmor = (float) (ps->stats[STAT_MAX_HEALTH] / 4.0f);
 
 		// Make tic flash if armor is at 25% of full armor
-		if (ps->stats[STAT_ARMOR] < quarterArmor)		// Do whatever the flash timer says
+		if (currValue < quarterArmor)		// Do whatever the flash timer says
 		{
 			if (cg.HUDTickFlashTime < cg.time)			// Flip at the same time
 			{
@@ -1216,6 +1219,16 @@ void CG_DrawHUD(centity_t	*cent)
 	const char *scoreStr = NULL;
 	int	scoreBias;
 	char scoreBiasStr[16];
+	int score;
+
+	if (!cg.playerPredicted) {
+		if (cg.snap->ps.persistant[PERS_TEAM] != TEAM_RED && cg.snap->ps.persistant[PERS_TEAM] != TEAM_BLUE) {
+			return; // Not on any team
+		}
+		if (cgs.clientinfo[cent->currentState.number].team != cg.snap->ps.persistant[PERS_TEAM]) {
+			return;
+		}
+	}
 
 	if (cg_hudFiles.integer)
 	{
@@ -1223,14 +1236,27 @@ void CG_DrawHUD(centity_t	*cent)
 		int y = SCREEN_HEIGHT-80;
 		char ammoString[64];
 		int weapX = x;
+		int health;
+		int armor;
 
 		if (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
 		{
-			UI_DrawProportionalString( (x+16)*cgs.widthRatioCoef, y+40, va( "%i", cg.snap->ps.stats[STAT_HEALTH] ),
+			if (cg.playerPredicted) {
+				health = cg.snap->ps.stats[STAT_HEALTH];
+				armor = cg.snap->ps.stats[STAT_ARMOR];
+			} else {
+				health = cgs.clientinfo[cent->currentState.number].health;
+				armor = cgs.clientinfo[cent->currentState.number].armor;
+			}
+
+			UI_DrawProportionalString( (x+16)*cgs.widthRatioCoef, y+40, va( "%i", health ),
 				UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_HUD_RED] );
 
-			UI_DrawProportionalString( (x+18+14)*cgs.widthRatioCoef, y+40+14, va( "%i", cg.snap->ps.stats[STAT_ARMOR] ),
+			UI_DrawProportionalString( (x+18+14)*cgs.widthRatioCoef, y+40+14, va( "%i", armor ),
 				UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_HUD_GREEN] );
+
+			if (!cg.playerPredicted)
+				return;
 
 			if (cg.snap->ps.weapon == WP_SABER)
 			{
@@ -1325,15 +1351,21 @@ void CG_DrawHUD(centity_t	*cent)
 			//CG_Error("CG_ChatBox_ArrayInsert: unable to locate HUD menu file ");
 		}
 
+		if (cg.playerPredicted) {
+			score = cg.snap->ps.persistant[PERS_SCORE];
+		} else {
+			score = cgs.clientinfo[cent->currentState.number].score;
+		}
+
 		//scoreStr = va("Score: %i", cgs.clientinfo[cg.snap->ps.clientNum].score);
 		if ( cgs.gametype == GT_DUEL )
 		{//A duel that requires more than one kill to knock the current enemy back to the queue
 			//show current kills out of how many needed
-			scoreStr = va("%s: %i/%i", CG_GetStringEdString("MP_INGAME", "SCORE"), cg.snap->ps.persistant[PERS_SCORE], cgs.fraglimit);
+			scoreStr = va("%s: %i/%i", CG_GetStringEdString("MP_INGAME", "SCORE"), score, cgs.fraglimit);
 		}
 		else if (0 && cgs.gametype < GT_TEAM )
 		{	// This is a teamless mode, draw the score bias.
-			scoreBias = cg.snap->ps.persistant[PERS_SCORE] - cgs.scores1;
+			scoreBias = score - cgs.scores1;
 			if (scoreBias == 0)
 			{	// We are the leader!
 				if (cgs.scores2 <= 0)
@@ -1342,7 +1374,7 @@ void CG_DrawHUD(centity_t	*cent)
 				}
 				else
 				{
-					scoreBias = cg.snap->ps.persistant[PERS_SCORE] - cgs.scores2;
+					scoreBias = score - cgs.scores2;
 					if (scoreBias == 0)
 					{
 						Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), " (Tie)");
@@ -1357,11 +1389,11 @@ void CG_DrawHUD(centity_t	*cent)
 			{	// We are behind!
 				Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), " (%d)", scoreBias);
 			}
-			scoreStr = va("%s: %i%s", CG_GetStringEdString("MP_INGAME", "SCORE"), cg.snap->ps.persistant[PERS_SCORE], scoreBiasStr);
+			scoreStr = va("%s: %i%s", CG_GetStringEdString("MP_INGAME", "SCORE"), score, scoreBiasStr);
 		}
 		else
 		{	// Don't draw a bias.
-			scoreStr = va("%s: %i", CG_GetStringEdString("MP_INGAME", "SCORE"), cg.snap->ps.persistant[PERS_SCORE]);
+			scoreStr = va("%s: %i", CG_GetStringEdString("MP_INGAME", "SCORE"), score);
 		}
 
 		menuHUD = Menus_FindByName("righthud");
@@ -1383,6 +1415,9 @@ void CG_DrawHUD(centity_t	*cent)
 						0.7f);
 				}
 			}
+
+			if (!cg.playerPredicted)
+				return;
 
 			// Print scanline
 			focusItem = Menu_FindItemByName(menuHUD, "scanline");
@@ -8232,9 +8267,11 @@ void CG_Draw2D (void) {
 		CG_DrawZoomMask();
 		if (!(cg.playerCent->currentState.eFlags & EF_DEAD))
 			CG_DrawCrosshairNames();
-		CG_SaberClashFlare();
 		if (cg_drawStatus.integer)
 			CG_DrawFlagStatus();
+		CG_SaberClashFlare();
+		if (cg_drawStatus.integer)
+			CG_DrawHUD(cg.playerCent);
 		CG_DrawPickupItem();
 		CG_UpdateFallVector();
 		CG_DrawVote();
