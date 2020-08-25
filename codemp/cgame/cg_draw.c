@@ -3922,6 +3922,10 @@ static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
 		return y; // Not on any team
 	}
 
+	if ( cgs.clientinfo[cg.playerCent->currentState.number].team != cg.snap->ps.persistant[PERS_TEAM] ) {
+		return y;
+	}
+
 	plyrs = 0;
 
 	//TODO: On basejka servers, we won't have valid teaminfo if we're spectating someone.
