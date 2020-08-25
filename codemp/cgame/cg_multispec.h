@@ -14,6 +14,6 @@ void CG_MultiSpecDynamicGlowUpdate(void);
 qboolean CG_MultiSpecEditing(void);
 float CG_MultiSpecFov(void);
 qboolean CG_MultiSpecTeamOverlayReplace(void);
-qboolean CG_MultiSpecTeamOverlayOffset(void);
+float CG_MultiSpecTeamOverlayOffset(void);
 int CG_MultiSpecKeyEvent(int key, qboolean down);
 void CG_MultiSpecMouseEvent(int dx, int dy);

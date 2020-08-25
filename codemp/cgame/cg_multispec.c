@@ -554,7 +554,7 @@ qboolean CG_MultiSpecTeamOverlayReplace(void)
 	return multiSpec.windows && multiSpec.teamoverlay.replace;
 }
 
-qboolean CG_MultiSpecTeamOverlayOffset(void)
+float CG_MultiSpecTeamOverlayOffset(void)
 {
 	return multiSpec.windows ? multiSpec.teamoverlay.offset : 0.0f;
 }
