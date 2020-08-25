@@ -8,6 +8,7 @@
 displayContextDef_t cgDC;
 
 #include "cg_lights.h"
+#include "cg_multispec.h"
 
 extern int cgSiegeRoundState;
 extern int cgSiegeRoundTime;
@@ -168,6 +169,8 @@ This must be the very first function compiled into the .q3vm file
 */
 extern void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView );
 extern qboolean CG_DemosConsoleCommand( void );
+extern qboolean CG_DemosKeyEvent(int key, qboolean down);
+extern void CG_DemosMouseEvent(int dx, int dy);
 Q_EXPORT intptr_t vmMain(int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7, int arg8, int arg9, int arg10, int arg11) {
 	switch (command) {
 	case CG_INIT:
@@ -193,13 +196,21 @@ Q_EXPORT intptr_t vmMain(int command, int arg0, int arg1, int arg2, int arg3, in
 	case CG_LAST_ATTACKER:
 		return CG_LastAttacker();
 	case CG_KEY_EVENT:
-		return CG_KeyEvent(arg0, arg1);
+		if (CG_MultiSpecEditing())
+			return CG_MultiSpecKeyEvent(arg0, arg1);
+		else if (cg.demoPlayback == 2)
+			return CG_DemosKeyEvent(arg0, arg1);
+		else
+			return CG_KeyEvent(arg0, arg1);
 	case CG_MOUSE_EVENT:
-#ifdef __ANDROID__
 		cgDC.cursorx = cgs.cursorX;
 		cgDC.cursory = cgs.cursorY;
-#endif
-		CG_MouseEvent(arg0, arg1);
+		if (CG_MultiSpecEditing())
+			CG_MultiSpecMouseEvent(arg0, arg1);
+		else if (cg.demoPlayback == 2)
+			CG_DemosMouseEvent(arg0, arg1);
+		else
+			CG_MouseEvent(arg0, arg1);
 		return 0;
 	case CG_EVENT_HANDLING:
 		CG_EventHandling(arg0);
@@ -3177,6 +3188,8 @@ Ghoul2 Insert End
 
 	CG_Set2DRatio();
 
+	CG_MultiSpecInit();
+
 	//Raz: warn for poor settings
 	trap_Cvar_VariableStringBuffer( "rate", buf, sizeof( buf ) );
 	if ( atoi( buf ) == 4000 )
@@ -3264,6 +3277,8 @@ void CG_Shutdown( void )
 
 	// some mods may need to do cleanup work here,
 	// like closing files or archiving session data
+
+	CG_MultiSpecShutDown();
 }
 
 /*

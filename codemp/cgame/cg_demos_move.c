@@ -553,7 +553,7 @@ static void chaseInterpolate( int time, float timeFraction, vec3_t origin, vec3_
 	QuatToAngles( qr, demo.chase.angles );
 }
 
-static qboolean chasePrevTarget( int *oldTarget ) {
+qboolean chasePrevTarget( int *oldTarget ) {
 	int i, old = *oldTarget;
 	if ( old < MAX_CLIENTS) {
 		if ( old < 0) {
@@ -579,7 +579,7 @@ static qboolean chasePrevTarget( int *oldTarget ) {
 	return qfalse;
 }
 
-static qboolean chaseNextTarget( int *oldTarget ) {
+qboolean chaseNextTarget( int *oldTarget ) {
 	int i, old = *oldTarget;
 	if ( old < (MAX_CLIENTS - 2)) {
 		if ( old < 0) {

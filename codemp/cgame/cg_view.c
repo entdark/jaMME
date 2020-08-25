@@ -5,6 +5,7 @@
 #include "cg_local.h"
 #include "../game/bg_saga.h"
 #include "cg_lights.h"
+#include "cg_multispec.h"
 
 #define MASK_CAMERACLIP (MASK_SOLID|CONTENTS_PLAYERCLIP)
 #define CAMERA_SIZE	4
@@ -435,7 +436,7 @@ static void CG_UpdateThirdPersonTargetDamp(void)
 	{//hyperspacing, no damp
 		VectorCopy(cameraIdealTarget, cameraCurTarget);
 	}
-	else if (cg_thirdPersonTargetDamp.value>=1.0||cg.thisFrameTeleport||cg.predictedPlayerState.m_iVehicleNum)
+	else if (cg_thirdPersonTargetDamp.value>=1.0||cg.thisFrameTeleport||cg.predictedPlayerState.m_iVehicleNum||CG_MultiSpecActive())
 	{	// No damping.
 		VectorCopy(cameraIdealTarget, cameraCurTarget);
 	}
@@ -525,7 +526,7 @@ static void CG_UpdateThirdPersonCameraDamp(void)
 		}
 	}
 
-	if (dampfactor>=1.0||cg.thisFrameTeleport)
+	if (dampfactor>=1.0||cg.thisFrameTeleport||CG_MultiSpecActive())
 	{	// No damping.
 		VectorCopy(cameraIdealLoc, cameraCurLoc);
 	}
@@ -839,7 +840,7 @@ static void CG_OffsetThirdPersonViewQ3( void ) {
 	float		focusDist;
 	float		forwardScale, sideScale;
 
-	if (gCGHasFallVector)
+	if (gCGHasFallVector && !CG_MultiSpecActive())
 		VectorCopy(gCGFallVector, mainOrg);
 	else
 		VectorCopy(cg.refdef.vieworg, mainOrg);
@@ -1262,7 +1263,9 @@ static int CG_CalcFov( void ) {
 	float	cgFov;
 	//float	cgFov = cg_fov.value;
 	
-	if(cg.playerPredicted && (!cg.renderingThirdPerson
+	if (CG_MultiSpecActive()) {
+		cgFov = CG_MultiSpecFov();
+	} else if(cg.playerPredicted && (!cg.renderingThirdPerson
 		&& (cg.trueView
 		|| cg.predictedPlayerState.weapon == WP_SABER
 		|| cg.predictedPlayerState.weapon == WP_MELEE) 
@@ -1727,7 +1730,8 @@ void CG_EmplacedView(vec3_t angles);
 int CG_CalcViewValues( void ) {
 	qboolean manningTurret = qfalse;
 	entityState_t *es = &cg.playerCent->currentState;
-	memset( &cg.refdef, 0, sizeof( cg.refdef ) );
+	if (!CG_MultiSpecActive())
+		memset( &cg.refdef, 0, sizeof( cg.refdef ) );
 
 	// calculate size of 3D view
 	CG_CalcVrect();
@@ -1814,6 +1818,9 @@ int CG_CalcViewValues( void ) {
 			CG_OffsetFighterView();
 		}
 		else if ( cg.renderingThirdPerson ) {
+			if (CG_MultiSpecActive()) {
+				CG_OffsetThirdPersonViewQ3();
+			} else
 			// back away from character
 			if (cg_thirdPersonSpecialCam.integer &&
 				BG_SaberInSpecial(cg.snap->ps.saberMove))
@@ -1930,7 +1937,9 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 	if (!fov_x)
 	{
 		//[TrueView]
-		if(cg.playerPredicted && (!cg.renderingThirdPerson
+		if (CG_MultiSpecActive()) {
+			fov_x = CG_MultiSpecFov();
+		} else if(cg.playerPredicted && (!cg.renderingThirdPerson
 			&& (cg.trueView
 			|| cg.predictedPlayerState.weapon == WP_SABER
 			|| cg.predictedPlayerState.weapon == WP_MELEE) 
@@ -2015,7 +2024,9 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 	{
 		// if in intermission, use a fixed value
 		//[TrueView]
-		if(!cg.renderingThirdPerson &&
+		if (CG_MultiSpecActive()) {
+			fov_x = CG_MultiSpecFov();
+		} else if(!cg.renderingThirdPerson &&
 			(cg.trueView
 			|| (cg.playerCent && (cg.playerCent->currentState.weapon == WP_SABER
 			|| cg.playerCent->currentState.weapon == WP_MELEE)))
@@ -2034,7 +2045,9 @@ void CG_DrawSkyBoxPortal(const char *cstr)
 	{
 		qboolean zoomOn = (cg.playerCent && cg.zoomMode);
 		//[TrueView]
-		if(cg.playerPredicted && (!cg.renderingThirdPerson 
+		if (CG_MultiSpecActive()) {
+			fov_x = CG_MultiSpecFov();
+		} else if(cg.playerPredicted && (!cg.renderingThirdPerson 
 			&& (cg.trueView
 			|| cg.predictedPlayerState.weapon == WP_SABER
 			|| cg.predictedPlayerState.weapon == WP_MELEE) 
@@ -3013,7 +3026,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, int demoPlayb
 	}
 
 	// actually issue the rendering calls
-	CG_DrawActive( stereoView );
+	CG_DrawActive( stereoView, qtrue );
 	
 	//those looping sounds in intermission are annoying
 	if (cg.predictedPlayerState.pm_type == PM_INTERMISSION && !intermission) {

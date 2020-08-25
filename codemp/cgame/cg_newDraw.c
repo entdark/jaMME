@@ -722,7 +722,7 @@ void CG_OwnerDraw(float x, float y, float w, float h, float text_x, float text_y
   }
 #endif
 }
-#ifdef __ANDROID__
+
 void CG_MouseEvent(int x, int y) {
 	int n;
 	/* Raz: Enable cgame key catcher
@@ -754,7 +754,7 @@ void CG_MouseEvent(int x, int y) {
 		Display_MouseMove(NULL, cgs.cursorX, cgs.cursorY);
 	}
 }
-#endif
+
 /*
 ==================
 CG_HideTeamMenus
@@ -798,7 +798,7 @@ void CG_EventHandling(int type) {
 	}
 
 }
-#ifdef __ANDROID__
+
 qboolean CG_KeyEvent(int key, qboolean down) {
 	if (!down) {
 		return qfalse;
@@ -824,7 +824,7 @@ qboolean CG_KeyEvent(int key, qboolean down) {
 	}
 	return qfalse;
 }
-#endif
+
 int CG_ClientNumFromName(const char *p) {
 	int i;
 	for (i = 0; i < cgs.maxclients; i++) {

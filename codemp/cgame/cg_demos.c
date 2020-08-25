@@ -3,6 +3,7 @@
 #include "cg_demos.h"
 #include "cg_lights.h"
 #include "../game/bg_saga.h"
+#include "cg_multispec.h"
 
 demoMain_t demo;
 
@@ -17,7 +18,6 @@ extern float CG_DrawFPS( float y );
 extern void CG_DrawUpperRight( void );
 extern void CG_Clear2DTintsTimes(void);
 extern void CG_CameraDraw2D( void );
-extern void CG_Draw2D( void );
 extern void CG_DrawAutoMap(void);
 extern void CG_DrawSkyBoxPortal(const char *cstr);
 extern qboolean PM_InKnockDown( playerState_t *ps );
@@ -498,6 +498,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	float frameSpeed;
 	int blurTotal, blurIndex;
 	float blurFraction;
+	qboolean draw2D;
 	static qboolean intermission = qfalse;
 	float stereoSep = CG_Cvar_Get( "r_stereoSeparation" );
 
@@ -963,10 +964,10 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	if (captureFrame && stereoSep > 0.0f)
 		trap_Cvar_Set("r_stereoSeparation", va("%f", -stereoSep));
 	trap_MME_TimeFraction(cg.timeFraction);
-	CG_DrawActive( stereoView );
+	draw2D = demo.viewType == viewChase && cg.playerCent && (cg.playerCent->currentState.number < MAX_CLIENTS);
+	CG_DrawActive( stereoView, draw2D );
 
-	if (demo.viewType == viewChase && cg.playerCent && (cg.playerCent->currentState.number < MAX_CLIENTS)) {
-		CG_Draw2D();
+	if (draw2D) {
 	} else if (cg_draw2D.integer) {
 		vec4_t hcolor = {0, 0, 0, 0};
 		CG_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor);
@@ -1000,7 +1001,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	} else {
 		if (demo.editType && !cg.playerCent)
 			demoDrawCrosshair();
-		hudDraw();
+		if (!CG_MultiSpecEditing())
+			hudDraw();
 		if (demo.editType) {
 			demoDrawProgress(trap_MME_ProgressTime());
 		}

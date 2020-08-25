@@ -6,6 +6,7 @@
 #include "../game/bg_saga.h"
 #include "../ui/ui_shared.h"
 #include "../ui/ui_public.h"
+#include "cg_multispec.h"
 extern float CG_RadiusForCent( centity_t *cent );
 qboolean CG_WorldCoordToScreenCoordFloat(vec3_t worldCoord, float *x, float *y);
 qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle );
@@ -209,7 +210,7 @@ CG_DrawZoomMask
 ================
 */
 extern void trap_R_RotatePic2RatioFix(float ratio);
-static void CG_DrawZoomMask(void) {
+void CG_DrawZoomMask(void) {
 	vec4_t		color1;
 	float		level;
 	static qboolean	flip = qtrue;
@@ -3872,6 +3873,12 @@ static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
 	int ret_y, count;
 	float xOffset = 0*cgs.widthRatioCoef;
 
+	y += CG_MultiSpecTeamOverlayOffset();
+
+	if ( CG_MultiSpecTeamOverlayReplace() ) {
+		return y;
+	}
+
 	if ( !cg_drawTeamOverlay.integer ) {
 		return y;
 	}
@@ -5323,8 +5330,13 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 	if (!hShader)
 		hShader = cgs.media.crosshairShader[cg_drawCrosshair.integer % NUM_CROSSHAIRS];
 
-	chX = x + (float)cg.refdef.x + 0.5f * ((float)SCREEN_WIDTH - w*cgs.widthRatioCoef);
-	chY = y + (float)cg.refdef.y + 0.5f * ((float)SCREEN_HEIGHT - h);
+	if (CG_MultiSpecActive()) {
+		w *= 1.7f;
+		h *= 1.7f;
+	}
+
+	chX = x/* + (float)cg.refdef.x*/ + 0.5f * ((float)SCREEN_WIDTH - w*cgs.widthRatioCoef);
+	chY = y/* + (float)cg.refdef.y*/ + 0.5f * ((float)SCREEN_HEIGHT - h);
 	trap_R_DrawStretchPic(chX, chY, w*cgs.widthRatioCoef, h, 0, 0, 1, 1, hShader);
 
 	//draw a health bar directly under the crosshair if we're looking at something
@@ -6399,7 +6411,7 @@ void CG_SanitizeString( char *in, char *out ) {
 CG_DrawCrosshairNames
 =====================
 */
-static void CG_DrawCrosshairNames(void) {
+void CG_DrawCrosshairNames(void) {
 	float		*color;
 	vec4_t		tcolor;
 	char		*name;
@@ -8102,7 +8114,7 @@ static void CG_Draw2DScreenTints(void) {
 qboolean gCGHasFallVector = qfalse;
 vec3_t gCGFallVector;
 
-static void CG_UpdateFallVector (void) {
+void CG_UpdateFallVector (void) {
 	if (!cg.playerCent)
 		goto clearFallVector;
 
@@ -8524,7 +8536,7 @@ CG_DrawActive
 Perform all drawing needed to completely fill the screen
 =====================
 */
-void CG_DrawActive( stereoFrame_t stereoView ) {
+void CG_DrawActive( stereoFrame_t stereoView, qboolean draw2D ) {
 	float		separation;
 	vec3_t		baseOrg;
 
@@ -8570,8 +8582,13 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 
 	CG_DrawMiscStaticModels();
 
-	// draw 3D view
-	trap_R_RenderScene( &cg.refdef );
+
+	if (CG_MultiSpecSkipBackground()) {
+		trap_R_ClearScene();
+		CG_MultiSpecDrawBackground();
+	} else
+		// draw 3D view
+		trap_R_RenderScene(&cg.refdef);
 
 	// restore original viewpoint if running stereo
 	if ( separation != 0 ) {
@@ -8579,9 +8596,10 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	}
 
 	// draw status bar and other floating elements
-	if (cg.demoPlayback != 2) {
+	if ( draw2D ) {
 		CG_Draw2D();
 	}
+	CG_MultiSpecMain();
 
 	doFX = qfalse;
 }

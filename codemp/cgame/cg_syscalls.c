@@ -3,6 +3,7 @@
 // cg_syscalls.c -- this file is only included when building a dll
 // cg_syscalls.asm is included instead when building a qvm
 #include "cg_local.h"
+#include "cg_multispec.h"
 
 static intptr_t (QDECL *Q_syscall)( intptr_t arg, ... ) = (intptr_t (QDECL *)( intptr_t, ...))-1;
 
@@ -18,6 +19,7 @@ int PASSFLOAT( float x ) {
 }
 
 void	trap_Print( const char *fmt ) {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall( CG_PRINT, fmt );
 }
 
@@ -183,18 +185,22 @@ int		trap_CM_MarkFragments( int numPoints, const vec3_t *points,
 }
 
 int trap_S_GetVoiceVolume( int entityNum ) {
+	if (CG_MultiSpecActive()) return 0;
 	return Q_syscall( CG_S_GETVOICEVOLUME, entityNum );
 }
 
 void	trap_S_StopSound( int entityNum, int entchannel, sfxHandle_t sfx ) {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall( CG_S_MUTESOUND, entityNum, entchannel, sfx );
 }
 
 void	trap_S_StartSound( vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx ) {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall( CG_S_STARTSOUND, origin, entityNum, entchannel, sfx );
 }
 
 void	trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum ) {
+	if (CG_MultiSpecActive()) return;
 	//announcer is always hearable, rite?
 	if ( channelNum == CHAN_ANNOUNCER || channelNum == CHAN_LOCAL_SOUND )
 		Q_syscall( CG_S_STARTSOUND, 0, ENTITYNUM_NONE, channelNum, sfx );
@@ -203,44 +209,54 @@ void	trap_S_StartLocalSound( sfxHandle_t sfx, int channelNum ) {
 }
 
 void	trap_S_ClearLoopingSounds(void) {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall( CG_S_CLEARLOOPINGSOUNDS );
 }
 
 void	trap_S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx ) {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall( CG_S_ADDLOOPINGSOUND, entityNum, origin, velocity, sfx );
 }
 
 void	trap_S_UpdateEntityPosition( int entityNum, const vec3_t origin ) {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall( CG_S_UPDATEENTITYPOSITION, entityNum, origin );
 }
 
 void	trap_S_AddRealLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx ) {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall( CG_S_ADDREALLOOPINGSOUND, entityNum, origin, velocity, sfx );
 }
 
 void	trap_S_StopLoopingSound( int entityNum ) {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall( CG_S_STOPLOOPINGSOUND, entityNum );
 }
 
 void	trap_S_Respatialize( int entityNum, const vec3_t origin, vec3_t axis[3], int inwater ) {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall( CG_S_RESPATIALIZE, entityNum, origin, axis, inwater );
 }
 
 void trap_S_ShutUp(qboolean shutUpFactor)
 {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall(CG_S_SHUTUP, shutUpFactor);
 }
 
 sfxHandle_t	trap_S_RegisterSound( const char *sample ) {
+	if (CG_MultiSpecActive()) return 0;
 	return Q_syscall( CG_S_REGISTERSOUND, sample );
 }
 
 void	trap_S_StartBackgroundTrack( const char *intro, const char *loop, qboolean bReturnWithoutStarting  ) {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall( CG_S_STARTBACKGROUNDTRACK, intro, loop, bReturnWithoutStarting  );
 }
 
 void trap_S_UpdateAmbientSet( const char *name, vec3_t origin )
 {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall(CG_S_UPDATEAMBIENTSET, name, origin);
 }
 
@@ -256,6 +272,7 @@ void trap_AS_AddPrecacheEntry( const char *name )
 
 int trap_S_AddLocalSet( const char *name, vec3_t listener_origin, vec3_t origin, int entID, int time )
 {
+	if (CG_MultiSpecActive()) return;
 	return Q_syscall(CG_S_ADDLOCALSET, name, listener_origin, origin, entID, time);
 }
 
@@ -291,8 +308,10 @@ qhandle_t trap_R_RegisterFont( const char *fontName )
 
 int	trap_R_Font_StrLenPixels(const char *text, const int iFontIndex, const float scale)
 {
+//	float x = 0.0f, y = 0.0f;
 	//Raz: HACK! RE_Font_TtrLenPixels only works correctly with 1.0f scale
 	float width = (float)Q_syscall( CG_R_FONT_STRLENPIXELS, text, iFontIndex, PASSFLOAT(1.0f));
+//	CG_MultiSpecAdjustString(&x, &y, &scale);
 	return width * scale;
 }
 
@@ -303,11 +322,14 @@ int trap_R_Font_StrLenChars(const char *text)
 
 int trap_R_Font_HeightPixels(const int iFontIndex, const float scale)
 {
+	float x = 0.0f, y = 0.0f;
+	CG_MultiSpecAdjustString(&x, &y, &scale);
 	return Q_syscall( CG_R_FONT_STRHEIGHTPIXELS, iFontIndex, PASSFLOAT(scale));
 }
 
 void trap_R_Font_DrawString(float ox, float oy, const char *text, const float *rgba, const int setIndex, int iCharLimit, const float scale)
 {
+	CG_MultiSpecAdjustString(&ox, &oy, &scale);
 	Q_syscall( CG_R_FONT_DRAWSTRING, PASSFLOAT(ox), PASSFLOAT(oy), text, rgba, setIndex, iCharLimit, PASSFLOAT(scale));
 }
 
@@ -374,6 +396,7 @@ void	trap_R_SetColor( const float *rgba ) {
 
 void	trap_R_DrawStretchPic( float x, float y, float w, float h, 
 							   float s1, float t1, float s2, float t2, qhandle_t hShader ) {
+	CG_MultiSpecAdjust2D(&x, &y, &w, &h);
 	Q_syscall( CG_R_DRAWSTRETCHPIC, PASSFLOAT(x), PASSFLOAT(y), PASSFLOAT(w), PASSFLOAT(h), PASSFLOAT(s1), PASSFLOAT(t1), PASSFLOAT(s2), PASSFLOAT(t2), hShader );
 }
 
@@ -389,12 +412,14 @@ int		trap_R_LerpTag( orientation_t *tag, clipHandle_t mod, int startFrame, int e
 void	trap_R_DrawRotatePic( float x, float y, float w, float h, 
 				   float s1, float t1, float s2, float t2,float a, qhandle_t hShader ) 
 {
+	CG_MultiSpecAdjust2D(&x, &y, &w, &h);
 	Q_syscall( CG_R_DRAWROTATEPIC, PASSFLOAT(x), PASSFLOAT(y), PASSFLOAT(w), PASSFLOAT(h), PASSFLOAT(s1), PASSFLOAT(t1), PASSFLOAT(s2), PASSFLOAT(t2), PASSFLOAT(a), hShader );
 }
 
 void	trap_R_DrawRotatePic2( float x, float y, float w, float h, 
 				   float s1, float t1, float s2, float t2,float a, qhandle_t hShader ) 
 {
+	CG_MultiSpecAdjust2D(&x, &y, &w, &h);
 	Q_syscall( CG_R_DRAWROTATEPIC2, PASSFLOAT(x), PASSFLOAT(y), PASSFLOAT(w), PASSFLOAT(h), PASSFLOAT(s1), PASSFLOAT(t1), PASSFLOAT(s2), PASSFLOAT(t2), PASSFLOAT(a), hShader );
 }
 
@@ -584,6 +609,7 @@ void trap_PC_RemoveAllGlobalDefines ( void )
 }
 
 void	trap_S_StopBackgroundTrack( void ) {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall( CG_S_STOPBACKGROUNDTRACK );
 }
 
@@ -1015,6 +1041,7 @@ int trap_G2API_CopyGhoul2Instance(void *g2From, void *g2To, int modelIndex)
 
 void trap_G2API_CopySpecificGhoul2Model(void *g2From, int modelFrom, void *g2To, int modelTo)
 {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall(CG_G2_COPYSPECIFICGHOUL2MODEL, g2From, modelFrom, g2To, modelTo);
 }
 
@@ -1030,6 +1057,7 @@ qboolean trap_G2API_HasGhoul2ModelOnIndex(void *ghlInfo, int modelIndex)
 
 qboolean trap_G2API_RemoveGhoul2Model(void *ghlInfo, int modelIndex)
 {
+	if (CG_MultiSpecActive()) return qtrue;
 	return Q_syscall(CG_G2_REMOVEGHOUL2MODEL, ghlInfo, modelIndex);
 }
 
@@ -1279,6 +1307,7 @@ void trap_FX_RandomSeed( int time, float timeFraction ) {
 	Q_syscall( CG_FX_RANDOMSEED, time, PASSFLOAT(timeFraction) );
 }
 void trap_S_UpdateScale( float scale ) {
+	if (CG_MultiSpecActive()) return;
 	Q_syscall( CG_S_UPDATE_SCALE, PASSFLOAT(scale) );
 }
 void trap_CIN_AdjustTime( int time ) {

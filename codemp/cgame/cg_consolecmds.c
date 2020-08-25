@@ -7,6 +7,7 @@
 #include "../ui/ui_shared.h"
 #include "../game/bg_saga.h"
 #include "cg_demos.h"
+#include "cg_multispec.h"
 extern menuDef_t *menuScoreboard;
 
 
@@ -516,6 +517,7 @@ static consoleCommand_t	commands[] = {
 	{ "clientlist", CG_ClientList_f },
 	{ "sm_stats", CG_EnhancedStatistics_f },
 	{ "clientOverride", CG_ClientOverride_f },
+	{ "multispec" , CG_MultiSpec_f },
 #ifdef __ANDROID__
 	{ "targetPrev", CG_TargetPrev_f },
 	{ "targetNext", CG_TargetNext_f },

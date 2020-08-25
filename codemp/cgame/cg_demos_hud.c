@@ -1136,8 +1136,8 @@ static void hudEditItem( hudItem_t *item, const char *buf ) {
 		break;
 */	}
 }
-#ifndef __ANDROID__
-qboolean CG_KeyEvent(int key, qboolean down) {
+
+qboolean CG_DemosKeyEvent(int key, qboolean down) {
 	int catchMask;
 	int len;
 
@@ -1252,7 +1252,7 @@ qboolean CG_KeyEvent(int key, qboolean down) {
 	}
 	return qtrue;
 }
-void CG_MouseEvent(int dx, int dy) {
+void CG_DemosMouseEvent(int dx, int dy) {
 	// update mouse screen position
 	hud.cursorX += dx*cgs.widthRatioCoef;
 	if (hud.cursorX < 0)
@@ -1265,4 +1265,3 @@ void CG_MouseEvent(int dx, int dy) {
 	else if (hud.cursorY > SCREEN_HEIGHT)
 		hud.cursorY = SCREEN_HEIGHT;
 }
-#endif
