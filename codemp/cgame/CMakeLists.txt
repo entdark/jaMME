@@ -93,6 +93,9 @@ set(MPCGameCgameFiles
 	"${MPDir}/cgame/cg_demos_move.c"
 	"${MPDir}/cgame/cg_demos_weather.c"
 	"${MPDir}/cgame/bg_demos.c"
+	"${MPDir}/cgame/bg_demos.h"
+	"${MPDir}/cgame/cg_demos.h"
+	"${MPDir}/cgame/cg_demos_math.h"
 	)
 source_group("cgame" FILES ${MPCGameCgameFiles})
 set(MPCGameFiles ${MPCGameFiles} ${MPCGameCgameFiles})
