@@ -127,7 +127,10 @@ typedef struct image_s {
 	bool		allowPicmip;
 
 	short		iLastLevelUsedOn;
-
+#ifdef __ANDROID__
+	bool		recreate;
+	qboolean	allowTC;
+#endif
 } image_t;
 
 //===============================================================================

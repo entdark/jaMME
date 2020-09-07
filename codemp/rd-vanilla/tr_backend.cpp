@@ -64,6 +64,12 @@ void GL_Bind( image_t *image ) {
 		image->frameUsed = tr.frameCount;
 		glState.currenttextures[glState.currenttmu] = texnum;
 		qglBindTexture (GL_TEXTURE_2D, texnum);
+#ifdef __ANDROID__
+		extern void R_ReCreateImage( image_t *const image );
+		if ( image->recreate ) {
+			R_ReCreateImage( image );
+		}
+#endif
 	}
 }
 

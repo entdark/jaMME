@@ -101,7 +101,11 @@ void R_IssueRenderCommands( qboolean runPerformanceCounters ) {
 	}
 
 	// actually start the commands going
-	if ( !r_skipBackEnd->integer ) {
+	if ( !r_skipBackEnd->integer
+#ifdef __ANDROID__
+		&& !ri.Cvar_VariableIntegerValue( "com_minimized" )
+#endif
+		) {
 		// let it start on the new batch
 		RB_ExecuteRenderCommands( cmdList->cmds );
 	}

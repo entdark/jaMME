@@ -1522,6 +1522,10 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 
 	LPCSTR psNewName = GenerateImageMappingName(name);
 	Q_strncpyz(image->imgName, psNewName, sizeof(image->imgName));
+#ifdef __ANDROID__
+	image->recreate = !!ri.Cvar_VariableIntegerValue("com_minimized");
+	image->allowTC = allowTC;
+#endif
 	AllocatedImages[ image->imgName ] = image;
 
 	if ( bRectangle )
@@ -1532,6 +1536,53 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 
 	return image;
 }
+
+
+/*
+================
+R_ReCreateImage
+
+This is the only way any image_t are created
+================
+*/
+#ifdef __ANDROID__
+void R_ReCreateImage( image_t *const image )
+{
+	int		width, height;
+	byte	*pic;
+	GLenum	format;
+
+	if ( ri.Cvar_VariableIntegerValue( "com_minimized" ) ) {
+		return;
+	}
+
+	//
+	// load the pic from disk
+	//
+	R_LoadImage( image->imgName, &pic, &width, &height, &format );
+	if ( pic == NULL ) {                                    // if we dont get a successful load
+		return;                                        // bail
+	}
+
+	Upload32( (unsigned *)pic,	format,
+								(qboolean)image->mipmap,
+								(qboolean)image->allowPicmip,
+								qfalse,
+								image->allowTC,
+								&image->internalFormat,
+								&image->width,
+								&image->height, false );
+
+	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, image->wrapClampMode );
+	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, image->wrapClampMode );
+
+	image->recreate = false;
+
+	Z_Free( pic );
+
+	return;
+}
+#endif
 
 //rwwRMG - added
 void R_CreateAutomapImage( const char *name, const byte *pic, int width, int height, qboolean mipmap, qboolean allowPicmip, qboolean allowTC, int glWrapClampMode ) 
