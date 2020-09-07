@@ -47,6 +47,7 @@ JK3_SRC = \
 	../../${MPDir}/cgame/cg_localents.c \
 	../../${MPDir}/cgame/cg_main.c \
 	../../${MPDir}/cgame/cg_marks.c \
+	../../${MPDir}/cgame/cg_multispec.c \
 	../../${MPDir}/cgame/cg_newDraw.c \
 	../../${MPDir}/cgame/cg_players.c \
 	../../${MPDir}/cgame/cg_playerstate.c \
