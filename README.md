@@ -10,7 +10,9 @@ Working:
 - Racetimer
 
 ==================================
+
 Jedi Academy Movie Maker's Edition
+
 ==================================
 
 Jedi Academy Movie Maker's Edition (jaMME) is an engine modification of Jedi Academy for moviemaking. It's a port of q3mme with most of its features and some new ones. The modification is based on very early (May 2013th) version of OpenJK. Original source code belongs to Raven Software.
