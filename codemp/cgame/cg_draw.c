@@ -12,21 +12,20 @@ qboolean CG_WorldCoordToScreenCoordFloat(vec3_t worldCoord, float *x, float *y);
 qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle );
 static void CG_DrawSiegeTimer(int timeRemaining, qboolean isMyTeam);
 static void CG_DrawSiegeDeathTimer( int timeRemaining );
+
+
+
 static void CG_StrafeHelper( centity_t *cent );//japro start
-//static void CG_LeadIndicator( void );
-//static void CG_PlayerLabels( void );
 static void CG_CalculateSpeed(centity_t *cent);
 static void CG_Speedometer(void);
 static void CG_DrawAccelMeter(void);
-//static void CG_DrawShowPos(void);
 //static void CG_MovementKeys(centity_t *cent);
 static void CG_JumpHeight(centity_t *cent);
 static void CG_RaceTimer(void);
-//static void CG_DrawSpeedGraph( void );
 static void CG_JumpDistance( void );
 static void CG_DrawVerticalSpeed(void);
 static void CG_DrawYawSpeed(void);
-//static void CG_DrawTrajectoryLine(void);
+static void CG_DrawTrajectoryLine(void);
 
 #define SHELPER_SUPEROLDSTYLE	(1<<0)
 #define SHELPER_OLDSTYLE		(1<<1)
@@ -1276,6 +1275,8 @@ void CG_DrawHUD(centity_t	*cent)
         //CG_MovementKeys(cent);
     //JAPRO - Clientside - Speedometer Start
     speedometerXPos = cg_speedometerX.integer;
+    if (cg_strafeHelper.integer)
+        CG_StrafeHelper(cent);
 
     if (cgs.newHud) {
         switch (cg_hudFiles.integer)
@@ -9210,14 +9211,14 @@ static void CG_StrafeHelper(centity_t *cent)
     static vec3_t velocityAngle;
     const float currentSpeed = cg.currentSpeed;
     float pmAccel = 10.0f, pmAirAccel = 1.0f, pmFriction = 6.0f, frametime, optimalDeltaAngle, baseSpeed = cg.predictedPlayerState.speed;
-    const int moveStyle = MV_JKA; //PM_GetMovePhysics();
+    const int moveStyle = MV_JKA;//PM_GetMovePhysics();
     int moveDir;
     qboolean onGround;
     usercmd_t cmd = { 0 };
 
     if (moveStyle == 0)
         return;
-
+    Com_Printf("%.3f, %.3f, %.3f\n", cg.predictedPlayerState.viewangles[PITCH], cg.predictedPlayerState.viewangles[YAW], cg.predictedPlayerState.viewangles[ROLL]);
     if (cg.clientNum == cg.predictedPlayerState.clientNum && !cg.demoPlayback) {
         trap_GetUserCmd( trap_GetCurrentCmdNumber(), &cmd );
     }
@@ -9737,3 +9738,4 @@ static void CG_Speedometer(void)
         }
     }
 }
+
