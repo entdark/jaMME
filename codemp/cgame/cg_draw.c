@@ -13,20 +13,20 @@ qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle );
 static void CG_DrawSiegeTimer(int timeRemaining, qboolean isMyTeam);
 static void CG_DrawSiegeDeathTimer( int timeRemaining );
 static void CG_StrafeHelper( centity_t *cent );//japro start
-static void CG_LeadIndicator( void );
-static void CG_PlayerLabels( void );
+//static void CG_LeadIndicator( void );
+//static void CG_PlayerLabels( void );
 static void CG_CalculateSpeed(centity_t *cent);
 static void CG_Speedometer(void);
 static void CG_DrawAccelMeter(void);
-static void CG_DrawShowPos(void);
-static void CG_MovementKeys(centity_t *cent);
+//static void CG_DrawShowPos(void);
+//static void CG_MovementKeys(centity_t *cent);
 static void CG_JumpHeight(centity_t *cent);
 static void CG_RaceTimer(void);
-static void CG_DrawSpeedGraph( void );
+//static void CG_DrawSpeedGraph( void );
 static void CG_JumpDistance( void );
 static void CG_DrawVerticalSpeed(void);
 static void CG_DrawYawSpeed(void);
-static void CG_DrawTrajectoryLine(void);
+//static void CG_DrawTrajectoryLine(void);
 
 #define SHELPER_SUPEROLDSTYLE	(1<<0)
 #define SHELPER_OLDSTYLE		(1<<1)
@@ -1273,7 +1273,7 @@ void CG_DrawHUD(centity_t	*cent)
 
     //JAPRO - Clientside - Movement Keys Start
     if (cg_movementKeys.integer)
-        CG_MovementKeys(cent);
+        //CG_MovementKeys(cent);
     //JAPRO - Clientside - Speedometer Start
     speedometerXPos = cg_speedometerX.integer;
 
@@ -1332,7 +1332,7 @@ void CG_DrawHUD(centity_t	*cent)
     if (cg_raceTimer.integer)
         CG_RaceTimer();
     if (cg_speedometer.integer & SPEEDOMETER_SPEEDGRAPH)
-        CG_DrawSpeedGraph();
+//        CG_DrawSpeedGraph();
 
 	if (!cg.playerPredicted) {
 		if (cg.snap->ps.persistant[PERS_TEAM] != TEAM_RED && cg.snap->ps.persistant[PERS_TEAM] != TEAM_BLUE) {
@@ -4641,6 +4641,64 @@ void CG_DrawSiegeMessage( const char *str, int objectiveScreen )
 	}
 }
 
+/*static void CG_DrawSpeedGraph( void ) {
+    int		a, i;
+    float	x, y, v;
+    float	ax, ay, aw, ah, mid, range;
+    int		color;
+    float	vscale;
+
+    x = SCREEN_WIDTH - cg_lagometerX.integer * cgs.widthRatioCoef;
+    y = SCREEN_HEIGHT - cg_lagometerY.integer - 56;
+
+    if (cg_hudFiles.integer == 0) {
+        y -= 16;
+    }
+
+
+    trap->R_SetColor(NULL);
+
+    if (cg_lagometer.integer == 1 || cg_lagometer.integer == 2)
+        CG_DrawPic(x, y, 48 * cgs.widthRatioCoef, 48, cgs.media.lagometerShader);
+
+    if (cg_lagometer.integer == 2 || (cg_lagometer.integer == 3 && cg.currentSpeed != 0))
+        CG_Text_Paint(x + 2 * cgs.widthRatioCoef, y, 0.5f, colorWhite, va("%.0f", cg.currentSpeed), 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_SMALL);
+
+    if (cg_lagometer.integer != 1 && cg_lagometer.integer != 2)
+        y -= 96;
+
+    x -= 1.0f * cgs.widthRatioCoef;
+
+    ax = x;
+    ay = y;
+    aw = 48;
+    if (cg_lagometer.integer != 1 && cg_lagometer.integer != 2)
+        ah = 48*3;
+    else
+        ah = 48;
+
+    color = -1;
+    range = ah / 3;
+    mid = ay + range;
+
+    // draw the speed graph
+    range = ah;
+    vscale = range / (3000);
+
+    for (a = 0 ; a < aw ; a++) {
+        i = ( speedgraph.frameCount - 1 - a ) & (SPEED_SAMPLES - 1);
+        v = speedgraph.frameSamples[i];
+        if (v > 0) {
+            trap_R_SetColor(g_color_table[ColorIndex(COLOR_GREEN)]);
+            v = v * vscale;
+            if (v > range)
+                v = range;
+            trap_R_DrawStretchPic(ax + (aw - a) * cgs.widthRatioCoef, ay + ah - v, 1 * cgs.widthRatioCoef, v, 0, 0, 0, 0, cgs.media.whiteShader);
+        }
+    }
+    trap_R_SetColor(NULL);
+}*/
+
 void CG_DrawSiegeMessageNonMenu( const char *str )
 {
 	char	text[1024];
@@ -6149,6 +6207,136 @@ static void CG_DrawRocketLocking( int lockEntNum, int lockTime )
 	}
 	trap_R_SetColor( NULL );
 }
+
+/*static void CG_MovementKeys(centity_t *cent)
+{
+    usercmd_t cmd = { 0 };
+    playerState_t *ps = NULL;
+    int moveDir;
+    float w, h, x, y, xOffset, yOffset;
+
+    if (!cg.snap)
+        return;
+
+    ps = &cg.predictedPlayerState; //&cg.snap->ps;
+    moveDir = ps->movementDir;
+
+    if (cg.clientNum == cg.predictedPlayerState.clientNum && !cg.demoPlayback) {
+        trap_GetUserCmd( trap_GetCurrentCmdNumber(), &cmd );
+    }
+    else
+    {
+        float xyspeed = sqrtf( ps->velocity[0] * ps->velocity[0] + ps->velocity[1] * ps->velocity[1] );
+        float zspeed = ps->velocity[2];
+        static float lastZSpeed = 0.0f;
+
+        if ((PM_GroundDistance2() > 1 && zspeed > 8 && zspeed > lastZSpeed && !cg.snap->ps.fd.forceGripCripple) || (cg.snap->ps.pm_flags & PMF_JUMP_HELD))
+            cmd.upmove = 1;
+        else if ( (ps->pm_flags & PMF_DUCKED) || CG_InRollAnim(cent) )
+            cmd.upmove = -1;
+
+        if ( xyspeed < 9 )
+            moveDir = -1;
+
+        lastZSpeed = zspeed;
+
+        switch ( moveDir )
+        {
+            case 0: // W
+                cmd.forwardmove = 1;
+                break;
+            case 1: // WA
+                cmd.forwardmove = 1;
+                cmd.rightmove = -1;
+                break;
+            case 2: // A
+                cmd.rightmove = -1;
+                break;
+            case 3: // AS
+                cmd.rightmove = -1;
+                cmd.forwardmove = -1;
+                break;
+            case 4: // S
+                cmd.forwardmove = -1;
+                break;
+            case 5: // SD
+                cmd.forwardmove = -1;
+                cmd.rightmove = 1;
+                break;
+            case 6: // D
+                cmd.rightmove = 1;
+                break;
+            case 7: // DW
+                cmd.rightmove = 1;
+                cmd.forwardmove = 1;
+                break;
+            default:
+                break;
+        }
+    }
+
+    x = SCREEN_WIDTH - (SCREEN_WIDTH - cg_movementKeysX.integer) * cgs.widthRatioCoef;
+    y = cg_movementKeysY.integer;
+
+    w = (16*cg_movementKeysSize.value)*cgs.widthRatioCoef;
+    h = 16*cg_movementKeysSize.value;
+
+    xOffset = yOffset = 0;
+    if (cgs.newHud) {
+        switch (cg_hudFiles.integer)
+        {
+            default:										break;
+            case 0: 										break;
+            case 1: xOffset += 51; 					break;
+            case 2: xOffset += 26;  yOffset -= 3;	break;
+            case 3: xOffset -= 18; 					break;
+        }
+
+        if (cgs.newHud) {
+            if (!cg_drawScore.integer || cgs.gametype == GT_POWERDUEL || (cgs.serverMod == SVMOD_JAPRO && ps->stats[STAT_RACEMODE])) {
+                yOffset += 12; //445
+            }
+            else if (cg_drawScore.integer > 1 && cgs.gametype >= GT_TEAM && cgs.gametype != GT_SIEGE) {
+                xOffset -= cg_hudFiles.integer != 1 ? 12 : 23; //452 : //442
+                yOffset -= 14; //420
+            }
+        }
+    }
+
+    x += xOffset*cgs.widthRatioCoef;
+    y += yOffset;
+
+    if (cmd.upmove < 0)
+        CG_DrawPic( w*2 + x, y, w, h, cgs.media.keyCrouchOnShader );
+    else
+        CG_DrawPic( w*2 + x, y, w, h, cgs.media.keyCrouchOffShader );
+
+    if (cmd.upmove > 0)
+        CG_DrawPic( x, y, w, h, cgs.media.keyJumpOnShader );
+    else
+        CG_DrawPic( x, y, w, h, cgs.media.keyJumpOffShader );
+
+    if (cmd.forwardmove < 0)
+        CG_DrawPic( w + x, h + y, w, h, cgs.media.keyBackOnShader );
+    else
+        CG_DrawPic( w + x, h + y, w, h, cgs.media.keyBackOffShader );
+
+    if (cmd.forwardmove > 0)
+        CG_DrawPic( w + x, y, w, h, cgs.media.keyForwardOnShader );
+    else
+        CG_DrawPic( w + x, y, w, h, cgs.media.keyForwardOffShader );
+
+    if (cmd.rightmove < 0)
+        CG_DrawPic( x, h + y, w, h, cgs.media.keyLeftOnShader );
+    else
+        CG_DrawPic( x, h + y, w, h, cgs.media.keyLeftOffShader );
+
+    if (cmd.rightmove > 0)
+        CG_DrawPic( w*2 + x, h + y, w, h, cgs.media.keyRightOnShader );
+    else
+        CG_DrawPic( w*2 + x, h + y, w, h, cgs.media.keyRightOffShader );
+
+}*/
 
 extern void CG_CalcVehMuzzle(Vehicle_t *pVeh, centity_t *ent, int muzzleNum);
 qboolean CG_CalcVehicleMuzzlePoint( int entityNum, vec3_t start, vec3_t d_f, vec3_t d_rt, vec3_t d_up) {
@@ -9015,14 +9203,14 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
 }
 
 qboolean CG_InRollAnim( centity_t *cent );
-int PM_GetMovePhysics();
+//int PM_GetMovePhysics();
 static void CG_StrafeHelper(centity_t *cent)
 {
     vec_t * velocity = (cent->currentState.clientNum == cg.clientNum ? cg.predictedPlayerState.velocity : cent->currentState.pos.trDelta);
     static vec3_t velocityAngle;
     const float currentSpeed = cg.currentSpeed;
     float pmAccel = 10.0f, pmAirAccel = 1.0f, pmFriction = 6.0f, frametime, optimalDeltaAngle, baseSpeed = cg.predictedPlayerState.speed;
-    const int moveStyle = PM_GetMovePhysics();
+    const int moveStyle = MV_JKA; //PM_GetMovePhysics();
     int moveDir;
     qboolean onGround;
     usercmd_t cmd = { 0 };
