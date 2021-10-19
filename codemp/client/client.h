@@ -238,18 +238,6 @@ typedef struct {
 
 	float		aviDemoRemain;		// Used for accurate fps recording
 	float		aviSoundRemain;		// Used for accurate fps recording
-
-#ifdef USE_CURL
-	struct {
-		qboolean	gotError;
-		qboolean	enabled;
-		qboolean	used;
-		qboolean	disconnected;
-		char		downloadURL[MAX_OSPATH];
-		CURL		*downloadCURL;
-		CURLM		*downloadCURLM;
-	} curl;
-#endif /* USE_CURL */
 	char		dlURL[MAX_CVAR_VALUE_STRING];
 } clientConnection_t;
 
