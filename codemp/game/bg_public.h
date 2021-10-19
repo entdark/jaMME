@@ -546,19 +546,25 @@ void Pmove (pmove_t *pmove);
 // player_state->stats[] indexes
 // NOTE: may not have more than 16
 typedef enum {
-	STAT_HEALTH,
-	STAT_HOLDABLE_ITEM,
-	STAT_HOLDABLE_ITEMS,
-	STAT_PERSISTANT_POWERUP,
-	//MAKE SURE STAT_WEAPONS REMAINS 4!!!!
-	//There is a hardcoded reference in msg.cpp to send it in 32 bits -rww
-	STAT_WEAPONS = 4,					// 16 bit fields
-	STAT_ARMOR,				
-	STAT_DEAD_YAW,					// look this direction when dead (FIXME: get rid of?)
-	STAT_CLIENTS_READY,				// bit mask of clients wishing to exit the intermission (FIXME: configstring?)
-	STAT_MAX_HEALTH					// health / armor limit, changable by handicap
+    STAT_HEALTH,
+    STAT_HOLDABLE_ITEM,
+    STAT_HOLDABLE_ITEMS,
+    STAT_PERSISTANT_POWERUP,
+    //MAKE SURE STAT_WEAPONS REMAINS 4!!!!
+    //There is a hardcoded reference in msg.cpp to send it in 32 bits -rww
+    STAT_WEAPONS = 4,					// 16 bit fields
+    STAT_ARMOR,
+    STAT_DEAD_YAW,					// look this direction when dead (FIXME: get rid of?)
+    STAT_CLIENTS_READY,				// bit mask of clients wishing to exit the intermission (FIXME: configstring?)
+    STAT_MAX_HEALTH,				// health / armor limit, changable by handicap
+    STAT_DASHTIME,
+    STAT_LASTJUMPSPEED,
+    STAT_RACEMODE,
+    STAT_RESTRICTIONS,
+    STAT_MOVEMENTSTYLE,
+    STAT_JUMPTIME,
+    STAT_WJTIME
 } statIndex_t;
-
 
 // player_state->persistant[] indexes
 // these fields are the only part of player_state that isn't

@@ -49,7 +49,7 @@ static bitInfo_t strafeTweaks[] = {
         { "Weze style" },
         { "Line Crosshair" }
 };
-static const int MAX_STRAFEHELPER_TWEAKS = ARRAY_LEN(strafeTweaks);
+/*static const int MAX_STRAFEHELPER_TWEAKS = ARRAY_LEN(strafeTweaks);
 
 void UI_StrafeHelper_f(void) {
 
@@ -102,8 +102,8 @@ void UI_StrafeHelper_f(void) {
         Com_Printf("%s %s^7\n", strafeTweaks[index].string, ((cg_strafeHelper.integer & (1 << index))
                                                              ? "^2Enabled" : "^1Disabled"));
     }
-}
-
+}*/
+/*
 static bitInfo_t speedometerSettings[] = {
         { "Enable speedometer" },
         { "Pre-speed display" },
@@ -173,7 +173,7 @@ void UI_SpeedometerSettings_f(void) {
                                                                      ? "^2Enabled" : "^1Disabled"));
     }
 }
-
+*/
 qboolean		m_entersound;		// after a frame, so caching won't disrupt the sound
 
 void QDECL UI_Printf( const char *msg, ... ) {
@@ -487,8 +487,8 @@ int cmdcmp( const void *a, const void *b ) {
 static consoleCommand_t	commands[] = {
         { "ui_cache",			UI_Cache_f },
         { "ui_load",			UI_Load },
-        { "strafeHelper",		UI_StrafeHelper_f },
-        { "speedometer",		UI_SpeedometerSettings_f },
+//        { "strafeHelper",		UI_StrafeHelper_f },
+//        { "speedometer",		UI_SpeedometerSettings_f },
         { "ui_report",			UI_Report },
 };
 
