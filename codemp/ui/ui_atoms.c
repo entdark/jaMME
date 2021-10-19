@@ -15,15 +15,10 @@ static char tempArgStrs[NUM_UI_ARGSTRS][MAX_STRING_CHARS];
 #define UI_CVARSTR_MASK (NUM_UI_CVARSTRS-1)
 static char tempCvarStrs[NUM_UI_CVARSTRS][MAX_CVAR_VALUE_STRING];
 
-
-static void UI_Modversion_f(void) {
-    trap->Print("^5Your ui version of the mod was compiled on %s at %s\n", __DATE__, __TIME__);
-}
-
 qboolean cgameLoaded() {
     uiClientState_t cstate;
 
-    trap->GetClientState(&cstate);
+    trap_GetClientState(&cstate);
 
     if (cstate.connState > CA_CONNECTED) {
         return qtrue;
@@ -63,7 +58,7 @@ void UI_StrafeHelper_f(void) {
         return;
     }
 
-    if (trap->Cmd_Argc() == 1) {
+    if (trap_Argc() == 1) {
         int i = 0;
         for (i = 0; i < MAX_STRAFEHELPER_TWEAKS; i++) {
             if ((cg_strafeHelper.integer & (1 << i))) {
@@ -80,7 +75,7 @@ void UI_StrafeHelper_f(void) {
         int index;
         const uint32_t mask = (1 << MAX_STRAFEHELPER_TWEAKS) - 1;
 
-        trap->Cmd_Argv(1, arg, sizeof(arg));
+        trap_Argv(1, arg, sizeof(arg));
         index = atoi(arg);
 
         if (index < 0 || index >= MAX_STRAFEHELPER_TWEAKS) {
@@ -97,12 +92,12 @@ void UI_StrafeHelper_f(void) {
             value &= ~(groupMask);
             value ^= (1 << index);
 
-            trap->Cvar_Set("cg_strafeHelper", va("%i", value));
+            trap_Cvar_Set("cg_strafeHelper", va("%i", value));
         }
         else {
-            trap->Cvar_Set("cg_strafeHelper", va("%i", (1 << index) ^ (cg_strafeHelper.integer & mask)));
+            trap_Cvar_Set("cg_strafeHelper", va("%i", (1 << index) ^ (cg_strafeHelper.integer & mask)));
         }
-        trap->Cvar_Update(&cg_strafeHelper);
+        trap_Cvar_Update(&cg_strafeHelper);
 
         Com_Printf("%s %s^7\n", strafeTweaks[index].string, ((cg_strafeHelper.integer & (1 << index))
                                                              ? "^2Enabled" : "^1Disabled"));
@@ -130,7 +125,7 @@ void UI_SpeedometerSettings_f(void) {
         return;
     }
 
-    if (trap->Cmd_Argc() == 1) {
+    if (trap_Argc() == 1) {
         int i = 0, display = 0;
 
         for (i = 0; i < MAX_SPEEDOMETER_SETTINGS; i++) {
@@ -149,7 +144,7 @@ void UI_SpeedometerSettings_f(void) {
         int index, index2;
         const uint32_t mask = (1 << MAX_SPEEDOMETER_SETTINGS) - 1;
 
-        trap->Cmd_Argv(1, arg, sizeof(arg));
+        trap_Argv(1, arg, sizeof(arg));
         index = atoi(arg);
         index2 = index;
 
@@ -167,12 +162,12 @@ void UI_SpeedometerSettings_f(void) {
             value &= ~(groupMask);
             value ^= (1 << index);
 
-            trap->Cvar_Set("cg_speedometer", va("%i", value));
+            trap_Cvar_Set("cg_speedometer", va("%i", value));
         }
         else {
-            trap->Cvar_Set("cg_speedometer", va("%i", (1 << index) ^ (cg_speedometer.integer & mask)));
+            trap_Cvar_Set("cg_speedometer", va("%i", (1 << index) ^ (cg_speedometer.integer & mask)));
         }
-        trap->Cvar_Update(&cg_speedometer);
+        trap_Cvar_Update(&cg_speedometer);
 
         Com_Printf("%s %s^7\n", speedometerSettings[index2].string, ((cg_speedometer.integer & (1 << index2))
                                                                      ? "^2Enabled" : "^1Disabled"));
@@ -492,7 +487,6 @@ int cmdcmp( const void *a, const void *b ) {
 static consoleCommand_t	commands[] = {
         { "ui_cache",			UI_Cache_f },
         { "ui_load",			UI_Load },
-        { "ui_modversion",		UI_Modversion_f },
         { "strafeHelper",		UI_StrafeHelper_f },
         { "speedometer",		UI_SpeedometerSettings_f },
         { "ui_report",			UI_Report },

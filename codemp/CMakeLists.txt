@@ -347,7 +347,6 @@ if(BuildEngine)
 	set(MPEngineLibraries ${MPEngineAndDedLibraries})
 	set(MPEngineIncludeDirectories ${MPEngineAndDedIncludeDirectories})
 	set(MPEngineFiles ${MPEngineAndDedFiles})
-	set(MPEngineDefines ${MPSharedDefines} "USE_CURL" "USE_CURL" "CURL_STATICLIB" "_WINSOCK_H")
 	
 	#    Dependencies
 	

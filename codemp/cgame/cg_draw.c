@@ -8819,7 +8819,7 @@ void Dzikie_CG_DrawLine(float x1, float y1, float x2, float y2, float size, vec4
     stepx = (x2-x1)/(length/size);
     stepy = (y2-y1)/(length/size);
 
-    trap->R_SetColor(color);
+    trap_R_SetColor(color);
 
     for (i=0; i<=(length/size); i++) {
         if (x1 < 640 && y1 < 480 && y1 < ycutoff)
@@ -8844,7 +8844,7 @@ void Dzikie_CG_DrawSpeed(int moveDir) {
     usercmd_t cmd = { 0 };
 
     if (cg.clientNum == cg.predictedPlayerState.clientNum && !cg.demoPlayback) {
-        trap->GetUserCmd( trap->GetCurrentCmdNumber(), &cmd );
+        trap_GetUserCmd( trap_GetCurrentCmdNumber(), &cmd );
     }
     else if (cg.snap) {
         moveDir = cg.snap->ps.movementDir;
@@ -9031,7 +9031,7 @@ static void CG_StrafeHelper(centity_t *cent)
         return;
 
     if (cg.clientNum == cg.predictedPlayerState.clientNum && !cg.demoPlayback) {
-        trap->GetUserCmd( trap->GetCurrentCmdNumber(), &cmd );
+        trap_GetUserCmd( trap_GetCurrentCmdNumber(), &cmd );
     }
     else if (cg.snap) {
         moveDir = cg.snap->ps.movementDir;
@@ -9200,7 +9200,7 @@ static void CG_DrawAccelMeter(void)
 
     //Com_Printf("Actual Accel this frame is %.3f, last speed was %.3f, current speed is %.3f, potential speed was %.3f, coef is %.3f\n", accel, cg.previousSpeed, cg.currentSpeed, potentialSpeed, actualAccel/(potentialSpeed - currentSpeed));
 
-    t = trap->Milliseconds();
+    t = trap_Milliseconds();
     frameTime = t - previous;
     previous = t;
     //if (t - lastupdate > 20)	//don't sample faster than this
