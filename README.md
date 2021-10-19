@@ -1,3 +1,15 @@
+The goal of this fork is to port EternalJK/japro features into JAMME - tayst
+
+Planned:
+- Strafehelper
+- Speedometer
+- Saber Style Crosshair
+- Saber Style Hud Colors
+
+Working:
+- Racetimer
+
+
 Jedi Academy Movie Maker's Edition
 ==================================
 
