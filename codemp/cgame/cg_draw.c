@@ -9156,7 +9156,7 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
     line[1] = delta[1] + start[1];
     line[2] = start[2];
 
-    if ( !CG_WorldCoordToScreenCoord(line, &x, &y))
+    if ( !CG_WorldCoordToScreenCoordFloat(line, &x, &y))
         return;
 
     if (cg_strafeHelper.integer & SHELPER_NEWBARS) {
@@ -9194,7 +9194,7 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
         if (cutoff < LINE_HEIGHT + 20)
             cutoff = LINE_HEIGHT + 20;
 
-        if (CG_WorldCoordToScreenCoord(start, &startx, &starty))
+        if (CG_WorldCoordToScreenCoordFloat(start, &startx, &starty))
             Dzikie_CG_DrawLine(startx, starty, x, y, lineWidth, color, color[3], cutoff);
         //CG_DottedLineSegment( startx, starty, x, y, 1, distance, color, color[3], cutoff ); //240 is center, so 220 - 260 is symetrical on crosshair.
     }
@@ -9218,7 +9218,6 @@ static void CG_StrafeHelper(centity_t *cent)
 
     if (moveStyle == 0)
         return;
-    Com_Printf("%.3f, %.3f, %.3f\n", cg.predictedPlayerState.viewangles[PITCH], cg.predictedPlayerState.viewangles[YAW], cg.predictedPlayerState.viewangles[ROLL]);
     if (cg.clientNum == cg.predictedPlayerState.clientNum && !cg.demoPlayback) {
         trap_GetUserCmd( trap_GetCurrentCmdNumber(), &cmd );
     }
