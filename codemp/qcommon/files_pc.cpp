@@ -1516,7 +1516,7 @@ int FS_Write( const void *buffer, int len, fileHandle_t h ) {
 		pendingBuffer_t *pb = &fsh[h].pendingBuffer;
 		int remainingLen = len;
 		while ( remainingLen > 0 ) {
-			int copyLen = min( remainingLen, (int) ( pb->bufferLen - pb->bufferOffset ) );
+			int copyLen = Q_min(remainingLen, (int) (pb->bufferLen - pb->bufferOffset ) );
 			memcpy( &pb->buffer[pb->bufferOffset], buf, copyLen );
 			pb->bufferOffset += copyLen;
 			buf += copyLen;
@@ -3774,17 +3774,9 @@ fileHandle_t FS_PipeOpen(const char *qcmd, const char *qpath, const char *mode) 
     if(FS_CreatePath(ospath)) {
         return 0;
     }
-    
-	Com_sprintf(temp, sizeof(temp), "/%s", qcmd);
-	FS_ReplaceSeparators(temp);
-	if (space = strchr(temp, ' ')) {
-		char quotedCmd[2048];
-		Q_strncpyz(quotedCmd, temp, sizeof(quotedCmd));
-		quotedCmd[(space-temp)] = '\0';
-		Com_sprintf(cmd, sizeof(cmd), "\"%s%s\"%s", fs_homepath->string, quotedCmd, space);
-	} else {
-		Com_sprintf(cmd, sizeof(cmd), "\"%s%s\"", fs_homepath->string, temp);
-	}
+
+    Com_sprintf(cmd, sizeof(cmd), "%s", qcmd);
+    FS_ReplaceSeparators(cmd);
 
     if (fs_debug->integer) {
         Com_Printf("FS_PipeOpen cmd: %s\n", cmd);

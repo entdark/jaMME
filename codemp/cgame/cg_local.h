@@ -801,6 +801,20 @@ typedef struct chatBoxItem_s
 	int		lines;
 } chatBoxItem_t;
 
+#define	MAX_CLIENT_SPEEDPOINTS		32
+typedef struct clientSpeedpoint_s
+{
+    int		speed;
+    qboolean isSet;
+    qboolean reached;
+} clientSpeedpoint_t;
+
+#define	MAX_CLIENT_CHECKPOINTS		32
+typedef struct clientCheckpoint_s {
+    int		x1, y1, z1, x2, y2, z2;
+    qboolean isSet;
+} clientCheckpoint_t;
+
 typedef struct {
 	int			clientFrame;		// incremented each frame
 
@@ -1078,6 +1092,62 @@ Ghoul2 Insert End
 	char *spawnVars[MAX_SPAWN_VARS][2];	// key / value pairs
 	int numSpawnVarChars;
 	char spawnVarChars[MAX_SPAWN_VARS_CHARS];
+
+    clientCheckpoint_t	clientCheckpoints[MAX_CLIENT_CHECKPOINTS];//japro checkpoints
+    clientSpeedpoint_t	clientSpeedpoints[MAX_CLIENT_SPEEDPOINTS];//japro speedpoints
+    int					lastCheckPointPrintTime;
+    int					timerStartTime;
+    int					lastGroundTime;//japro
+    qboolean			firstTimeInAir;
+    float				lastGroundSpeed;
+    float				lastZSpeed;
+    int					lastJumpHeightTime;//japro
+    float				lastJumpHeight;
+    int					lastStartTime;//japro
+    float				lastYawSpeed;
+    qboolean			recording;
+    unsigned int		displacement;
+    unsigned int		displacementSamples;
+    int					maxSpeed;
+    int					lastRaceTime;
+    float				currentSpeed;
+    int					startSpeed;
+    float				previousSpeed;
+    float				lastJumpDistance;
+    int					lastJumpDistanceTime;
+    qboolean			wasOnGround;
+    vec3_t				lastGroundPosition;
+
+    int					telemarkX;//japro
+    int					telemarkY;//japro
+    int					telemarkZ;//japro
+    int					telemarkYaw;//japro
+    int					lastAutoKillTime;
+
+    //int				predictedRocketJumpTime;
+    //int				predictedRocketJumpExpireTime;
+    //vec3_t			predictedRocketJumpOriginalVel;
+    vec3_t				predictedRocketJumpImpulse;
+    qboolean			predictKnockback;
+
+    float				lastXpos;
+    float				lastYpos;
+
+    vec4_t				strafeHelperActiveColor;
+    vec4_t				crosshairColor;
+    int					drawingStrafeTrails;//optimization i guess
+    int					doVstrTime;
+    char				doVstr[MAX_QPATH];
+    short				numFKFrames;
+    short				numJumps;
+    int					userinfoUpdateDebounce;
+    qboolean			loggingStrafeTrail;
+    char				logStrafeTrailFilename[MAX_QPATH];
+    fileHandle_t		strafeTrailFileHandle;
+    char				lastChatMsg[MAX_SAY_TEXT + MAX_NETNAME + 32];
+    float				predictedTimeFrac;	// frameInterpolation * (next->commandTime - prev->commandTime)
+
+
 
 	int					eventTime;
 	int					eventOldTime;
@@ -2701,3 +2771,5 @@ void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end );
 
 #define BASE_ENHANCED_ALL_REWARDS	0x01
 #define BASE_ENHANCED_UNLAGGED		0x02
+
+extern cgameImport_t *trap;

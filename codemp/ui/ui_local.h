@@ -10,6 +10,16 @@
 #include "../game/bg_public.h"
 #include "ui_shared.h"
 
+// ui_cvar.c
+#define XCVAR_PROTO
+#include "ui_xcvar.h"
+#undef XCVAR_PROTO
+void UI_RegisterCvars( void );
+void UI_UpdateCvars( void );
+
+#define MAX_FORCE_CONFIGS		128
+#define MAX_SABER_HILTS			256 //64
+
 // global display context
 
 extern vmCvar_t	ui_ffa_fraglimit;
@@ -1133,3 +1143,5 @@ typedef struct postGameInfo_s {
 	int skillBonus;
 	int baseScore;
 } postGameInfo_t;
+
+extern uiImport_t *trap;
