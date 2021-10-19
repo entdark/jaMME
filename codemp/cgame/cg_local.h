@@ -1188,6 +1188,10 @@ Ghoul2 Insert End
 	struct {
 		qboolean		detected;
 	} rpmod;
+
+    struct {
+        qboolean		detected;
+    } japro;
 	
 	int					chargeTime;
 	qboolean			charging;

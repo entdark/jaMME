@@ -1275,8 +1275,8 @@ void CG_DrawHUD(centity_t	*cent)
         //CG_MovementKeys(cent);
     //JAPRO - Clientside - Speedometer Start
     speedometerXPos = cg_speedometerX.integer;
-    if (cg_strafeHelper.integer)
-        CG_StrafeHelper(cent);
+    /*if (cg_strafeHelper.integer)
+        CG_StrafeHelper(cent);*/
 
     if (cgs.newHud) {
         switch (cg_hudFiles.integer)
@@ -9125,20 +9125,21 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
         color[1] = cg.strafeHelperActiveColor[1];
         color[2] = cg.strafeHelperActiveColor[2];
         color[3] = cg.strafeHelperActiveColor[3];
-        //memcpy(color, activeColor, sizeof(vec4_t));
+        memcpy(color, activeColor, sizeof(vec4_t));
     }
     else {
         if (moveDir == 1 || moveDir == 7)
             memcpy(color, normalColor, sizeof(vec4_t));
         else if (moveDir == 2 || moveDir == 6)
             memcpy(color, invertColor, sizeof(vec4_t));
-        else if (moveDir == 0)
+        else if (moveDir == 0 || moveDir == 3)
             memcpy(color, wColor, sizeof(vec4_t));
         else if (moveDir == 8)
             memcpy(color, centerColor, sizeof(vec4_t));
         else if (moveDir == 9 || moveDir == 10)
             memcpy(color, rearColor, sizeof(vec4_t));
-
+        else if (moveDir == 3 || moveDir == 5)
+            memcpy(color, rearColor, sizeof(vec4_t));
         color[3] = cg_strafeHelperInactiveAlpha.value / 255.0f;
     }
 
@@ -9160,7 +9161,7 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
         return;
 
     if (cg_strafeHelper.integer & SHELPER_NEWBARS) {
-        Dzikie_CG_DrawLine(x, (SCREEN_HEIGHT / 2) + 20, x, (SCREEN_HEIGHT / 2) - 20, lineWidth, color, 0.75f, 0);
+        Dzikie_CG_DrawLine(x, (SCREEN_HEIGHT / 2) + 10, x, (SCREEN_HEIGHT / 2) - 10, lineWidth, color, 0.75f, 0);
         //CG_DottedLine( x, 260, x, 220, 1, 100, color, 0.75f ); //240 is center, so 220 - 260 is symetrical on crosshair.'
     }
     if (cg_strafeHelper.integer & SHELPER_OLDBARS && active && moveDir != 0) { //Not sure how to deal with multiple lines for W only so just fuck it for now..
@@ -9204,14 +9205,33 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
 }
 
 qboolean CG_InRollAnim( centity_t *cent );
-//int PM_GetMovePhysics();
+
+QINLINE int PM_GetMovePhysics(void)
+{
+    if (cg.japro.detected) {
+        if (!pm)
+            return MV_JKA;
+
+        if (pm->ps->m_iVehicleNum)
+            return MV_SWOOP;
+
+        if (pm->ps->stats[STAT_MOVEMENTSTYLE] >= MV_COOP_JKA)
+            return (pm->ps->stats[STAT_MOVEMENTSTYLE] - (MV_COOP_JKA - 1));
+
+        return pm->ps->stats[STAT_MOVEMENTSTYLE];
+    }
+    else if (cgs.gametype == GT_SIEGE) {
+        return MV_SIEGE;
+    }
+    return MV_JKA;
+}
 static void CG_StrafeHelper(centity_t *cent)
 {
     vec_t * velocity = (cent->currentState.clientNum == cg.clientNum ? cg.predictedPlayerState.velocity : cent->currentState.pos.trDelta);
     static vec3_t velocityAngle;
     const float currentSpeed = cg.currentSpeed;
     float pmAccel = 10.0f, pmAirAccel = 1.0f, pmFriction = 6.0f, frametime, optimalDeltaAngle, baseSpeed = cg.predictedPlayerState.speed;
-    const int moveStyle = MV_JKA;//PM_GetMovePhysics();
+    const int moveStyle = PM_GetMovePhysics();
     int moveDir;
     qboolean onGround;
     usercmd_t cmd = { 0 };
@@ -9340,6 +9360,10 @@ static void CG_StrafeHelper(centity_t *cent)
         if (cg_strafeHelper.integer & SHELPER_REAR) {
             DrawStrafeLine(velocityAngle, (225.0f - (optimalDeltaAngle + (cg_strafeHelperOffset.value * 0.01f))), (qboolean)(cmd.forwardmove == 0 && cmd.rightmove < 0), 9); //A
             DrawStrafeLine(velocityAngle, (135.0f + (optimalDeltaAngle + (cg_strafeHelperOffset.value * 0.01f))), (qboolean)(cmd.forwardmove == 0 && cmd.rightmove > 0), 10); //D
+            DrawStrafeLine(velocityAngle, (180.0f - (optimalDeltaAngle + (cg_strafeHelperOffset.value * 0.01f))), (qboolean)(cmd.forwardmove < 0 && cmd.rightmove < 0), 3); //SA
+            DrawStrafeLine(velocityAngle, (180.0f + (optimalDeltaAngle + (cg_strafeHelperOffset.value * 0.01f))), (qboolean)(cmd.forwardmove < 0 && cmd.rightmove > 0), 5); //SD
+            DrawStrafeLine(velocityAngle, (180 + 45 + (optimalDeltaAngle + (cg_strafeHelperOffset.value * 0.01f))), (qboolean)(cmd.forwardmove < 0 && cmd.rightmove == 0), 4); //S
+            DrawStrafeLine(velocityAngle, (180 - 45 + (optimalDeltaAngle + (cg_strafeHelperOffset.value * 0.01f))), (qboolean)(cmd.forwardmove < 0 && cmd.rightmove == 0), 4); //S
         }
     }
     if (moveStyle == MV_JKA || moveStyle == MV_Q3 || moveStyle == MV_RJQ3 || moveStyle == MV_SWOOP || moveStyle == MV_JETPACK || moveStyle == MV_SPEED || moveStyle == MV_SP) {

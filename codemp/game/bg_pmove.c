@@ -257,6 +257,8 @@ qboolean PM_INLINE PM_IsRocketTrooper(void)
 	return qfalse;
 }
 
+
+
 int PM_GetSaberStance(void)
 {
 	int anim = BOTH_STAND2;

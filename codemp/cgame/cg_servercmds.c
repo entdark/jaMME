@@ -81,7 +81,9 @@ static void CG_ParseScores( void ) {
 		}
 
 		CG_SetScoreSelection( NULL );
-	} else {
+	}
+
+	else {
 		int i, powerups, readScores;
 		cg.numScores = atoi(CG_Argv(1));
 		readScores = cg.numScores;
@@ -279,7 +281,18 @@ void CG_ParseServerinfo( void ) {
 		CG_Printf("MakerMod");
 	} else if (!Q_stricmpn(gamename, "Lugormod", 8)) {
 		CG_Printf("Lugormod");
-	} else {
+	} else if (!Q_stricmpn(gamename, "japro", 5)) {
+        cg.japro.detected = qtrue;
+        /*
+        cgs.serverMod = SVMOD_JAPRO;
+        cgs.cinfo = atoi(Info_ValueForKey(info, "jcinfo"));//[JAPRO - Clientside - All - Add gamename variable to get jcinfo from japro servers]
+        cgs.jcinfo = cgs.cinfo;
+        cgs.hookpull = atoi(Info_ValueForKey(info, "g_hookStrength"));//[JAPRO - Clientside - All - Add gamename variable to get jcinfo from japro servers]
+        trap->Cvar_Set("cjp_client", "1.4JAPRO");
+        cgs.pluginSet = qtrue;
+        //if (cgs.hookpull == 0)
+        //cgs.hookpull = 800;*/
+    } else {
 		CG_Printf("Base/Unknown");
 	}
 	CG_Printf(" "S_COLOR_WHITE"mod detected\n");
