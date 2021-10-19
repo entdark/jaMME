@@ -10,7 +10,6 @@
 #define MASK_CAMERACLIP (MASK_SOLID|CONTENTS_PLAYERCLIP)
 #define CAMERA_SIZE	4
 
-
 static int GetCameraClip( void ) {
 	return /*(cg.japp.isGhosted) ? (MASK_SOLID) : */(MASK_SOLID|CONTENTS_PLAYERCLIP);
 }
@@ -261,6 +260,22 @@ CG_CalcTargetThirdPersonViewLocation
 
 ===============
 */
+typedef struct dampPos_s {
+    vec3_t	ideal;		// ideal location
+    vec3_t	prevIdeal;
+    vec3_t	damp;		// position = ideal + damp
+} dampPos_t;
+
+static struct {
+    dampPos_t	target;
+    dampPos_t	loc;
+    vec3_t		fwd;
+    vec3_t		focus;
+    float		lastYaw;
+    int			lastTime;
+    float		lastTimeFrac;
+} cam;
+
 static void CG_CalcIdealThirdPersonViewTarget(void)
 {
 	// Initialize IdealTarget
@@ -282,10 +297,10 @@ static void CG_CalcIdealThirdPersonViewTarget(void)
 
 	// Add in a vertical offset from the viewpoint, which puts the actual target above the head, regardless of angle.
 //	VectorMA(cameraFocusLoc, thirdPersonVertOffset, cameraup, cameraIdealTarget);
-	
+
 	// Add in a vertical offset from the viewpoint, which puts the actual target above the head, regardless of angle.
 	VectorCopy( cameraFocusLoc, cameraIdealTarget );
-	
+
 	{
 		float vertOffset = cg_thirdPersonVertOffset.value;
 
@@ -318,7 +333,7 @@ static void CG_CalcIdealThirdPersonViewTarget(void)
 						vertOffset = 30;
 					}
 				}
-				else 
+				else
 				{
 					vertOffset = veh->m_pVehicle->m_pVehicleInfo->cameraVertOffset;
 				}
@@ -418,6 +433,29 @@ static void CG_ResetThirdPersonViewDamp(void)
 	cameraLastFrame = cg.time;
 	cameraLastYaw = cameraFocusAngles[YAW];
 	cameraStiffFactor = 0.0f;
+}
+
+void CG_ClearThirdPersonDamp(void)
+{//workaround for camera jerk when clearing camera damp vectors, should probably be refactored into, if not fixed in the actual ThirdPersonDamp code
+    vec3_t oldLoc, oldTarget;
+    if (!cg.snap)
+        return;
+
+    if (cl_paused.integer)
+        return;
+
+    VectorCopy(cam.loc.ideal, oldLoc);
+    VectorCopy(cam.target.ideal, oldTarget);
+
+    CG_ResetThirdPersonViewDamp();
+
+    VectorCopy(oldLoc, cam.loc.ideal);
+    VectorCopy(oldTarget, cam.target.ideal);
+    VectorCopy(oldLoc, cam.loc.prevIdeal);
+    VectorCopy(oldTarget, cam.target.prevIdeal);
+
+    cam.lastTime = cg.predictedPlayerState.commandTime;
+    cam.lastTimeFrac = cg.predictedTimeFrac;
 }
 
 // This is called every frame.

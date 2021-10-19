@@ -1298,7 +1298,20 @@ typedef struct {
 	qhandle_t	wireframeAutomapFrame_right;
 	qhandle_t	wireframeAutomapFrame_top;
 	qhandle_t	wireframeAutomapFrame_bottom;
-
+//JAPRO - Clientside - Movement keys - Start
+    qhandle_t	keyCrouchOffShader;
+    qhandle_t	keyCrouchOnShader;
+    qhandle_t	keyJumpOffShader;
+    qhandle_t	keyJumpOnShader;
+    qhandle_t	keyBackOffShader;
+    qhandle_t	keyBackOnShader;
+    qhandle_t	keyForwardOffShader;
+    qhandle_t	keyForwardOnShader;
+    qhandle_t	keyLeftOffShader;
+    qhandle_t	keyLeftOnShader;
+    qhandle_t	keyRightOffShader;
+    qhandle_t	keyRightOnShader;
+//JAPRO - Clientside - Movement keys - End
 //Chunks
 	qhandle_t	chunkModels[NUM_CHUNK_TYPES][4];
 	sfxHandle_t	chunkSound;
@@ -2038,6 +2051,8 @@ void CG_Text_PaintChar(float x, float y, float width, float height, float scale,
 qboolean CG_YourTeamHasFlag(void);
 qboolean CG_OtherTeamHasFlag(void);
 qhandle_t CG_StatusHandle(int task);
+static void CG_CrosshairColorChange(void);
+static void CG_StrafeHelperActiveColorChange(void);
 
 
 
@@ -2237,6 +2252,7 @@ void CG_DrawOldTourneyScoreboard( void );
 qboolean CG_ConsoleCommand(void);
 void CG_InitConsoleCommands(void);
 void CG_EnhancedStatistics_f(void);
+
 
 //
 // cg_servercmds.c
