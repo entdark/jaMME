@@ -1260,16 +1260,16 @@ CG_DrawHUD
 
 float speedometerXPos;
 void Dzikie_CG_DrawLine (float x1, float y1, float x2, float y2, float size, vec4_t color, float alpha, float ycutoff);
-void CG_DrawHUD(centity_t	*cent)
-{
-	menuDef_t	*menuHUD = NULL;
-	itemDef_t	*focusItem = NULL;
-	const char *scoreStr = NULL;
-	int	scoreBias;
-	char scoreBiasStr[16];
-	int score;
+void CG_DrawHUD(centity_t	*cent) {
+    menuDef_t *menuHUD = NULL;
+    itemDef_t *focusItem = NULL;
+    const char *scoreStr = NULL;
+    int scoreBias;
+    char scoreBiasStr[16];
+    int score;
 
-    if ((cg_speedometer.integer & SPEEDOMETER_ENABLE) || cg_strafeHelper.integer || cg_raceTimer.integer > 1 || cg_showpos.integer)
+    if ((cg_speedometer.integer & SPEEDOMETER_ENABLE) || cg_strafeHelper.integer || cg_raceTimer.integer > 1 ||
+        cg_showpos.integer)
         CG_CalculateSpeed(cent);
 
     //JAPRO - Clientside - Movement Keys Start
@@ -1281,12 +1281,18 @@ void CG_DrawHUD(centity_t	*cent)
         CG_StrafeHelper(cent);*/
 
     if (cgs.newHud) {
-        switch (cg_hudFiles.integer)
-        {
-            case 0: speedometerXPos -= 8; break;
-            case 1: speedometerXPos -= 56; break;
-            case 2: speedometerXPos -= 42; break;
-            default: break;
+        switch (cg_hudFiles.integer) {
+            case 0:
+                speedometerXPos -= 8;
+                break;
+            case 1:
+                speedometerXPos -= 56;
+                break;
+            case 2:
+                speedometerXPos -= 42;
+                break;
+            default:
+                break;
         }
     }
 
@@ -1308,16 +1314,15 @@ void CG_DrawHUD(centity_t	*cent)
     if (cg_strafeHelper.integer)
         CG_StrafeHelper(cent);
     if (cg_strafeHelper.integer & SHELPER_CROSSHAIR) {
-        vec4_t		hcolor;
-        float		lineWidth;
+        vec4_t hcolor;
+        float lineWidth;
 
         if (!cg.crosshairColor[0] && !cg.crosshairColor[1] && !cg.crosshairColor[2]) { //default to white
             hcolor[0] = 1.0f;
             hcolor[1] = 1.0f;
             hcolor[2] = 1.0f;
             hcolor[3] = 1.0f;
-        }
-        else {
+        } else {
             hcolor[0] = cg.crosshairColor[0];
             hcolor[1] = cg.crosshairColor[1];
             hcolor[2] = cg.crosshairColor[2];
@@ -1330,255 +1335,252 @@ void CG_DrawHUD(centity_t	*cent)
         else if (lineWidth > 5)
             lineWidth = 5;
 
-        Dzikie_CG_DrawLine(SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 5, SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 5, lineWidth*cgs.widthRatioCoef, hcolor, hcolor[3], 0); //640x480, 320x240
+        Dzikie_CG_DrawLine(SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 5, SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 5,
+                           lineWidth * cgs.widthRatioCoef, hcolor, hcolor[3], 0); //640x480, 320x240
     }
     if (cg_raceTimer.integer)
         CG_RaceTimer();
     if (cg_speedometer.integer & SPEEDOMETER_SPEEDGRAPH)
 //        CG_DrawSpeedGraph();
 
-	if (!cg.playerPredicted) {
-		if (cg.snap->ps.persistant[PERS_TEAM] != TEAM_RED && cg.snap->ps.persistant[PERS_TEAM] != TEAM_BLUE) {
-			return; // Not on any team
-		}
-		if (cgs.clientinfo[cent->currentState.number].team != cg.snap->ps.persistant[PERS_TEAM]) {
-			return;
-		}
-	}
+        if (!cg.playerPredicted) {
+            if (cg.snap->ps.persistant[PERS_TEAM] != TEAM_RED && cg.snap->ps.persistant[PERS_TEAM] != TEAM_BLUE) {
+                return; // Not on any team
+            }
+            if (cgs.clientinfo[cent->currentState.number].team != cg.snap->ps.persistant[PERS_TEAM]) {
+                return;
+            }
+        }
 
-	if (cg_hudFiles.integer)
-	{
-		int x = 0;
-		int y = SCREEN_HEIGHT-80;
-		char ammoString[64];
-		int weapX = x;
-		int health;
-		int armor;
+    if (cg_hudFiles.integer) {
+        int x = 0;
+        int y = SCREEN_HEIGHT - 80;
+        char ammoString[64];
+        int weapX = x;
+        int health;
+        int armor;
 
-		if (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
-		{
-			if (cg.playerPredicted) {
-				health = cg.snap->ps.stats[STAT_HEALTH];
-				armor = cg.snap->ps.stats[STAT_ARMOR];
-			} else {
-				health = cgs.clientinfo[cent->currentState.number].health;
-				armor = cgs.clientinfo[cent->currentState.number].armor;
-			}
+        if (cg.predictedPlayerState.pm_type != PM_SPECTATOR) {
+            if (cg.playerPredicted) {
+                health = cg.snap->ps.stats[STAT_HEALTH];
+                armor = cg.snap->ps.stats[STAT_ARMOR];
+            } else {
+                health = cgs.clientinfo[cent->currentState.number].health;
+                armor = cgs.clientinfo[cent->currentState.number].armor;
+            }
 
-			UI_DrawProportionalString( (x+16)*cgs.widthRatioCoef, y+40, va( "%i", health ),
-				UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_HUD_RED] );
+            UI_DrawProportionalString((x + 16) * cgs.widthRatioCoef, y + 40, va("%i", health),
+                                      UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_RED]);
 
-			UI_DrawProportionalString( (x+18+14)*cgs.widthRatioCoef, y+40+14, va( "%i", armor ),
-				UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_HUD_GREEN] );
+            UI_DrawProportionalString((x + 18 + 14) * cgs.widthRatioCoef, y + 40 + 14, va("%i", armor),
+                                      UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_GREEN]);
 
-			if (!cg.playerPredicted)
-				return;
+            if (!cg.playerPredicted)
+                return;
 
-			if (cg.snap->ps.weapon == WP_SABER)
-			{
-				if (cg.snap->ps.fd.saberDrawAnimLevel == SS_DUAL)
-				{
-					Com_sprintf(ammoString, sizeof(ammoString), "AKIMBO");
-					weapX += 25;
-				}
-				else if (cg.snap->ps.fd.saberDrawAnimLevel == SS_STAFF)
-				{
-					Com_sprintf(ammoString, sizeof(ammoString), "STAFF");
-					weapX += 25;
-				}
-				else if (cg.snap->ps.fd.saberDrawAnimLevel == FORCE_LEVEL_3)
-				{
-					Com_sprintf(ammoString, sizeof(ammoString), "STRONG");
-					weapX += 25;
-				}
-				else if (cg.snap->ps.fd.saberDrawAnimLevel == FORCE_LEVEL_2)
-				{
-					Com_sprintf(ammoString, sizeof(ammoString), "MEDIUM");
-					weapX += 25;
-				}
-				else
-				{
-					Com_sprintf(ammoString, sizeof(ammoString), "FAST");
-					weapX += 20;
-				}
-			}
-			else if (weaponData[cent->currentState.weapon].energyPerShot == 0 && weaponData[cent->currentState.weapon].altEnergyPerShot == 0)
-			{
-				Q_strncpyz(ammoString, "--", sizeof(ammoString));
-			}
-			else
-			{
-				Com_sprintf(ammoString, sizeof(ammoString), "%i", cg.snap->ps.ammo[weaponData[cent->currentState.weapon].ammoIndex]);
-			}
-		
-			UI_DrawProportionalString( SCREEN_WIDTH-(weapX+16+32)*cgs.widthRatioCoef, y+40, va( "%s", ammoString ),
-				UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_HUD_ORANGE] );
+            if (cg.snap->ps.weapon == WP_SABER) {
+                if (cg.snap->ps.fd.saberDrawAnimLevel == SS_DUAL) {
+                    Com_sprintf(ammoString, sizeof(ammoString), "AKIMBO");
+                    weapX += 25;
+                } else if (cg.snap->ps.fd.saberDrawAnimLevel == SS_STAFF) {
+                    Com_sprintf(ammoString, sizeof(ammoString), "STAFF");
+                    weapX += 25;
+                } else if (cg.snap->ps.fd.saberDrawAnimLevel == FORCE_LEVEL_3) {
+                    Com_sprintf(ammoString, sizeof(ammoString), "STRONG");
+                    weapX += 25;
+                } else if (cg.snap->ps.fd.saberDrawAnimLevel == FORCE_LEVEL_2) {
+                    Com_sprintf(ammoString, sizeof(ammoString), "MEDIUM");
+                    weapX += 25;
+                } else {
+                    Com_sprintf(ammoString, sizeof(ammoString), "FAST");
+                    weapX += 20;
+                }
+            } else if (weaponData[cent->currentState.weapon].energyPerShot == 0 &&
+                       weaponData[cent->currentState.weapon].altEnergyPerShot == 0) {
+                Q_strncpyz(ammoString, "--", sizeof(ammoString));
+            } else {
+                Com_sprintf(ammoString, sizeof(ammoString), "%i",
+                            cg.snap->ps.ammo[weaponData[cent->currentState.weapon].ammoIndex]);
+            }
 
-			UI_DrawProportionalString( SCREEN_WIDTH-(x+18+14+32)*cgs.widthRatioCoef, y+40+14, va( "%i", cg.snap->ps.fd.forcePower),
-				UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_ICON_BLUE] );
-		}
+            UI_DrawProportionalString(SCREEN_WIDTH - (weapX + 16 + 32) * cgs.widthRatioCoef, y + 40,
+                                      va("%s", ammoString),
+                                      UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_ORANGE]);
 
-		return;
-	}
+            UI_DrawProportionalString(SCREEN_WIDTH - (x + 18 + 14 + 32) * cgs.widthRatioCoef, y + 40 + 14,
+                                      va("%i", cg.snap->ps.fd.forcePower),
+                                      UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_ICON_BLUE]);
+            if (cg_hudFiles.integer == 1) {
+                int x = 0;
+                int y = SCREEN_HEIGHT - 80;
 
-	if (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
-	{
-		// Draw the left HUD 
-		menuHUD = Menus_FindByName("lefthud");
-		Menu_Paint( menuHUD, qtrue );
+                //JAPRO - Clientside - Gradient simple hud coloring - Start
+                if (cg_hudColors.integer) {
+                    vec4_t colorHealth = {.835f, .015f, .015f, 1};
+                    vec4_t colorArmor = {0, .613f, .097f, 1};
 
-		if (menuHUD)
-		{
-			itemDef_t *focusItem;
+                    if (cg.snap->ps.stats[STAT_HEALTH] < 100) {
+                        colorHealth[1] = 0.215 - (cg.snap->ps.stats[STAT_HEALTH] * 0.002);
+                        colorHealth[2] = 0.215 - (cg.snap->ps.stats[STAT_HEALTH] * 0.002);
+                    }
 
-			// Print scanline
-			focusItem = Menu_FindItemByName(menuHUD, "scanline");
-			if (focusItem)
-			{
-				trap_R_SetColor( colorTable[CT_WHITE] );	
-				CG_DrawPic( 
-					focusItem->window.rect.x*cgs.widthRatioCoef, 
-					focusItem->window.rect.y, 
-					focusItem->window.rect.w*cgs.widthRatioCoef, 
-					focusItem->window.rect.h, 
-					focusItem->window.background 
-					);			
-			}
+                    if (cg.snap->ps.stats[STAT_ARMOR] < 100) {
+                        colorArmor[0] = 0.2 - (cg.snap->ps.stats[STAT_ARMOR] * 0.002);
+                        colorArmor[2] = 0.297 - (cg.snap->ps.stats[STAT_ARMOR] * 0.002);
+                    }
 
-			// Print frame
-			focusItem = Menu_FindItemByName(menuHUD, "frame");
-			if (focusItem)
-			{
-				trap_R_SetColor( colorTable[CT_WHITE] );	
-				CG_DrawPic( 
-					focusItem->window.rect.x*cgs.widthRatioCoef, 
-					focusItem->window.rect.y, 
-					focusItem->window.rect.w*cgs.widthRatioCoef, 
-					focusItem->window.rect.h, 
-					focusItem->window.background 
-					);			
-			}
+                    UI_DrawProportionalString((x + 16) * cgs.widthRatioCoef, y + 40,
+                                              va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW,
+                                              colorHealth);
+                    UI_DrawProportionalString((x + 18 + 14) * cgs.widthRatioCoef, y + 40 + 14,
+                                              va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW,
+                                              colorArmor);
 
-			CG_DrawArmor(menuHUD);
-			CG_DrawHealth(menuHUD);
-		}
-		else
-		{ 
-			//CG_Error("CG_ChatBox_ArrayInsert: unable to locate HUD menu file ");
-		}
+                } else {
+                    UI_DrawProportionalString((x + 16) * cgs.widthRatioCoef, y + 40,
+                                              va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW,
+                                              colorTable[CT_HUD_RED]);
+                    UI_DrawProportionalString((x + 18 + 14) * cgs.widthRatioCoef, y + 40 + 14,
+                                              va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW,
+                                              colorTable[CT_HUD_GREEN]);
+                }
+                //JAPRO - Clientside - Gradient simple hud coloring - End
+            }
 
-		if (cg.playerPredicted) {
-			score = cg.snap->ps.persistant[PERS_SCORE];
-		} else {
-			score = cgs.clientinfo[cent->currentState.number].score;
-		}
+            return;
+        }
 
-		//scoreStr = va("Score: %i", cgs.clientinfo[cg.snap->ps.clientNum].score);
-		if ( cgs.gametype == GT_DUEL )
-		{//A duel that requires more than one kill to knock the current enemy back to the queue
-			//show current kills out of how many needed
-			scoreStr = va("%s: %i/%i", CG_GetStringEdString("MP_INGAME", "SCORE"), score, cgs.fraglimit);
-		}
-		else if (0 && cgs.gametype < GT_TEAM )
-		{	// This is a teamless mode, draw the score bias.
-			scoreBias = score - cgs.scores1;
-			if (scoreBias == 0)
-			{	// We are the leader!
-				if (cgs.scores2 <= 0)
-				{	// Nobody to be ahead of yet.
-					Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), "");
-				}
-				else
-				{
-					scoreBias = score - cgs.scores2;
-					if (scoreBias == 0)
-					{
-						Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), " (Tie)");
-					}
-					else
-					{
-						Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), " (+%d)", scoreBias);
-					}
-				}
-			}
-			else // if (scoreBias < 0)
-			{	// We are behind!
-				Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), " (%d)", scoreBias);
-			}
-			scoreStr = va("%s: %i%s", CG_GetStringEdString("MP_INGAME", "SCORE"), score, scoreBiasStr);
-		}
-		else
-		{	// Don't draw a bias.
-			scoreStr = va("%s: %i", CG_GetStringEdString("MP_INGAME", "SCORE"), score);
-		}
+        if (cg.predictedPlayerState.pm_type != PM_SPECTATOR) {
+            // Draw the left HUD
+            menuHUD = Menus_FindByName("lefthud");
+            Menu_Paint(menuHUD, qtrue);
 
-		menuHUD = Menus_FindByName("righthud");
-		Menu_Paint( menuHUD, qtrue );
+            if (menuHUD) {
+                itemDef_t *focusItem;
 
-		if (menuHUD)
-		{
-			if (cgs.gametype != GT_POWERDUEL)
-			{
-				focusItem = Menu_FindItemByName(menuHUD, "score_line");
-				if (focusItem)
-				{
-					UI_DrawScaledProportionalString(
-						SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef - 17, 
-						focusItem->window.rect.y, 
-						scoreStr, 
-						UI_RIGHT|UI_DROPSHADOW, 
-						focusItem->window.foreColor, 
-						0.7f);
-				}
-			}
+                // Print scanline
+                focusItem = Menu_FindItemByName(menuHUD, "scanline");
+                if (focusItem) {
+                    trap_R_SetColor(colorTable[CT_WHITE]);
+                    CG_DrawPic(
+                            focusItem->window.rect.x * cgs.widthRatioCoef,
+                            focusItem->window.rect.y,
+                            focusItem->window.rect.w * cgs.widthRatioCoef,
+                            focusItem->window.rect.h,
+                            focusItem->window.background
+                    );
+                }
 
-			if (!cg.playerPredicted)
-				return;
+                // Print frame
+                focusItem = Menu_FindItemByName(menuHUD, "frame");
+                if (focusItem) {
+                    trap_R_SetColor(colorTable[CT_WHITE]);
+                    CG_DrawPic(
+                            focusItem->window.rect.x * cgs.widthRatioCoef,
+                            focusItem->window.rect.y,
+                            focusItem->window.rect.w * cgs.widthRatioCoef,
+                            focusItem->window.rect.h,
+                            focusItem->window.background
+                    );
+                }
 
-			// Print scanline
-			focusItem = Menu_FindItemByName(menuHUD, "scanline");
-			if (focusItem)
-			{
-				trap_R_SetColor( colorTable[CT_WHITE] );	
-				CG_DrawPic( 
-					SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef, 
-					focusItem->window.rect.y, 
-					focusItem->window.rect.w*cgs.widthRatioCoef, 
-					focusItem->window.rect.h, 
-					focusItem->window.background 
-					);			
-			}
+                CG_DrawArmor(menuHUD);
+                CG_DrawHealth(menuHUD);
+            } else {
+                //CG_Error("CG_ChatBox_ArrayInsert: unable to locate HUD menu file ");
+            }
 
-			focusItem = Menu_FindItemByName(menuHUD, "frame");
-			if (focusItem)
-			{
-				trap_R_SetColor( colorTable[CT_WHITE] );	
-				CG_DrawPic( 
-					SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef, 
-					focusItem->window.rect.y, 
-					focusItem->window.rect.w*cgs.widthRatioCoef, 
-					focusItem->window.rect.h, 
-					focusItem->window.background 
-					);			
-			}
+            if (cg.playerPredicted) {
+                score = cg.snap->ps.persistant[PERS_SCORE];
+            } else {
+                score = cgs.clientinfo[cent->currentState.number].score;
+            }
 
-			CG_DrawForcePower(menuHUD);
+            //scoreStr = va("Score: %i", cgs.clientinfo[cg.snap->ps.clientNum].score);
+            if (cgs.gametype ==
+                GT_DUEL) {//A duel that requires more than one kill to knock the current enemy back to the queue
+                //show current kills out of how many needed
+                scoreStr = va("%s: %i/%i", CG_GetStringEdString("MP_INGAME", "SCORE"), score, cgs.fraglimit);
+            } else if (0 && cgs.gametype < GT_TEAM) {    // This is a teamless mode, draw the score bias.
+                scoreBias = score - cgs.scores1;
+                if (scoreBias == 0) {    // We are the leader!
+                    if (cgs.scores2 <= 0) {    // Nobody to be ahead of yet.
+                        Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), "");
+                    } else {
+                        scoreBias = score - cgs.scores2;
+                        if (scoreBias == 0) {
+                            Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), " (Tie)");
+                        } else {
+                            Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), " (+%d)", scoreBias);
+                        }
+                    }
+                } else // if (scoreBias < 0)
+                {    // We are behind!
+                    Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), " (%d)", scoreBias);
+                }
+                scoreStr = va("%s: %i%s", CG_GetStringEdString("MP_INGAME", "SCORE"), score, scoreBiasStr);
+            } else {    // Don't draw a bias.
+                scoreStr = va("%s: %i", CG_GetStringEdString("MP_INGAME", "SCORE"), score);
+            }
 
-			// Draw ammo tics or saber style
-			if ( cent->currentState.weapon == WP_SABER )
-			{
-				CG_DrawSaberStyle(cent,menuHUD);
-			}
-			else
-			{
-				CG_DrawAmmo(cent,menuHUD);
-			}
-		}
-		else
-		{ 
-			//CG_Error("CG_ChatBox_ArrayInsert: unable to locate HUD menu file ");
-		}
-	}
+            menuHUD = Menus_FindByName("righthud");
+            Menu_Paint(menuHUD, qtrue);
+
+            if (menuHUD) {
+                if (cgs.gametype != GT_POWERDUEL) {
+                    focusItem = Menu_FindItemByName(menuHUD, "score_line");
+                    if (focusItem) {
+                        UI_DrawScaledProportionalString(
+                                SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x) * cgs.widthRatioCoef - 17,
+                                focusItem->window.rect.y,
+                                scoreStr,
+                                UI_RIGHT | UI_DROPSHADOW,
+                                focusItem->window.foreColor,
+                                0.7f);
+                    }
+                }
+
+                if (!cg.playerPredicted)
+                    return;
+
+                // Print scanline
+                focusItem = Menu_FindItemByName(menuHUD, "scanline");
+                if (focusItem) {
+                    trap_R_SetColor(colorTable[CT_WHITE]);
+                    CG_DrawPic(
+                            SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x) * cgs.widthRatioCoef,
+                            focusItem->window.rect.y,
+                            focusItem->window.rect.w * cgs.widthRatioCoef,
+                            focusItem->window.rect.h,
+                            focusItem->window.background
+                    );
+                }
+
+                focusItem = Menu_FindItemByName(menuHUD, "frame");
+                if (focusItem) {
+                    trap_R_SetColor(colorTable[CT_WHITE]);
+                    CG_DrawPic(
+                            SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x) * cgs.widthRatioCoef,
+                            focusItem->window.rect.y,
+                            focusItem->window.rect.w * cgs.widthRatioCoef,
+                            focusItem->window.rect.h,
+                            focusItem->window.background
+                    );
+                }
+
+                CG_DrawForcePower(menuHUD);
+
+                // Draw ammo tics or saber style
+                if (cent->currentState.weapon == WP_SABER) {
+                    CG_DrawSaberStyle(cent, menuHUD);
+                } else {
+                    CG_DrawAmmo(cent, menuHUD);
+                }
+            } else {
+                //CG_Error("CG_ChatBox_ArrayInsert: unable to locate HUD menu file ");
+            }
+        }
+    }
 }
 
 #define MAX_SHOWPOWERS NUM_FORCE_POWERS
