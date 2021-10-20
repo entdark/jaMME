@@ -3,16 +3,13 @@ Feel free to contact me on Discord at tayst#2590
 All compiling and testing has been done on Linux. I can't really help out with other OS's at this point.
 
 Todo:
-- Fix japro black saber
 - Fix Saber style hud colors
-
-Planned:
 - Saber Style Crosshair colors
 - Lagometer
 
 Working:
 - Racetimer
-- Strafehelper
+- Strafehelper (Added S/SD/AS Rear Lines)
 - Speedometer
 
 Jedi Academy Movie Maker's Edition
