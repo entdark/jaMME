@@ -9,7 +9,7 @@ Todo:
 
 Working:
 - Racetimer
-- Strafehelper
+- Strafehelper (Added S/SD/AS Rear Lines)
 - Speedometer
 
 Jedi Academy Movie Maker's Edition
