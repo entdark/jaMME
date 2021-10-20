@@ -1,14 +1,19 @@
-The goal of this fork is to port EternalJK/japro features into JAMME - tayst
+The goal of this fork is to port EternalJK/japro features into JAMME 
+Feel free to contact me on Discord at tayst#2590
+All compiling and testing has been done on Linux. I can't really help out with other OS's at this point.
+
+Todo:
+- Fix japro black saber
+- Fix Saber style hud colors
 
 Planned:
-- Strafehelper
-- Speedometer
-- Saber Style Crosshair
-- Saber Style Hud Colors
+- Saber Style Crosshair colors
+- Lagometer
 
 Working:
 - Racetimer
-
+- Strafehelper
+- Speedometer
 
 Jedi Academy Movie Maker's Edition
 ==================================
