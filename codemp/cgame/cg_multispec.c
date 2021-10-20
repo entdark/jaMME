@@ -601,9 +601,9 @@ void CG_MultiSpecMain(void)
 	if (cg.predictedPlayerState.pm_type == PM_INTERMISSION) {
 		goto resetDglow;
 	}
-	if (!cg.playerCent) {
+	/*if (!cg.playerCent) {
 		goto resetDglow;
-	}
+	}*/
 	multiSpec.active = qtrue;
 	for (window = multiSpec.windows; window; window = window->next) {
 		multiSpec.current = window;

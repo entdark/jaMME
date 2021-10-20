@@ -14,7 +14,7 @@
 #define HAVE_LIBMAD
 #ifndef __ANDROID__
 #define HAVE_LIBOGG
-#define HAVE_LIBFLAC
+//#define HAVE_LIBFLAC
 #endif
 const char *ext[] = {
 	".wav",
