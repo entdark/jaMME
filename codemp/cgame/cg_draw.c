@@ -1307,9 +1307,9 @@ static void CG_DrawSimpleSaberStyle(const centity_t *cent)
     }
 
     if (cg_hudColors.integer) //JAPRO - Clientside - Gradient simple hud coloring
-        CG_DrawProportionalString(SCREEN_WIDTH - (weapX + 16 + 32)*cgs.widthRatioCoef, (SCREEN_HEIGHT - 80) + 40, num, UI_SMALLFONT | UI_DROPSHADOW, colorTable[calcColor]);
+        UI_DrawProportionalString(SCREEN_WIDTH - (weapX + 16 + 32)*cgs.widthRatioCoef, (SCREEN_HEIGHT - 80) + 40, num, UI_SMALLFONT | UI_DROPSHADOW, colorTable[calcColor]);
     else
-        CG_DrawProportionalString(SCREEN_WIDTH - (weapX + 16 + 32)*cgs.widthRatioCoef, (SCREEN_HEIGHT - 80) + 40, num, UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_ORANGE]);
+        UI_DrawProportionalString(SCREEN_WIDTH - (weapX + 16 + 32)*cgs.widthRatioCoef, (SCREEN_HEIGHT - 80) + 40, num, UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_ORANGE]);
 }
 
 /*
@@ -1436,44 +1436,6 @@ void CG_DrawHUD(centity_t	*cent) {
 
             if (!cg.playerPredicted)
                 return;
-
-            if (cg.snap->ps.weapon == WP_SABER) {
-                if (cg.snap->ps.fd.saberDrawAnimLevel == SS_DUAL) {
-                    Com_sprintf(ammoString, sizeof(ammoString), "AKIMBO");
-                    weapX += 25;
-                } else if (cg.snap->ps.fd.saberDrawAnimLevel == SS_STAFF) {
-                    Com_sprintf(ammoString, sizeof(ammoString), "STAFF");
-                    weapX += 25;
-                } else if (cg.snap->ps.fd.saberDrawAnimLevel == FORCE_LEVEL_3) {
-                    Com_sprintf(ammoString, sizeof(ammoString), "STRONG");
-                    weapX += 25;
-                } else if (cg.snap->ps.fd.saberDrawAnimLevel == FORCE_LEVEL_2) {
-                    Com_sprintf(ammoString, sizeof(ammoString), "MEDIUM");
-                    weapX += 25;
-                } else {
-                    Com_sprintf(ammoString, sizeof(ammoString), "FAST");
-                    weapX += 20;
-                }
-            } else if (weaponData[cent->currentState.weapon].energyPerShot == 0 &&
-                       weaponData[cent->currentState.weapon].altEnergyPerShot == 0) {
-                Q_strncpyz(ammoString, "--", sizeof(ammoString));
-            } else {
-                Com_sprintf(ammoString, sizeof(ammoString), "%i",
-                            cg.snap->ps.ammo[weaponData[cent->currentState.weapon].ammoIndex]);
-            }
-
-            UI_DrawProportionalString(SCREEN_WIDTH - (weapX + 16 + 32) * cgs.widthRatioCoef, y + 40,
-                                      va("%s", ammoString),
-                                      UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_ORANGE]);
-
-            UI_DrawProportionalString(SCREEN_WIDTH - (x + 18 + 14 + 32) * cgs.widthRatioCoef, y + 40 + 14,
-                                      va("%i", cg.snap->ps.fd.forcePower),
-                                      UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_ICON_BLUE]);
-            return;
-        }
-
-    if (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
-    {
         if (cg_hudFiles.integer == 1)
         {
             int x = 0;
@@ -1497,20 +1459,56 @@ void CG_DrawHUD(centity_t	*cent) {
                     colorArmor[2] = 0.297 - (cg.snap->ps.stats[STAT_ARMOR] * 0.002);
                 }
 
-                CG_DrawProportionalString((x + 16)*cgs.widthRatioCoef, y + 40, va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW, colorHealth);
-                CG_DrawProportionalString((x + 18 + 14)*cgs.widthRatioCoef, y + 40 + 14, va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW, colorArmor);
+                UI_DrawProportionalString((x + 16)*cgs.widthRatioCoef, y + 40, va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW, colorHealth);
+                UI_DrawProportionalString((x + 18 + 14)*cgs.widthRatioCoef, y + 40 + 14, va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW, colorArmor);
 
             }
             else
             {
-                CG_DrawProportionalString((x + 16)*cgs.widthRatioCoef, y + 40, va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_RED]);
-                CG_DrawProportionalString((x + 18 + 14)*cgs.widthRatioCoef, y + 40 + 14, va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_GREEN]);
+                UI_DrawProportionalString((x + 16)*cgs.widthRatioCoef, y + 40, va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_RED]);
+                UI_DrawProportionalString((x + 18 + 14)*cgs.widthRatioCoef, y + 40 + 14, va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_GREEN]);
             }
             //JAPRO - Clientside - Gradient simple hud coloring - End
 
             if (cent->currentState.weapon == WP_SABER)
                 CG_DrawSimpleSaberStyle(cent);
+ /*           if (cg.snap->ps.weapon == WP_SABER) {
+                if (cg.snap->ps.fd.saberDrawAnimLevel == SS_DUAL) {
+                    Com_sprintf(ammoString, sizeof(ammoString), "AKIMBO");
+                    weapX += 25;
+                } else if (cg.snap->ps.fd.saberDrawAnimLevel == SS_STAFF) {
+                    Com_sprintf(ammoString, sizeof(ammoString), "STAFF");
+                    weapX += 25;
+                } else if (cg.snap->ps.fd.saberDrawAnimLevel == FORCE_LEVEL_3) {
+                    Com_sprintf(ammoString, sizeof(ammoString), "STRONG");
+                    weapX += 25;
+                } else if (cg.snap->ps.fd.saberDrawAnimLevel == FORCE_LEVEL_2) {
+                    Com_sprintf(ammoString, sizeof(ammoString), "MEDIUM");
+                    weapX += 25;
+                } else {
+                    Com_sprintf(ammoString, sizeof(ammoString), "FAST");
+                    weapX += 20;
+                }*/
+            if (weaponData[cent->currentState.weapon].energyPerShot == 0 &&
+                       weaponData[cent->currentState.weapon].altEnergyPerShot == 0) {
+                Q_strncpyz(ammoString, "--", sizeof(ammoString));
+            } else {
+                Com_sprintf(ammoString, sizeof(ammoString), "%i",
+                            cg.snap->ps.ammo[weaponData[cent->currentState.weapon].ammoIndex]);
+            }
 
+/*            UI_DrawProportionalString(SCREEN_WIDTH - (weapX + 16 + 32) * cgs.widthRatioCoef, y + 40,
+                                      va("%s", ammoString),
+                                      UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_ORANGE]);*/
+
+            UI_DrawProportionalString(SCREEN_WIDTH - (x + 18 + 14 + 32) * cgs.widthRatioCoef, y + 40 + 14,
+                                      va("%i", cg.snap->ps.fd.forcePower),
+                                      UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_ICON_BLUE]);
+            return;
+        }
+
+    if (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
+    {
             // Draw the left HUD
             menuHUD = Menus_FindByName("lefthud");
             Menu_Paint(menuHUD, qtrue);
@@ -1631,11 +1629,6 @@ void CG_DrawHUD(centity_t	*cent) {
                 CG_DrawForcePower(menuHUD);
 
                 // Draw ammo tics or saber style
-                if (cent->currentState.weapon == WP_SABER) {
-                    CG_DrawSaberStyle(cent, menuHUD);
-                } else {
-                    CG_DrawAmmo(cent, menuHUD);
-                }
             } else {
                 //CG_Error("CG_ChatBox_ArrayInsert: unable to locate HUD menu file ");
             }
