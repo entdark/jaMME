@@ -3,7 +3,7 @@
 - All compiling and testing has been done on Linux. I can't really help out with other OS's at this point.
 
 # Todo: #
-- cg_strafeHelperActiveColor 
+- fix cg_strafeHelperActiveColor 
 - make escape pause-play the demo as in game menu opens/closes
 - \styleplayer 0 (fullbright skins)
 - \speedometer & \strafehelper bit value config commands
