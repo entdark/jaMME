@@ -1,21 +1,3 @@
-The goal of this fork is to port EternalJK/japro features into JAMME 
-Feel free to contact me on Discord at tayst#2590, please don't expect ent to support this version. 
-All compiling and testing has been done on Linux. I can't really help out with other OS's at this point.
-
-Todo:
-- cg_strafeHelperActiveColor 
-
-Working:
-- cg_lagometer 1 2 or 3
-- cg_hudColors (colors basic hud to stance style)
-- cg_racetimer 1 or 2 
-- cg_strafehelper (20450 for all lines, 4066 for all without line crosshair, Added S/SD/AS Rear Lines, need to get the /cg_strafehlper result from EternalJK, no way to configure it in jamme atm)
-- cg_speedometer (Configure with /speedometer command in EternaJK, use value here)
-- cg_crosshairHealth
-- cg_crosshairSaberStyleColor
-- cg_hudColors (colors basic hud to stance style)
-
-
 Jedi Academy Movie Maker's Edition
 ==================================
 
@@ -67,3 +49,22 @@ Extract the archive to "GameData" folder.
 * Grant R. Griffin and his "FIR filter algorithms for use in C"
 * OpenJK contributors and their OpenJK project
 * redsaurus for Mac support
+
+# This Fork #
+The goal of this fork is to merge EternalJK/japro features into JAMME.
+Feel free to contact me on Discord at tayst#2590, please don't expect ent to support this fork. 
+All compiling and testing has been done on Linux. I can't really help out with other OS's at this point.
+
+# Todo: #
+- cg_strafeHelperActiveColor 
+
+# Working:# 
+- cg_lagometer 1 2 or 3
+- cg_hudColors (colors basic hud to stance style)
+- cg_racetimer 1 or 2 
+- cg_strafehelper (20450 for all lines, 4066 for all without line crosshair, Added S/SD/AS Rear Lines, need to get the /cg_strafehlper result from EternalJK, no way to configure it in jamme atm)
+- cg_speedometer (Configure with /speedometer command in EternaJK, use value here)
+- cg_crosshairHealth
+- cg_crosshairSaberStyleColor
+- cg_hudColors (colors basic hud to stance style)
+
