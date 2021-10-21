@@ -9,7 +9,7 @@
 - \speedometer & \strafehelper bit value config commands
 
 # Working: # 
-- cg_strafehelper 4066 for all lines, (20450 for all lines with line crosshair, Added S/SD/AS Rear Lines, configure with \strafehelper in EternalJK)
+- cg_strafehelper 4066 for all lines, (20450 for all lines with line crosshair, configure with \strafehelper in EternalJK)
 - cg_speedometer (Configure with \speedometer command in EternaJKe)
 - cg_racetimer 0-2
 - cg_crosshairHealth 0-1
