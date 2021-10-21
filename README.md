@@ -3,14 +3,15 @@ Feel free to contact me on Discord at tayst#2590
 All compiling and testing has been done on Linux. I can't really help out with other OS's at this point.
 
 Todo:
-- Fix Saber style hud colors
-- Saber Style Crosshair colors
+- cg_hudColors
 - Lagometer
 
 Working:
 - Racetimer
 - Strafehelper (Added S/SD/AS Rear Lines)
 - Speedometer
+- Saber Style Crosshair colors
+
 
 Jedi Academy Movie Maker's Edition
 ==================================
