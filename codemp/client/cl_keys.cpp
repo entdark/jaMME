@@ -1529,17 +1529,14 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 		}
 
 		if ( !( Key_GetCatcher( ) & KEYCATCH_UI ) ) {
-			if ( cls.state == CA_ACTIVE && !clc.demoplaying ) {
-				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_INGAME );
+			if ( cls.state != CA_ACTIVE && !clc.demoplaying ) {
+                CL_Disconnect_f();
+                S_StopAllSounds();
+                VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
 			}
-            else if (clc.demoplaying) { //JAPRO ENGINE, stop escape in demo from fucking you to main menu
+            else{ //JAPRO ENGINE, stop escape in demo from fucking you to main menu
                 VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_INGAME );
             }
-			else {
-				CL_Disconnect_f();
-				S_StopAllSounds();
-				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN );
-			}
 			return;
 		}
 
