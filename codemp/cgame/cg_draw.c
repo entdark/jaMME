@@ -1256,6 +1256,62 @@ void CG_DrawForcePower( menuDef_t *menuHUD )
 	}
 }
 
+static void CG_DrawSimpleSaberStyle(const centity_t *cent)
+{
+    uint32_t	calcColor;
+    char		num[7] = { 0 };
+    int			weapX = 24;
+
+    if ( !cent->currentState.weapon ) // We don't have a weapon right now
+    {
+        return;
+    }
+
+    if ( cent->currentState.weapon != WP_SABER )
+    {
+        return;
+    }
+
+    switch ( cg.predictedPlayerState.fd.saberDrawAnimLevel )
+    {
+        default:
+        case SS_FAST:
+            Com_sprintf( num, sizeof( num ), "FAST" );
+            calcColor = CT_ICON_BLUE;
+            weapX -= 8;
+            break;
+        case SS_MEDIUM:
+            Com_sprintf( num, sizeof( num ), "MEDIUM" );
+            calcColor = CT_YELLOW;
+            break;
+        case SS_STRONG:
+            Com_sprintf( num, sizeof( num ), "STRONG" );
+            calcColor = CT_HUD_RED;
+            break;
+        case SS_DESANN:
+            Com_sprintf( num, sizeof( num ), "DESANN" );
+            calcColor = CT_HUD_RED;
+            break;
+        case SS_TAVION:
+            Com_sprintf( num, sizeof( num ), "TAVION" );
+            calcColor = CT_ICON_BLUE;
+            break;
+        case SS_DUAL:
+            Com_sprintf( num, sizeof( num ), "AKIMBO" );
+            calcColor = CT_HUD_ORANGE;
+            break;
+        case SS_STAFF:
+            Com_sprintf( num, sizeof( num ), "STAFF" );
+            calcColor = CT_HUD_ORANGE;
+            break;
+    }
+
+    if (cg_hudColors.integer) //JAPRO - Clientside - Gradient simple hud coloring
+        CG_DrawProportionalString(SCREEN_WIDTH - (weapX + 16 + 32)*cgs.widthRatioCoef, (SCREEN_HEIGHT - 80) + 40, num, UI_SMALLFONT | UI_DROPSHADOW, colorTable[calcColor]);
+    else
+        CG_DrawProportionalString(SCREEN_WIDTH - (weapX + 16 + 32)*cgs.widthRatioCoef, (SCREEN_HEIGHT - 80) + 40, num, UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_ORANGE]);
+}
+
 /*
 ================
 CG_DrawHUD
@@ -1364,38 +1420,6 @@ void CG_DrawHUD(centity_t	*cent) {
         int health;
         int armor;
 
-        if (cg.predictedPlayerState.pm_type != PM_SPECTATOR) {
-            //JAPRO - Clientside - Gradient simple hud coloring - Start
-            if (cg_hudColors.integer) {
-                vec4_t colorHealth = {.835f, .015f, .015f, 1};
-                vec4_t colorArmor = {0, .613f, .097f, 1};
-
-                if (cg.snap->ps.stats[STAT_HEALTH] < 100) {
-                    colorHealth[1] = 0.215 - (cg.snap->ps.stats[STAT_HEALTH] * 0.002);
-                    colorHealth[2] = 0.215 - (cg.snap->ps.stats[STAT_HEALTH] * 0.002);
-                }
-
-                if (cg.snap->ps.stats[STAT_ARMOR] < 100) {
-                    colorArmor[0] = 0.2 - (cg.snap->ps.stats[STAT_ARMOR] * 0.002);
-                    colorArmor[2] = 0.297 - (cg.snap->ps.stats[STAT_ARMOR] * 0.002);
-                }
-
-                UI_DrawProportionalString((x + 16) * cgs.widthRatioCoef, y + 40,
-                                          va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW,
-                                          colorHealth);
-                UI_DrawProportionalString((x + 18 + 14) * cgs.widthRatioCoef, y + 40 + 14,
-                                          va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW,
-                                          colorArmor);
-
-            } else {
-                UI_DrawProportionalString((x + 16) * cgs.widthRatioCoef, y + 40,
-                                          va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW,
-                                          colorTable[CT_HUD_RED]);
-                UI_DrawProportionalString((x + 18 + 14) * cgs.widthRatioCoef, y + 40 + 14,
-                                          va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW,
-                                          colorTable[CT_HUD_GREEN]);
-            }
-            //JAPRO - Clientside - Gradient simple hud coloring - End
             if (cg.playerPredicted) {
                 health = cg.snap->ps.stats[STAT_HEALTH];
                 armor = cg.snap->ps.stats[STAT_ARMOR];
@@ -1448,7 +1472,45 @@ void CG_DrawHUD(centity_t	*cent) {
             return;
         }
 
-        if (cg.predictedPlayerState.pm_type != PM_SPECTATOR) {
+    if (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
+    {
+        if (cg_hudFiles.integer == 1)
+        {
+            int x = 0;
+            int y = SCREEN_HEIGHT - 80;
+
+            //JAPRO - Clientside - Gradient simple hud coloring - Start
+            if (cg_hudColors.integer)
+            {
+                vec4_t colorHealth = { .835f,	.015f,  .015f,  1 };
+                vec4_t colorArmor = { 0,	.613f,  .097f,  1 };
+
+                if (cg.snap->ps.stats[STAT_HEALTH] < 100)
+                {
+                    colorHealth[1] = 0.215 - (cg.snap->ps.stats[STAT_HEALTH] * 0.002);
+                    colorHealth[2] = 0.215 - (cg.snap->ps.stats[STAT_HEALTH] * 0.002);
+                }
+
+                if (cg.snap->ps.stats[STAT_ARMOR] < 100)
+                {
+                    colorArmor[0] = 0.2 - (cg.snap->ps.stats[STAT_ARMOR] * 0.002);
+                    colorArmor[2] = 0.297 - (cg.snap->ps.stats[STAT_ARMOR] * 0.002);
+                }
+
+                CG_DrawProportionalString((x + 16)*cgs.widthRatioCoef, y + 40, va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW, colorHealth);
+                CG_DrawProportionalString((x + 18 + 14)*cgs.widthRatioCoef, y + 40 + 14, va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW, colorArmor);
+
+            }
+            else
+            {
+                CG_DrawProportionalString((x + 16)*cgs.widthRatioCoef, y + 40, va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_RED]);
+                CG_DrawProportionalString((x + 18 + 14)*cgs.widthRatioCoef, y + 40 + 14, va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_GREEN]);
+            }
+            //JAPRO - Clientside - Gradient simple hud coloring - End
+
+            if (cent->currentState.weapon == WP_SABER)
+                CG_DrawSimpleSaberStyle(cent);
+
             // Draw the left HUD
             menuHUD = Menus_FindByName("lefthud");
             Menu_Paint(menuHUD, qtrue);
