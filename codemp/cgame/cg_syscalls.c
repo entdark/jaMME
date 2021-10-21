@@ -272,7 +272,7 @@ void trap_AS_AddPrecacheEntry( const char *name )
 
 int trap_S_AddLocalSet( const char *name, vec3_t listener_origin, vec3_t origin, int entID, int time )
 {
-	if (CG_MultiSpecActive()) return;
+	if (CG_MultiSpecActive()) return 0;
 	return Q_syscall(CG_S_ADDLOCALSET, name, listener_origin, origin, entID, time);
 }
 
@@ -1327,6 +1327,6 @@ float trap_MME_ProgressTime( void ) {
 int trap_MME_DemoLength( void ) {
 	return Q_syscall( CG_MME_DEMOLENGTH );
 }
-void trap_MME_RequestFeatures( void ) {
+int trap_MME_RequestFeatures( void ) {
 	return Q_syscall( CG_MME_REQUESTFEATURES );
 }

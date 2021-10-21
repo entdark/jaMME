@@ -1,4 +1,3 @@
-
 #ifdef XCVAR_PROTO
 	#define XCVAR_DEF( name, defVal, update, flags ) extern vmCvar_t name;
 #endif
@@ -77,6 +76,8 @@ XCVAR_DEF( cg_gunZ,								"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_hudFiles,							"ui/jahud.txt",			NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_jumpSounds,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_lagometer,						"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_lagometerX,						"48",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_lagometerY,						"144",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_marks,							"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_noPlayerAnims,					"0",					NULL,					CVAR_CHEAT )
 XCVAR_DEF( cg_noPredict,						"0",					NULL,					CVAR_ARCHIVE )
@@ -231,4 +232,62 @@ XCVAR_DEF( cg_trueSpin,							"1",					NULL,					CVAR_ARCHIVE )
 //tell the server we are newmod
 XCVAR_DEF( nm_ver,								"1.6.0",				NULL,					CVAR_USERINFO )
 XCVAR_DEF( nm_flags,							"u",					NULL,					CVAR_USERINFO )
+
+//JAPRO HUD / DISPLAY
+XCVAR_DEF( cg_movementKeys,			"0",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_movementKeysX,		"465",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_movementKeysY,		"432",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_movementKeysSize,		"1.0",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_speedometer,			"0",	NULL,					CVAR_ARCHIVE ) //bitvalue
+XCVAR_DEF( cg_speedometerX,			"132",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_speedometerY,			"459",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_speedometerSize,		"0.75",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_drawTeamOverlay,		"0",	CG_TeamOverlayChange,	CVAR_ARCHIVE )
+XCVAR_DEF( cg_drawTeamOverlayX,		"640",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_drawTeamOverlayY,		"0",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_raceTimer,			"2",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_raceTimerSize,		"0.75",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_raceTimerX,			"5",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_raceTimerY,			"280",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_smallScoreboard,		"0",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_scoreDeaths,			"1",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_killMessage,			"1",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_newFont,				"0",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_chatBox,				"10000",NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_chatBoxShowHistory,	"0",	NULL,					CVAR_ARCHIVE ) //shows past messages when console is open
+XCVAR_DEF( cg_chatBoxFontSize,		"1",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_chatBoxLines,			"5",	NULL,					CVAR_ARCHIVE ) //this would be called chatBoxHeight if baseJKA didn't use that
+XCVAR_DEF( cg_chatBoxHeight,		"350",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_chatBoxX,				"30",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_chatBoxCutOffLength,	"350",	NULL,					CVAR_ARCHIVE )
+//XCVAR_DEF( cg_chatBoxEmojis,		"0",	NULL,					CVAR_ARCHIVE_ND )
+//XCVAR_DEF( cg_chatBoxShowCutoff,	"0",	NULL,					CVAR_ARCHIVE_ND )
+XCVAR_DEF( cg_hudColors,			"0",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_tintHud,				"1",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_drawScore,			"2",	NULL,					CVAR_ARCHIVE ) //score counter on HUD
+XCVAR_DEF( cg_drawScores,			"1",	NULL,					CVAR_ARCHIVE ) //team score counter in top right
+XCVAR_DEF( cg_drawVote,				"1",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_showpos,				"0",	NULL,					CVAR_NONE )
+
+XCVAR_DEF( cg_drawPlayerNames,					"0",	NULL,					CVAR_ARCHIVE )
+
+//Strafehelper
+XCVAR_DEF( cg_strafeHelper,						"3008", NULL,			CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelper_FPS,					"0",	NULL,								CVAR_ARCHIVE ) //fats _ syntax to follow smod ;s
+XCVAR_DEF( cg_strafeHelperOffset,				"75",	NULL,								CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelperLineWidth,			"1",	NULL,								CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelperPrecision,			"256",	NULL,								CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelperCutoff,				"0",	NULL,								CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelperActiveColor,	"0 255 0 200",	CG_StrafeHelperActiveColorChange,	CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelperInactiveAlpha,		"200",	NULL,								CVAR_ARCHIVE )
+
+//Crosshair
+XCVAR_DEF( cg_crosshairSizeScale,		"1",	NULL,										CVAR_ARCHIVE )
+XCVAR_DEF( cg_crosshairIdentifyTarget,	"1",	NULL,										CVAR_ARCHIVE )
+XCVAR_DEF( cg_crosshairSaberStyleColor,	"0",	NULL,										CVAR_ARCHIVE )
+XCVAR_DEF( cg_crosshairColor,	"255 0 255 255",	CG_CrosshairColorChange,					CVAR_ARCHIVE )
+
+XCVAR_DEF( cg_drawHud,							"1",	NULL,					CVAR_ARCHIVE )
+
+
 #undef XCVAR_DEF

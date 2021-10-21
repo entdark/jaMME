@@ -53,6 +53,7 @@ set(MPUIUIFiles
 	"${MPDir}/ui/ui_local.h"
 	"${MPDir}/ui/ui_public.h"
 	"${MPDir}/ui/ui_shared.h"
+	"${MPDir}/ui/ui_xcvar.h"
 	)
 source_group("ui" FILES ${MPUIUIFiles})
 set(MPUIFiles ${MPUIFiles} ${MPUIUIFiles})

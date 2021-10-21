@@ -397,6 +397,33 @@ extern int forceMasteryPoints[NUM_FORCE_MASTERY_LEVELS];
 
 extern int bgForcePowerCost[NUM_FORCE_POWERS][NUM_FORCE_POWER_LEVELS];
 
+#define _SPPHYSICS 1
+#define _COOP 1
+typedef enum //movementstyle enum
+{
+    MV_SIEGE,
+    MV_JKA,
+    MV_QW,
+    MV_CPM,
+    MV_Q3,
+    MV_PJK,
+    MV_WSW,
+    MV_RJQ3,
+    MV_RJCPM,
+    MV_SWOOP,
+    MV_JETPACK,
+    MV_SPEED,
+#if _SPPHYSICS
+    MV_SP,
+#endif
+    MV_SLICK,
+    MV_BOTCPM,
+#if _COOP
+    MV_COOP_JKA,
+#endif
+    MV_NUMSTYLES,
+} movementStyle_e;
+
 // pmove->pm_flags
 #define	PMF_DUCKED			1
 #define	PMF_JUMP_HELD		2
@@ -519,19 +546,25 @@ void Pmove (pmove_t *pmove);
 // player_state->stats[] indexes
 // NOTE: may not have more than 16
 typedef enum {
-	STAT_HEALTH,
-	STAT_HOLDABLE_ITEM,
-	STAT_HOLDABLE_ITEMS,
-	STAT_PERSISTANT_POWERUP,
-	//MAKE SURE STAT_WEAPONS REMAINS 4!!!!
-	//There is a hardcoded reference in msg.cpp to send it in 32 bits -rww
-	STAT_WEAPONS = 4,					// 16 bit fields
-	STAT_ARMOR,				
-	STAT_DEAD_YAW,					// look this direction when dead (FIXME: get rid of?)
-	STAT_CLIENTS_READY,				// bit mask of clients wishing to exit the intermission (FIXME: configstring?)
-	STAT_MAX_HEALTH					// health / armor limit, changable by handicap
+    STAT_HEALTH,
+    STAT_HOLDABLE_ITEM,
+    STAT_HOLDABLE_ITEMS,
+    STAT_PERSISTANT_POWERUP,
+    //MAKE SURE STAT_WEAPONS REMAINS 4!!!!
+    //There is a hardcoded reference in msg.cpp to send it in 32 bits -rww
+    STAT_WEAPONS = 4,					// 16 bit fields
+    STAT_ARMOR,
+    STAT_DEAD_YAW,					// look this direction when dead (FIXME: get rid of?)
+    STAT_CLIENTS_READY,				// bit mask of clients wishing to exit the intermission (FIXME: configstring?)
+    STAT_MAX_HEALTH,				// health / armor limit, changable by handicap
+    STAT_DASHTIME,
+    STAT_LASTJUMPSPEED,
+    STAT_RACEMODE,
+    STAT_RESTRICTIONS,
+    STAT_MOVEMENTSTYLE,
+    STAT_JUMPTIME,
+    STAT_WJTIME
 } statIndex_t;
-
 
 // player_state->persistant[] indexes
 // these fields are the only part of player_state that isn't

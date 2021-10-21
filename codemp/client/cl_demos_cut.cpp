@@ -668,7 +668,7 @@ cutcontinue:
 			goto cutcomplete;
 		} else if (framesSaved > 0) {
 			/* this msg is in range, write it */
-			if (framesSaved > max(10, demo.cut.Cl.snap.messageNum - demo.cut.Cl.snap.deltaNum)) {
+			if (framesSaved > Q_max(10, demo.cut.Cl.snap.messageNum - demo.cut.Cl.snap.deltaNum)) {
 				demoCutWriteDemoMessage(&oldMsg, newHandle, &demo.cut.Clc);
 			} else {
 				demoCutWriteDeltaSnapshot(firstServerCommand, newHandle, qfalse, &demo.cut.Clc, &demo.cut.Cl);
