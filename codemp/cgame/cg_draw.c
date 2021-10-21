@@ -62,7 +62,11 @@ void CG_DrawDuelistHealth ( float x, float y, float w, float h, int duelist );
 
 // used for scoreboard
 extern displayContextDef_t cgDC;
+vec4_t	bluehudtint = {0.5, 0.5, 1.0, 1.0};
+vec4_t	redhudtint = {1.0, 0.5, 0.5, 1.0};
+float	*hudTintColor;
 menuDef_t *menuScoreboard = NULL;
+
 
 int sortedTeamPlayers[TEAM_MAXOVERLAY];
 int	numSortedTeamPlayers;
@@ -1361,6 +1365,37 @@ void CG_DrawHUD(centity_t	*cent) {
         int armor;
 
         if (cg.predictedPlayerState.pm_type != PM_SPECTATOR) {
+            //JAPRO - Clientside - Gradient simple hud coloring - Start
+            if (cg_hudColors.integer) {
+                vec4_t colorHealth = {.835f, .015f, .015f, 1};
+                vec4_t colorArmor = {0, .613f, .097f, 1};
+
+                if (cg.snap->ps.stats[STAT_HEALTH] < 100) {
+                    colorHealth[1] = 0.215 - (cg.snap->ps.stats[STAT_HEALTH] * 0.002);
+                    colorHealth[2] = 0.215 - (cg.snap->ps.stats[STAT_HEALTH] * 0.002);
+                }
+
+                if (cg.snap->ps.stats[STAT_ARMOR] < 100) {
+                    colorArmor[0] = 0.2 - (cg.snap->ps.stats[STAT_ARMOR] * 0.002);
+                    colorArmor[2] = 0.297 - (cg.snap->ps.stats[STAT_ARMOR] * 0.002);
+                }
+
+                UI_DrawProportionalString((x + 16) * cgs.widthRatioCoef, y + 40,
+                                          va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW,
+                                          colorHealth);
+                UI_DrawProportionalString((x + 18 + 14) * cgs.widthRatioCoef, y + 40 + 14,
+                                          va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW,
+                                          colorArmor);
+
+            } else {
+                UI_DrawProportionalString((x + 16) * cgs.widthRatioCoef, y + 40,
+                                          va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW,
+                                          colorTable[CT_HUD_RED]);
+                UI_DrawProportionalString((x + 18 + 14) * cgs.widthRatioCoef, y + 40 + 14,
+                                          va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW,
+                                          colorTable[CT_HUD_GREEN]);
+            }
+            //JAPRO - Clientside - Gradient simple hud coloring - End
             if (cg.playerPredicted) {
                 health = cg.snap->ps.stats[STAT_HEALTH];
                 armor = cg.snap->ps.stats[STAT_ARMOR];
@@ -1410,43 +1445,6 @@ void CG_DrawHUD(centity_t	*cent) {
             UI_DrawProportionalString(SCREEN_WIDTH - (x + 18 + 14 + 32) * cgs.widthRatioCoef, y + 40 + 14,
                                       va("%i", cg.snap->ps.fd.forcePower),
                                       UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_ICON_BLUE]);
-            if (cg_hudFiles.integer == 1) {
-                int x = 0;
-                int y = SCREEN_HEIGHT - 80;
-
-                //JAPRO - Clientside - Gradient simple hud coloring - Start
-                if (cg_hudColors.integer) {
-                    vec4_t colorHealth = {.835f, .015f, .015f, 1};
-                    vec4_t colorArmor = {0, .613f, .097f, 1};
-
-                    if (cg.snap->ps.stats[STAT_HEALTH] < 100) {
-                        colorHealth[1] = 0.215 - (cg.snap->ps.stats[STAT_HEALTH] * 0.002);
-                        colorHealth[2] = 0.215 - (cg.snap->ps.stats[STAT_HEALTH] * 0.002);
-                    }
-
-                    if (cg.snap->ps.stats[STAT_ARMOR] < 100) {
-                        colorArmor[0] = 0.2 - (cg.snap->ps.stats[STAT_ARMOR] * 0.002);
-                        colorArmor[2] = 0.297 - (cg.snap->ps.stats[STAT_ARMOR] * 0.002);
-                    }
-
-                    UI_DrawProportionalString((x + 16) * cgs.widthRatioCoef, y + 40,
-                                              va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW,
-                                              colorHealth);
-                    UI_DrawProportionalString((x + 18 + 14) * cgs.widthRatioCoef, y + 40 + 14,
-                                              va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW,
-                                              colorArmor);
-
-                } else {
-                    UI_DrawProportionalString((x + 16) * cgs.widthRatioCoef, y + 40,
-                                              va("%i", cg.snap->ps.stats[STAT_HEALTH]), UI_SMALLFONT | UI_DROPSHADOW,
-                                              colorTable[CT_HUD_RED]);
-                    UI_DrawProportionalString((x + 18 + 14) * cgs.widthRatioCoef, y + 40 + 14,
-                                              va("%i", cg.snap->ps.stats[STAT_ARMOR]), UI_SMALLFONT | UI_DROPSHADOW,
-                                              colorTable[CT_HUD_GREEN]);
-                }
-                //JAPRO - Clientside - Gradient simple hud coloring - End
-            }
-
             return;
         }
 
@@ -2586,13 +2584,13 @@ typedef struct
 	short	lightDamage;
 } veh_damage_t;
 
-veh_damage_t vehDamageData[4] = 
-{
-"vehicle_front",SHIPSURF_DAMAGE_FRONT_HEAVY,SHIPSURF_DAMAGE_FRONT_LIGHT,
-"vehicle_back",SHIPSURF_DAMAGE_BACK_HEAVY,SHIPSURF_DAMAGE_BACK_LIGHT,
-"vehicle_left",SHIPSURF_DAMAGE_LEFT_HEAVY,SHIPSURF_DAMAGE_LEFT_LIGHT,
-"vehicle_right",SHIPSURF_DAMAGE_RIGHT_HEAVY,SHIPSURF_DAMAGE_RIGHT_LIGHT,
-};
+    veh_damage_t vehDamageData[4] =
+            {
+                    { "vehicle_front",SHIPSURF_DAMAGE_FRONT_HEAVY,SHIPSURF_DAMAGE_FRONT_LIGHT },
+                    { "vehicle_back",SHIPSURF_DAMAGE_BACK_HEAVY,SHIPSURF_DAMAGE_BACK_LIGHT },
+                    { "vehicle_left",SHIPSURF_DAMAGE_LEFT_HEAVY,SHIPSURF_DAMAGE_LEFT_LIGHT },
+                    { "vehicle_right",SHIPSURF_DAMAGE_RIGHT_HEAVY,SHIPSURF_DAMAGE_RIGHT_LIGHT },
+            };
 
 // Draw health graphic for given part of vehicle
 void CG_DrawVehicleDamage(const centity_t *veh,int brokenLimbs,const menuDef_t	*menuHUD,float alpha,int index)
@@ -10090,58 +10088,4 @@ static void CG_Speedometer(void)
             cg.clientSpeedpoints[i].reached = qfalse;
         }
     }
-}
-
-//Strafehelper colors
-static void CG_CrosshairColorChange(void) {
-    int i;
-    if (sscanf(cg_crosshairColor.string, "%f %f %f %f", &cg.crosshairColor[0], &cg.crosshairColor[1], &cg.crosshairColor[2], &cg.crosshairColor[3]) != 4) {
-        cg.crosshairColor[0] = 0;
-        cg.crosshairColor[1] = 0;
-        cg.crosshairColor[2] = 0;
-        cg.crosshairColor[3] = 255;
-    }
-
-    for (i = 0; i < 4; i++) {
-        if (cg.crosshairColor[i] < 1)
-            cg.crosshairColor[i] = 0;
-        else if (cg.crosshairColor[i] > 255)
-            cg.crosshairColor[i] = 255;
-    }
-
-    cg.crosshairColor[0] /= 255.0f;
-    cg.crosshairColor[1] /= 255.0f;
-    cg.crosshairColor[2] /= 255.0f;
-    cg.crosshairColor[3] /= 255.0f;
-
-    //Com_Printf("New color is %f, %f, %f, %f\n", cg.crosshairColor[0], cg.crosshairColor[1], cg.crosshairColor[2], cg.crosshairColor[3]);
-}
-
-static void CG_StrafeHelperActiveColorChange(void) {
-    int i;
-    if (sscanf(cg_strafeHelperActiveColor.string, "%f %f %f %f", &cg.strafeHelperActiveColor[0], &cg.strafeHelperActiveColor[1], &cg.strafeHelperActiveColor[2], &cg.strafeHelperActiveColor[3]) != 4) {
-        cg.strafeHelperActiveColor[0] = 0;
-        cg.strafeHelperActiveColor[1] = 255;
-        cg.strafeHelperActiveColor[2] = 0;
-        cg.strafeHelperActiveColor[3] = 200;
-    }
-
-    for (i = 0; i < 4; i++) {
-        if (cg.strafeHelperActiveColor[i] < 0)
-            cg.strafeHelperActiveColor[i] = 0;
-        else if (cg.strafeHelperActiveColor[i] > 255)
-            cg.strafeHelperActiveColor[i] = 255;
-    }
-
-    trap_Cvar_Set("ui_sha_r", va("%f", cg.strafeHelperActiveColor[0]));
-    trap_Cvar_Set("ui_sha_g", va("%f", cg.strafeHelperActiveColor[1]));
-    trap_Cvar_Set("ui_sha_b", va("%f", cg.strafeHelperActiveColor[2]));
-    trap_Cvar_Set("ui_sha_a", va("%f", cg.strafeHelperActiveColor[3]));
-
-    cg.strafeHelperActiveColor[0] /= 255.0f;
-    cg.strafeHelperActiveColor[1] /= 255.0f;
-    cg.strafeHelperActiveColor[2] /= 255.0f;
-    cg.strafeHelperActiveColor[3] /= 255.0f;
-
-    //Com_Printf("New color is %f, %f, %f, %f\n", cg.strafeHelperActiveColor[0], cg.strafeHelperActiveColor[1], cg.strafeHelperActiveColor[2], cg.strafeHelperActiveColor[3]);
 }

@@ -2020,6 +2020,11 @@ void CG_DrawRect( float x, float y, float width, float height, float size, const
 void CG_DrawSides(float x, float y, float w, float h, float size);
 void CG_DrawTopBottom(float x, float y, float w, float h, float size);
 
+void CG_DrawProportionalString(float x, float y, const char* str, int style, vec4_t color);
+void CG_DrawScaledProportionalString(float x, float y, const char* str, int style, vec4_t color, float scale);
+
+
+
 //
 // cg_draw.c, cg_newDraw.c
 //
