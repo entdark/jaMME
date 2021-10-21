@@ -18,7 +18,7 @@
 - cg_hudColors (colors basic hud to stance style)
 
 # Contributors #
-- tayst (discord @ tayst#2590)
+- tayst
 
 # Credits # 
 - ent for his massive amounts of work in making jaMME and helping me to port these features
