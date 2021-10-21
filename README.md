@@ -22,7 +22,7 @@
 
 # Credits # 
 - ent for his massive amounts of work in making jaMME and helping me to port these features
-- the eternaljk/japro team for creating the features ive ported
+- loda, bucky, eternal, alpha for their work on japro and EternalJK
 - duo for his help with the rear S/AS/SD strafehelper lines
 
 Jedi Academy Movie Maker's Edition
