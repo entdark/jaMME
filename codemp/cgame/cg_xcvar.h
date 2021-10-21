@@ -285,7 +285,7 @@ XCVAR_DEF( cg_strafeHelperInactiveAlpha,		"200",	NULL,								CVAR_ARCHIVE )
 XCVAR_DEF( cg_crosshairSizeScale,		"1",	NULL,										CVAR_ARCHIVE )
 XCVAR_DEF( cg_crosshairIdentifyTarget,	"1",	NULL,										CVAR_ARCHIVE )
 XCVAR_DEF( cg_crosshairSaberStyleColor,	"0",	NULL,										CVAR_ARCHIVE )
-XCVAR_DEF( cg_crosshairColor,	"0 0 0 255",	CG_CrosshairColorChange,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_crosshairColor,	"255 0 255 255",	CG_CrosshairColorChange,					CVAR_ARCHIVE )
 
 XCVAR_DEF( cg_drawHud,							"1",	NULL,					CVAR_ARCHIVE )
 

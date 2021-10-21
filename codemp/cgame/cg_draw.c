@@ -12,8 +12,6 @@ qboolean CG_WorldCoordToScreenCoordFloat(vec3_t worldCoord, float *x, float *y);
 qboolean CG_CalcMuzzlePoint( int entityNum, vec3_t muzzle );
 static void CG_DrawSiegeTimer(int timeRemaining, qboolean isMyTeam);
 static void CG_DrawSiegeDeathTimer( int timeRemaining );
-static void CG_StrafeHelperActiveColorChange(void);
-static void CG_CrosshairColorChange(void);
 
 
 
@@ -1574,6 +1572,8 @@ void CG_DrawHUD(centity_t	*cent) {
             UI_DrawProportionalString(SCREEN_WIDTH - (x + 18 + 14 + 32) * cgs.widthRatioCoef, y + 40 + 14,
                                       va("%i", cg.snap->ps.fd.forcePower),
                                       UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_ICON_BLUE]);
+                if (cent->currentState.weapon == WP_SABER)
+                    CG_DrawSimpleSaberStyle(cent);
             return;
         }
 
