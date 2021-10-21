@@ -7,11 +7,12 @@ Todo:
 - Lagometer (eternaljk ping display + tn delta + transparent background)
 
 Working:
-- cg_racetimer 1 2 
-- cg_strafehelper (Added S/SD/AS Rear Lines, need to get the /cg_strafehlper result from EternalJK, no way to configure it atm)
-- cg_speedometer
+- cg_racetimer 1 or 2 
+- cg_strafehelper (Added S/SD/AS Rear Lines, need to get the /cg_strafehlper result from EternalJK, no way to configure it atm, 20450 for all lines)
+- cg_speedometer (Configure with /speedometer command in EternaJK, use value here)
 - cg_crosshairHealth
 - cg_crosshairSaberStyleColor
+- cg_hudColors (colors basic hud to stance style)
 
 
 Jedi Academy Movie Maker's Edition
