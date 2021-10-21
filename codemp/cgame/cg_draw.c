@@ -1437,6 +1437,77 @@ void CG_DrawHUD(centity_t	*cent) {
             if (!cg.playerPredicted)
                 return;
 
+        if (cg_drawScore.integer && !(cgs.gametype == GT_POWERDUEL || (cg.japro.detected && cg.predictedPlayerState.stats[STAT_RACEMODE]))) {  // JAPRO - Clientside - Add cvar to show player score on HUD.
+            //scoreStr = va("Score: %i", cgs.clientinfo[cg.snap->ps.clientNum].score);
+            if (cgs.gametype == GT_DUEL && cgs.fraglimit > 0)
+            {//A duel that requires more than one kill to knock the current enemy back to the queue
+                //show current kills out of how many needed
+                if (cgs.fraglimit > 1) //show how many kills u need for round win
+                    scoreStr = va("%s: %i/%i", CG_GetStringEdString("MP_INGAME", "SCORE"), cg.snap->ps.persistant[PERS_SCORE], cgs.fraglimit);
+                else //show round win/loss
+                    scoreStr = va("%i/%i", cgs.clientinfo[cg.snap->ps.clientNum].wins, cgs.clientinfo[cg.snap->ps.clientNum].losses);
+            }
+            else if (0 && cgs.gametype < GT_TEAM)
+            {	// This is a teamless mode, draw the score bias.
+                scoreBias = cg.snap->ps.persistant[PERS_SCORE] - cgs.scores1;
+                if (scoreBias == 0)
+                {	// We are the leader!
+                    if (cgs.scores2 <= 0)
+                    {	// Nobody to be ahead of yet.
+                        Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), "");
+                    }
+                    else
+                    {
+                        scoreBias = cg.snap->ps.persistant[PERS_SCORE] - cgs.scores2;
+                        if (scoreBias == 0)
+                        {
+                            Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), " (Tie)");
+                        }
+                        else
+                        {
+                            Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), " (+%d)", scoreBias);
+                        }
+                    }
+                }
+                else // if (scoreBias < 0)
+                {	// We are behind!
+                    Com_sprintf(scoreBiasStr, sizeof(scoreBiasStr), " (%d)", scoreBias);
+                }
+                scoreStr = va("%s: %i%s", CG_GetStringEdString("MP_INGAME", "SCORE"), cg.snap->ps.persistant[PERS_SCORE], scoreBiasStr);
+            }
+            else
+            {	// Don't draw a bias.
+                if (cg_drawScore.integer > 1 && cgs.gametype >= GT_TEAM && cgs.gametype != GT_SIEGE) {
+                    int teamscore;
+                    int teamscorebias;
+                    char teamscoreStr[16];
+
+                    if (cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_RED) {
+                        teamscore = cgs.scores1;
+                        teamscorebias = cgs.scores1 - cgs.scores2;
+                    }
+                    else {
+                        teamscore = cgs.scores2;
+                        teamscorebias = cgs.scores2 - cgs.scores1;
+                    }
+
+                    if (teamscorebias > 0)
+                        Com_sprintf(teamscoreStr, sizeof(teamscoreStr), "%i (%+i)", teamscore, teamscorebias);
+                    else if (teamscorebias < 0)
+                        Com_sprintf(teamscoreStr, sizeof(teamscoreStr), "%i  (%i)", teamscore, teamscorebias);
+                    else
+                        Com_sprintf(teamscoreStr, sizeof(teamscoreStr), "%i      ", teamscore);
+
+                    scoreStr = va("%s: %i\nTeam: %s", CG_GetStringEdString("MP_INGAME", "SCORE"), cg.snap->ps.persistant[PERS_SCORE], teamscoreStr);
+                }
+                else
+                    scoreStr = va("%s: %i", CG_GetStringEdString("MP_INGAME", "SCORE"), cg.snap->ps.persistant[PERS_SCORE]);
+            }
+        }
+        else {
+            scoreStr = "";
+        }
+
             if (cg_hudFiles.integer == 1)
             {
             int x = 0;
@@ -3124,7 +3195,7 @@ void CG_DrawTeamBackground( int x, int y, int w, int h, float alpha, int team )
 CG_DrawMiniScoreboard
 ================
 */
-static float CG_DrawMiniScoreboard ( float y ) 
+static float CG_DrawMiniScoreboard ( float y )
 {
 	char temp[MAX_QPATH];
 	float xOffset = 0;
@@ -3139,16 +3210,23 @@ static float CG_DrawMiniScoreboard ( float y )
 		return y;
 	}
 
-	if ( cgs.gametype >= GT_TEAM )
-	{
-		strcpy ( temp, va("%s: ", CG_GetStringEdString("MP_INGAME", "RED")));
-		Q_strcat ( temp, MAX_QPATH, cgs.scores1==SCORE_NOT_PRESENT?"-":(va("%i",cgs.scores1)) );
-		Q_strcat ( temp, MAX_QPATH, va(" %s: ", CG_GetStringEdString("MP_INGAME", "BLUE")) );
-		Q_strcat ( temp, MAX_QPATH, cgs.scores2==SCORE_NOT_PRESENT?"-":(va("%i",cgs.scores2)) );
-
-		CG_Text_Paint( SCREEN_WIDTH - (SCREEN_WIDTH - 630 - xOffset)*cgs.widthRatioCoef - CG_Text_Width ( temp, 0.7f, FONT_MEDIUM ), y, 0.7f, colorWhite, temp, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM );
-		y += 15;
-	}
+    if ( cgs.gametype >= GT_TEAM )
+    {
+        if (cg_drawScores.integer == 1) {
+            Q_strncpyz( temp, va( "%s: ", CG_GetStringEdString( "MP_INGAME", "RED" ) ), sizeof( temp ) );
+            Q_strcat( temp, sizeof( temp ), cgs.scores1 == SCORE_NOT_PRESENT ? "-" : (va( "%i",cgs.scores1 )) );
+            Q_strcat( temp, sizeof( temp ), va( " %s: ", CG_GetStringEdString( "MP_INGAME", "BLUE" ) ) );
+            Q_strcat( temp, sizeof( temp ), cgs.scores2 == SCORE_NOT_PRESENT ? "-" : (va( "%i",cgs.scores2 )) );
+        }
+        else if (cg_drawScores.integer == 2) { // jaPRO - Clientside - Option to color team scores.
+            Q_strncpyz( temp, va( "%s: ", CG_GetStringEdString( "MP_INGAME", "RED" ) ), sizeof( temp ) );
+            Q_strcat( temp, sizeof( temp ), cgs.scores1 == SCORE_NOT_PRESENT ? "-" : (va( "^1%i^7",cgs.scores1 )) );
+            Q_strcat( temp, sizeof( temp ), va( " %s: ", CG_GetStringEdString( "MP_INGAME", "BLUE" ) ) );
+            Q_strcat( temp, sizeof( temp ), cgs.scores2 == SCORE_NOT_PRESENT ? "-" : (va( "^4%i^7",cgs.scores2 )) );
+        }
+        CG_Text_Paint( SCREEN_WIDTH - 10 - CG_Text_Width ( temp, 0.7f, FONT_MEDIUM ) + xOffset, y, 0.7f, colorWhite, temp, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM );
+        y += 15;
+    }
 	else
 	{
 		/*
@@ -4550,127 +4628,141 @@ static void CG_DrawDisconnect( void ) {
 
 #define	MAX_LAGOMETER_PING	900
 #define	MAX_LAGOMETER_RANGE	300
-
-#define LAGOMETER_PING_DELAY 700
-
 /*
 ==============
 CG_DrawLagometer
 ==============
 */
 static void CG_DrawLagometer( void ) {
-	int		a, i;
-	float	x, y;
-	float	v;
-	float	ax, ay, aw, ah, mid, range;
-	int		color;
-	float	vscale;
-	static int lastPingTime = 0;
-	static int lastPing = 0;
+    int		a, i;
+    float	x, y, v;
+    float	ax, ay, aw, ah, mid, range;
+    float	vscale;
+    float	avgPing = 0.0f, avgInterp = 0.0f;
+    int		highestPing = 1;
+    int		color;
 
-	if ( !cg_lagometer.integer || cgs.localServer || !cg.playerPredicted) {
-		CG_DrawDisconnect();
-		return;
-	}
+    if (!cg_lagometer.integer || cgs.localServer) {
+        CG_DrawDisconnect();
+        return;
+    }
 
-	//
-	// draw the graph
-	//
-	x = (float)SCREEN_WIDTH - 48.0f*cgs.widthRatioCoef;
-	y = (float)SCREEN_HEIGHT - 165.0f;
+    //
+    // draw the graph
+    //
+    x = SCREEN_WIDTH - cg_lagometerX.integer * cgs.widthRatioCoef;
+    y = SCREEN_HEIGHT - cg_lagometerY.integer;
 
-	trap_R_SetColor( NULL );
-	CG_DrawPic( x, y, 48*cgs.widthRatioCoef, 48, cgs.media.lagometerShader );
+    if (cg_hudFiles.integer == 0) {
+        y -= 16;
+    }
 
-	ax = x-0.5f*cgs.widthRatioCoef;
-	ay = y;
-	aw = 48.0f*2.0f;
-	ah = 48.0f;
+    trap_R_SetColor( NULL );
+    if (cg_lagometer.integer < 3)
+        CG_DrawPic( x, y, 48 * cgs.widthRatioCoef, 48, cgs.media.lagometerShader ); //why npt make it transparant??
+    x -= 1.0f * cgs.widthRatioCoef;
 
-	color = -1;
-	range = ah / 3.0f;
-	mid = ay + range;
+    ax = x;
+    ay = y;
+    aw = 48;
+    ah = 48;
 
-	vscale = range / MAX_LAGOMETER_RANGE;
+    color = -1;
+    range = ah / 3;
+    mid = ay + range;
 
-	// draw the frame interpoalte / extrapolate graph
-	for ( a = 0 ; a < aw ; a++ ) {
-		i = ( lagometer.frameCount - 1 - a ) & (LAG_SAMPLES - 1);
-		v = lagometer.frameSamples[i];
-		v *= vscale;
-		if ( v > 0 ) {
-			if ( color != 1 ) {
-				color = 1;
-				trap_R_SetColor( g_color_table[ColorIndex(COLOR_YELLOW)] );
-			}
-			if ( v > range ) {
-				v = range;
-			}
-			trap_R_DrawStretchPic ( ax + (0.5*aw - a*0.5)*cgs.widthRatioCoef, mid - v, 0.5*cgs.widthRatioCoef, v, 0, 0, 0, 0, cgs.media.whiteShader );
-		} else if ( v < 0 ) {
-			if ( color != 2 ) {
-				color = 2;
-				trap_R_SetColor( g_color_table[ColorIndex(COLOR_BLUE)] );
-			}
-			v = -v;
-			if ( v > range ) {
-				v = range;
-			}
-			trap_R_DrawStretchPic( ax + (0.5*aw - a*0.5)*cgs.widthRatioCoef, mid, 0.5*cgs.widthRatioCoef, v, 0, 0, 0, 0, cgs.media.whiteShader );
-		}
-	}
+    vscale = range / MAX_LAGOMETER_RANGE;
 
-	// draw the snapshot latency / drop graph
-	range = ah / 2.0f;
-	vscale = range / MAX_LAGOMETER_PING;
+    // draw the frame interpoalte / extrapolate graph
+    for ( a = 0 ; a < aw ; a++ ) {
+        i = ( lagometer.frameCount - 1 - a ) & (LAG_SAMPLES - 1);
+        v = lagometer.frameSamples[i];
+        avgInterp += v;
+        v *= vscale;
+        if ( v > 0 ) {
+            if ( color != 1 ) {
+                color = 1;
+                trap_R_SetColor( g_color_table[ColorIndex(COLOR_YELLOW)] );
+            }
+            if ( v > range ) {
+                v = range;
+            }
+            trap_R_DrawStretchPic ( ax + (aw - a) * cgs.widthRatioCoef, mid - v, 1.0f * cgs.widthRatioCoef, v, 0, 0, 0, 0, cgs.media.whiteShader );
+        } else if ( v < 0 ) {
+            if ( color != 2 ) {
+                color = 2;
+                trap_R_SetColor( g_color_table[ColorIndex(COLOR_BLUE)] );
+            }
+            v = -v;
+            if ( v > range ) {
+                v = range;
+            }
+            trap_R_DrawStretchPic( ax + (aw - a) * cgs.widthRatioCoef, mid, 1.0f * cgs.widthRatioCoef, v, 0, 0, 0, 0, cgs.media.whiteShader );
+        }
+    }
+    avgInterp = (avgInterp / aw) * -1.0f;
 
-	for ( a = 0 ; a < aw ; a++ ) {
-		i = ( lagometer.snapshotCount - 1 - a ) & (LAG_SAMPLES - 1);
-		v = lagometer.snapshotSamples[i];
-		if ( v > 0 ) {
-			if ( lagometer.snapshotFlags[i] & SNAPFLAG_RATE_DELAYED ) {
-				if ( color != 5 ) {
-					color = 5;	// YELLOW for rate delay
-					trap_R_SetColor( g_color_table[ColorIndex(COLOR_YELLOW)] );
-				}
-			} else {
-				if ( color != 3 ) {
-					color = 3;
-					trap_R_SetColor( g_color_table[ColorIndex(COLOR_GREEN)] );
-				}
-			}
-			v = v * vscale;
-			if ( v > range ) {
-				v = range;
-			}
-			trap_R_DrawStretchPic( ax + (0.5*aw - 0.5*a)*cgs.widthRatioCoef, ay + ah - v, 0.5*cgs.widthRatioCoef, v, 0, 0, 0, 0, cgs.media.whiteShader );
-		} else if ( v < 0 ) {
-			if ( color != 4 ) {
-				color = 4;		// RED for dropped snapshots
-				trap_R_SetColor( g_color_table[ColorIndex(COLOR_RED)] );
-			}
-			trap_R_DrawStretchPic( ax + (0.5*aw - 0.5*a)*cgs.widthRatioCoef, ay + ah - range, 0.5*cgs.widthRatioCoef, range, 0, 0, 0, 0, cgs.media.whiteShader );
-		}
-	}
+    // draw the snapshot latency / drop graph
+    range = ah / 2;
+    vscale = range / MAX_LAGOMETER_PING;
 
-	//draw ping, WORKS WRONG
-	if (cg.time > lastPingTime) {
-		lastPing = lagometer.snapshotSamples[ (lagometer.snapshotCount - 1) & ( LAG_SAMPLES - 1) ];
-		if (lastPing < 0)
-			lastPing = 0;
-		lastPingTime = cg.time + LAGOMETER_PING_DELAY;
-	} else if (cg.time + LAGOMETER_PING_DELAY < lastPingTime) {
-		lastPingTime = 0;
-	}
-	CG_Text_Paint(ax + 2, ay + 2, 0.5f, colorWhite, va("%i",lastPing), 0, 0, 3, FONT_SMALL );
+    for ( a = 0 ; a < aw ; a++ ) {
+        i = ( lagometer.snapshotCount - 1 - a ) & (LAG_SAMPLES - 1);
+        v = lagometer.snapshotSamples[i];
+        if (v > highestPing)
+            highestPing = v;
+        if ( v > 0 ) {
+            avgPing += v;
+            if ( lagometer.snapshotFlags[i] & SNAPFLAG_RATE_DELAYED ) {
+                if ( color != 5 ) {
+                    color = 5;	// YELLOW for rate delay
+                    trap_R_SetColor( g_color_table[ColorIndex(COLOR_YELLOW)] );
+                }
+            } else {
+                if ( color != 3 ) {
+                    color = 3;
+                    trap_R_SetColor( g_color_table[ColorIndex(COLOR_GREEN)] );
+                }
+            }
+            v *= vscale;
+            if ( v > range ) {
+                v = range;
+            }
+            trap_R_DrawStretchPic( ax + (aw - a) * cgs.widthRatioCoef, ay + ah - v, 1.0f * cgs.widthRatioCoef, v, 0, 0, 0, 0, cgs.media.whiteShader );
+        } else if ( v < 0 ) {
+            avgPing += highestPing;
+            if ( color != 4 ) {
+                color = 4;		// RED for dropped snapshots
+                trap_R_SetColor( g_color_table[ColorIndex(COLOR_RED)] );
+            }
+            trap_R_DrawStretchPic( ax + (aw - a) * cgs.widthRatioCoef, ay + ah - range, 1.0f * cgs.widthRatioCoef, range, 0, 0, 0, 0, cgs.media.whiteShader );
+        }
+    }
+    avgPing /= aw;
 
-	trap_R_SetColor( NULL );
+    trap_R_SetColor( NULL );
+    ay -= 1.0f;
 
-	if ( !cg.demoPlayback && (cg_noPredict.integer || g_synchronousClients.integer) ) {
-		CG_DrawBigString( ax, ay, "snc", 1.0 );
-	}
+    if ( cg_noPredict.integer || g_synchronousClients.integer ) {
+        CG_DrawBigString( ax + 1, ay - 2, "snc", 1.0 );
+        ay += BIGCHAR_HEIGHT - 1;
+    }
 
-	CG_DrawDisconnect();
+    if (cg_lagometer.integer == 2 || cg_lagometer.integer == 3)
+    {//TnG NoVe
+        char *s = va("%.0f", avgPing);
+        float strW;
+
+        //CG_Text_Paint(400, 400, 1.0, colorWhite, va("%i", cg.snap->ping), 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_LARGE);
+        CG_Text_Paint(ax + (3.0f * cgs.widthRatioCoef), ay, 0.5f, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_SMALL);
+
+        //CG_Text_Paint(400, 300, 1.0, colorBlue, va("%04.1f", avgInterp), 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_LARGE);
+        s = va("%04.1f", avgInterp);
+        strW = CG_Text_Width(s, 0.5f, FONT_SMALL);
+        CG_Text_Paint(ax + (aw*cgs.widthRatioCoef) - strW, ay, 0.5f, colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_SMALL);
+    }
+
+    CG_DrawDisconnect();
 }
 
 void CG_DrawSiegeMessage( const char *str, int objectiveScreen )
