@@ -1,6 +1,5 @@
 # This Fork #
 - The goal of this fork is to merge EternalJK/japro features into JAMME.
-- Feel free to contact me on Discord at tayst#2590, please don't expect ent to support this fork.
 - All compiling and testing has been done on Linux. I can't really help out with other OS's at this point.
 
 # Todo: #
@@ -15,6 +14,14 @@
 - cg_crosshairHealth
 - cg_crosshairSaberStyleColor
 - cg_hudColors (colors basic hud to stance style)
+
+# Contributors #
+- tayst (discord @ tayst#2590)
+
+# Credits # 
+- ent for his massive amounts of work in making jaMME and helping me to port these features
+- the eternaljk/japro team for creating the features ive ported
+- duo for his help with the rear S/AS/SD strafehelper lines
 
 Jedi Academy Movie Maker's Edition
 ==================================
