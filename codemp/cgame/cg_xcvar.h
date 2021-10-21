@@ -276,13 +276,16 @@ XCVAR_DEF( cg_strafeHelperOffset,				"75",	NULL,								CVAR_ARCHIVE )
 XCVAR_DEF( cg_strafeHelperLineWidth,			"1",	NULL,								CVAR_ARCHIVE )
 XCVAR_DEF( cg_strafeHelperPrecision,			"256",	NULL,								CVAR_ARCHIVE )
 XCVAR_DEF( cg_strafeHelperCutoff,				"0",	NULL,								CVAR_ARCHIVE )
-XCVAR_DEF( cg_strafeHelperActiveColor,	"0 255 0 200",	NULL,	CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelperActiveColor,	"0 255 0 200",	CG_StrafeHelperActiveColorChange,	CVAR_ARCHIVE )
 XCVAR_DEF( cg_strafeHelperInactiveAlpha,		"200",	NULL,								CVAR_ARCHIVE )
 
 //Crosshair
 XCVAR_DEF( cg_crosshairSizeScale,		"1",	NULL,										CVAR_ARCHIVE )
 XCVAR_DEF( cg_crosshairIdentifyTarget,	"1",	NULL,										CVAR_ARCHIVE )
 XCVAR_DEF( cg_crosshairSaberStyleColor,	"0",	NULL,										CVAR_ARCHIVE )
-XCVAR_DEF( cg_crosshairColor,	"0 0 0 255",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_crosshairColor,	"0 0 0 255",	CG_CrosshairColorChange,					CVAR_ARCHIVE )
+
+XCVAR_DEF( cg_drawHud,							"1",	NULL,					CVAR_ARCHIVE )
+
 
 #undef XCVAR_DEF
