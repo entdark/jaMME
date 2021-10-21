@@ -4,18 +4,22 @@
 
 # Todo: #
 - cg_strafeHelperActiveColor 
-- cg_drawFps
-- cg_drawTimer
+- make escape pause-play the demo with
+- \styleplayer 0 (fullbright skins)
+- \speedometer & \strafehelper bit value config commands
 
 # Working: # 
-- cg_lagometer 1 2 or 3
-- cg_hudColors (colors basic hud to stance style)
-- cg_racetimer 1 or 2 
-- cg_strafehelper (20450 for all lines, 4066 for all without line crosshair, Added S/SD/AS Rear Lines, need to get the value with \strafehelper in EternalJK)
-- cg_speedometer (Configure with \speedometer command in EternaJK, use value here)
-- cg_crosshairHealth
-- cg_crosshairSaberStyleColor
-- cg_hudColors (colors basic hud to stance style)
+- cg_strafehelper 4066 for all lines, (20450 for all lines with line crosshair, Added S/SD/AS Rear Lines, configure with \strafehelper in EternalJK)
+- cg_speedometer (Configure with \speedometer command in EternaJKe)
+- cg_racetimer 0-2
+- cg_crosshairHealth 0-1
+- cg_crosshairSaberStyleColor 0-1
+- cg_hudColors 0-1 
+- cg_drawFps 0-6
+- cg_drawTimer 0-6
+- cg_drawTimerMsec 0-1
+- cg_lagometer 0-3
+- Esc no longer exits demo, opens in game menu (EternalJK behavior)
 
 # Contributors #
 - tayst
