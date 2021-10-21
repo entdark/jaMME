@@ -1436,8 +1436,9 @@ void CG_DrawHUD(centity_t	*cent) {
 
             if (!cg.playerPredicted)
                 return;
-        if (cg_hudFiles.integer == 1)
-        {
+
+            if (cg_hudFiles.integer == 1)
+            {
             int x = 0;
             int y = SCREEN_HEIGHT - 80;
 
@@ -1472,23 +1473,7 @@ void CG_DrawHUD(centity_t	*cent) {
 
             if (cent->currentState.weapon == WP_SABER)
                 CG_DrawSimpleSaberStyle(cent);
- /*           if (cg.snap->ps.weapon == WP_SABER) {
-                if (cg.snap->ps.fd.saberDrawAnimLevel == SS_DUAL) {
-                    Com_sprintf(ammoString, sizeof(ammoString), "AKIMBO");
-                    weapX += 25;
-                } else if (cg.snap->ps.fd.saberDrawAnimLevel == SS_STAFF) {
-                    Com_sprintf(ammoString, sizeof(ammoString), "STAFF");
-                    weapX += 25;
-                } else if (cg.snap->ps.fd.saberDrawAnimLevel == FORCE_LEVEL_3) {
-                    Com_sprintf(ammoString, sizeof(ammoString), "STRONG");
-                    weapX += 25;
-                } else if (cg.snap->ps.fd.saberDrawAnimLevel == FORCE_LEVEL_2) {
-                    Com_sprintf(ammoString, sizeof(ammoString), "MEDIUM");
-                    weapX += 25;
-                } else {
-                    Com_sprintf(ammoString, sizeof(ammoString), "FAST");
-                    weapX += 20;
-                }*/
+
             if (weaponData[cent->currentState.weapon].energyPerShot == 0 &&
                        weaponData[cent->currentState.weapon].altEnergyPerShot == 0) {
                 Q_strncpyz(ammoString, "--", sizeof(ammoString));
@@ -1496,10 +1481,6 @@ void CG_DrawHUD(centity_t	*cent) {
                 Com_sprintf(ammoString, sizeof(ammoString), "%i",
                             cg.snap->ps.ammo[weaponData[cent->currentState.weapon].ammoIndex]);
             }
-
-/*            UI_DrawProportionalString(SCREEN_WIDTH - (weapX + 16 + 32) * cgs.widthRatioCoef, y + 40,
-                                      va("%s", ammoString),
-                                      UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_HUD_ORANGE]);*/
 
             UI_DrawProportionalString(SCREEN_WIDTH - (x + 18 + 14 + 32) * cgs.widthRatioCoef, y + 40 + 14,
                                       va("%i", cg.snap->ps.fd.forcePower),
