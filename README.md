@@ -3,12 +3,13 @@ Feel free to contact me on Discord at tayst#2590
 All compiling and testing has been done on Linux. I can't really help out with other OS's at this point.
 
 Todo:
-- Lagometer (eternaljk ping display + tn delta + transparent background)
+- cg_strafeHelperActiveColor 
 
 Working:
+- cg_lagometer 1 2 or 3
 - cg_hudColors (colors basic hud to stance style)
 - cg_racetimer 1 or 2 
-- cg_strafehelper (Added S/SD/AS Rear Lines, need to get the /cg_strafehlper result from EternalJK, no way to configure it atm, 20450 for all lines)
+- cg_strafehelper (Added S/SD/AS Rear Lines, need to get the /cg_strafehlper result from EternalJK, no way to configure it atm, 20450 for all lines, 4066 for all without line crosshair)
 - cg_speedometer (Configure with /speedometer command in EternaJK, use value here)
 - cg_crosshairHealth
 - cg_crosshairSaberStyleColor
