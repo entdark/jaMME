@@ -1,6 +1,3 @@
-Jedi Academy Movie Maker's Edition
-==================================
-
 # This Fork #
 - The goal of this fork is to merge EternalJK/japro features into JAMME.
 - Feel free to contact me on Discord at tayst#2590, please don't expect ent to support this fork.
@@ -18,6 +15,9 @@ Jedi Academy Movie Maker's Edition
 - cg_crosshairHealth
 - cg_crosshairSaberStyleColor
 - cg_hudColors (colors basic hud to stance style)
+
+Jedi Academy Movie Maker's Edition
+==================================
 
 Jedi Academy Movie Maker's Edition (jaMME) is an engine modification of Jedi Academy for moviemaking. It's a port of q3mme with most of its features and some new ones. The modification is based on very early (May 2013th) version of OpenJK. Original source code belongs to Raven Software.
 
