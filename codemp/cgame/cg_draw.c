@@ -1610,7 +1610,17 @@ void CG_DrawHUD(centity_t	*cent) {
                 CG_DrawForcePower(menuHUD);
 
                 // Draw ammo tics or saber style
-            } else {
+                if ( cent->currentState.weapon == WP_SABER )
+                {
+                    CG_DrawSaberStyle(cent,menuHUD);
+                }
+                else
+                {
+                    CG_DrawAmmo(cent,menuHUD);
+                }
+            }
+            else
+            {
                 //CG_Error("CG_ChatBox_ArrayInsert: unable to locate HUD menu file ");
             }
         }
