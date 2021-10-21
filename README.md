@@ -1,5 +1,5 @@
 The goal of this fork is to port EternalJK/japro features into JAMME 
-Feel free to contact me on Discord at tayst#2590
+Feel free to contact me on Discord at tayst#2590, please don't expect ent to support this version. 
 All compiling and testing has been done on Linux. I can't really help out with other OS's at this point.
 
 Todo:
