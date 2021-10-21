@@ -3,14 +3,15 @@ Feel free to contact me on Discord at tayst#2590
 All compiling and testing has been done on Linux. I can't really help out with other OS's at this point.
 
 Todo:
-- cg_hudColors
-- Lagometer
+- cg_hudColors (colors basic hud to stance style)
+- Lagometer (eternaljk ping display + tn delta + transparent background)
 
 Working:
-- Racetimer
-- Strafehelper (Added S/SD/AS Rear Lines)
-- Speedometer
-- Saber Style Crosshair colors
+- cg_racetimer 1 2 
+- cg_strafehelper (Added S/SD/AS Rear Lines, need to get the /cg_strafehlper result from EternalJK, no way to configure it atm)
+- cg_speedometer
+- cg_crosshairHealth
+- cg_crosshairSaberStyleColor
 
 
 Jedi Academy Movie Maker's Edition
