@@ -1542,10 +1542,28 @@ void CG_DrawHUD(centity_t	*cent) {
             }
             //JAPRO - Clientside - Gradient simple hud coloring - End
 
-            if (cent->currentState.weapon == WP_SABER)
-                CG_DrawSimpleSaberStyle(cent);
+                if (cgs.gametype >= GT_TEAM && cgs.gametype != GT_SIEGE)
+                {	// tint the hud items based on team
+                    if (cg.snap->ps.persistant[PERS_TEAM] == TEAM_RED && cg_tintHud.integer && cg_hudFiles.integer != 3)//JAPRO - Clientside - Tint hud in team gamemode toggle
+                        hudTintColor = redhudtint;
+                    else if (cg.snap->ps.persistant[PERS_TEAM] == TEAM_BLUE && cg_tintHud.integer && cg_hudFiles.integer != 3)//JAPRO - Clientside - Tint hud in team gamemode toggle
+                        hudTintColor = bluehudtint;
+                    else // If we're not on a team for whatever reason, leave things as they are.
+                        hudTintColor = colorTable[CT_WHITE];
+                }
+                else
+                {	// tint the hud items white (dont' tint)
+                    hudTintColor = colorTable[CT_WHITE];
+                }
 
-            if (weaponData[cent->currentState.weapon].energyPerShot == 0 &&
+
+                if (cg_drawScore.integer > 1 && cgs.gametype >= GT_TEAM && cgs.gametype != GT_SIEGE)
+                    UI_DrawScaledProportionalString(SCREEN_WIDTH - 112 * cgs.widthRatioCoef, SCREEN_HEIGHT - 34, scoreStr, UI_RIGHT | UI_DROPSHADOW, colorTable[CT_WHITE], 0.7f);
+                else
+                    UI_DrawScaledProportionalString(SCREEN_WIDTH - 100 * cgs.widthRatioCoef, SCREEN_HEIGHT - 20, scoreStr, UI_RIGHT | UI_DROPSHADOW, colorTable[CT_WHITE], 0.7f);
+
+
+                if (weaponData[cent->currentState.weapon].energyPerShot == 0 &&
                        weaponData[cent->currentState.weapon].altEnergyPerShot == 0) {
                 Q_strncpyz(ammoString, "--", sizeof(ammoString));
             } else {
@@ -1558,6 +1576,7 @@ void CG_DrawHUD(centity_t	*cent) {
                                       UI_SMALLFONT | UI_DROPSHADOW, colorTable[CT_ICON_BLUE]);
             return;
         }
+
 
     if (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
     {
