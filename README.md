@@ -3,7 +3,7 @@ Jedi Academy Movie Maker's Edition
 
 # This Fork #
 - The goal of this fork is to merge EternalJK/japro features into JAMME.
-- Feel free to contact me on Discord at tayst#2590, # please don't expect ent to support this fork. #
+- Feel free to contact me on Discord at tayst#2590, please don't expect ent to support this fork.
 - All compiling and testing has been done on Linux. I can't really help out with other OS's at this point.
 
 # Todo: #
