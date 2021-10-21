@@ -4,8 +4,8 @@
 
 # Todo: #
 - cg_strafeHelperActiveColor 
-- cg_drawfps
-- cg_drawtimer
+- cg_drawFps
+- cg_drawTimer
 
 # Working: # 
 - cg_lagometer 1 2 or 3
