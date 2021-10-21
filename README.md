@@ -4,7 +4,7 @@
 
 # Todo: #
 - cg_strafeHelperActiveColor 
-- make escape pause-play the demo with
+- make escape pause-play the demo as in game menu opens/closes
 - \styleplayer 0 (fullbright skins)
 - \speedometer & \strafehelper bit value config commands
 
