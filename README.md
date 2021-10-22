@@ -7,6 +7,7 @@
 - make escape pause-play the demo as in game menu opens/closes
 - \styleplayer 0 (fullbright skins)
 - \speedometer & \strafehelper bit value config commands
+- chatbox commands and emojis
 
 # Working: # 
 - cg_strafehelper 4066 for all lines, (20450 for all lines with line crosshair, configure with \strafehelper in EternalJK)
