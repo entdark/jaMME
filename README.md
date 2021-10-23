@@ -3,10 +3,10 @@
 - All compiling and testing has been done on Linux. I can't really help out with other OS's at this point.
 
 # Todo: #
-- fix cg_strafeHelperActiveColor 
-- make escape pause-play the demo as in game menu opens/closes
-- \styleplayer 0 (fullbright skins)
-- \speedometer & \strafehelper bit value config commands
+- cg_stylePlayer 
+- fix cg_strafeHelperActiveColor & center line on w turning movement styles
+- make escape pause-play the demo as in game menu opens/closes (EJK behavior)
+- \speedometer, \strafehelper , \styleplayer bit value config commands
 - chatbox commands and emojis
 
 # Working: # 
