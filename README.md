@@ -10,7 +10,7 @@
 - chatbox commands and emojis
 
 # Working: # 
-- cg_strafehelper 4066 for all lines, (20450 for all lines with line crosshair, configure with \strafehelper in EternalJK)
+- cg_strafehelper (4066 for all lines, 20450 for all lines with line crosshair, configure with \strafehelper in EternalJK)
 - cg_speedometer (Configure with \speedometer command in EternaJK)
 - cg_racetimer 0-2
 - cg_crosshairHealth 0-1
