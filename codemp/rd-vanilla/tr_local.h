@@ -594,7 +594,7 @@ typedef struct {
 } fog_t;
 
 typedef struct {
-	orientationr_t	ori;				// Can't use "or" as it is a reserved word with gcc DREWS 2/2/2002
+	orientationr_t	ori, oldOri;	// Can't use "or" as it is a reserved word with gcc DREWS 2/2/2002
 	orientationr_t	world;
 	vec3_t		pvsOrigin;			// may be different than or.origin for portals
 	qboolean	isPortal;			// true if this view is through a portal
@@ -1133,8 +1133,8 @@ typedef struct {
 #endif
 
 	qboolean finishStereo;
-	qboolean capturingDofOrStereo;
-	qboolean latestDofOrStereoFrame;
+	qboolean capturingMultiPass;
+	qboolean latestMultiPassFrame, firstMultiPassFrame;
 
 	colorTable_t cTable;
 } trGlobals_t;
@@ -1335,6 +1335,7 @@ extern cvar_t	*mme_saveOverwrite;
 extern cvar_t	*mme_saveStencil;
 extern cvar_t	*mme_saveShot;
 extern cvar_t	*mme_saveDepth;
+extern cvar_t	*mme_saveCubemap;
 
 /*
 Ghoul2 Insert Start
@@ -1972,7 +1973,6 @@ typedef enum {
 	RC_AUTO_MAP,
 	RC_SCREENSHOT,
 	RC_CAPTURE,
-	RC_CAPTURE_STEREO,
 	RC_ROTATE_PIC2_RATIOFIX,
 } renderCommand_t;
 
@@ -2070,27 +2070,22 @@ int SaveTGA( int image_compressed, int image_width, int image_height, mmeShotTyp
 int SavePNG( int compresslevel, int image_width, int image_height, mmeShotType_t image_type, byte *image_buffer, byte *out_buffer, int out_size );
 
 //void R_Screenshot_PNG(int x, int y, int width, int height, char *fileName);
-//void R_Screenshot_PNG_Stereo(int x, int y, int width, int height, char *fileName);
 void R_MME_Init(void);
-void R_MME_InitStereo(void);
 void R_MME_Shutdown(void);
-void R_MME_ShutdownStereo(void);
-qboolean R_MME_TakeShot( void );
-qboolean R_MME_TakeShotStereo( void );
+qboolean R_MME_TakeShot( qboolean stereo );
 const void *R_MME_CaptureShotCmd( const void *data );
-const void *R_MME_CaptureShotCmdStereo( const void *data );
 void R_MME_Capture( const char *shotName, float fps, float focus, float radius );
-void R_MME_CaptureStereo( const char *shotName, float fps, float focus, float radius );
 void R_MME_BlurInfo( int* total, int* index );
-void R_MME_JitterView( float *pixels, float* eyes );
-void R_MME_JitterViewStereo( float *pixels, float* eyes );
-qboolean R_MME_JitterOrigin( float *x, float *y );
-qboolean R_MME_JitterOriginStereo( float *x, float *y );
+void R_MME_PrepareMultiCapture( const void *data );
+void R_MME_JitterView( float *pixels, float* eyes, qboolean stereo );
+qboolean R_MME_JitterOrigin( float *x, float *y, qboolean stereo );
+qboolean R_MME_CubemapIndex( int *index, qboolean stereo );
 
-int R_MME_MultiPassNext( );
-int R_MME_MultiPassNextStereo( );
+int R_MME_MultiPassNext( qboolean stereo );
+int R_MME_CubemapNext( qboolean stereo );
 
 void R_MME_DoNotTake( );
+qboolean R_MME_CubemapActive( qboolean stereo );
 
 void R_MME_TimeFraction(float timeFraction);
 

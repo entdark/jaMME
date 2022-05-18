@@ -226,7 +226,7 @@ int aviFillHeader( mmeAviFile_t *aviFile, qboolean close = qfalse ) {
 void aviClose( mmeAviFile_t *aviFile ) {
     if (aviFile->pipe) {
         if (aviFile->f) {
-            ri.FS_PipeClose(aviFile->f);
+			ri.FS_PipeClose(aviFile->f);
 			Com_Memset( aviFile, 0, sizeof( *aviFile ));
 			/* validation failed, but need to save pipe if it's set */
 			aviFile->pipe = qtrue;
@@ -252,7 +252,19 @@ static qhandle_t aviPipeOpen(const char *name, int width, int height, float fps)
     format = mme_pipeCommand->string;
     if (!format || !format[0]) {
         format = PIPE_COMMAND_DEFAULT;
-    }
+    } else if (!Q_stricmp(format, "auto")) {
+		if (abs(mme_saveCubemap->integer) != 2 && mme_saveCubemap->integer) {
+			if (r_stereoSeparation->value != 0.0f && mme_combineStereoShots->integer != 2) {
+				format = PIPE_COMMAND_VR180;
+			} else {
+				format = PIPE_COMMAND_VR360;
+			}
+		} else if (!mme_saveCubemap->integer && r_stereoSeparation->value != 0.0f && mme_combineStereoShots->integer != 2) {
+			format = PIPE_COMMAND_STEREO;
+		} else {
+			format = PIPE_COMMAND_DEFAULT;
+		}
+	}
     
     while (*format && outLeft  > 0) {
         if (haveTag) {
@@ -360,7 +372,6 @@ static qboolean aviOpen( mmeAviFile_t *aviFile, const char *name, mmeShotType_t 
 		aviFile->awritten = 0;
 		aviFile->audio = qtrue;
 	}
-	aviFile->header = 0;
 	aviFile->header = aviFillHeader(aviFile);
 	return qtrue;
 }
@@ -382,7 +393,7 @@ static qboolean aviValid( const mmeAviFile_t *aviFile, const char *name, mmeShot
 		return qfalse;
 	if (mme_aviFormat->integer != aviFile->format && !aviFile->pipe)
         return qfalse;
-    //ffmpeg accepts w/ audio only, let's fool it
+	//ffmpeg accepts w/ audio only, let's fool it
 	if (aviFile->audio != audio && !aviFile->pipe)
 		return qfalse;
 	return qtrue;

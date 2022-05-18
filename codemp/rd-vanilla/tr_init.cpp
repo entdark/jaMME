@@ -685,7 +685,7 @@ void R_ScreenShotDOF(const char *shotName, float focus, float radius) {
 		return;
 	}
 	if (mme_dofFrames->integer > 0)
-		tr.capturingDofOrStereo = qtrue;
+		tr.capturingMultiPass = qtrue;
 	cmd->commandId = RC_CAPTURE;
 	cmd->fps = -1;
 	cmd->focus = focus;
@@ -1164,7 +1164,6 @@ Ghoul2 Insert End
 	ri.Cmd_AddCommand( "minimize", GLimp_Minimize );
 	
 	ri.Cmd_AddCommand( "capturestop", R_MME_Shutdown );
-	ri.Cmd_AddCommand( "capturestopstereo", R_MME_ShutdownStereo );
 }
 
 
@@ -1228,7 +1227,6 @@ void R_Init( void ) {
 	R_Register();
 
 	R_MME_Init();
-	R_MME_InitStereo();
 
 	R_BloomInit();
 	
@@ -1366,7 +1364,6 @@ void RE_Shutdown( qboolean destroyWindow ) {
 	}
 
 	R_MME_Shutdown();
-	R_MME_ShutdownStereo();
 
 	// shut down platform specific OpenGL stuff
 	if ( destroyWindow ) {
@@ -1666,7 +1663,6 @@ Q_EXPORT refexport_t* QDECL GetRefAPI( int apiVersion, refimport_t *rimp ) {
 
 	//mme
 	re.Capture = R_MME_Capture;
-	re.CaptureStereo = R_MME_CaptureStereo;
 	re.BlurInfo = R_MME_BlurInfo;
 
 	re.TimeFraction = R_MME_TimeFraction;

@@ -45,7 +45,7 @@ int R_CullLocalBox (const vec3_t bounds[2]) {
 	int			anyBack;
 	int			front, back;
 
-	if ( r_nocull->integer==1 ) {
+	if ( r_nocull->integer==1 || mme_saveCubemap->integer ) {
 		return CULL_CLIP;
 	}
 
@@ -114,7 +114,7 @@ int R_CullPointAndRadius( const vec3_t pt, float radius )
 	cplane_t	*frust;
 	qboolean mightBeClipped = qfalse;
 
-	if ( r_nocull->integer==1 ) {
+	if ( r_nocull->integer==1 || mme_saveCubemap->integer ) {
 		return CULL_CLIP;
 	}
 
@@ -490,7 +490,9 @@ void R_SetupProjection( void ) {
 	zNear	= r_znear->value;
 	zProj	= r_zproj->value;
 	zFar	= tr.viewParms.zFar;
-	stereoSep = r_stereoSeparation->value;
+	stereoSep = r_stereoSeparation->value / 100.0f;
+	if ( R_MME_CubemapActive( (qboolean)(stereoSep > 0.0f) ) )
+		stereoSep = 0.0f;
 
 	ymax = zNear * tan( tr.refdef.fov_y * M_PI / 360.0f );
 	ymin = -ymax;
@@ -537,15 +539,15 @@ void R_SetupFrustum (void) {
 	float	stereoSep;
 	vec3_t	origin;
 
-	stereoSep = r_stereoSeparation->value;
+	stereoSep = r_stereoSeparation->value / 100.0f;
+	if ( R_MME_CubemapActive( (qboolean)(stereoSep > 0.0f) ) )
+		stereoSep = 0.0f;
 	
 	if(stereoSep == 0) {
 		VectorCopy(tr.viewParms.ori.origin, origin);
 	} else {
-		VectorMA(tr.viewParms.ori.origin, stereoSep*20, tr.viewParms.ori.axis[1], origin);
+		VectorMA(tr.viewParms.ori.origin, stereoSep*r_zproj->value, tr.viewParms.ori.axis[1], origin);
 	}
-
-	VectorCopy(tr.viewParms.ori.origin, origin);
 
 	ang = tr.viewParms.fovX / 180 * M_PI * 0.5f;
 	xs = sin( ang );
@@ -961,7 +963,7 @@ qboolean R_MirrorViewBySurface (drawSurf_t *drawSurf, int64_t entityNum) {
 	}
 
 	// trivially reject portal/mirror
-	if ( SurfIsOffscreen( drawSurf, clipDest ) ) {
+	if ( SurfIsOffscreen( drawSurf, clipDest ) && !mme_saveCubemap->integer ) {
 		return qfalse;
 	}
 
@@ -983,6 +985,8 @@ qboolean R_MirrorViewBySurface (drawSurf_t *drawSurf, int64_t entityNum) {
 	R_MirrorVector (oldParms.ori.axis[0], &surface, &camera, newParms.ori.axis[0]);
 	R_MirrorVector (oldParms.ori.axis[1], &surface, &camera, newParms.ori.axis[1]);
 	R_MirrorVector (oldParms.ori.axis[2], &surface, &camera, newParms.ori.axis[2]);
+
+	newParms.oldOri = oldParms.ori;
 
 	// OPTIMIZE: restrict the viewport on the mirrored view
 

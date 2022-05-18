@@ -1767,7 +1767,6 @@ Ghoul2 Insert End
 		return 0;
 	case CG_MME_CAPTURE:
 		re.Capture( (char *)VMA(1), VMF(2), VMF(3), VMF(4) );
-		re.CaptureStereo( (char *)VMA(1), VMF(2), VMF(3), VMF(4) );
 		S_MMERecord( (char *)VMA(1), 1.0f / VMF(2) );
 		return 0;
 	case CG_MME_BLURINFO:

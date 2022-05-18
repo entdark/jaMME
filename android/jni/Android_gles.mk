@@ -48,9 +48,7 @@ JK3_SRC = \
 	../../${MPDir}/rd-vanilla/tr_mme.cpp \
 	../../${MPDir}/rd-vanilla/tr_mme_avi.cpp \
 	../../${MPDir}/rd-vanilla/tr_mme_common.cpp \
-	../../${MPDir}/rd-vanilla/tr_mme_pipe.cpp \
 	../../${MPDir}/rd-vanilla/tr_mme_sse2.cpp \
-	../../${MPDir}/rd-vanilla/tr_mme_stereo.cpp \
 	../../${MPDir}/rd-vanilla/tr_model.cpp \
 	../../${MPDir}/rd-vanilla/tr_noise.cpp \
 	../../${MPDir}/rd-vanilla/tr_quicksprite.cpp \

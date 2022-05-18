@@ -1561,7 +1561,10 @@ void RB_RenderWorldEffects(void)
 		else
 			mSecondsElapsed = tr.refdef.timeFraction / 1000.0f;
 	else*/
+	if (!tr.capturingMultiPass || (tr.capturingMultiPass && tr.firstMultiPassFrame))
 		mSecondsElapsed = mMillisecondsElapsed / 1000.0f;
+	else
+		mSecondsElapsed = 0.0f;
 
 	lastElapsedTime = tr.refdef.time;
 //	lastElapsedTimeFraction = tr.refdef.timeFraction;

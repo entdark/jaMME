@@ -105,7 +105,7 @@ static qboolean	R_CullSurface( surfaceType_t *surface, shader_t *shader ) {
 	srfSurfaceFace_t *sface;
 	float			d;
 
-	if ( r_nocull->integer ) {
+	if ( r_nocull->integer || mme_saveCubemap->integer ) {
 		return qfalse;
 	}
 
@@ -1395,7 +1395,7 @@ static void R_RecursiveWorldNode( mnode_t *node, int planeBits, int dlightBits )
 #ifdef _ALT_AUTOMAP_METHOD
 		if ( r_nocull->integer!=1 && !tr_drawingAutoMap )
 #else
-		if (r_nocull->integer!=1)
+		if (r_nocull->integer!=1 && !mme_saveCubemap->integer)
 #endif
 		{
 			int		r;
@@ -1450,7 +1450,7 @@ static void R_RecursiveWorldNode( mnode_t *node, int planeBits, int dlightBits )
 		// since we don't care about sort orders, just go positive to negative
 
 		// determine which dlights are needed
-		if ( r_nocull->integer!=2 ) 
+		if ( r_nocull->integer!=2 || mme_saveCubemap->integer ) 
 		{
 			newDlights[0] = 0;
 			newDlights[1] = 0;

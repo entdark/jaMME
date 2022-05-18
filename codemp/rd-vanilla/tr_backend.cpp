@@ -447,6 +447,7 @@ static void SetFinalProjection( void ) {
 	float	width, height, depth;
 	float	zNear, zFar, zProj, stereoSep;
 	float	dx, dy;
+	float	fovX, fovY;
 	vec2_t	pixelJitter, eyeJitter;
 	
 	//
@@ -456,12 +457,20 @@ static void SetFinalProjection( void ) {
 	zFar	= backEnd.viewParms.zFar;
 
 	zProj	= r_zproj->value;
-	stereoSep = r_stereoSeparation->value;
+	stereoSep = r_stereoSeparation->value / 100.0f;
 
-	ymax = zNear * tan( backEnd.viewParms.fovY * M_PI / 360.0f );
+	if ( R_MME_CubemapActive( (qboolean)( stereoSep > 0.0f ) ) ) {
+		fovY = 90.0f * M_PI / 360.0f;
+		fovX = atan2( backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight / tan( 90.0f / 360.0f * M_PI ) );
+	} else {
+		fovY = backEnd.viewParms.fovY * M_PI / 360.0f;
+		fovX = backEnd.viewParms.fovX * M_PI / 360.0f;
+	}
+
+	ymax = zNear * tan( fovY );
 	ymin = -ymax;
 
-	xmax = zNear * tan( backEnd.viewParms.fovX * M_PI / 360.0f );
+	xmax = zNear * tan( fovX );
 	xmin = -xmax;
 
 	width = xmax - xmin;
@@ -471,11 +480,9 @@ static void SetFinalProjection( void ) {
 	pixelJitter[0] = pixelJitter[1] = 0;
 	eyeJitter[0] = eyeJitter[1] = 0;
 	/* Jitter the view */
-	if ( stereoSep <= 0.0f) {
-		R_MME_JitterView( pixelJitter, eyeJitter );
-	} else if ( stereoSep > 0.0f) {
-		R_MME_JitterViewStereo( pixelJitter, eyeJitter );
-	}
+	R_MME_JitterView( pixelJitter, eyeJitter, (qboolean)( stereoSep > 0.0f ) );
+	if ( R_MME_CubemapActive( (qboolean)( stereoSep > 0.0f ) ) )
+		stereoSep = 0.0f;
 
 	dx = ( pixelJitter[0]*width ) / backEnd.viewParms.viewportWidth;
 	dy = ( pixelJitter[1]*height ) / backEnd.viewParms.viewportHeight;
@@ -1745,6 +1752,28 @@ const void *RB_RotatePic2 ( const void *data )
 	return (const void *)(cmd + 1);
 }
 
+extern void R_MirrorPoint(vec3_t in, orientation_t *surface, orientation_t *camera, vec3_t out);
+extern void R_MirrorVector(vec3_t in, orientation_t *surface, orientation_t *camera, vec3_t out);
+static void RB_MirrorView( orientationr_t* oldOri, orientationr_t* ori ) {
+	orientation_t	surface, camera;
+	
+	VectorCopy( backEnd.viewParms.portalPlane.normal, surface.axis[0] );
+	PerpendicularVector( surface.axis[1], surface.axis[0]);
+	CrossProduct( surface.axis[0], surface.axis[1], surface.axis[2] );
+
+	VectorScale( backEnd.viewParms.portalPlane.normal, backEnd.viewParms.portalPlane.dist, surface.origin );
+	VectorCopy( surface.origin, camera.origin );
+	VectorSubtract( vec3_origin, surface.axis[0], camera.axis[0] );
+	VectorCopy( surface.axis[1], camera.axis[1] );
+	VectorCopy( surface.axis[2], camera.axis[2] );
+
+	R_MirrorPoint( oldOri->origin, &surface, &camera, ori->origin );
+
+	R_MirrorVector( oldOri->axis[0], &surface, &camera, ori->axis[0] );
+	R_MirrorVector( oldOri->axis[1], &surface, &camera, ori->axis[1] );
+	R_MirrorVector( oldOri->axis[2], &surface, &camera, ori->axis[2] );
+}
+
 /*
 =============
 RB_DrawSurfs
@@ -1764,15 +1793,83 @@ const void	*RB_DrawSurfs( const void *data ) {
 	backEnd.refdef = cmd->refdef;
 	backEnd.viewParms = cmd->viewParms;
 	//Jitter the camera origin
-	if ( !backEnd.viewParms.isPortal && !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL) ) {
+	if ( !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL) ) {
 		float x, y;
-		if ( (r_stereoSeparation->value <= 0 && R_MME_JitterOrigin( &x, &y ))
-			|| (r_stereoSeparation->value > 0 && R_MME_JitterOriginStereo( &x, &y ))) {
+		int index;
+		if ( R_MME_CubemapIndex( &index, (qboolean)(r_stereoSeparation->value > 0) ) ) {
+			vec3_t oldAxis[3];
+			float stereoSep = r_stereoSeparation->value;
 			orientationr_t* ori = &backEnd.viewParms.ori;
 			orientationr_t* world = &backEnd.viewParms.world;
 
+			if ( backEnd.viewParms.isMirror ) {
+				ori = &backEnd.viewParms.oldOri;
+			}
+
+			/* Fixed camera for free observing */
+			if ( mme_saveCubemap->integer < 0 ) {
+				VectorSet( ori->axis[0], 1.0f, 0.0f, 0.0f );
+				VectorSet( ori->axis[1], 0.0f, 1.0f, 0.0f );
+				VectorSet( ori->axis[2], 0.0f, 0.0f, 1.0f );
+			}
+
+			if ( stereoSep ) {
+				vec3_t projOrigin;
+				VectorMA( ori->origin, r_zproj->value, ori->axis[0], projOrigin );
+				VectorMA( ori->origin, stereoSep, ori->axis[1], ori->origin );
+				VectorSubtract( projOrigin, ori->origin, ori->axis[0] );
+				VectorNormalize( ori->axis[0] );
+				CrossProduct( ori->axis[2], ori->axis[0], ori->axis[1] );
+			}
+
+			if ( backEnd.viewParms.isMirror ) {
+				orientationr_t* oldOri = ori;
+				ori = &backEnd.viewParms.ori;
+				RB_MirrorView( oldOri, ori );
+			}
+
+			AxisCopy( ori->axis, oldAxis );
+			/* Backward indexing so the last one is the front face */
+			switch ( index ) {
+				case 5: //front
+					break;
+				case 4: //right
+					VectorSubtract( vec3_origin, oldAxis[1], ori->axis[0] );
+					VectorCopy( oldAxis[0], ori->axis[1] );
+					break;
+				case 3: //back
+					VectorSubtract( vec3_origin, oldAxis[0], ori->axis[0] );
+					VectorSubtract( vec3_origin, oldAxis[1], ori->axis[1] );
+					break;
+				case 2: //left
+					VectorCopy( oldAxis[1], ori->axis[0] );
+					VectorSubtract( vec3_origin, oldAxis[0], ori->axis[1] );
+					break;
+				case 1: //top
+					VectorCopy( oldAxis[2], ori->axis[0] );
+					VectorSubtract( vec3_origin, oldAxis[0], ori->axis[2] );
+					break;
+				case 0: //bottom
+					VectorSubtract( vec3_origin, oldAxis[2], ori->axis[0] );
+					VectorCopy( oldAxis[0], ori->axis[2] );
+					break;
+			}
+
+			R_RotateForWorld( ori, world );
+		} else if ( R_MME_JitterOrigin( &x, &y, (qboolean)(r_stereoSeparation->value > 0) ) ) {
+			orientationr_t* ori = &backEnd.viewParms.ori;
+			orientationr_t* world = &backEnd.viewParms.world;
+
+			if ( backEnd.viewParms.isMirror ) {
+				ori = &backEnd.viewParms.oldOri;
+			}
 			VectorMA( ori->origin, x, ori->axis[1], ori->origin );
 			VectorMA( ori->origin, y, ori->axis[2], ori->origin );
+			if ( backEnd.viewParms.isMirror ) {
+				orientationr_t* oldOri = ori;
+				ori = &backEnd.viewParms.ori;
+				RB_MirrorView( oldOri, ori );
+			}
 			R_RotateForWorld( ori, world );
 		}
 	}
@@ -2033,16 +2130,21 @@ const void	*RB_SwapBuffers( const void *data ) {
 	
 	backEnd.projection2D = qfalse;
 
-	tr.capturingDofOrStereo = qfalse;
-	tr.latestDofOrStereoFrame = qfalse;
+	tr.capturingMultiPass = qfalse;
+	tr.firstMultiPassFrame = qfalse;
+	tr.latestMultiPassFrame = qfalse;
 
-	/* Take and merge DOF frames */
+	/* Take and merge multi pass frames */
 	if ( r_stereoSeparation->value <= 0.0f && !tr.finishStereo) {
-		if ( R_MME_MultiPassNext() ) {
+		if ( R_MME_CubemapNext( qfalse ) ) {
+			return (const void *)NULL;
+		} else if ( R_MME_MultiPassNext( qfalse ) ) {
 			return (const void *)NULL;
 		}
 	} else if ( r_stereoSeparation->value > 0.0f) {
-		if ( R_MME_MultiPassNextStereo() ) {
+		if ( R_MME_CubemapNext( qtrue ) ) {
+			return (const void *)NULL;
+		} else if ( R_MME_MultiPassNext( qtrue ) ) {
 			return (const void *)NULL;
 		}
 	}
@@ -2071,21 +2173,21 @@ const void	*RB_SwapBuffers( const void *data ) {
 	}
 	/* Allow MME to take a screenshot */
 	if ( r_stereoSeparation->value < 0.0f && tr.finishStereo) {
-		tr.capturingDofOrStereo = qtrue;
-		tr.latestDofOrStereoFrame = qtrue;
+		tr.capturingMultiPass = qtrue;
+		tr.latestMultiPassFrame = qtrue;
 		ri.Cvar_SetValue("r_stereoSeparation", -r_stereoSeparation->value);
 		return (const void *)NULL;
 	} else if ( r_stereoSeparation->value <= 0.0f) {
-		if ( R_MME_TakeShot( ) && r_stereoSeparation->value != 0.0f) {
-			tr.capturingDofOrStereo = qtrue;
-			tr.latestDofOrStereoFrame = qfalse;
+		if ( R_MME_TakeShot( qfalse ) && r_stereoSeparation->value != 0.0f) {
+			tr.capturingMultiPass = qtrue;
+			tr.latestMultiPassFrame = qfalse;
 			ri.Cvar_SetValue("r_stereoSeparation", -r_stereoSeparation->value);
 			tr.finishStereo = qtrue;
 			return (const void *)NULL;
 		}
 	} else if ( r_stereoSeparation->value > 0.0f) {
 		if ( tr.finishStereo) {
-			R_MME_TakeShotStereo( );
+			R_MME_TakeShot( qtrue );
 			R_MME_DoNotTake( );
 			ri.Cvar_SetValue("r_stereoSeparation", -r_stereoSeparation->value);
 			tr.finishStereo = qfalse;
@@ -2094,9 +2196,9 @@ const void	*RB_SwapBuffers( const void *data ) {
     
 	R_FrameBuffer_EndFrame();
 
-    GLimp_LogComment( "***************** RB_SwapBuffers *****************\n\n\n" );
+	GLimp_LogComment( "***************** RB_SwapBuffers *****************\n\n\n" );
 
-    GLimp_EndFrame();
+	GLimp_EndFrame();
 
 	return (const void *)(cmd + 1);
 }
@@ -2139,6 +2241,7 @@ void RB_ExecuteRenderCommands( const void *oldData ) {
 again:
 	data = oldData;
 	backEnd.doneBloom = qfalse;
+	R_MME_PrepareMultiCapture( data );
 	while ( 1 ) {
 		data = PADP(data, sizeof(void *));
 		switch ( *(const int *)data ) {
@@ -2182,9 +2285,6 @@ again:
 			break;
 		case RC_CAPTURE:
 			data = R_MME_CaptureShotCmd( data );
-			break;
-		case RC_CAPTURE_STEREO:
-			data = R_MME_CaptureShotCmdStereo( data );
 			break;
 		case RC_END_OF_LIST:
 		default:
