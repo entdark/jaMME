@@ -260,11 +260,15 @@ static void multiSpecDrawHUD(clientInfo_t *ci, multiSpecWindow_t *window) {
 	gitem_t	*item;
 	const char *s;
 	int textHeight;
+	int armor;
+	float textOffsetScale;
 	float x = 0.0f;
 	float y = 0.0f;
 	float w = 0.0f;
 	float h = 0.0f;
 	float offset = 5.0f / window->scale;
+	qboolean hasForce = cg.enhanced.detected && (cg.enhanced.flags & BASE_ENHANCED_TEAMOVERLAY_FORCE);
+	qboolean hasOffsetScale = cg.playerPredicted || hasForce;
 
 	if (cg.snap->ps.persistant[PERS_TEAM] != TEAM_RED && cg.snap->ps.persistant[PERS_TEAM] != TEAM_BLUE) {
 		return; // Not on any team
@@ -278,17 +282,28 @@ static void multiSpecDrawHUD(clientInfo_t *ci, multiSpecWindow_t *window) {
 		return;
 	}
 
+	textOffsetScale = hasOffsetScale ? 3.0f : 2.0f;
 	s = va("%i", ci->health);
 	textHeight = CG_Text_Height(s, 0.7f/window->scale, FONT_SMALL);
-	y = SCREEN_HEIGHT - (textHeight * 2.0f)/window->scale - offset;
+	y = SCREEN_HEIGHT - (textHeight * textOffsetScale)/window->scale - offset;
 	CG_Text_Paint((x/window->scale + offset)*cgs.widthRatioCoef, y,
 		0.7f/window->scale, colorTable[CT_HUD_RED], s, 0, 0, ITEM_TEXTSTYLE_SHADOWED, FONT_SMALL);
 
-	s = va("%i", ci->armor);
+	textOffsetScale = hasOffsetScale ? 2.0f : 1.0f;
+	armor = hasForce ? (ci->powerups >> 24) : ci->armor;
+	s = va("%i", armor);
 	textHeight = CG_Text_Height(s, 0.7f/window->scale, FONT_SMALL);
-	y = SCREEN_HEIGHT - (textHeight)/window->scale - offset;
+	y = SCREEN_HEIGHT - (textHeight * textOffsetScale)/window->scale - offset;
 	CG_Text_Paint((x/window->scale + offset)*cgs.widthRatioCoef, y,
 		0.7f/window->scale, colorTable[CT_HUD_GREEN], s, 0, 0, ITEM_TEXTSTYLE_SHADOWED, FONT_SMALL);
+
+	if (hasOffsetScale) {
+		s = va("%i", cg.playerPredicted ? cg.snap->ps.fd.forcePower : ci->armor);
+		textHeight = CG_Text_Height(s, 0.7f / window->scale, FONT_SMALL);
+		y = SCREEN_HEIGHT - (textHeight) / window->scale - offset;
+		CG_Text_Paint((x / window->scale + offset)*cgs.widthRatioCoef, y,
+			0.7f / window->scale, colorTable[CT_ICON_BLUE], s, 0, 0, ITEM_TEXTSTYLE_SHADOWED, FONT_SMALL);
+	}
 
 	trap_R_SetColor(NULL);
 	offset = 2.0f / window->scale;

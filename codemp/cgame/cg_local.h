@@ -2700,5 +2700,6 @@ void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end );
 #define	SDISABLE_LOOPING		0x100000	//all looping sounds; prolly :s
 #define	SDISABLE_JETPACK		0x200000
 
-#define BASE_ENHANCED_ALL_REWARDS	0x01
-#define BASE_ENHANCED_UNLAGGED		0x02
+#define BASE_ENHANCED_ALL_REWARDS		0x01
+#define BASE_ENHANCED_UNLAGGED			0x02
+#define BASE_ENHANCED_TEAMOVERLAY_FORCE	0x04

@@ -268,6 +268,9 @@ void CG_ParseServerinfo( void ) {
 						cg.enhanced.flags |= BASE_ENHANCED_UNLAGGED;
 						cg.enhanced.unlaggedActive = CG_UnlaggedActive;
 					}
+					if (strstr(finfo, "tolf")) {
+						cg.enhanced.flags |= BASE_ENHANCED_TEAMOVERLAY_FORCE;
+					}
 				}
 			}
 		}

@@ -713,6 +713,8 @@ void CG_DrawArmor( menuDef_t *menuHUD )
 	itemDef_t		*focusItem;
 	float			percent,quarterArmor;
 	int				i,currValue,inc;
+	clientInfo_t	*ci = &cgs.clientinfo[cg.playerCent->currentState.number];
+	qboolean		hasForce = cg.enhanced.detected && (cg.enhanced.flags & BASE_ENHANCED_TEAMOVERLAY_FORCE);
 
 	//ps = &cg.snap->ps;
 	ps = &cg.predictedPlayerState;
@@ -725,7 +727,7 @@ void CG_DrawArmor( menuDef_t *menuHUD )
 
 	maxArmor = ps->stats[STAT_MAX_HEALTH];
 
-	currValue = cg.playerPredicted ? ps->stats[STAT_ARMOR] : cgs.clientinfo[cg.playerCent->currentState.number].armor;
+	currValue = cg.playerPredicted ? ps->stats[STAT_ARMOR] : (hasForce ? (ci->powerups >> 24) : ci->armor);
 	inc = (float) maxArmor / MAX_HUD_TICS;
 
 	memcpy(calcColor, colorTable[CT_WHITE], sizeof(vec4_t));
@@ -779,7 +781,7 @@ void CG_DrawArmor( menuDef_t *menuHUD )
 		currValue -= inc;
 	}
 
-	currValue = cg.playerPredicted ? ps->stats[STAT_ARMOR] : cgs.clientinfo[cg.playerCent->currentState.number].armor;
+	currValue = cg.playerPredicted ? ps->stats[STAT_ARMOR] : (hasForce ? (ci->powerups >> 24) : ci->armor);
 
 	focusItem = Menu_FindItemByName(menuHUD, "armoramount");
 
@@ -1086,7 +1088,11 @@ void CG_DrawForcePower( menuDef_t *menuHUD )
 	float			value,inc,percent;
 	itemDef_t		*focusItem;
 	const int		maxForcePower = 100;
-	qboolean	flash=qfalse;
+	qboolean		flash=qfalse;
+	qboolean		hasForce = cg.enhanced.detected && (cg.enhanced.flags & BASE_ENHANCED_TEAMOVERLAY_FORCE);
+
+	if (!cg.playerPredicted && !hasForce)
+		return;
 
 	// Can we find the menu?
 	if (!menuHUD)
@@ -1133,7 +1139,7 @@ void CG_DrawForcePower( menuDef_t *menuHUD )
 //	}
 
 	inc = (float)  maxForcePower / MAX_HUD_TICS;
-	value = cg.snap->ps.fd.forcePower;
+	value = cg.playerPredicted ? cg.snap->ps.fd.forcePower : cgs.clientinfo[cg.playerCent->currentState.number].armor;
 
 	for (i=MAX_HUD_TICS-1;i>=0;i--)
 	{
@@ -1193,6 +1199,8 @@ void CG_DrawForcePower( menuDef_t *menuHUD )
 
 	if (focusItem)
 	{
+		value = cg.playerPredicted ? cg.snap->ps.fd.forcePower : cgs.clientinfo[cg.playerCent->currentState.number].armor;
+
 		// Print force amount
 		trap_R_SetColor( focusItem->window.foreColor );	
 
@@ -1200,7 +1208,7 @@ void CG_DrawForcePower( menuDef_t *menuHUD )
 			SCREEN_WIDTH - (SCREEN_WIDTH - focusItem->window.rect.x)*cgs.widthRatioCoef, 
 			focusItem->window.rect.y, 
 			3, 
-			cg.snap->ps.fd.forcePower, 
+			value, 
 			focusItem->window.rect.w*cgs.widthRatioCoef, 
 			focusItem->window.rect.h, 
 			NUM_FONT_SMALL,
@@ -1221,12 +1229,14 @@ void CG_DrawHUD(centity_t	*cent)
 	int	scoreBias;
 	char scoreBiasStr[16];
 	int score;
+	clientInfo_t *ci = &cgs.clientinfo[cent->currentState.number];
+	qboolean hasForce = cg.enhanced.detected && (cg.enhanced.flags & BASE_ENHANCED_TEAMOVERLAY_FORCE);
 
 	if (!cg.playerPredicted) {
 		if (cg.snap->ps.persistant[PERS_TEAM] != TEAM_RED && cg.snap->ps.persistant[PERS_TEAM] != TEAM_BLUE) {
 			return; // Not on any team
 		}
-		if (cgs.clientinfo[cent->currentState.number].team != cg.snap->ps.persistant[PERS_TEAM]) {
+		if (ci->team != cg.snap->ps.persistant[PERS_TEAM]) {
 			return;
 		}
 	}
@@ -1246,8 +1256,8 @@ void CG_DrawHUD(centity_t	*cent)
 				health = cg.snap->ps.stats[STAT_HEALTH];
 				armor = cg.snap->ps.stats[STAT_ARMOR];
 			} else {
-				health = cgs.clientinfo[cent->currentState.number].health;
-				armor = cgs.clientinfo[cent->currentState.number].armor;
+				health = ci->health;
+				armor = hasForce ? (ci->powerups >> 24) : ci->armor;
 			}
 
 			UI_DrawProportionalString( (x+16)*cgs.widthRatioCoef, y+40, va( "%i", health ),
@@ -1255,6 +1265,12 @@ void CG_DrawHUD(centity_t	*cent)
 
 			UI_DrawProportionalString( (x+18+14)*cgs.widthRatioCoef, y+40+14, va( "%i", armor ),
 				UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_HUD_GREEN] );
+
+			if (cg.playerPredicted || hasForce) {
+				int force = cg.playerPredicted ? cg.snap->ps.fd.forcePower : ci->armor;
+				UI_DrawProportionalString( SCREEN_WIDTH-(x+18+14+32)*cgs.widthRatioCoef, y+40+14, va( "%i", force),
+					UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_ICON_BLUE] );
+			}
 
 			if (!cg.playerPredicted)
 				return;
@@ -1298,9 +1314,6 @@ void CG_DrawHUD(centity_t	*cent)
 		
 			UI_DrawProportionalString( SCREEN_WIDTH-(weapX+16+32)*cgs.widthRatioCoef, y+40, va( "%s", ammoString ),
 				UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_HUD_ORANGE] );
-
-			UI_DrawProportionalString( SCREEN_WIDTH-(x+18+14+32)*cgs.widthRatioCoef, y+40+14, va( "%i", cg.snap->ps.fd.forcePower),
-				UI_SMALLFONT|UI_DROPSHADOW, colorTable[CT_ICON_BLUE] );
 		}
 
 		return;
@@ -1417,9 +1430,6 @@ void CG_DrawHUD(centity_t	*cent)
 				}
 			}
 
-			if (!cg.playerPredicted)
-				return;
-
 			// Print scanline
 			focusItem = Menu_FindItemByName(menuHUD, "scanline");
 			if (focusItem)
@@ -1448,6 +1458,9 @@ void CG_DrawHUD(centity_t	*cent)
 			}
 
 			CG_DrawForcePower(menuHUD);
+
+			if (!cg.playerPredicted)
+				return;
 
 			// Draw ammo tics or saber style
 			if ( cent->currentState.weapon == WP_SABER )
@@ -3979,7 +3992,9 @@ static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
 	clientInfo_t *ci;
 	gitem_t	*item;
 	int ret_y, count;
+	int armor;
 	float xOffset = 0*cgs.widthRatioCoef;
+	qboolean hasForce = cg.enhanced.detected && (cg.enhanced.flags & BASE_ENHANCED_TEAMOVERLAY_FORCE);
 
 	y += CG_MultiSpecTeamOverlayOffset();
 
@@ -4037,7 +4052,7 @@ static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
 	if (lwidth > TEAM_OVERLAY_MAXLOCATION_WIDTH)
 		lwidth = TEAM_OVERLAY_MAXLOCATION_WIDTH;
 
-	w = (pwidth + lwidth + 4 + 7) * TINYCHAR_WIDTH*cgs.widthRatioCoef;
+	w = (pwidth + lwidth + 4 + 7 + (hasForce ? 4 : 0)) * TINYCHAR_WIDTH*cgs.widthRatioCoef;
 
 	if ( right )
 		x = SCREEN_WIDTH - w;
@@ -4096,9 +4111,16 @@ static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
 					TEAM_OVERLAY_MAXLOCATION_WIDTH);
 			}
 
-			CG_GetColorForHealth( ci->health, ci->armor, hcolor );
+			armor = hasForce ? ( ci->powerups >> 24 ) : ci->armor;
 
-			Com_sprintf (st, sizeof(st), "%3i %3i", ci->health,	ci->armor);
+			if ( hasForce ) {
+				int force = ci->armor;
+				Com_sprintf (st, sizeof(st), "%3i %3i %3i", ci->health, armor, force);
+			} else {
+				Com_sprintf (st, sizeof(st), "%3i %3i", ci->health, armor);
+			}
+
+			CG_GetColorForHealth( ci->health, armor, hcolor );
 
 			xx = x + TINYCHAR_WIDTH * 3*cgs.widthRatioCoef + 
 				TINYCHAR_WIDTH * pwidth*cgs.widthRatioCoef + TINYCHAR_WIDTH * lwidth*cgs.widthRatioCoef;
