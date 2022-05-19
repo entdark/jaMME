@@ -203,6 +203,7 @@ XCVAR_DEF( mov_headTurn,						"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( mov_musicFile,						"",						NULL,					CVAR_TEMP )
 XCVAR_DEF( mov_musicStart,						"0",					NULL,					CVAR_TEMP )
 XCVAR_DEF( mov_view6DoFRotation,				"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( mov_notify,							"captureStart captureEnd find",	CG_CheckNotification, CVAR_ARCHIVE )
 XCVAR_DEF( fx_Vibrate,							"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( fx_vfps,								"340",					NULL,					CVAR_ARCHIVE )	//teh's fix for laggy effects
 XCVAR_DEF( fx_disruptTime,						"-1",					NULL,					CVAR_ARCHIVE )	//from smod
@@ -234,6 +235,6 @@ XCVAR_DEF( cg_trueSpin,							"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_drawPlayerNames,					"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_drawPlayerNamesScale,				"0.5",					NULL,					CVAR_ARCHIVE )
 //tell the server we are newmod
-XCVAR_DEF( nm_ver,								"1.6.0",				NULL,					CVAR_USERINFO )
+//XCVAR_DEF( nm_ver,								"1.6.0",				NULL,					CVAR_USERINFO )
 XCVAR_DEF( nm_flags,							"u",					NULL,					CVAR_USERINFO )
 #undef XCVAR_DEF
