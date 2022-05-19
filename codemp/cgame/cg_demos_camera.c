@@ -213,7 +213,7 @@ static float cameraPointAnglesLength( demoCameraPoint_t *point ) {
 	demoCameraPoint_t *match[4];
 	vec3_t tempAngles;
 	Quat_t q0, q1, q2, q3, qLast, qNext;
-	float len = 0, step = 0, addStep, distance;
+	float len = 0, step = 0, addStep, distance, deltaDist = 0.01f;
 
 	if (point->anglesLen >= 0)
 		return point->anglesLen;
@@ -236,6 +236,8 @@ static float cameraPointAnglesLength( demoCameraPoint_t *point ) {
 	}
 	QuatSquad( 0, q0, q1, q2, q3, qLast );
 
+	if (mov_smoothQuat.value >= 1)
+		deltaDist = 0.01f / mov_smoothQuat.value;
 	while (step < 1) {
 		addStep = 1 - step;
 		if (addStep > 0.01f)
@@ -243,7 +245,7 @@ static float cameraPointAnglesLength( demoCameraPoint_t *point ) {
 		for (i = 0; i < 10; i++) {
 			QuatSquad( step+addStep, q0, q1, q2, q3, qNext );
 			distance = QuatDistanceSquared( qLast, qNext);
-			if ( distance <= 0.001f / mov_smoothQuat.value)
+			if ( distance <= deltaDist)
 				break;
 			addStep *= 0.7f;
 		}
@@ -263,7 +265,7 @@ static qboolean cameraAnglesAt( int time, float timeFraction, vec3_t angles) {
 	vec3_t				tempAngles;
 	vec3_t				dx, dy;
 	Quat_t				q0, q1, q2, q3, qr, qNext;
-	float				len = 0, step = 0, addStep, distance, searchLen;
+	float				len = 0, step = 0, addStep, distance, searchLen, deltaDist = 0.01f;
 	int					i;
 
 	cameraMatchAt( time, CAM_ANGLES, match );
@@ -324,6 +326,8 @@ static qboolean cameraAnglesAt( int time, float timeFraction, vec3_t angles) {
 			searchLen = dsplineCalc( (time - match[1]->time) + timeFraction, dx, dy, 0 );
 
 			QuatSquad( 0, q0, q1, q2, q3, qr );
+			if (mov_smoothQuat.value >= 1)
+				deltaDist = 0.01f / mov_smoothQuat.value;
 			while (step < 1) {
 				addStep = 1 - step;
 				if (addStep > 0.01f)
@@ -331,7 +335,7 @@ static qboolean cameraAnglesAt( int time, float timeFraction, vec3_t angles) {
 				for (i = 0; i < 10; i++) {
 					QuatSquad( step+addStep, q0, q1, q2, q3, qNext );
 					distance = QuatDistanceSquared( qr, qNext);
-					if ( distance <= 0.001f / mov_smoothQuat.value)
+					if ( distance <= deltaDist)
 						break;
 					addStep *= 0.7f;
 				}
