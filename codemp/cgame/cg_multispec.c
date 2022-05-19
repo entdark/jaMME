@@ -135,7 +135,7 @@ static qboolean multiSpecWindowUpdate( multiSpecWindow_t *window, const char *wi
 	v = Info_ValueForKey(windowConfig, "fov");
 	if (CAN_SET_VALUE) {
 		if (!v[0])
-			v = "80.0";
+			v = cg_fov.string;
 		window->fov = atof(v);
 	}
 
