@@ -42,10 +42,6 @@ typedef struct multiSpec_s {
 	multiSpecWindow_t	*current, *draw2D;
 	qboolean			active;
 	struct {
-		int				value;
-		qboolean		changed;
-	} dglow;
-	struct {
 		float			cursorX, cursorY;
 		float			downX, downY;
 		int				keyCatcher;
@@ -486,7 +482,7 @@ doScene:
 	//do we need this here?
 	CG_DrawAutoMap();
 
-	cg.refdef.rdflags |= RDF_DRAWSKYBOX;
+	cg.refdef.rdflags |= RDF_DRAWSKYBOX | RDF_NOGLOW;
 	cg.refdef.x = window->x * cgs.screenXScale;
 	cg.refdef.y = window->y * cgs.screenYScale;
 	cg.refdef.height = cgs.glconfig.vidHeight * window->scale;
@@ -571,11 +567,6 @@ void CG_MultiSpecDrawBackground(void)
 	}
 }
 
-void CG_MultiSpecDynamicGlowUpdate(void) {
-	if (!multiSpec.dglow.changed)
-		multiSpec.dglow.value = r_DynamicGlow.integer;
-}
-
 qboolean CG_MultiSpecEditing(void)
 {
 	return multiSpec.edit.active;
@@ -606,11 +597,10 @@ Entry point, called in cg_draw.c
 void CG_MultiSpecInit(void) {
 	memset(&multiSpec, 0, sizeof(multiSpec_t));
 	multiSpec.edit.downX = multiSpec.edit.downY = -1.0f;
-	CG_MultiSpecDynamicGlowUpdate();
 }
 
 void CG_MultiSpecShutDown(void) {
-	trap_Cvar_Set("r_DynamicGlow", va("%d", multiSpec.dglow.value));
+	
 }
 
 /*
@@ -631,15 +621,14 @@ void CG_MultiSpecMain(void)
 	qboolean windowDrawn = qfalse;
 	multiSpecWindow_t *window;
 
-	multiSpec.dglow.changed = qfalse;
 	if (!multiSpec.windows) {
-		goto resetDglow;
+		return;
 	}
 	if (cg.predictedPlayerState.pm_type == PM_INTERMISSION) {
-		goto resetDglow;
+		return;
 	}
 	if (!cg.playerCent) {
-		goto resetDglow;
+//		return;
 	}
 	multiSpec.active = qtrue;
 	for (window = multiSpec.windows; window; window = window->next) {
@@ -657,16 +646,6 @@ void CG_MultiSpecMain(void)
 	cg.snap = snap;
 	cg.nextSnap = nextSnap;
 	multiSpecDrawEdit();
-resetDglow:
-	if (!windowDrawn) {
-		if (multiSpec.dglow.value != r_DynamicGlow.integer) {
-			multiSpec.dglow.changed = qtrue;
-			trap_Cvar_Set("r_DynamicGlow", va("%d", multiSpec.dglow.value));
-		}
-	} else if (windowDrawn) {
-		multiSpec.dglow.changed = qtrue;
-		trap_Cvar_Set("r_DynamicGlow", "0");
-	}
 }
 
 

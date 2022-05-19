@@ -59,6 +59,7 @@
 
 #define RDF_AUTOMAP			32		//means this scene is to draw the automap -rww
 #define	RDF_NOFOG			64		//no global fog in this scene (but still brush fog) -rww
+#define	RDF_NOGLOW			128		//no global fog in this scene (but still brush fog) -rww
 #include "../qcommon/q_shared.h"
 extern int	skyboxportal;
 extern int	drawskyboxportal;

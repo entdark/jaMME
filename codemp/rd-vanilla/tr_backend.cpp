@@ -1886,7 +1886,7 @@ const void	*RB_DrawSurfs( const void *data ) {
 
 	// Render dynamic glowing/flaring objects.
 #ifndef HAVE_GLES
-	if ( !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL) && g_bDynamicGlowSupported && r_DynamicGlow->integer ) {
+	if ( !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL) && !(backEnd.refdef.rdflags & RDF_NOGLOW) && g_bDynamicGlowSupported && r_DynamicGlow->integer ) {
 		// Copy the normal scene to texture.
 		qglDisable( GL_TEXTURE_2D );
 		qglEnable( GL_TEXTURE_RECTANGLE_EXT ); 
