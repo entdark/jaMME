@@ -998,7 +998,7 @@ edit:
 				return;
 			}
 			if ( cgs.clientinfo[cg.playerCent->currentState.number].team != TEAM_RED && cgs.clientinfo[cg.playerCent->currentState.number].team != TEAM_BLUE ) {
-				CG_Printf("You are no on any team\n");
+				CG_Printf("You are not on any team\n");
 				return;
 			}
 			if (!cmd[0])
