@@ -52,6 +52,7 @@ typedef struct multiSpec_s {
 		qboolean		replace;
 		float			offset;
 	} teamoverlay;
+	qhandle_t			cursor;
 } multiSpec_t;
 
 static multiSpec_t multiSpec;
@@ -501,6 +502,7 @@ skipValid:
 
 static void multiSpecDrawEdit(void) {
 	multiSpecWindow_t *window = multiSpec.edit.window;
+	float x,y,w,h;
 
 	if (!multiSpec.edit.active)
 		return;
@@ -523,7 +525,11 @@ static void multiSpecDrawEdit(void) {
 			colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_SMALL);
 	}
 
-	CG_DrawPic(multiSpec.edit.cursorX, multiSpec.edit.cursorY, 40.0f * cgs.widthRatioCoef, 40.0f, trap_R_RegisterShaderNoMip( "cursor"));
+	x = multiSpec.edit.cursorX;
+	y = multiSpec.edit.cursorY;
+	w = 40.0f;
+	h = 40.0f;
+	CG_DrawPic(x,y,w*cgs.widthRatioCoef,h, multiSpec.cursor);
 }
 
 void CG_MultiSpecAdjust2D(float *x, float *y, float *w, float *h) {
@@ -597,6 +603,7 @@ Entry point, called in cg_draw.c
 void CG_MultiSpecInit(void) {
 	memset(&multiSpec, 0, sizeof(multiSpec_t));
 	multiSpec.edit.downX = multiSpec.edit.downY = -1.0f;
+	multiSpec.cursor = trap_R_RegisterShaderNoMip("cursor");
 }
 
 void CG_MultiSpecShutDown(void) {
