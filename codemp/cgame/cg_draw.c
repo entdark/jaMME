@@ -6811,11 +6811,11 @@ static void CG_DrawVote(void) {
 
 	if (sParm && sParm[0])
 	{
-		s = va("%s(%i):<%s %s> %s:%i %s:%i", sVote, sec, sCmd, sParm, sYes, cgs.voteYes, sNo, cgs.voteNo);
+		s = va("%s(%i):<%s %s"S_COLOR_WHITE"> %s:%i %s:%i", sVote, sec, sCmd, sParm, sYes, cgs.voteYes, sNo, cgs.voteNo);
 	}
 	else
 	{
-		s = va("%s(%i):<%s> %s:%i %s:%i",    sVote, sec, sCmd,        sYes, cgs.voteYes, sNo, cgs.voteNo);
+		s = va("%s(%i):<%s"S_COLOR_WHITE"> %s:%i %s:%i",    sVote, sec, sCmd,        sYes, cgs.voteYes, sNo, cgs.voteNo);
 	}
 	CG_DrawStringExt( 4.0f*cgs.widthRatioCoef, 58.0f, s, colorWhite, qfalse, qtrue, SMALLCHAR_WIDTH*cgs.widthRatioCoef, SMALLCHAR_HEIGHT, 0 );
 	s = CG_GetStringEdString("MP_INGAME", "OR_PRESS_ESC_THEN_CLICK_VOTE");	//	s = "or press ESC then click Vote";
