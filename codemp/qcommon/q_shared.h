@@ -3136,8 +3136,6 @@ enum {
 void NET_AddrToString( char *out, size_t size, void *addr );
 
 
-#define MME_SAMPLERATE	44100 //ja is full of 44khz mp3
-
 typedef struct {
 	fileHandle_t fileHandle;
 	int line;

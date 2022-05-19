@@ -1,5 +1,7 @@
 #pragma once
 
+#define MME_SAMPLERATE	44100 //ja is full of 44khz mp3
+
 void S_Init( void );
 void S_Shutdown( void );
 
