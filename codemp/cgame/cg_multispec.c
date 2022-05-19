@@ -773,7 +773,7 @@ int CG_MultiSpecKeyEvent(int key, qboolean down) {
 	if (!multiSpec.edit.active)
 		return qfalse;
 
-	if (!down && key == A_ESCAPE) {
+	if (!down && (key == A_ESCAPE || key == A_ENTER || key == A_KP_ENTER)) {
 		trap_SendConsoleCommand("multispec edit;");
 		return qtrue;
 	}
