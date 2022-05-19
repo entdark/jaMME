@@ -1,4 +1,5 @@
 #include "cg_local.h"
+#include "cg_demos.h"
 #include "../ui/menudef.h"
 #include "../ui/keycodes.h"
 
@@ -31,7 +32,7 @@ typedef struct multiSpecWindow_s {
 	float		fov;
 	float		borderWidth;
 	vec3_t		borderColour;
-	int			clientNum;
+	int			clientNum; // -1 = chase, -2 = camera
 	qboolean	draw2D;
 } multiSpecWindow_t;
 
@@ -127,9 +128,11 @@ static qboolean multiSpecWindowUpdate( multiSpecWindow_t *window, const char *wi
 		if (!v[0] || clientNum < 0 || clientNum >= MAX_CLIENTS)
 			window->clientNum = cg.snap ? cg.snap->ps.clientNum : cg.clientNum;
 		else
-			window->clientNum = atoi(v);
+			window->clientNum = clientNum;
 		if (!multiSpecAllowed(window->clientNum))
 			window->clientNum = multiSpecGetNext(window->clientNum);
+		if (!v[0] && window->clientNum < 0)
+			window->clientNum = multiSpecGetNext(-1);
 	}
 
 	v = Info_ValueForKey(windowConfig, "fov");
@@ -274,6 +277,10 @@ static void multiSpecDrawHUD(clientInfo_t *ci, multiSpecWindow_t *window) {
 		return;
 	}
 
+	if (!demoTargetEntity(window->clientNum)) {
+		return;
+	}
+
 	s = va("%i", ci->health);
 	textHeight = CG_Text_Height(s, 0.7f/window->scale, FONT_SMALL);
 	y = SCREEN_HEIGHT - (textHeight * 2.0f)/window->scale - offset;
@@ -318,15 +325,23 @@ Draw the desired 2D effects in the POV window
 ===================
 */
 static void multiSpecDrawWindow2D(multiSpecWindow_t *window, qboolean invalid) {
-	clientInfo_t *ci = &cgs.clientinfo[window->clientNum];
-
-	multiSpec.draw2D = window;
+	clientInfo_t *ci;
 
 	if (cg_draw2D.integer == 0) {
-//		CG_UpdateFallVector();
-		multiSpec.draw2D = NULL;
 		return;
 	}
+
+	if (!window->draw2D) {
+		return;
+	}
+
+	if (window->clientNum < 0) {
+		return;
+	}
+
+	ci = &cgs.clientinfo[window->clientNum];
+
+	multiSpec.draw2D = window;
 
 	if (!invalid) {
 		CG_DrawZoomMask();
@@ -353,6 +368,7 @@ CG_DrawPov
 Draw the Point of view of the current player window
 =====================
 */
+extern int demoSetupView( void);
 static qboolean multiSpecDrawWindow(multiSpecWindow_t *window)	{
 	refdef_t refdef = cg.refdef;
 	const char* cstr;
@@ -361,6 +377,9 @@ static qboolean multiSpecDrawWindow(multiSpecWindow_t *window)	{
 	qboolean invalid = qtrue;
 
 	CG_FillRect(window->x, window->y, SCREEN_WIDTH * window->scale, SCREEN_HEIGHT * window->scale, colorBlack);
+	if (cg.demoPlayback == 2 && window->clientNum < 0) {
+		goto doScene;
+	}
 	if (!cg.snap || window->clientNum < 0 || window->clientNum >= MAX_CLIENTS) {
 		multiSpecDrawWindowBorder(window);
 		goto skipValid;
@@ -374,10 +393,11 @@ static qboolean multiSpecDrawWindow(multiSpecWindow_t *window)	{
 		}
 		goto skipValid;
 	}
-	cent = &cg_entities[window->clientNum];
-	if (!cent->currentValid) {
+	cent = demoTargetEntity(window->clientNum);
+	if (!cent) {
 		goto skipScene;
 	}
+doScene:
 	invalid = qfalse;
 	trap_R_ClearScene();
 	CG_ReTransitionSnapshot();
@@ -388,28 +408,36 @@ static qboolean multiSpecDrawWindow(multiSpecWindow_t *window)	{
 	cg.trueView = (((weapon == WP_SABER || weapon == WP_MELEE) && !cg_trueGuns.integer)
 		|| (weapon != WP_SABER && weapon != WP_MELEE && cg_trueGuns.integer));
 	cg.zoomMode = 0;
-	cg.playerCent = cent;
-	cg.playerPredicted = cent == &cg_entities[cg.snap->ps.clientNum];
-	if (!cg.playerPredicted ) {
-		//Make sure lerporigin of playercent is val
-		CG_CalcEntityLerpPositions( cg.playerCent );
-	}
-	if (cg.playerPredicted) {
-		if (cg.predictedPlayerState.zoomMode)
-			cg.zoomMode = cg.predictedPlayerState.zoomMode;
-		else if (cg.snap->ps.zoomMode && cg.demoPlayback)
-			cg.zoomMode = cg.snap->ps.zoomMode;
-		cg.renderingThirdPerson = qtrue; //always draw thirdperson in multispec?
-		CG_SetPredictedThirdPerson();
+
+	if (cg.demoPlayback == 2 && window->clientNum < 0) {
+		demoViewType_t viewType = demo.viewType;
+		demo.viewType = window->clientNum == -2 ? viewCamera : viewChase;
+		demoSetupView();
+		demo.viewType = viewType;
 	} else {
-		cg.zoomMode = cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
-			|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4;
-		cg.renderingThirdPerson = (((cg_thirdPerson.integer % 2) || cent->currentState.eFlags & EF_DEAD
-			|| (weapon == WP_SABER && !cg.trueView)
-			|| (weapon == WP_MELEE && !cg.trueView))
-			&& !cg.zoomMode);
+		cg.playerCent = cent;
+		cg.playerPredicted = cent == &cg_entities[cg.snap->ps.clientNum];
+		if (!cg.playerPredicted) {
+			//Make sure lerporigin of playercent is val
+			CG_CalcEntityLerpPositions(cg.playerCent);
+		}
+		if (cg.playerPredicted) {
+			if (cg.predictedPlayerState.zoomMode)
+				cg.zoomMode = cg.predictedPlayerState.zoomMode;
+			else if (cg.snap->ps.zoomMode && cg.demoPlayback)
+				cg.zoomMode = cg.snap->ps.zoomMode;
+			cg.renderingThirdPerson = qtrue; //always draw thirdperson in multispec?
+			CG_SetPredictedThirdPerson();
+		} else {
+			cg.zoomMode = cg.playerCent->currentState.torsoAnim == TORSO_WEAPONREADY4
+				|| cg.playerCent->currentState.torsoAnim == BOTH_ATTACK4;
+			cg.renderingThirdPerson = (((cg_thirdPerson.integer % 2) || cent->currentState.eFlags & EF_DEAD
+				|| (weapon == WP_SABER && !cg.trueView)
+				|| (weapon == WP_MELEE && !cg.trueView))
+				&& !cg.zoomMode);
+		}
+		CG_CalcViewValues();
 	}
-	CG_CalcViewValues();
 
 	if (cg.playerPredicted)
 		cg.fallingToDeath = cg.snap->ps.fallingToDeath;
@@ -429,7 +457,7 @@ static qboolean multiSpecDrawWindow(multiSpecWindow_t *window)	{
 		CG_DrawSkyBoxPortal(cstr);
 	}
 
-	CG_CalcScreenEffects();
+//	CG_CalcScreenEffects();
 	CG_AddPacketEntities(qfalse);	// after calcViewValues, so predicted player state is correct
 	CG_AddMarks();
 	CG_AddParticles();
@@ -438,8 +466,7 @@ static qboolean multiSpecDrawWindow(multiSpecWindow_t *window)	{
 	if (cg.playerCent == &cg_entities[cg.predictedPlayerState.clientNum]) {
 		// warning sounds when powerup is wearing off
 		CG_AddViewWeapon(&cg.predictedPlayerState);
-	}
-	else if (!(cg.predictedPlayerState.pm_type == PM_INTERMISSION) &&
+	} else if (!(cg.predictedPlayerState.pm_type == PM_INTERMISSION) &&
 		cg.playerCent && cg.playerCent->currentState.number < MAX_CLIENTS)  {
 		CG_AddViewWeaponDirect(cg.playerCent);
 	}
@@ -470,8 +497,7 @@ static qboolean multiSpecDrawWindow(multiSpecWindow_t *window)	{
 	trap_R_RenderScene(&cg.refdef);
 skipScene:
 	multiSpecDrawWindowBorder(window);
-	if (window->draw2D)
-		multiSpecDrawWindow2D(window, invalid);
+	multiSpecDrawWindow2D(window, invalid);
 	cg.refdef = refdef;
 skipValid:
 	return !invalid;
@@ -484,7 +510,18 @@ static void multiSpecDrawEdit(void) {
 		return;
 
 	if (window) {
-		const char *s = va("%d", window->clientNum);
+		const char *s;
+		switch (window->clientNum) {
+			case -2:
+				s = "camera";
+				break;
+			case -1:
+				s = "chase";
+				break;
+			default:
+				s = va("%d", window->clientNum);
+				break;
+		}
 		CG_DrawRect(window->x, window->y, SCREEN_WIDTH * window->scale, SCREEN_HEIGHT * window->scale, 2.0f, colorWhite);
 		CG_Text_Paint(window->x + SCREEN_WIDTH * window->scale - 7.0f*cgs.widthRatioCoef - CG_Text_Width(s, 0.7f, FONT_SMALL), window->y + 2.0f, 0.7f,
 			colorWhite, s, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_SMALL);
@@ -673,7 +710,9 @@ static multiSpecWindow_t *multiSpecGetWindow(float x, float y) {
 }
 
 static qboolean multiSpecAllowed(int clientNum) {
-	return (cgs.clientinfo[clientNum].team != TEAM_SPECTATOR
+	return (cg.demoPlayback == 2 && clientNum < 0)
+		|| (clientNum >= 0 &&
+		cgs.clientinfo[clientNum].team != TEAM_SPECTATOR
 		&& (cg.demoPlayback
 		|| cg.snap->ps.pm_flags & PMF_FOLLOW
 		|| cgs.clientinfo[cg.snap->ps.clientNum].team == TEAM_SPECTATOR
@@ -696,8 +735,15 @@ static int multiSpecGetPrev(int clientNum) {
 	do {
 		chasePrevTarget(&clientNum);
 		if (multiSpecAllowed(clientNum))
-			return clientNum;
+			break;
 	} while (oldClientNum != clientNum);
+
+	if (cg.demoPlayback == 2) {
+		if (oldClientNum == -1)
+			return -2;
+		else if (oldClientNum != -2 && clientNum >= oldClientNum)
+			return -1;
+	}
 	return clientNum;
 }
 
@@ -707,8 +753,15 @@ static int multiSpecGetNext(int clientNum) {
 	do {
 		chaseNextTarget(&clientNum);
 		if (multiSpecAllowed(clientNum))
-			return clientNum;
+			break;
 	} while (oldClientNum != clientNum);
+
+	if (cg.demoPlayback == 2) {
+		if (clientNum <= oldClientNum)
+			return -2;
+		else if (oldClientNum == -2)
+			return -1;
+	}
 	return clientNum;
 }
 

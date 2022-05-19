@@ -191,7 +191,7 @@ static void demoTrueView_f(void) {
 	}
 }
 
-static int demoSetupView( void) {
+int demoSetupView( void) {
 	vec3_t forward;
 	qboolean zoomFix = qfalse;	//to see disruptor zoom when we are chasing a player
 	int inwater = qfalse;
