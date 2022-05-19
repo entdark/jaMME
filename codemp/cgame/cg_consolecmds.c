@@ -76,7 +76,7 @@ static void CG_ScoresDown_f( void ) {
 
 		// leave the current scores up if they were already
 		// displayed, but if this is the first hit, clear them out
-		if ( !cg.showScores ) {
+		if ( !cg.showScores && !cg.demoPlayback ) {
 			cg.showScores = qtrue;
 			cg.numScores = 0;
 		}
