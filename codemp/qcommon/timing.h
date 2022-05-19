@@ -1,10 +1,14 @@
 #pragma once
 
+#ifdef _WIN32
+#include <intrin.h>
+#endif
+
 class timing_c
 {
 private:
-	int64_t	start;
-	int64_t	end;
+	uint64_t	start;
+	uint64_t	end;
 
 	int		reset;
 public:
@@ -13,46 +17,21 @@ public:
 	}
 	void Start()
 	{
-		const int64_t *s = &start;
 #ifdef _WIN32
-		__asm
-		{
-			push eax
-			push ebx
-			push edx
-
-			rdtsc
-			mov ebx, s
-			mov	[ebx], eax
-			mov [ebx + 4], edx
-
-			pop edx
-			pop ebx
-			pop eax
-		}
+		start = __rdtsc();
+#else
+		start = 0;
 #endif
 	}
 	int End()
 	{
-		const int64_t *e = &end;
 		int64_t	time;
+
 #ifdef _WIN32
-		__asm
-		{
-			push eax
-			push ebx
-			push edx
-
-			rdtsc
-			mov ebx, e
-			mov	[ebx], eax
-			mov [ebx + 4], edx
-
-			pop edx
-			pop ebx
-			pop eax
-		}
-#endif 
+		end = __rdtsc();
+#else
+		end = 0;
+#endif
 		time = end - start;
 		if (time < 0)
 		{

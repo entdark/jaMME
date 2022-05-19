@@ -164,10 +164,10 @@ float FloatSwap( const float *f );
 	#define QINLINE __inline
 	#define PATH_SEP '\\'
 
-	#if defined(__WIN64__)
-		#define ARCH_STRING "x64"
-	#elif defined(_M_ALPHA)
+	#if defined(_M_ALPHA)
 		#define ARCH_STRING "AXP"
+	#else
+		#define ARCH_STRING "x64"
 	#endif
 
 	#define Q3_LITTLE_ENDIAN
@@ -1616,7 +1616,7 @@ typedef struct {
 #if defined(MACOS_X) || defined(__linux__)
 	#define	SnapVector(v) {v[0]=((int)(v[0]));v[1]=((int)(v[1]));v[2]=((int)(v[2]));}
 #else 
-	#if !defined(__LCC__) && !defined(MINGW32)
+	#if !defined(__LCC__) && !defined(MINGW32) && !defined(WIN64)
 		//pitiful attempt to reduce _ftol2 calls -rww
 		static ID_INLINE void SnapVector( float *v )
 		{
