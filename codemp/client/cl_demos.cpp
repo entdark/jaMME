@@ -921,6 +921,12 @@ static demoPlay_t *demoPlayOpen( const char* fileName ) {
 		FS_FCloseFile( fileHandle );
 		return 0;
 	}
+	demo.nextNum = demoFindNext(mme_demoFileName->string);
+	if ( filePos == fileSize) {
+		Com_Printf("demo file %s is empty\n", fileName );
+		FS_FCloseFile( fileHandle );
+		return 0;
+	}
 	Com_SetLoadingMsg("Opening the demo...");
 	play = (demoPlay_t *)Z_Malloc( sizeof( demoPlay_t ), TAG_GENERAL);//what tag do we need?
 	memset( play, 0, sizeof(demoPlay_t) ); // In Q3MME the Z_Malloc doees a memset 0, it doesn't here though. So we gotta do it.
@@ -973,7 +979,6 @@ static demoPlay_t *demoPlayOpen( const char* fileName ) {
 			play->clientNum = i;
 			break;
 		}
-	demo.nextNum = demoFindNext(mme_demoFileName->string);
 	return play;
 errorreturn:
 	Z_Free( play );
@@ -1278,6 +1283,8 @@ qboolean demoPlay( const char *fileName, qboolean del ) {
 		CL_InitCGame();
 		cls.state = CA_ACTIVE;
 		demo.del = del;
+		return qtrue;
+	} else if (demo.nextNum) {
 		return qtrue;
 	} else {
 		return qfalse;
