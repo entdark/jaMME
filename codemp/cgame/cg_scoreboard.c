@@ -186,7 +186,7 @@ static void CG_DrawClientScore( int y, score_t *score, float *color, float fade,
 	}
 
 	// highlight your position
-	if ( score->client == cg.snap->ps.clientNum ) 
+	if ( score->client == cg.playerCent->currentState.number ) 
 	{
 		float	hcolor[4];
 		int		rank;
@@ -447,8 +447,9 @@ qboolean CG_DrawOldScoreboard( void ) {
 		return qfalse;
 	}
 
-	if ( cg.showScores || cg.predictedPlayerState.pm_type == PM_DEAD ||
-		 cg.predictedPlayerState.pm_type == PM_INTERMISSION ) {
+	if ( cg.showScores || ( cg.playerPredicted && cg.predictedPlayerState.pm_type == PM_DEAD )
+		|| ( !cg.playerPredicted && ( cg.playerCent->currentState.eFlags & EF_DEAD ) )
+		|| cg.predictedPlayerState.pm_type == PM_INTERMISSION ) {
 		fade = 1.0;
 		fadeColor = colorWhite;
 	} else {
@@ -832,7 +833,7 @@ qboolean CG_DrawOldScoreboard( void ) {
 	if (!localClient) {
 		// draw local client at the bottom
 		for ( i = 0 ; i < cg.numScores ; i++ ) {
-			if ( cg.scores[i].client == cg.snap->ps.clientNum ) {
+			if ( cg.scores[i].client == cg.playerCent->currentState.number ) {
 				CG_DrawClientScore( y, &cg.scores[i], fadeColor, fade, lineHeight == SB_NORMAL_HEIGHT );
 				break;
 			}

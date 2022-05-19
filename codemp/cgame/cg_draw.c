@@ -8335,27 +8335,30 @@ void CG_Draw2D (void) {
 	}
 
 	if (!cg.playerPredicted) {
-		cg.scoreBoardShowing = qfalse;
 		CG_Draw2DScreenTints();
 		if (cg.playerCent->currentState.time2)
 			CG_DrawHolocronIcons();
 		if (cg.playerCent->currentState.forcePowersActive)
 			CG_DrawActivePowers();
 		CG_DrawZoomMask();
-		if (!(cg.playerCent->currentState.eFlags & EF_DEAD))
+		if (!cg.showScores && !(cg.playerCent->currentState.eFlags & EF_DEAD)) {
 			CG_DrawCrosshairNames();
-		if (cg_drawStatus.integer)
-			CG_DrawFlagStatus();
-		CG_SaberClashFlare();
-		if (cg_drawStatus.integer)
-			CG_DrawHUD(cg.playerCent);
-		CG_DrawPickupItem();
+			if (cg_drawStatus.integer)
+				CG_DrawFlagStatus();
+			CG_SaberClashFlare();
+			if (cg_drawStatus.integer)
+				CG_DrawHUD(cg.playerCent);
+			CG_DrawPickupItem();
+		}
 		CG_UpdateFallVector();
 		CG_DrawVote();
 		CG_DrawUpperRight();
 		CG_DrawFollow();
 		CG_DrawTeamVote();
-		CG_DrawCenterString();
+		cg.scoreBoardShowing = CG_DrawScoreboard();
+		if (!cg.scoreBoardShowing) {
+			CG_DrawCenterString();
+		}
 		CG_ChatBox_DrawStrings();
 		CG_DrawPlayerLabels();
 		return;
