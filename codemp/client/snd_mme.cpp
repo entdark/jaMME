@@ -83,7 +83,7 @@ qboolean S_MMEAviImport(byte *out, int *size) {
         || (!shot && !depth))
 		return qfalse;
 	*size = 0;
-	if (bytesInBuf >= MME_SAMPLERATE)
+	while (bytesInBuf >= MME_SAMPLERATE)
 		bytesInBuf -= MME_SAMPLERATE;
 	if (bytesInBuf <= 0)
 		return qtrue;
@@ -133,6 +133,8 @@ void S_MMEUpdate( float scale ) {
 	if (!MME_AVIIMPORT) {
 		FS_Write( mixClip, count*4, mmeSound.fileHandle );
 	} else if (MME_AVIIMPORT) {
+		while (bytesInBuf >= MME_SAMPLERATE)
+			bytesInBuf -= MME_SAMPLERATE;
 		Com_Memcpy(&wavExportBuf[bytesInBuf], mixClip, count*4 );
 		bytesInBuf += count*4;
 	}
