@@ -661,7 +661,7 @@ void UI_DrawProportionalString( int x, int y, const char* str, int style, vec4_t
 	CG_Text_Paint(x, y, 1.0, color, str, 0, 0, iStyle, iMenuFont);
 }
 
-void UI_DrawScaledProportionalString( int x, int y, const char* str, int style, vec4_t color, float scale) 
+void UI_DrawScaledProportionalStringFloat( float x, float y, const char* str, int style, vec4_t color, float scale) 
 {
 	// having all these different style defines (1 for UI, one for CG, and now one for the re->font stuff) 
 	//	is dumb, but for now...
@@ -701,6 +701,11 @@ void UI_DrawScaledProportionalString( int x, int y, const char* str, int style, 
 	}
 
 	CG_Text_Paint(x, y, scale, color, str, 0, 0, iStyle, FONT_MEDIUM);
+}
+
+void UI_DrawScaledProportionalString( int x, int y, const char* str, int style, vec4_t color, float scale) 
+{
+	UI_DrawScaledProportionalStringFloat( x, y, str, style, color, scale );
 }
 
 

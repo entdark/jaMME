@@ -228,6 +228,9 @@ XCVAR_DEF( cg_trueMoveRoll,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_trueRoll,							"2",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_trueSaber,						"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_trueSpin,							"1",					NULL,					CVAR_ARCHIVE )
+//from eternaljk
+XCVAR_DEF( cg_drawPlayerNames,					"0",					NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_drawPlayerNamesScale,				"0.5",					NULL,					CVAR_ARCHIVE )
 //tell the server we are newmod
 XCVAR_DEF( nm_ver,								"1.6.0",				NULL,					CVAR_USERINFO )
 XCVAR_DEF( nm_flags,							"u",					NULL,					CVAR_USERINFO )

@@ -14,6 +14,7 @@ static void CG_DrawSiegeTimer(int timeRemaining, qboolean isMyTeam);
 static void CG_DrawSiegeDeathTimer( int timeRemaining );
 // nmckenzie: DUEL_HEALTH
 void CG_DrawDuelistHealth ( float x, float y, float w, float h, int duelist );
+void CG_DrawHealthBar(centity_t *cent, float chX, float chY, float chW, float chH);
 
 // used for scoreboard
 extern displayContextDef_t cgDC;
@@ -2919,6 +2920,78 @@ static void CG_DrawMovementKeys( void ) {
 		colorWhite, str2, 0.0f, 0, ITEM_TEXTSTYLE_OUTLINED, fontIndex );
 }
 
+void CG_DrawPlayerLabels(void) {
+	int			i;
+	vec3_t		pos;
+	float		x, y;
+	trace_t		trace;
+	centity_t	*cent;
+	vec3_t		origin;
+	int			clientNum = cg.playerCent ? cg.playerCent->currentState.number : -1;
+
+	if (!cg.demoPlayback && !(cg.snap->ps.pm_flags & PMF_FOLLOW))
+		return;
+
+	if (!cg_drawPlayerNames.integer)
+		return;
+
+	VectorCopy(cg.refdef.vieworg, origin);
+
+	for (i = 0; i < MAX_CLIENTS; i++) {
+		cent = &cg_entities[i];
+		if (!cent || !cent->currentValid)
+			continue;
+		if (cg.playerCent && i == clientNum)
+			continue;
+		if (cent->currentState.eFlags & EF_DEAD)
+			continue;
+		if (cent->currentState.eType != ET_PLAYER)
+			continue;
+		if (!cgs.clientinfo[i].infoValid)
+			continue;
+		if (cgs.clientinfo[i].team == TEAM_SPECTATOR)
+			continue;
+		if (CG_IsMindTricked(cent->currentState.trickedentindex,
+			cent->currentState.trickedentindex2,
+			cent->currentState.trickedentindex3,
+			cent->currentState.trickedentindex4,
+			clientNum))
+			continue;
+
+		if (DistanceSquared(cent->lerpOrigin, origin) >= 3000*3000) //Make sure distance is less than... 3000 ?
+			continue;
+
+		VectorCopy(cent->lerpOrigin, pos);
+		pos[2] += cent->pe.viewHeight;
+
+		CG_Trace(&trace, origin, NULL, NULL, pos, clientNum, CONTENTS_SOLID | CONTENTS_BODY);
+		if (!cg.demoPlayback) {
+			if (trace.entityNum == ENTITYNUM_WORLD)
+				continue;
+		} else {
+			if (cent == cg.playerCent && mov_wallhack.integer & movMaskClient) {
+			} else if (mov_wallhack.integer & movMaskPlayers) {
+			} else if (trace.entityNum == ENTITYNUM_WORLD) {
+				continue;
+			}
+		}
+
+		VectorCopy(cent->lerpOrigin, pos);
+		pos[2] += 64;
+
+		if (!CG_WorldCoordToScreenCoordFloat(pos, &x, &y)) //off-screen, don't draw it
+			continue;
+
+		y -= CG_Text_Height(cgs.clientinfo[i].name, cg_drawPlayerNamesScale.value, FONT_MEDIUM);
+
+		UI_DrawScaledProportionalStringFloat(x, y, cgs.clientinfo[i].name, UI_CENTER, colorTable[CT_WHITE], cg_drawPlayerNamesScale.value);
+
+		if (cg_drawPlayerNames.integer > 1 && cent->currentState.maxhealth)
+			CG_DrawHealthBar(cent, x, y - 16, 1, 1);
+	}
+	trap_R_SetColor(NULL);
+}
+
 /*
 ================
 CG_DrawTeamBackground
@@ -5380,8 +5453,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 
 	//draw a health bar directly under the crosshair if we're looking at something
 	//that takes damage
-	if (crossEnt &&
-		crossEnt->currentState.maxhealth) {
+	if (crossEnt && crossEnt->currentState.maxhealth && cg_drawPlayerNames.integer < 2) {//loda
 		CG_DrawHealthBar(crossEnt, chX, chY, w, h);
 		chY += HEALTH_HEIGHT*2;
 	} else if (crossEnt && crossEnt->currentState.number < MAX_CLIENTS) {
@@ -8201,6 +8273,7 @@ void CG_CameraDraw2D( void ) {
 		trap_S_UpdateEntityPosition(ENTITYNUM_NONE, cg.refdef.vieworg);
 		CG_ChatBox_DrawStrings();
 	}
+	CG_DrawPlayerLabels();
 }
 
 /*
@@ -8284,6 +8357,7 @@ void CG_Draw2D (void) {
 		CG_DrawTeamVote();
 		CG_DrawCenterString();
 		CG_ChatBox_DrawStrings();
+		CG_DrawPlayerLabels();
 		return;
 	}
 
@@ -8516,6 +8590,7 @@ skipCounter:
 	
 	// always draw chat
 	CG_ChatBox_DrawStrings();
+	CG_DrawPlayerLabels();
 }
 
 qboolean CG_CullPointAndRadius( const vec3_t pt, vec_t radius);
