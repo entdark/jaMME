@@ -437,6 +437,10 @@ void PortableInit(int argc,const char ** argv){
 	srand(time(NULL));
 }
 
+void PortableShutDown(void){
+	Com_Quit_f();
+}
+
 void PortablePrint(char *msg) {
 	LOGI("%s", msg);
 }

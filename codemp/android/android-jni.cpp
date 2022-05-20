@@ -641,6 +641,10 @@ JAVA_FUNC(init)(JNIEnv* env, jobject thiz, jobject act, jobjectArray argsArray, 
 	 initControls(640,-480,graphicpath.c_str(),(graphicpath + "/game_controls.xml").c_str());*/
 	return 0;
 }
+void EXPORT_ME
+JAVA_FUNC(shutDown)(JNIEnv* env, jobject thiz) {
+	PortableShutDown();
+}
 //TODO this is in the gles library now so can not see
 //extern int androidSwapped;
 int androidSwapped = true;

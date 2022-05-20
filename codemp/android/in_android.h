@@ -16,6 +16,7 @@ void PortableCommand(const char * cmd);
 void PortableMouse(float dx,float dy);
 void PortableMouseAbs(float x,float y);
 void PortableInit(int argc,const char ** argv);
+void PortableShutDown(void);
 void PortableFrame(void);
 int PortableInMenu(void);
 int PortableShowKeyboard(void);

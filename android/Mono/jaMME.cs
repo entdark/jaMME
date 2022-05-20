@@ -310,6 +310,12 @@ namespace android {
 				return ret;
 			}
 		}
+		public static void shutDown() {
+			Java_com_jamme_jaMME_shutDown(
+				JNIEnv.Handle,
+				jaMME.jaMMEHandle
+			);
+		}
 		public static void setScreenSize(int width, int height) {
 			Java_com_jamme_jaMME_setScreenSize(
 				JNIEnv.Handle,
@@ -415,6 +421,7 @@ namespace android {
 		[DllImport("SDL2")] public extern static void Java_org_libsdl_app_SDLActivity_nativeResume(IntPtr env, IntPtr jniClass);
 
 		[DllImport("jamme")] public extern static int Java_com_jamme_jaMME_init(IntPtr env, IntPtr jniClass, IntPtr act, IntPtr args, IntPtr game_path, IntPtr lib_path, IntPtr app_path, IntPtr abi, IntPtr abi_alt);
+		[DllImport("jamme")] public extern static void Java_com_jamme_jaMME_shutDown(IntPtr env, IntPtr jniClass);
 		[DllImport("jamme")] public extern static void Java_com_jamme_jaMME_setScreenSize(IntPtr env, IntPtr jniClass, int width, int height);
 		[DllImport("jamme")] public extern static int Java_com_jamme_jaMME_frame(IntPtr env, IntPtr jniClass);
 		[DllImport("jamme")] public extern static IntPtr Java_com_jamme_jaMME_getLoadingMsg(IntPtr env, IntPtr jniClass, IntPtr str);
@@ -603,7 +610,7 @@ namespace android {
 					}
 				}
 			}
-
+			jaMME.shutDown();
 			jaMME.nativeQuit();
 		}
 		private void stopService() {
