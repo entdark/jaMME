@@ -653,10 +653,10 @@ typedef enum {
 typedef enum {
 	PW_NONE,
 
-	#ifdef BASE_COMPAT
-		PW_QUAD,
-		PW_BATTLESUIT,
-	#endif // BASE_COMPAT
+#ifdef BASE_COMPAT
+	PW_QUAD,
+	PW_BATTLESUIT,
+#endif // BASE_COMPAT
 
 	PW_PULL,
 
@@ -861,10 +861,10 @@ typedef enum {
 	EV_DEATH3,
 	EV_OBITUARY,
 
-	#ifdef BASE_COMPAT
-		EV_POWERUP_QUAD,
-		EV_POWERUP_BATTLESUIT,
-	#endif // BASE_COMPAT
+#ifdef BASE_COMPAT
+	EV_POWERUP_QUAD,
+	EV_POWERUP_BATTLESUIT,
+#endif // BASE_COMPAT
 
 	EV_FORCE_DRAINED,
 
