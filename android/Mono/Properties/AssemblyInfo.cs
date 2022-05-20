@@ -11,7 +11,7 @@ using Android.App;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("ent")]
 [assembly: AssemblyProduct("jaMME")]
-[assembly: AssemblyCopyright("Copyright © ent 2015-2017")]
+[assembly: AssemblyCopyright("Copyright © ent 2015-2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
