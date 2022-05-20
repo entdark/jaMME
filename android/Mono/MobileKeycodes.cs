@@ -37,7 +37,7 @@ namespace android {
 			{Keycode.F10, JAKeycodes.A_F10},
 			{Keycode.F11, JAKeycodes.A_F11},
 			{Keycode.F12, JAKeycodes.A_F12},
-			{Keycode.ForwardDel, JAKeycodes.A_BACKSPACE},
+			{Keycode.ForwardDel, JAKeycodes.A_DELETE},
 			{Keycode.Insert, JAKeycodes.A_INSERT},
 			{Keycode.PageUp, JAKeycodes.A_PAGE_UP},
 			{Keycode.PageDown, JAKeycodes.A_PAGE_DOWN},
@@ -90,7 +90,8 @@ namespace android {
 			{Keycode.Slash, JAKeycodes.A_FORWARD_SLASH},
 			{Keycode.Backslash, JAKeycodes.A_BACKSLASH},
 			{Keycode.LeftBracket, JAKeycodes.A_OPEN_SQUARE},
-			{Keycode.RightBracket, JAKeycodes.A_CLOSE_SQUARE}
+			{Keycode.RightBracket, JAKeycodes.A_CLOSE_SQUARE},
+			{Keycode.Grave, JAKeycodes.A_CONSOLE}
 		};
 
 		public static int GetMobileKey(Keycode acode, int unicode) {
