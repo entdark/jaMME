@@ -1200,7 +1200,7 @@ qboolean CG_DemosKeyEvent(int key, qboolean down) {
 			}
 		//Progress in range
 		} else if (hud.cursorY >= SCREEN_HEIGHT-5) {
-			float time = hud.cursorX / SCREEN_WIDTH;
+			double time = hud.cursorX / SCREEN_WIDTH;
 			time *= demo.length;
 			time /= 1000;
 			trap_SendConsoleCommand(va("seek %f\n", time));
