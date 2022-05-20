@@ -757,7 +757,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	demoProcessSnapShots( hadSkip );
 	trap_ROFF_UpdateEntities();
 
-	if ( !cg.snap ) {
+	if ( !cg.snap || !cg.spawned ) {
 		CG_DrawInformation();
 		return;
 	}

@@ -442,4 +442,5 @@ void CG_ParseEntitiesFromString( void ) {
 	}
 
 	cg.spawning = qfalse; // any future calls to CG_Spawn*() will be errors
+	cg.spawned = qtrue;
 }

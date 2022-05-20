@@ -1078,6 +1078,7 @@ Ghoul2 Insert End
 	char *spawnVars[MAX_SPAWN_VARS][2];	// key / value pairs
 	int numSpawnVarChars;
 	char spawnVarChars[MAX_SPAWN_VARS_CHARS];
+	qboolean spawned;
 
 	int					eventTime;
 	int					eventOldTime;
