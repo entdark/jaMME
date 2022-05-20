@@ -687,7 +687,7 @@ JAVA_FUNC(textPaste)(JNIEnv *env, jobject obj, jstring paste) {
 	PortableTextPaste(p.c_str());
 }
 jstring EXPORT_ME
-JAVA_FUNC(getLoadingMsg)(JNIEnv *env, jobject obj, jstring paste) {
+JAVA_FUNC(getLoadingMsg)(JNIEnv *env, jobject obj) {
 	return env->NewStringUTF(loadingMsg);
 }
 /*

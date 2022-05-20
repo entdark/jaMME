@@ -333,8 +333,7 @@ namespace android {
 			using (var s = new Java.Lang.String("DELETEME"))
 			using (var obj = Java.Lang.Object.GetObject<Java.Lang.Object>(Java_com_jamme_jaMME_getLoadingMsg(
 					JNIEnv.Handle,
-					jaMME.jaMMEHandle,
-					s.Handle
+					jaMME.jaMMEHandle
 			), JniHandleOwnership.DoNotTransfer))
 				return obj.ToString();
 		}
@@ -423,7 +422,7 @@ namespace android {
 		[DllImport("jamme")] public extern static void Java_com_jamme_jaMME_shutDown(IntPtr env, IntPtr jniClass);
 		[DllImport("jamme")] public extern static void Java_com_jamme_jaMME_setScreenSize(IntPtr env, IntPtr jniClass, int width, int height);
 		[DllImport("jamme")] public extern static int Java_com_jamme_jaMME_frame(IntPtr env, IntPtr jniClass);
-		[DllImport("jamme")] public extern static IntPtr Java_com_jamme_jaMME_getLoadingMsg(IntPtr env, IntPtr jniClass, IntPtr str);
+		[DllImport("jamme")] public extern static IntPtr Java_com_jamme_jaMME_getLoadingMsg(IntPtr env, IntPtr jniClass);
 		[DllImport("jamme")] public extern static void Java_com_jamme_jaMME_keypress(IntPtr env, IntPtr jniClass, int down, int qkey, int unicode);
 		[DllImport("jamme")] public extern static void Java_com_jamme_jaMME_textPaste(IntPtr env, IntPtr jniClass, IntPtr paste);
 		[DllImport("jamme")] public extern static void Java_com_jamme_jaMME_doAction(IntPtr env, IntPtr jniClass, int state, int action);

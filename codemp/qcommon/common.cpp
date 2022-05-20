@@ -1309,8 +1309,7 @@ char loadingMsg[64] = "Loading...";
 void Com_SetLoadingMsg(char *msg) {
 	if (!msg)
 		return;
-	memset(loadingMsg, 0, sizeof(loadingMsg));
-	Com_sprintf(loadingMsg, sizeof(loadingMsg), msg);
+	Q_strncpyz(loadingMsg, msg, sizeof(loadingMsg));
 }
 /*
 =================
