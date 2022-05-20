@@ -825,7 +825,8 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	VectorClear(cg.lastFPFlashPoint);
 
 	CG_CalcScreenEffects();
-
+	
+	scriptRun( hadSkip );
 	CG_AddPacketEntities(qfalse);	// adter calcViewValues, so predicted player state is correct
 	CG_AddMarks();
 	CG_AddParticles ();
@@ -1104,10 +1105,10 @@ static void demoEditCommand_f(void) {
 		demo.editType = editAnim;
 		CG_DemosAddLog("Editing animation");
 #endif
-/*	} else if (!Q_stricmp(cmd, "script")) {
+	} else if (!Q_stricmp(cmd, "script")) {
 		demo.editType = editScript;
 		CG_DemosAddLog("Editing script");
-	} else if (!Q_stricmp(cmd, "effect")) {
+/*	} else if (!Q_stricmp(cmd, "effect")) {
 		if ( demo.cmd.upmove > 0 ) {
 			demoViewCommand_f();
 			return;
@@ -1133,10 +1134,10 @@ static void demoEditCommand_f(void) {
 			demoAnimCommand_f();
 			break;
 #endif
-/*		case editScript:
+		case editScript:
 			demoScriptCommand_f();
 			break;
-		case editEffect:
+/*		case editEffect:
 			demoEffectCommand_f();
 			break;
 */		}
@@ -1353,6 +1354,7 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("view");
 	trap_AddCommand("chase");
 	trap_AddCommand("dof");
+	trap_AddCommand("script");
 #ifdef DEMO_ANIM
 	trap_AddCommand("anim");
 #endif
@@ -1560,6 +1562,8 @@ qboolean CG_DemosConsoleCommand( void ) {
 		demoDofCommand_f();
 	} else if (!Q_stricmp(cmd, "chase")) {
 		demoChaseCommand_f();
+	} else if (!Q_stricmp(cmd, "script")) {
+		demoScriptCommand_f();
 #ifdef DEMO_ANIM
 	} else if (!Q_stricmp(cmd, "anim")) {
 		demoAnimCommand_f();

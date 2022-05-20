@@ -16,7 +16,7 @@ typedef enum {
 	editDof,
 	editAnim,
 //	editEffect,
-//	editScript,
+	editScript,
 	editLast,
 } demoEditType_t;
 
@@ -57,6 +57,15 @@ typedef struct demoChasePoint_s {
 	int				time;
 	float			len;
 } demoChasePoint_t;
+
+#define DEMO_SCRIPT_SIZE 80
+
+typedef struct demoScriptPoint_s {
+	struct			demoScriptPoint_s *next, *prev;
+	int				time;
+	char			init[DEMO_SCRIPT_SIZE];
+	char			run[DEMO_SCRIPT_SIZE];
+} demoScriptPoint_t;
 
 #define MAX_BONES 72
 
@@ -141,6 +150,13 @@ typedef struct demoMain_s {
 		demoDofPoint_t *points;
 	} dof;
 	struct {
+		int			start, end;
+		qboolean	locked;
+		float		timeShift;
+		int			shiftWarn;
+		demoScriptPoint_t *points;
+	} script;
+	struct {
 		int			time;
 		int			oldTime;
 		int			lastTime;
@@ -221,6 +237,12 @@ demoLinePoint_t *linePointSynch(int playTime);
 void lineAt(int playTime, float playFraction, int *demoTime, float *demoFraction, float *demoSpeed );
 qboolean lineParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data);
 void lineSave( fileHandle_t fileHandle );
+
+void demoScriptCommand_f(void);
+demoScriptPoint_t *scriptPointSynch( int time );
+void scriptRun( qboolean hadSkip );
+qboolean scriptParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data);
+void scriptSave( fileHandle_t fileHandle );
 
 void demoMovePoint( vec3_t origin, vec3_t velocity, vec3_t angles);
 void demoMoveDirection( vec3_t origin, vec3_t angles );

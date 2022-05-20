@@ -86,6 +86,7 @@ JK3_SRC = \
 	../../${MPDir}/cgame/cg_demos_line.c \
 	../../${MPDir}/cgame/cg_demos_math.c \
 	../../${MPDir}/cgame/cg_demos_move.c \
+	../../${MPDir}/cgame/cg_demos_script.c \
 	../../${MPDir}/cgame/cg_demos_weather.c \
 	../../${MPDir}/cgame/bg_demos.c \
 	\

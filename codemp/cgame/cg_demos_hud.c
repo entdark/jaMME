@@ -90,15 +90,15 @@ typedef enum {
 	hudAnimPitch, hudAnimYaw, hudAnimRoll,
 #endif
 
-//	hudScriptInit,
-//	hudScriptRun,
+	hudScriptInit,
+	hudScriptRun,
 
 	hudLogBase
 } hudHandler_t;
 
 
 #define MASK_CAM				0x00010
-//#define MASK_SCRIPT				0x00100
+#define MASK_SCRIPT				0x00100
 //#define MASK_EFFECT				0x00200
 #define MASK_CAPTURE			0x00020
 #define MASK_LINE				0x00040
@@ -125,6 +125,8 @@ typedef enum {
 #define MASK_CHASE_POINT		( MASK_CHASE | MASK_POINT )
 
 #define MASK_DOF_EDIT			( MASK_DOF | MASK_EDIT )
+
+#define MASK_SCRIPT_POINT		( MASK_SCRIPT | MASK_POINT )
 
 #ifdef DEMO_ANIM
 #define MASK_ANIM_EDIT			( MASK_ANIM | MASK_EDIT )
@@ -163,8 +165,8 @@ static struct {
 		int *flags;
 		demoEffectPoint_t *point;
 	} effect;
-	demoScriptPoint_t *scriptPoint;
-*/	demoLinePoint_t *linePoint;
+*/	demoScriptPoint_t *scriptPoint;
+	demoLinePoint_t *linePoint;
 	const char	*logLines[LOGLINES];
 } hud;
 
@@ -412,10 +414,10 @@ static void hudGetHandler( hudItem_t *item, char *buf, int bufSize ) {
 			Com_sprintf( buf, bufSize, "Anim%s", demo.anim.locked ? " locked" : "" );
 			break;
 #endif
-/*		case editScript:
+		case editScript:
 			Com_sprintf( buf, bufSize, "Script%s", demo.script.locked ? " locked" : "" );
 			break;
-		case editEffect:
+/*		case editEffect:
 			effectCount = 0;
 			effectParent = demo.effect.list;
 			while ( effectParent && effectParent != demo.effect.active ) {
@@ -545,15 +547,15 @@ static void hudGetHandler( hudItem_t *item, char *buf, int bufSize ) {
 	}
 }
 
-/*	//only effects required typing text and we don't use them
+
 static void hudGetText( hudItem_t *item, char *buf, int bufSize, qboolean edit ) {
-	demoEffectParent_t *parent = demo.effect.active;
-	int i;
-	unsigned char c[4];
+//	demoEffectParent_t *parent = demo.effect.active;
+//	int i;
+//	unsigned char c[4];
 
 	buf[0] = 0;
 	switch ( item->handler ) {
-	case hudEffectScript:
+/*	case hudEffectScript:
 		if (!parent)
 			break;
 		Q_strncpyz( buf, parent->scriptName, bufSize );
@@ -574,7 +576,7 @@ static void hudGetText( hudItem_t *item, char *buf, int bufSize, qboolean edit )
 		for ( i = 0;i<4;i++)
 			c[i] = hud.effect.color[i] * 255;
 		Com_sprintf( buf, bufSize, "%02X%02X%02X%02X", c[0], c[1], c[2], c[3] );
-		break;
+		break;*/
 	case hudScriptInit:
 		if (!hud.scriptPoint )
 			break;
@@ -589,11 +591,11 @@ static void hudGetText( hudItem_t *item, char *buf, int bufSize, qboolean edit )
 }
 
 static void hudSetText( hudItem_t *item, const char *buf ) {
-	int i, val;
-	demoEffectParent_t *parent = demo.effect.active;
+//	int i, val;
+//	demoEffectParent_t *parent = demo.effect.active;
 	
 	switch ( item->handler ) {
-	case hudEffectScript:
+/*	case hudEffectScript:
 		if (!parent)
 			break;
 		Q_strncpyz( parent->scriptName, buf, sizeof( parent->scriptName ));
@@ -633,7 +635,7 @@ static void hudSetText( hudItem_t *item, const char *buf ) {
 				val = readHex << 4;
 			}
 		}
-		break;
+		break;*/
 	case hudScriptInit:
 		if (!hud.scriptPoint )
 			break;
@@ -646,7 +648,7 @@ static void hudSetText( hudItem_t *item, const char *buf ) {
 		break;
 	}
 }
-*/
+
 static float hudItemWidth( hudItem_t *item  ) {
 	char buf[512];
 	float w, *f;
@@ -658,11 +660,11 @@ static float hudItemWidth( hudItem_t *item  ) {
 		hudGetHandler( item, buf, sizeof(buf) );
 		w += strlen( buf ) * HUD_TEXT_WIDTH_RATIO;
 		break;
-/*	case hudTypeText:
+	case hudTypeText:
 		hudGetText( item, buf, sizeof(buf), qfalse );
 		w += strlen( buf ) * HUD_TEXT_WIDTH_RATIO;
 		break;
-*/	case hudTypeValue:
+	case hudTypeValue:
 		Com_sprintf( buf, sizeof( buf ), HUD_FLOAT, item->value[0]);
 		w += strlen( buf ) * HUD_TEXT_WIDTH_RATIO;
 		break;
@@ -734,11 +736,11 @@ static void hudDrawItem( hudItem_t *item ) {
 		hudGetHandler( item, buf, sizeof( buf ));
 		hudDrawText( x, y, buf, colorWhite );
 		break;
-/*	case hudTypeText:
+	case hudTypeText:
 		hudGetText( item, buf, sizeof(buf), qfalse );
 		hudDrawText( x, y, buf, colorWhite );
 		break;
-*/	case hudTypeValue:
+	case hudTypeValue:
 		Com_sprintf( buf, sizeof( buf ), HUD_FLOAT, item->value[0] );
 		hudDrawText( x, y, buf, colorWhite );
 		break;
@@ -822,7 +824,7 @@ void hudDraw( void ) {
 */	case editLine:
 		hud.showMask = MASK_LINE;
 		break;
-/*	case editScript:
+	case editScript:
 		hud.showMask = MASK_SCRIPT;
 		hud.scriptPoint = scriptPointSynch( demo.play.time );
 		if ( !hud.scriptPoint || hud.scriptPoint->time != demo.play.time || demo.play.fraction ) {
@@ -831,7 +833,7 @@ void hudDraw( void ) {
 			hud.showMask |= MASK_POINT;
 		}
 		break;
-*/	case editChase:
+	case editChase:
 		hud.showMask = MASK_CHASE;
 		if ( demo.chase.locked ) {
 			hud.chase.point = chasePointSynch(  demo.play.time );
@@ -1063,8 +1065,8 @@ void hudInitTables(void) {
 	hudAddHandler(   0,   5, MASK_LINE, "Offset:", hudLineOffset );
 	hudAddHandler(   0,   6, MASK_LINE, "Speed:", hudLineSpeed );
 
-//	hudAddText( 0, 4 , MASK_SCRIPT_POINT, "Init:", hudScriptInit );
-//	hudAddText( 0, 5 , MASK_SCRIPT_POINT, "Run:", hudScriptRun );
+	hudAddText( 0, 4 , MASK_SCRIPT_POINT, "Init:", hudScriptInit );
+	hudAddText( 0, 5 , MASK_SCRIPT_POINT, "Run:", hudScriptRun );
 
 	// Capture items
 	hudAddHandler(   0,   8, MASK_LINE, "Start:", hudLineStart );
@@ -1131,10 +1133,10 @@ static void hudEditItem( hudItem_t *item, const char *buf ) {
 	case hudTypeCvar:
 		trap_Cvar_Set( item->cvar, buf );
 		break;
-/*	case hudTypeText:
+	case hudTypeText:
 		hudSetText( item, buf );
 		break;
-*/	}
+	}
 }
 
 qboolean CG_DemosKeyEvent(int key, qboolean down) {
@@ -1176,13 +1178,13 @@ qboolean CG_DemosKeyEvent(int key, qboolean down) {
 				hud.edit.item = item;
 				trap_Key_SetCatcher( KEYCATCH_CGAME | (catchMask &~KEYCATCH_CGAMEEXEC));
 				break;
-/*			case hudTypeText:
+			case hudTypeText:
 				hudGetText( item, hud.edit.line, sizeof( hud.edit.line ), qtrue );
 				hud.edit.cursor = strlen( hud.edit.line );
 				hud.edit.item = item;
 				trap_Key_SetCatcher( KEYCATCH_CGAME | (catchMask &~KEYCATCH_CGAMEEXEC));
 				break;
-*/			case hudTypeButton:
+			case hudTypeButton:
 				hudToggleButton( item, 1 );
 				break;
 			case hudTypeCheck:

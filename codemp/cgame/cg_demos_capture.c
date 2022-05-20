@@ -279,6 +279,7 @@ void captureSave( fileHandle_t fileHandle ) {
 static BG_XMLParseBlock_t loadBlock[] = {
 	{	"camera",	cameraParse,	0	},
 	{	"chase",	chaseParse,		0,	},
+	{	"script",	scriptParse,	0,	},
 	{	"line",		lineParse,		0,	},
 	{	"dof",		dofParse,		0	},
 	{	"weather",	weatherParse,	0	},
@@ -319,6 +320,7 @@ qboolean demoProjectSave( const char *baseName ) {
 	captureSave( fileHandle );
 	cameraSave( fileHandle );
 	chaseSave( fileHandle );
+	scriptSave( fileHandle );
 	lineSave( fileHandle );
 	dofSave( fileHandle );
 	weatherSave( fileHandle );
