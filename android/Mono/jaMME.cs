@@ -31,7 +31,7 @@ namespace android {
 		Icon = "@drawable/icon",
 		ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.KeyboardHidden,
 		Theme = "@android:style/Theme.NoTitleBar.Fullscreen",
-		NoHistory = true,
+		NoHistory = false,
 		WindowSoftInputMode = SoftInput.AdjustPan,
 		LaunchMode = LaunchMode.SingleTop,
 		ScreenOrientation = ScreenOrientation.SensorLandscape
@@ -81,7 +81,7 @@ namespace android {
 
 		private Vibrator vibrator;
 		private float density = 1.0f;
-		private bool gameReady = false;
+		private bool gameReady = false, inited = false;
 		private string gamePath, gameArgs = "", demoName = null;
 		private Intent service;
 		public static bool ServiceRunning = false, KillService = false, GameRunning = false;
@@ -412,6 +412,19 @@ namespace android {
 				jaMME.jaMMEHandle
 			);
 		}
+		public static int hasNotifications() {
+			return Java_com_jamme_jaMME_hasNotifications(
+				JNIEnv.Handle,
+				jaMME.jaMMEHandle
+			);
+		}
+		public static string getNotificationMsg() {
+			using (var obj = Java.Lang.Object.GetObject<Java.Lang.Object>(Java_com_jamme_jaMME_getNotificationMsg(
+					JNIEnv.Handle,
+					jaMME.jaMMEHandle
+			), JniHandleOwnership.DoNotTransfer))
+			return obj.ToString();
+		}
 
 		[DllImport("SDL2")] public extern static void Java_org_libsdl_app_SDLActivity_nativeInit(IntPtr env, IntPtr jniClass, IntPtr obj);
 		[DllImport("SDL2")] public extern static void Java_org_libsdl_app_SDLActivity_nativeQuit(IntPtr env, IntPtr jniClass);
@@ -436,6 +449,9 @@ namespace android {
 		[DllImport("jamme")] public extern static int Java_com_jamme_jaMME_demoGetTime(IntPtr env, IntPtr jniClass);
 		/* FEEDBACK */
 		[DllImport("jamme")] public extern static int Java_com_jamme_jaMME_vibrateFeedback(IntPtr env, IntPtr jniClass);
+		/* NOTIFICATIONS */
+		[DllImport("jamme")] public extern static int Java_com_jamme_jaMME_hasNotifications(IntPtr env, IntPtr jniClass);
+		[DllImport("jamme")] public extern static IntPtr Java_com_jamme_jaMME_getNotificationMsg(IntPtr env, IntPtr jniClass);
 		private void vibrate() {
 			long time = vibrateFeedback();
 			if (time > 5)
@@ -504,7 +520,7 @@ namespace android {
 			base.OnCreate(savedInstanceState);
 
 			jaMME.NullJavaObject(jaMME.Context);
-			jaMME.Context = this.ApplicationContext;
+			jaMME.Context = this;
 
 			JavaSystem.LoadLibrary("SDL2");
 			JavaSystem.LoadLibrary("jamme");
@@ -519,7 +535,7 @@ namespace android {
 			this.Window.SetFlags(WindowManagerFlags.KeepScreenOn, WindowManagerFlags.KeepScreenOn);
 			jaMME.NullJavaObject(this.view);
 			this.view = new jaMMEView(this);
-			this.view.SetEGLConfigChooser(new BestEglChooser(this.ApplicationContext));
+			this.view.SetEGLConfigChooser(new BestEglChooser(this));
 			this.view.SetRenderer(this.renderer);
 			this.view.KeepScreenOn = true;
 			this.SetContentView(view);
@@ -554,13 +570,13 @@ namespace android {
 		}
 		protected override void OnPause() {
 			Log.Info("jaMME", "OnPause");
-			base.OnPause();
 //			view.OnPause();
 			if (gameReady) {
 				this.service = new Intent(this, typeof(jaMMEService));
 				this.StartService(this.service);
 				jaMME.nativePause();
 			}
+			base.OnPause();
 		}
 		protected override void OnResume() {
 			Log.Info("jaMME", "OnResume");
@@ -570,6 +586,8 @@ namespace android {
 			if (gameReady) {
 				jaMME.nativeResume();
 			}
+			var notificationManager = NotificationManager.FromContext(this);
+			notificationManager.CancelAll();
 		}
 		protected override void OnRestart() {
 			Log.Info("jaMME", "OnRestart");
@@ -595,7 +613,6 @@ namespace android {
 			do {
 				this.flags = jaMME.frame();
 			} while ((flags & DEMO_PLAYBACK) != 0);
-
 			//if user closed the application from OS side on the demo playback after opening them externally
 			if (gamePath != null && demoName != null) {
 				int i = 0;
@@ -1567,6 +1584,7 @@ namespace android {
 		}
 
 		public static void NullJavaObject(Java.Lang.Object obj) {
+			return;
 			if (obj != null) {
 				obj.Dispose();
 				obj = null;

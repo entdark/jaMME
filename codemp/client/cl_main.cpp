@@ -83,6 +83,7 @@ cvar_t	*cl_autoDemoFormat;
 #ifndef _WIN32
 cvar_t	*cl_consoleKeys;
 #endif
+cvar_t	*cl_notify;
 
 vec3_t cl_windVec;
 
@@ -2246,6 +2247,57 @@ void CL_CheckUserinfo( void ) {
 
 }
 
+void CL_CheckNotification( void ) {
+	const char	*cmd;
+	int			i;
+	int			flags;
+	if ( cl_notify->modified ) {
+		cl_notify->modified = qfalse;
+		cls.notification.flags = flags = NOTIFICATION_NONE;
+		Cmd_TokenizeString( cl_notify->string );
+		if ( Cmd_Argc() == 0 ){
+			return;
+		}
+		cls.notification.playersCount = 0;
+		cls.notification.wordsCount = 0;
+		for ( i = 0; i < Cmd_Argc( ); i++ ) {
+			cmd = Cmd_Argv( i );
+			if ( !Q_stricmp( cmd, "flash" ) ) {
+				flags |= NOTIFICATION_FLASH;
+			} else if ( !Q_stricmp( cmd, "text" ) ) {
+				flags |= NOTIFICATION_TEXT;
+			} else if ( !Q_stricmp( cmd, "console" ) ) {
+				flags |= NOTIFICATION_CONSOLE;
+			} else if ( !Q_stricmp( cmd, "vote" ) ) {
+				flags |= NOTIFICATION_VOTE;
+			} else if ( !Q_stricmp( cmd, "pm" ) ) {
+				flags |= NOTIFICATION_PM;
+			} else if ( !Q_stricmp( cmd, "connect" ) ) {
+				flags |= NOTIFICATION_CONNECT;
+			} else if ( !Q_stricmp( cmd, "restart" ) ) {
+				flags |= NOTIFICATION_RESTART;
+			} else if ( !Q_stricmp( cmd, "round" ) ) {
+				flags |= NOTIFICATION_ROUND;
+			} else if ( !Q_stricmpn( cmd, "players=", 8 ) ) {
+				const char *playersCountStr = strchr( cmd, '=' );
+				if ( playersCountStr && ( playersCountStr[ 1 ] ) != 0 ) {
+					cls.notification.playersCount = atoi( playersCountStr + 1 );
+					flags |= NOTIFICATION_PLAYERS;
+				}
+			} else if ( cls.notification.wordsCount < NOTIFICATION_WORDS_MAX ) {
+				char *buf = (char *)&cls.notification.words[ cls.notification.wordsCount++ ];
+				Q_strncpyz( buf, cmd, MAX_STRING_CHARS );
+				flags |= NOTIFICATION_WORD;
+			}
+		}
+		//if any of the above set but nothing of flash, text, console set then they all are set by default
+		if ( flags && !(flags & NOTIFICATION_FULL) ) {
+			flags |= NOTIFICATION_FULL;
+		}
+		cls.notification.flags = flags;
+	}
+}
+
 /*
 ==================
 CL_Frame
@@ -2259,6 +2311,9 @@ void CL_Frame(int msec) {
 	if (!com_cl_running->integer) {
 		return;
 	}
+
+	CL_CheckNotification();
+
 #ifdef USE_CURL
 	if(clc.curl.downloadCURLM) {
 		CL_cURL_PerformDownload();
@@ -2486,6 +2541,14 @@ void CL_StartHunkUsers( void ) {
 		cls.uiStarted = qtrue;
 		CL_InitUI();
 	}
+}
+
+void CL_ShowNotification( const char *message ) {
+	Com_ShowNotification( message, cls.notification.flags );
+}
+void CL_ShowNotification2( const char *message, const int flag ) {
+	if ( cls.notification.flags & flag )
+		CL_ShowNotification( message );
 }
 
 /*
@@ -2843,6 +2906,8 @@ void CL_Init( void ) {
 	// ~ and `, as keys and characters
 	cl_consoleKeys = Cvar_Get( "cl_consoleKeys", "~ ` 0x7e 0x60", CVAR_ARCHIVE);
 #endif
+	cl_notify = Cvar_Get("cl_notify", "", CVAR_ARCHIVE);
+	cl_notify->modified = qtrue;
 
 	// userinfo
 	Cvar_Get ("name", "Padawan", CVAR_USERINFO | CVAR_ARCHIVE );

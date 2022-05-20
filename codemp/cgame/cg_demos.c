@@ -37,6 +37,8 @@ extern void trap_CIN_AdjustTime( int time );
 extern void trap_MME_VibrateFeedback( int time );
 extern float trap_MME_ProgressTime( void );
 extern int trap_MME_DemoLength( void );
+extern void trap_MME_ShowNotification( const char *message, const int flags );
+void CG_ShowNotification( const char *message, const int flag );
 int lastMusicStart;
 
 static void demoSynchMusic( int start, float length ) {
@@ -1009,6 +1011,7 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	}
 
 	if ( demo.capture.active && demo.capture.locked && demo.play.time > demo.capture.end  ) {
+		CG_ShowNotification( va( "Capturing %s ended", mov_captureName.string ), NOTIFICATION_CAPTURE_END );
 		Com_Printf( "Capturing ended\n" );
 		if (demo.autoLoad) {
 			trap_SendConsoleCommand( "disconnect\n" );
@@ -1409,13 +1412,49 @@ void demoPlaybackInit(void) {
 			demo.play.time = demo.capture.start - 1000;
 			demo.capture.locked = qtrue;
 			demo.capture.active = qtrue;
+			CG_ShowNotification( va( "Capturing %s started", mov_captureName.string ), NOTIFICATION_CAPTURE_START );
 		} else {
 			trap_Error( va("Couldn't load project %s\n", projectFile ));
 		}
 	}
 }
 
+void CG_CheckNotification( void ) {
+	const char	*cmd;
+	char		notifyStr[MAX_CVAR_VALUE_STRING];
+	int			flags = NOTIFICATION_NONE;
+	Q_strncpyz( notifyStr, mov_notify.string, sizeof( notifyStr ) );
+	cmd = strtok( notifyStr, " " );
+	while ( cmd ) {
+		if ( !Q_stricmp( cmd, "flash" ) ) {
+			flags |= NOTIFICATION_FLASH;
+		} else if ( !Q_stricmp( cmd, "text" ) ) {
+			flags |= NOTIFICATION_TEXT;
+		} else if ( !Q_stricmp( cmd, "console" ) ) {
+			flags |= NOTIFICATION_CONSOLE;
+		} else if ( !Q_stricmp( cmd, "captureStart" ) ) {
+			flags |= NOTIFICATION_CAPTURE_START;
+		} else if ( !Q_stricmp( cmd, "captureEnd" ) ) {
+			flags |= NOTIFICATION_CAPTURE_END;
+		} else if ( !Q_stricmp( cmd, "find" ) ) {
+			flags |= NOTIFICATION_FIND;
+		}
+		cmd = strtok( NULL, " " );
+	}
+	//if any of the above set but nothing of flash, text, console set then they all are set by default
+	if ( flags && !(flags & NOTIFICATION_FULL) ) {
+		flags |= NOTIFICATION_FULL;
+	}
+	demo.notification.flags = flags;
+}
+
+void CG_ShowNotification( const char *message, const int flag ) {
+	if ( demo.notification.flags & flag )
+		trap_MME_ShowNotification( message, demo.notification.flags );
+}
+
 void CG_DemoEntityEvent( const centity_t* cent ) {
+	const char *message = "something";
 	qboolean found = qfalse, splash = qfalse;
 	int target = cent->currentState.otherEntityNum;
 	int attacker = cent->currentState.otherEntityNum2;
@@ -1442,6 +1481,7 @@ void CG_DemoEntityEvent( const centity_t* cent ) {
 			case MOD_THERMAL:
 			case MOD_CONC_ALT:
 				found = qtrue;
+				message = "direct kill";
 			}
 			break;
 		case findAirkill:
@@ -1462,17 +1502,21 @@ void CG_DemoEntityEvent( const centity_t* cent ) {
 				//and not self-kill
 				&& target != attacker) {
 				int groundEntityNum = cg_entities[target].currentState.groundEntityNum;
-				if (groundEntityNum == -1 || groundEntityNum == ENTITYNUM_NONE)
+				if (groundEntityNum == -1 || groundEntityNum == ENTITYNUM_NONE) {
 					found = qtrue;
+					message = "air kill";
+				}
 			}
 			break;
 		case findObituary:
 			found = qtrue;
+			message = "death";
 			break;
 		}
 		break;
 	}
 	if (found) {
+		CG_ShowNotification( va( "Found %s", message ), NOTIFICATION_FIND );
 		demo.play.paused = qtrue;
 		demo.find.type = findNone;
 	}

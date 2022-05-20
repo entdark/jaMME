@@ -1328,5 +1328,8 @@ int trap_MME_DemoLength( void ) {
 	return Q_syscall( CG_MME_DEMOLENGTH );
 }
 void trap_MME_RequestFeatures( void ) {
-	return Q_syscall( CG_MME_REQUESTFEATURES );
+	Q_syscall( CG_MME_REQUESTFEATURES );
+}
+void trap_MME_ShowNotification( const char *message, const int flags ) {
+	Q_syscall( CG_MME_NOTIFICATION, message, flags );
 }

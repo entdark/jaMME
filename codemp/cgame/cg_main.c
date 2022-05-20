@@ -632,6 +632,7 @@ int					cg_numpermanents = 0;
 weaponInfo_t		cg_weapons[MAX_WEAPONS];
 itemInfo_t			cg_items[MAX_ITEMS];
 
+extern void CG_CheckNotification(void);
 
 extern void trap_MME_FontRatioFix( float ratio );
 static void CG_Set2DRatio(void) {
@@ -3189,6 +3190,8 @@ Ghoul2 Insert End
 	CG_Set2DRatio();
 
 	CG_MultiSpecInit();
+
+	CG_CheckNotification();
 
 	//Raz: warn for poor settings
 	trap_Cvar_VariableStringBuffer( "rate", buf, sizeof( buf ) );

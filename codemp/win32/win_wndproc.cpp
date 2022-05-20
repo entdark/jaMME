@@ -15,6 +15,7 @@ WinVars_t	g_wv;
 
 static UINT MSH_MOUSEWHEEL;
 extern UINT MSH_BROADCASTARGS;
+extern UINT MSG_SHOWNOTIFICATION;
 
 // Console variables that we need to access from this module
 cvar_t			*vid_xpos;			// X coordinate of window position
@@ -402,7 +403,12 @@ LONG WINAPI MainWndProc (
 			Com_AddStartupCommands();
 //			Cbuf_ExecuteText(EXEC_APPEND, args);
 		}
-		SwitchToThisWindow(hWnd, FALSE);
+		SetForegroundWindow(hWnd);
+        return DefWindowProc (hWnd, uMsg, wParam, lParam);
+	} else if (uMsg == MSG_SHOWNOTIFICATION) {
+		if (lParam == NIN_BALLOONUSERCLICK) {
+			SetForegroundWindow(hWnd);
+		}
         return DefWindowProc (hWnd, uMsg, wParam, lParam);
 	}
 
@@ -654,7 +660,7 @@ LONG WINAPI MainWndProc (
 				break;
 		}
 		DragFinish(hDrop);}
-		SwitchToThisWindow(hWnd, FALSE);
+		SetForegroundWindow(hWnd);
 		break;
    }
 

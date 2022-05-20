@@ -781,6 +781,8 @@ extern	fileHandle_t	logfile;
 extern	fileHandle_t	com_journalFile;
 extern	fileHandle_t	com_journalDataFile;
 
+void Com_ShowNotification( const char *message, const int flags );
+
 /*
 typedef enum {
 	TAG_FREE,
@@ -1097,6 +1099,8 @@ void	Sys_EndProfiling( void );
 
 qboolean Sys_LowPhysicalMemory();
 unsigned int Sys_ProcessorCount();
+
+void Sys_ShowNotification( const char *message, const int flags );
 
 /* This is based on the Adaptive Huffman algorithm described in Sayood's Data
  * Compression book.  The ranks are not actually stored, but implicitly defined

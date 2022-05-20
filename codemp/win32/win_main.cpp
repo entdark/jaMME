@@ -18,12 +18,49 @@
 #define MEM_THRESHOLD 128*1024*1024
 
 UINT MSH_BROADCASTARGS;
+UINT MSG_SHOWNOTIFICATION;
 
 //static char		sys_cmdline[MAX_STRING_CHARS];
 
 /* win_shared.cpp */
 void Sys_SetBinaryPath(const char *path);
 char *Sys_BinaryPath(void);
+
+/*
+==================
+Sys_ShowNotification
+==================
+*/
+//#include <CommCtrl.h>
+void Sys_ShowNotification( const char *message, const int flags ) {
+	if (flags & NOTIFICATION_FLASH) {
+		static FLASHWINFO fi = {};
+		if (!fi.cbSize) {
+			fi.cbSize = sizeof(fi);
+			fi.hwnd = g_wv.hWnd;
+			fi.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG;
+		}
+		FlashWindowEx(&fi);
+	}
+    
+	if (flags & NOTIFICATION_TEXT) {
+		static NOTIFYICONDATA nid = {};
+		if (!nid.cbSize) {
+			nid.cbSize = sizeof(nid);
+			nid.hWnd = g_wv.hWnd;
+			nid.uFlags = NIF_ICON | NIF_INFO | NIF_MESSAGE;
+			nid.uCallbackMessage = MSG_SHOWNOTIFICATION = RegisterWindowMessage("MSG_SHOWNOTIFICATION");
+			nid.hIcon = LoadIcon(g_wv.hInstance, MAKEINTRESOURCE(IDI_ICON1));
+			Q_strncpyz(nid.szInfo, message, ARRAYSIZE(nid.szInfo));
+			Shell_NotifyIcon(NIM_ADD, &nid);
+			nid.uVersion = NOTIFYICON_VERSION_4;
+			Shell_NotifyIcon(NIM_SETVERSION, &nid);
+		} else {
+			Q_strncpyz(nid.szInfo, message, ARRAYSIZE(nid.szInfo));
+			Shell_NotifyIcon(NIM_MODIFY, &nid);
+		}
+	}
+}
 
 /*
 ==================

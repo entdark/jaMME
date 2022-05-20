@@ -26,6 +26,17 @@ static char binaryPath[ MAX_OSPATH ] = { 0 };
 static char installPath[ MAX_OSPATH ] = { 0 };
 
 /*
+==================
+Sys_ShowNotification
+==================
+*/
+char notificationMsg[256] = { 0 };
+void Sys_ShowNotification( const char *message, const int flags ) {
+	if ( flags & NOTIFICATION_TEXT )
+		Q_strncpyz(notificationMsg, message, sizeof(notificationMsg));
+}
+
+/*
 =================
 Sys_SetBinaryPath
 =================

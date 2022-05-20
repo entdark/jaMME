@@ -264,6 +264,17 @@ no client connection is active at all
 ==================================================================
 */
 
+//first 3 defined in q_shared.h
+#define NOTIFICATION_VOTE		(1 << 3)
+#define NOTIFICATION_PM			(1 << 4)
+#define NOTIFICATION_CONNECT	(1 << 5)
+#define NOTIFICATION_RESTART	(1 << 6)
+#define NOTIFICATION_ROUND		(1 << 7)
+#define NOTIFICATION_PLAYERS	(1 << 8)
+#define NOTIFICATION_WORD		(1 << 9)
+
+#define NOTIFICATION_WORDS_MAX	16
+
 typedef struct {
 	netadr_t	adr;
 	int			start;
@@ -338,8 +349,15 @@ typedef struct {
 	
 	colorTable_t	cTable;
 
-	mmeState_t		mmeStateCGame;
-	mmeState_t		mmeStateUI;
+	mmeState_t	mmeStateCGame;
+	mmeState_t	mmeStateUI;
+
+	struct {
+		int		flags;
+		int		playersCount;
+		char	words[NOTIFICATION_WORDS_MAX][MAX_STRING_CHARS];
+		int		wordsCount;
+	} notification;
 } clientStatic_t;
 #define	CON_TEXTSIZE	0x30000 //was 32768
 #define	NUM_CON_TIMES	4
@@ -434,6 +452,7 @@ extern	cvar_t	*cl_autoDemoFormat;
 #ifndef _WIN32
 extern	cvar_t	*cl_consoleKeys;
 #endif
+extern	cvar_t	*cl_notify;
 
 
 // MME cvars
@@ -496,6 +515,9 @@ void CL_InitRef( void );
 int CL_ServerStatus( char *serverAddress, char *serverStatusString, int maxLen );
 
 qboolean CL_CheckPaused(void);
+
+void CL_ShowNotification( const char *message );
+void CL_ShowNotification2( const char *message, const int flag );
 
 //
 // cl_input

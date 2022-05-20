@@ -26,4 +26,5 @@ void PortablePrint(char *msg);
 void PortableVibrateFeedback(int time);
 #ifdef __cplusplus
 }
+void Android_JNI_ShowNotification(const char *message);
 #endif

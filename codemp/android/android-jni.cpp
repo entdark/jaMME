@@ -786,6 +786,17 @@ JAVA_FUNC(vibrateFeedback)(JNIEnv* env, jobject thiz) {
 	}
 	return ret;
 }
+extern char notificationMsg[256];
+jint EXPORT_ME
+JAVA_FUNC(hasNotifications)(JNIEnv* env, jobject thiz) {
+	return notificationMsg[0] != 0 ? 1 : 0;
+}
+jstring EXPORT_ME
+JAVA_FUNC(getNotificationMsg)(JNIEnv *env, jobject obj) {
+	jstring message = env->NewStringUTF(notificationMsg);
+	Q_strncpyz(notificationMsg, "", sizeof(notificationMsg));
+	return message;
+}
 void EXPORT_ME
 JAVA_FUNC(setScreenSize)(JNIEnv* env, jobject thiz, jint width, jint height) {
 	android_screen_width = width;
@@ -819,5 +830,15 @@ void *launchSSetup(void *) {
 //	run_ssetup(pJNIEnv);
 
 	jvm_->DetachCurrentThread();
+}
+//works but not when minimized
+void Android_JNI_ShowNotification(const char *message) {
+	jclass jjamme = env_->FindClass("com/jamme/jaMMEService");
+    jmethodID showNotification = env_->GetStaticMethodID(jjamme,"showNotification","(Ljava/lang/String;)V");
+    if (showNotification) {
+        jstring jmessage = (jstring)(env_->NewStringUTF(message));
+        env_->CallStaticVoidMethod(jjamme, showNotification, jmessage);
+        env_->DeleteLocalRef(jmessage);
+    }
 }
 

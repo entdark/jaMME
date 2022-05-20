@@ -2072,3 +2072,11 @@ uint32_t ConvertUTF8ToUTF32(char *utf8CurrentChar, char **utf8NextChar) {
 	*utf8NextChar = c;
 	return utf32;
 }
+
+void Com_ShowNotification( const char *message, const int flags ) {
+	if ( !com_minimized->integer && !com_unfocused->integer )
+		return;
+	Sys_ShowNotification( message, flags );
+	if ( flags & NOTIFICATION_CONSOLE )
+		Com_Printf( "^#00FFBB> %s\n", message );
+}

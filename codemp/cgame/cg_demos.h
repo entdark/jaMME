@@ -186,6 +186,9 @@ typedef struct demoMain_s {
 		sfxHandle_t heavyRain, regularRain, lightRain;
 	} media;
 	struct {
+		int		flags;
+	} notification;
+	struct {
 		demofindType_t	type;
 		qboolean		(*conditionTarget)(int);
 		qboolean		(*conditionAttacker)(int);
@@ -297,3 +300,8 @@ void demoCutCommand_f(void);
 #define CAM_ANGLES	0x002
 #define CAM_FOV		0x004
 #define CAM_TIME	0x100
+
+//first 3 defined in q_shared.h
+#define NOTIFICATION_CAPTURE_START	(1 << 3)
+#define NOTIFICATION_CAPTURE_END	(1 << 4)
+#define NOTIFICATION_FIND			(1 << 5)

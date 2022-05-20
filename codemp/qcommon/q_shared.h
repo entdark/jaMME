@@ -3150,3 +3150,9 @@ typedef struct BG_XMLParseBlock_s {
 } BG_XMLParseBlock_t;
 
 extern int demo_protocols[];
+
+#define NOTIFICATION_NONE		0
+#define NOTIFICATION_FLASH		(1 << 0)
+#define NOTIFICATION_TEXT		(1 << 1)
+#define NOTIFICATION_CONSOLE	(1 << 2)
+#define NOTIFICATION_FULL		(NOTIFICATION_FLASH | NOTIFICATION_TEXT | NOTIFICATION_CONSOLE)
