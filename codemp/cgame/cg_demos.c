@@ -609,11 +609,11 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 		demo.play.fraction += frameDelay * demo.play.speed;
 		demo.play.time += (int)demo.play.fraction;
 		demo.play.fraction -= (int)demo.play.fraction;
-	} else if ( demo.find ) {
+	} else if ( demo.find.type ) {
 		demo.play.time = demo.play.oldTime + 20;
 		demo.play.fraction = 0;
 		if ( demo.play.paused )
-			demo.find = findNone;
+			demo.find.type = findNone;
 	} else if (!demo.play.paused) {
 		float delta = demo.play.fraction + deltaTime * demo.play.speed;
 		demo.play.time += (int)delta;
@@ -1197,20 +1197,69 @@ static void stopLoopingSounds_f(void) {
 		CG_S_StopLoopingSound(i, -1);
 }
 
+static ID_INLINE qboolean demoFindTeamCondition(const int client, const team_t team) {
+	return client >= 0 && client < MAX_CLIENTS && cgs.clientinfo[client].team == team;
+}
+
+static qboolean demoFindRedTeamCondition(const int client) {
+	return demoFindTeamCondition(client, TEAM_RED);
+}
+
+static qboolean demoFindBlueTeamCondition(const int client) {
+	return demoFindTeamCondition(client, TEAM_BLUE);
+}
+
+static int clientAttacker = -1;
+static qboolean demoFindAttackerCondition(const int client) {
+	return client >= 0 && client < MAX_CLIENTS && client == clientAttacker;
+}
+
+static int clientTarget = -1;
+static qboolean demoFindTargetCondition(const int client) {
+	return client >= 0 && client < MAX_CLIENTS && client == clientTarget;
+}
+
+static qboolean demoFindTrueCondition(const int client) {
+	return qtrue;
+}
+
 static void demoFindCommand_f(void) {
 	const char *cmd = CG_Argv(1);
 
 	if (!Q_stricmp(cmd, "death")) {
-		demo.find = findObituary;
+		demo.find.type = findObituary;
 	} else if (!Q_stricmp(cmd, "direct")) {
-		demo.find = findDirect;
+		demo.find.type = findDirect;
 	} else if (!Q_stricmp(cmd, "airkill")) {
-		demo.find = findAirkill;
+		demo.find.type = findAirkill;
 	} else {
-		demo.find = findNone;
+		demo.find.type = findNone;
 	}
-	if ( demo.find )
+	if ( demo.find.type ) {
 		demo.play.paused = qfalse;
+		cmd = CG_Argv(2);
+		if  (!Q_stricmp( cmd, "red" )) {
+			demo.find.conditionAttacker = demoFindRedTeamCondition;
+		} else if  (!Q_stricmp( cmd, "blue" )) {
+			demo.find.conditionAttacker = demoFindBlueTeamCondition;
+		} else if  (isdigit( cmd[0] )) {
+			clientAttacker = atoi( cmd );
+			demo.find.conditionAttacker = demoFindAttackerCondition;
+		} else {
+			demo.find.conditionAttacker = demoFindTrueCondition;
+		}
+		cmd = CG_Argv(3);
+		if  (!Q_stricmp( cmd, "red" )) {
+			demo.find.conditionTarget = demoFindRedTeamCondition;
+		} else if  (!Q_stricmp( cmd, "blue" )) {
+			demo.find.conditionTarget = demoFindBlueTeamCondition;
+		} else if  (isdigit( cmd[0] )) {
+			clientTarget = atoi( cmd );
+			demo.find.conditionTarget = demoFindTargetCondition;
+		} else {
+			demo.find.conditionTarget = demoFindTrueCondition;
+		}
+	}
 }
 
 void demoPlaybackInit(void) {
@@ -1289,6 +1338,9 @@ void demoPlaybackInit(void) {
 	demo.rain.number = 100;
 	demo.rain.range = 1000.0f;
 	demo.rain.back = qfalse;
+	
+	demo.find.conditionTarget = demoFindTrueCondition;
+	demo.find.conditionAttacker = demoFindTrueCondition;
 
 	hudInitTables();
 	demoSynchMusic( -1, 0 );
@@ -1366,9 +1418,12 @@ void demoPlaybackInit(void) {
 void CG_DemoEntityEvent( const centity_t* cent ) {
 	qboolean found = qfalse, splash = qfalse;
 	int target = cent->currentState.otherEntityNum;
+	int attacker = cent->currentState.otherEntityNum2;
+	if ( !demo.find.conditionTarget( target ) || !demo.find.conditionAttacker( attacker ) )
+		return;
 	switch ( cent->currentState.event ) {
 	case EV_OBITUARY:
-		switch(demo.find) {
+		switch(demo.find.type) {
 		case findDirect:
 			switch (cent->currentState.eventParm) {
 			case MOD_BRYAR_PISTOL:
@@ -1405,7 +1460,7 @@ void CG_DemoEntityEvent( const centity_t* cent ) {
 			}
 			if (!splash && target >= 0 && target < MAX_CLIENTS && cg_entities[target].currentValid
 				//and not self-kill
-				&& target != cent->currentState.otherEntityNum2) {
+				&& target != attacker) {
 				int groundEntityNum = cg_entities[target].currentState.groundEntityNum;
 				if (groundEntityNum == -1 || groundEntityNum == ENTITYNUM_NONE)
 					found = qtrue;
@@ -1419,7 +1474,7 @@ void CG_DemoEntityEvent( const centity_t* cent ) {
 	}
 	if (found) {
 		demo.play.paused = qtrue;
-		demo.find = findNone;
+		demo.find.type = findNone;
 	}
 }
 
@@ -1450,7 +1505,7 @@ qboolean CG_DemosConsoleCommand( void ) {
 		//to make the engine know that we paused
 		trap_Cvar_Set("mme_demoPaused", va("%i", demo.play.paused));
 		if (demo.play.paused)
-			demo.find = findNone;
+			demo.find.type = findNone;
 #ifdef __ANDROID__
 		if (demo.play.paused)
 			CG_DemosAddLog("Paused");

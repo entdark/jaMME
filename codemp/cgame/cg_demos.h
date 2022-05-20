@@ -185,7 +185,11 @@ typedef struct demoMain_s {
 		qhandle_t switchOn, switchOff;
 		sfxHandle_t heavyRain, regularRain, lightRain;
 	} media;
-	demofindType_t find;
+	struct {
+		demofindType_t	type;
+		qboolean		(*conditionTarget)(int);
+		qboolean		(*conditionAttacker)(int);
+	} find;
 	qboolean	seekEnabled;
 	qboolean	initDone;
 	qboolean	autoLoad;
