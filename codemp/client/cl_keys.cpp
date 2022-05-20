@@ -1529,10 +1529,9 @@ void CL_KeyEvent (int key, qboolean down, unsigned time) {
 		}
 
 		if ( !( Key_GetCatcher( ) & KEYCATCH_UI ) ) {
-			if ( cls.state == CA_ACTIVE && !clc.demoplaying ) {
+			if ( cls.state == CA_ACTIVE && ( !clc.demoplaying || ( clc.demoplaying && !mme_demoEscapeQuit->integer ) ) ) {
 				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_INGAME );
-			}
-			else {
+			} else {
 				CL_Disconnect_f();
 				S_StopAllSounds();
 				VM_Call( uivm, UI_SET_ACTIVE_MENU, UIMENU_MAIN );

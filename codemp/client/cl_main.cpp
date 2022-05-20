@@ -2896,6 +2896,7 @@ void CL_Init( void ) {
 	mme_demoPrecache = Cvar_Get ("mme_demoPrecache", "0", CVAR_ARCHIVE );
 	mme_demoAutoNext = Cvar_Get ("mme_demoAutoNext", "1", CVAR_ARCHIVE );
 	mme_demoPaused = Cvar_Get ("mme_demoPaused", "0", CVAR_INTERNAL );
+	mme_demoEscapeQuit = Cvar_Get ("mme_demoEscapeQuit", "1", CVAR_ARCHIVE );
 	Cvar_Get ("mme_demoExt", "", CVAR_INTERNAL );
 
 	CL_SetMMEState();

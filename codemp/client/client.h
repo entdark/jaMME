@@ -450,6 +450,7 @@ extern	cvar_t	*mme_demoRemove;
 extern	cvar_t	*mme_demoPrecache;
 extern	cvar_t	*mme_demoAutoNext;
 extern	cvar_t	*mme_demoPaused;
+extern	cvar_t	*mme_demoEscapeQuit;
 //=================================================
 // cl_demos
 void CL_MMEDemo_f( void );
