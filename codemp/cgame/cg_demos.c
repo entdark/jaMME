@@ -35,7 +35,6 @@ extern void trap_FX_RandomSeed( int time, float timeFraction );
 extern void trap_S_UpdateScale( float scale );
 extern void trap_CIN_AdjustTime( int time );
 extern void trap_MME_VibrateFeedback( int time );
-extern float trap_MME_ProgressTime( void );
 extern int trap_MME_DemoLength( void );
 extern void trap_MME_ShowNotification( const char *message, const int flags );
 void CG_ShowNotification( const char *message, const int flag );
@@ -1006,9 +1005,6 @@ void CG_DemosDrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 			demoDrawCrosshair();
 		if (!CG_MultiSpecEditing())
 			hudDraw();
-		if (demo.editType) {
-			demoDrawProgress(trap_MME_ProgressTime());
-		}
 	}
 
 	if ( demo.capture.active && demo.capture.locked && demo.play.time > demo.capture.end  ) {

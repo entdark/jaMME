@@ -4,6 +4,8 @@
 #include "../../ui/menudef.h"
 #include "../ui/keycodes.h"
 
+extern float trap_MME_ProgressTime( void );
+
 #define MAX_HUD_ITEMS	128
 
 #define HUD_TEXT_WIDTH 10
@@ -686,6 +688,10 @@ static float hudItemWidth( hudItem_t *item  ) {
 	return w;
 }
 
+static void hudDrawProgress( void ) {
+	demoDrawProgress( trap_MME_ProgressTime() );
+}
+
 static void hudDrawItem( hudItem_t *item ) {
 	char buf[512];
 	int checked;
@@ -920,6 +926,7 @@ void hudDraw( void ) {
 			continue;
 		hudDrawItem( item );
 	}
+	hudDrawProgress();
 
 	if ( hud.keyCatcher & KEYCATCH_CGAME ) {
 		float x,y,w,h;
