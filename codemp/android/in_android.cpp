@@ -324,11 +324,9 @@ void PortableTextPaste(const char *paste) {
 	PortableKeyEvent(0,A_INSERT,0);
 	PortableKeyEvent(0,A_SHIFT,0);
 }
-int mdx=0,mdy=0;
+float mdx=0,mdy=0;
 void PortableMouse(float dx,float dy) {
 	//LOGI("dx = %f, dy = %f",dx,dy);
-	dx *= 300;//1500;
-	dy *= 300;//1200;
 	mdx += dx;
 	mdy += dy;
 }
@@ -461,9 +459,10 @@ void pumpEvents(void) {
 		Cbuf_AddText(postedCommand);
 		postedCommand = 0;
 	}
-	if (mdx || mdy)
+	if ((int)mdx || (int)mdy)
 		Sys_QueEvent(0, SE_MOUSE, mdx, mdy, 0, NULL);
-	mdx=mdy=0;
+	mdx-=(int)mdx;
+	mdy-=(int)mdy;
 	/*
 	if (absx || absy)
 		Sys_QueEvent( 0, SE_MOUSE_ABS, absx, absy, 0, NULL );

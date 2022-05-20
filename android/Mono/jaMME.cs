@@ -1404,26 +1404,26 @@ namespace android {
 				_handler.PostDelayed(_longPressed, LONG_PRESS_TIME);
 			} else if (actionCode == MotionEventActions.Move && !twoPointers) {
 				float d = density;
-				float deltaX = (ev.GetX() - touchX) / surfaceWidth;
-				float deltaY = (ev.GetY() - touchY) / surfaceHeight;
-				float adx = System.Math.Abs(deltaX*1.7f*d);
-				float ady = System.Math.Abs(deltaY*1.7f*d);
-				adx *= 300;
-				ady *= 300;
+				float deltaX = (ev.GetX() - touchX) * 480.0f / surfaceHeight;
+				float deltaY = (ev.GetY() - touchY) * 480.0f / surfaceHeight;
+				float rdx = (ev.GetX() - touchX) / surfaceWidth;
+				float rdy = (ev.GetY() - touchY) / surfaceHeight;
+				float adx = System.Math.Abs(rdx)*d;
+				float ady = System.Math.Abs(rdy)*d;
 				if (!touchMotion && longPress) {
 					return true;
-				} else if ((!touchMotion && (adx >= 4.5f || ady >= 4.5f))) {
-					touchMotion = true;
+				} else if ((!touchMotion && (adx >= 0.09f || ady >= 0.09f))) {
 					_handler.RemoveCallbacks(_longPressed);
+					touchMotion = true;
 				} else if (!touchMotion) {
 					return true;
 				}
 				if ((flags & CONSOLE_ACTIVE) == 0 && (flags & CONSOLE_ACTIVE_FULLSCREEN) == 0) {
-					mouseMove(deltaX*1.7f*d, deltaY*1.7f*d);
+					mouseMove(deltaX, deltaY);
 				} else {
-					touchYtotal += deltaY*23* d*2;
+					touchYtotal += rdy*17;
 					int tYt = (int)System.Math.Abs(touchYtotal);
-					if (tYt > 1) {
+					if (tYt > 0) {
 						var qkey = JAKeycodes.A_NULL;
 						//scroll the console
 						if ((flags & CONSOLE_ACTIVE_FULLSCREEN) != 0) {
@@ -1432,6 +1432,7 @@ namespace android {
 							} else if (deltaY > 0) {
 								qkey = JAKeycodes.A_MWHEELUP;
 							}
+							tYt = (int)(tYt * density);
 							//scroll the console input history
 						} else if ((flags & CONSOLE_ACTIVE) != 0) {
 							if (deltaY< 0) {
@@ -1439,7 +1440,6 @@ namespace android {
 							} else if (deltaY > 0) {
 								qkey = JAKeycodes.A_CURSOR_UP;
 							}
-							tYt = (int)(tYt / 1.7);
 						}
 						for (int i = 0; i<tYt; i++) {
 							keypress(1, (int)qkey, 0);
