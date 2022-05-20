@@ -516,6 +516,9 @@ static void IN_ProcessEvents( void ) {
 	while(SDL_PollEvent(&e)) {
 		switch(e.type) {
 			case SDL_KEYDOWN:
+#ifdef __ANDROID__
+				LOGI("SDL_KEYDOWN");
+#endif
 				if( e.key.keysym.sym == SDLK_BACKSPACE )
 					Sys_QueEvent( 0, SE_CHAR, e.key.keysym.sym, qtrue, 0, NULL );
 				else if( ( key = IN_TranslateSDLToJKKey( &e.key.keysym, qtrue ) ) )
@@ -523,6 +526,9 @@ static void IN_ProcessEvents( void ) {
 				lastKeyDown = key;
 				break;
 			case SDL_KEYUP:
+#ifdef __ANDROID__
+				LOGI("SDL_KEYUP");
+#endif
 				if( ( key = IN_TranslateSDLToJKKey( &e.key.keysym, qfalse ) ) )
 					Sys_QueEvent( 0, SE_KEY, key, qfalse, 0, NULL );
 				lastKeyDown = A_NULL;
