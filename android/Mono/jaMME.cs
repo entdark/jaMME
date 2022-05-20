@@ -88,7 +88,6 @@ namespace android {
 
 		private jaMMEView view;
 		private jaMMERenderer renderer;
-		private jaMMEEditText et;
 		private jaMMESeekBar sb = null;
 		private jaMMERangeSeekBar rsb = null;
 
@@ -393,7 +392,7 @@ namespace android {
 				Java_com_jamme_jaMME_quickCommand(
 					JNIEnv.Handle,
 					jaMME.jaMMEHandle,
-						c.Handle
+					c.Handle
 				);
 		}
 		public static int demoGetLength() {
@@ -464,6 +463,11 @@ namespace android {
 							exception.PrintStackTrace();
 						}
 					}
+				} else if ((this.flags & CONSOLE_ACTIVE_FULLSCREEN) != 0) {
+					keypress(1, (int)JAKeycodes.A_CTRL, 0);
+					keypress(1, (int)JAKeycodes.A_END, 0);
+					keypress(0, (int)JAKeycodes.A_END, 0);
+					keypress(0, (int)JAKeycodes.A_CTRL, 0);
 /*				} else if ((this.flags & DEMO_PAUSED) != 0) {
 					if (this.demoCutting) {
 						this.demoCutting = false;
@@ -938,23 +942,47 @@ namespace android {
 				}
 			}
 		}
+		private class jaMMEEditTextBackground : FrameLayout {
+			public jaMMEEditTextBackground(Context context, jaMMEEditText editText) : base(context) {
+				this.SetBackgroundColor(Color.Black);
+				this.LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
+				this.AddView(editText);
+			}
+		}
 		private bool ignoreAfter = false;
 		private int prevLength = 0;
 		private class jaMMEEditText : EditText {
 			private jaMME jamme;
 			public jaMMEEditText(jaMME context) : base(context) {
 				this.jamme = context;
-				this.SetY(jamme.surfaceHeight + 32);
-				this.SetX(jamme.surfaceWidth + 32);
 				this.jamme.ignoreAfter = false;
 				this.jamme.prevLength = 0;
-				this.Alpha = 0.0f;
-				this.AddTextChangedListener(new jaMMETextWatcher(context));
+//				this.Alpha = 0.0f;
+//				this.AddTextChangedListener(new jaMMETextWatcher(context));
 				this.ClearFocus();
+				this.SetTextColor(Color.Argb(0xFF, 0xC3, 0x00, 0x00));
+				this.SetHintTextColor(Color.Gray);
+				this.Background = Resources.GetDrawable(Resource.Drawable.jamme_edit_text);
+				this.InputType = (InputTypes.ClassText | InputTypes.TextVariationShortMessage);
 				this.ImeOptions = (ImeAction)(ImeFlags.NoExtractUi | ImeFlags.NoFullscreen);
+				this.SetMaxLines(1);
 				this.LayoutParameters = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.WrapContent);
 				this.EditorAction += (object sender, EditorActionEventArgs ev) => {
 					if (ev == null) {
+						return;
+					}
+					if (ev.ActionId == ImeAction.Done) {
+						string text = (sender as jaMMEEditText).Text;
+						if (!string.IsNullOrEmpty(text)) {
+							jaMME.textPaste(text);
+						}
+						jaMME.keypress(1, (int)JAKeycodes.A_ENTER, 0);
+						jaMME.keypress(0, (int)JAKeycodes.A_ENTER, 0);
+						ev.Handled = true;
+						(sender as jaMMEEditText).Text = string.Empty;
+						return;
+					}
+					if (ev.Event == null) {
 						ev.Handled = false;
 						return;
 					}
@@ -979,11 +1007,66 @@ namespace android {
 								ev.Handled = true;
 								return;
 							}
+						} else if (keyCode == Keycode.Enter) {
+							string text = (sender as jaMMEEditText).Text;
+							if (!string.IsNullOrEmpty(text)) {
+								jaMME.textPaste(text);
+							}
+							jaMME.keypress(1, (int)JAKeycodes.A_ENTER, 0);
+							jaMME.keypress(0, (int)JAKeycodes.A_ENTER, 0);
+							ev.Handled = true;
+							(sender as jaMMEEditText).Text = string.Empty;
+							return;
 						}
-						jaMME.keypress(1, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
-						jaMME.keypress(0, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
-						ev.Handled = true;
+//						jaMME.keypress(1, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
+//						jaMME.keypress(0, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
+//						ev.Handled = true;
+//						return;
+					}
+					ev.Handled = false;
+					return;
+				};
+				this.KeyPress += (object sender, KeyEventArgs ev) => {
+					if (ev == null || ev.Event == null) {
+					//	ev.Handled = false;
 						return;
+					}
+
+					int uc = ev.Event.GetUnicodeChar(ev.Event.MetaState);
+
+					var keyAction = ev.Event.Action;
+
+					var keyCode = ev.Event.KeyCode;
+					if (keyAction == KeyEventActions.Down) {
+						if (keyCode == Keycode.Back) {
+							(sender as jaMMEEditText).ClearFocus();
+							if ((this.jamme.flags & CONSOLE_ACTIVE) != 0 || (this.jamme.flags & CONSOLE_ACTIVE_FULLSCREEN) != 0) {
+								jaMME.quickCommand("toggleconsole");
+								ev.Handled = true;
+								return;
+							} else if ((this.jamme.flags & CHAT_SAY) != 0
+									|| (this.jamme.flags & UI_EDITINGFIELD) != 0
+									|| (this.jamme.flags & CHAT_SAY_TEAM) != 0) {
+								jaMME.keypress(1, (int)JAKeycodes.A_ESCAPE, 0);
+								jaMME.keypress(0, (int)JAKeycodes.A_ESCAPE, 0);
+								ev.Handled = true;
+								return;
+							}
+						} else if (keyCode == Keycode.Enter) {
+							string text = (sender as jaMMEEditText).Text;
+							if (!string.IsNullOrEmpty(text)) {
+								jaMME.textPaste(text);
+							}
+							jaMME.keypress(1, (int)JAKeycodes.A_ENTER, 0);
+							jaMME.keypress(0, (int)JAKeycodes.A_ENTER, 0);
+							ev.Handled = true;
+							(sender as jaMMEEditText).Text = string.Empty;
+							return;
+						}
+//						jaMME.keypress(1, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
+//						jaMME.keypress(0, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
+//						ev.Handled = true;
+//						return;
 					}
 					ev.Handled = false;
 					return;
@@ -1103,9 +1186,9 @@ namespace android {
 			}
 			public override IInputConnection OnCreateInputConnection(EditorInfo outAttrs) {
 				Log.Debug(LOG, "onCreateInputConnection");
-				using (var fic = new BaseInputConnection(this, true)) {
+				using (var fic = new BaseInputConnection(this, false)) {
 					outAttrs.ActionLabel = null;
-					outAttrs.InputType = InputTypes.ClassText;
+					outAttrs.InputType = InputTypes.Null;
 					outAttrs.ImeOptions = (ImeFlags.NoExtractUi | ImeFlags.NoFullscreen);
 					return fic;
 				}
@@ -1251,23 +1334,13 @@ namespace android {
 						this.jamme.RunOnUiThread(() => {
 							InputMethodManager im = (InputMethodManager)this.jamme.GetSystemService(Context.InputMethodService);
 							if (im != null) {
-								if ((!this.jamme.keyboardActive && (fl & CONSOLE_ACTIVE) != 0
+								if ((fl & CONSOLE_ACTIVE) != 0
 										|| (fl & UI_EDITINGFIELD) != 0
 										|| (fl & CHAT_SAY) != 0
-										|| (fl & CHAT_SAY_TEAM) != 0)) {
-									this.jamme.removeView(this.jamme.et);
-									this.jamme.et = new jaMMEEditText(this.jamme);
-									this.jamme.AddContentView(this.jamme.et, this.jamme.et.LayoutParameters);
-									this.jamme.et.RequestFocus();
-									this.jamme.et.RequestFocusFromTouch();
-									//getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-									im.ShowSoftInput(this.jamme.et, 0);//InputMethodManager.SHOW_FORCED);
-									this.jamme.keyboardActive = true;
+										|| (fl & CHAT_SAY_TEAM) != 0) {
+									im.ShowSoftInput(this.jamme.view, 0);
 								} else {
-									//getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 									im.HideSoftInputFromWindow(this.jamme.view.WindowToken, 0);
-									this.jamme.et?.ClearFocus();
-									this.jamme.keyboardActive = false;
 								}
 							} else {
 								Log.Error(LOG, "IMM failed");
@@ -1328,19 +1401,25 @@ namespace android {
 				this.jamme.vibrate();
 			}
 		}
-		public override bool OnKeyDown(Keycode keyCode, KeyEvent ev) {
+		public override bool DispatchKeyEvent(KeyEvent ev) {
+			if (ev == null)
+				return base.DispatchKeyEvent(ev);
+			var keyCode = ev.KeyCode;
+			System.Diagnostics.Debug.WriteLine(keyCode);
 			int uc = 0;
-			if (ev != null)
+			if ((this.flags & CONSOLE_ACTIVE) != 0
+				|| (this.flags & UI_EDITINGFIELD) != 0
+				|| (this.flags & CHAT_SAY) != 0
+				|| (this.flags & CHAT_SAY_TEAM) != 0)
 				uc = ev.UnicodeChar;
-			if (keyCode == Keycode.VolumeDown) {
-				jaMME.quickCommand("chase targetNext");
-			} else if (keyCode == Keycode.VolumeUp) {
-				jaMME.quickCommand("chase targetPrev");
-			} else if (/*keyCode == Keycode.Escape
-				   || */keyCode == Keycode.Back
-				   || keyCode == Keycode.Menu/*
-				   || keyCode == Keycode.Del*/) {
-				if (((this.flags & CONSOLE_ACTIVE) != 0 || (this.flags & CONSOLE_ACTIVE_FULLSCREEN) != 0)
+			if (ev.Action == KeyEventActions.Down) {
+				if (keyCode == Keycode.VolumeDown) {
+					jaMME.quickCommand("chase targetNext");
+					return true;
+				} else if (keyCode == Keycode.VolumeUp) {
+					jaMME.quickCommand("chase targetPrev");
+					return true;
+				} else if (((this.flags & CONSOLE_ACTIVE) != 0 || (this.flags & CONSOLE_ACTIVE_FULLSCREEN) != 0)
 						&& keyCode == Keycode.Back) {
 					jaMME.quickCommand("toggleconsole");
 					return true;
@@ -1348,28 +1427,6 @@ namespace android {
 					jaMME.quickCommand("toggleconsole");
 					return true;
 				}
-				jaMME.keypress(1, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
-				jaMME.keypress(0, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
-				if (keyCode == Keycode.Del && this.et != null) {
-					this.et.Text = "";
-				}
-			}
-			return true;
-		}
-		//TODO: implement key holding since all keyevents are always sent as down-up without delays
-		public override bool DispatchKeyEvent(KeyEvent ev) {
-			var keyCode = ev.KeyCode;
-			System.Diagnostics.Debug.WriteLine(keyCode);
-			if (keyCode == Keycode.VolumeDown
-				   || keyCode == Keycode.VolumeUp
-				   || keyCode == Keycode.Back
-				   || keyCode == Keycode.Menu) {
-				return base.DispatchKeyEvent(ev);
-			}
-			int uc = 0;
-			if (ev != null)
-				uc = ev.UnicodeChar;
-			if (ev.Action == KeyEventActions.Down) {
 				jaMME.keypress(1, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
 			} else if (ev.Action == KeyEventActions.Up) {
 				jaMME.keypress(0, MobileKeycodes.GetMobileKey(keyCode, uc), uc);
