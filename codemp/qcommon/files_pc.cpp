@@ -3754,9 +3754,7 @@ bool FS_LoadMachOBundle( const char *name )
 fileHandle_t FS_PipeOpen(const char *qcmd, const char *qpath, const char *mode) {
     char			*ospath;
     fileHandle_t	f;
-    char            temp[2048];
     char            cmd[2048];
-	const char		*space;
     
     if (!fs_searchpaths) {
         Com_Error(ERR_FATAL, "Filesystem call made without initialization\n");
@@ -3775,16 +3773,8 @@ fileHandle_t FS_PipeOpen(const char *qcmd, const char *qpath, const char *mode) 
         return 0;
     }
     
-	Com_sprintf(temp, sizeof(temp), "/%s", qcmd);
-	FS_ReplaceSeparators(temp);
-	if (space = strchr(temp, ' ')) {
-		char quotedCmd[2048];
-		Q_strncpyz(quotedCmd, temp, sizeof(quotedCmd));
-		quotedCmd[(space-temp)] = '\0';
-		Com_sprintf(cmd, sizeof(cmd), "\"%s%s\"%s", fs_homepath->string, quotedCmd, space);
-	} else {
-		Com_sprintf(cmd, sizeof(cmd), "\"%s%s\"", fs_homepath->string, temp);
-	}
+	Com_sprintf(cmd, sizeof(cmd), "%s", qcmd);
+	FS_ReplaceSeparators(cmd);
 
     if (fs_debug->integer) {
         Com_Printf("FS_PipeOpen cmd: %s\n", cmd);
