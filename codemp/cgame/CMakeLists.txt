@@ -82,6 +82,7 @@ set(MPCGameCgameFiles
 	"${MPDir}/cgame/fx_local.h"
 	"${MPDir}/cgame/holocronicons.h"
 	"${MPDir}/cgame/cg_demos.c"
+	"${MPDir}/cgame/cg_demos_book.c"
 	"${MPDir}/cgame/cg_demos_camera.c"
 	"${MPDir}/cgame/cg_demos_capture.c"
 	"${MPDir}/cgame/cg_demos_cut.c"

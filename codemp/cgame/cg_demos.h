@@ -17,6 +17,7 @@ typedef enum {
 	editAnim,
 //	editEffect,
 	editScript,
+	editBook,
 	editLast,
 } demoEditType_t;
 
@@ -80,6 +81,11 @@ typedef struct demoDofPoint_s {
 	float			focus, radius;
 	int				time;
 } demoDofPoint_t;
+
+typedef struct demoBookPoint_s {
+	struct			demoBookPoint_s *next, *prev;
+	int				time;
+} demoBookPoint_t;
 
 typedef struct {
 	char lines[LOGLINES][1024];
@@ -156,6 +162,9 @@ typedef struct demoMain_s {
 		int			shiftWarn;
 		demoScriptPoint_t *points;
 	} script;
+	struct {
+		demoScriptPoint_t *points;
+	} book;
 	struct {
 		int			time;
 		int			oldTime;
@@ -244,6 +253,10 @@ void scriptRun( qboolean hadSkip );
 qboolean scriptParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data);
 void scriptSave( fileHandle_t fileHandle );
 
+void demoBookCommand_f(void);
+qboolean bookParse( BG_XMLParse_t *parse, const struct BG_XMLParseBlock_s *fromBlock, void *data);
+void bookSave( fileHandle_t fileHandle );
+
 void demoMovePoint( vec3_t origin, vec3_t velocity, vec3_t angles);
 void demoMoveDirection( vec3_t origin, vec3_t angles );
 
@@ -302,6 +315,7 @@ void chaseUpdate( int time, float timeFraction );
 void chaseDraw( int time, float timeFraction );
 void demoDrawCrosshair( void );
 void demoDrawProgress( float progress );
+void demoDrawProgressMark( float t );
 
 void hudInitTables(void);
 void hudToggleInput(void);

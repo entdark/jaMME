@@ -1104,6 +1104,9 @@ static void demoEditCommand_f(void) {
 	} else if (!Q_stricmp(cmd, "script")) {
 		demo.editType = editScript;
 		CG_DemosAddLog("Editing script");
+	} else if (!Q_stricmp(cmd, "book")) {
+		demo.editType = editBook;
+		CG_DemosAddLog("Editing bookmark");
 /*	} else if (!Q_stricmp(cmd, "effect")) {
 		if ( demo.cmd.upmove > 0 ) {
 			demoViewCommand_f();
@@ -1132,6 +1135,9 @@ static void demoEditCommand_f(void) {
 #endif
 		case editScript:
 			demoScriptCommand_f();
+			break;
+		case editBook:
+			demoBookCommand_f();
 			break;
 /*		case editEffect:
 			demoEffectCommand_f();
@@ -1351,6 +1357,7 @@ void demoPlaybackInit(void) {
 	trap_AddCommand("chase");
 	trap_AddCommand("dof");
 	trap_AddCommand("script");
+	trap_AddCommand("book");
 #ifdef DEMO_ANIM
 	trap_AddCommand("anim");
 #endif
@@ -1560,6 +1567,8 @@ qboolean CG_DemosConsoleCommand( void ) {
 		demoChaseCommand_f();
 	} else if (!Q_stricmp(cmd, "script")) {
 		demoScriptCommand_f();
+	} else if (!Q_stricmp(cmd, "book")) {
+		demoBookCommand_f();
 #ifdef DEMO_ANIM
 	} else if (!Q_stricmp(cmd, "anim")) {
 		demoAnimCommand_f();

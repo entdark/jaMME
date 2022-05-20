@@ -77,6 +77,7 @@ JK3_SRC = \
 	../../${MPDir}/qcommon/q_shared.c \
 	\
 	../../${MPDir}/cgame/cg_demos.c \
+	../../${MPDir}/cgame/cg_demos_book.c \
 	../../${MPDir}/cgame/cg_demos_camera.c \
 	../../${MPDir}/cgame/cg_demos_capture.c \
 	../../${MPDir}/cgame/cg_demos_cut.c \

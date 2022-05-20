@@ -419,6 +419,9 @@ static void hudGetHandler( hudItem_t *item, char *buf, int bufSize ) {
 		case editScript:
 			Com_sprintf( buf, bufSize, "Script%s", demo.script.locked ? " locked" : "" );
 			break;
+		case editBook:
+			Com_sprintf( buf, bufSize, "Bookmark" );
+			break;
 /*		case editEffect:
 			effectCount = 0;
 			effectParent = demo.effect.list;
@@ -689,7 +692,13 @@ static float hudItemWidth( hudItem_t *item  ) {
 }
 
 static void hudDrawProgress( void ) {
+	demoBookPoint_t *point = demo.book.points;
 	demoDrawProgress( trap_MME_ProgressTime() );
+	while ( point ) {
+		float time = point->time / (double)demo.length;
+		demoDrawProgressMark( time );
+		point = point->next;
+	}
 }
 
 static void hudDrawItem( hudItem_t *item ) {

@@ -692,14 +692,23 @@ void demoDrawCrosshair( void ) {
 		w*cgs.widthRatioCoef, h, 0, 0, 1, 1, hShader );
 }
 
+#define PROGRESS_HEIGHT		2.0f
+#define PROGRESS_MARK_WIDTH	1.337f
+static const vec4_t progressBackground = { 0.7f, 0.7f, 0.7f, 1.0f };
 static const vec4_t progressColour = { 1.0f, 0.0f, 0.0f, 1.0f };
+static const vec4_t progressMark = { 1.0f, 1.0f, 0.0f, 1.0f };
 void demoDrawProgress( float progress ) {
 	if (progress > 1.0f)
 		progress = 1.0f;
-	trap_R_SetColor(progressColour);
-	trap_R_DrawStretchPic( 0, (float)SCREEN_HEIGHT-1.25f, 
-		SCREEN_WIDTH*progress, 1.25f, 0, 0, 1, 1, demo.media.additiveWhiteShader );
-	trap_R_SetColor(NULL);
+	CG_FillRect( 0, (float)SCREEN_HEIGHT-PROGRESS_HEIGHT, SCREEN_WIDTH, PROGRESS_HEIGHT, progressBackground );
+	CG_FillRect( 0, (float)SCREEN_HEIGHT-PROGRESS_HEIGHT, SCREEN_WIDTH*progress, PROGRESS_HEIGHT, progressColour );
+}
+void demoDrawProgressMark( float t ) {
+	float x;
+	if (t > 1.0f)
+		return;
+	x = t * SCREEN_WIDTH - PROGRESS_MARK_WIDTH * 0.5f;
+	CG_FillRect( x, (float)SCREEN_HEIGHT-PROGRESS_HEIGHT, PROGRESS_MARK_WIDTH, PROGRESS_HEIGHT, progressMark );
 }
 
 void demoTrajectory( const trajectory_t *tr, int time, float timeFraction, vec3_t result ) {
