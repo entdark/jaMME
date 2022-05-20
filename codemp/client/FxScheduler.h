@@ -15,7 +15,7 @@ using namespace std;
 
 #define FX_FILE_PATH	"effects"
 
-#define FX_MAX_TRACE_DIST		16384	// SOF2 uses a larger scale
+#define FX_MAX_TRACE_DIST		32768	// SOF2 uses a larger scale
 #define FX_MAX_EFFECTS				256		// how many effects the system can store
 #define FX_MAX_2DEFFECTS			64		// how many 2d effects the system can store
 #define FX_MAX_EFFECT_COMPONENTS	24		// how many primitives an effect can hold, this should be plenty
