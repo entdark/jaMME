@@ -196,3 +196,5 @@ if((MSVC) AND (NOT (MSVC_VERSION LESS 1900)))
 		include_external_msproject(android "${CMAKE_SOURCE_DIR}/android/Mono/android.csproj")
 	endif()
 endif()
+
+option(BuildCurl "Generate CURL")
