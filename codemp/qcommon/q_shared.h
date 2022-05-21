@@ -327,10 +327,13 @@ float FloatSwap( const float *f );
 
 #ifdef __linux__
 
-	#include <sys/mman.h>
+    #ifdef __cplusplus
+        #include <cstddef>
+    #endif
+    #include <sys/mman.h>
 	#include <unistd.h>
 
-	// bk001205 - from Makefile
+// bk001205 - from Makefile
 	#define stricmp strcasecmp
 
 	#define ID_INLINE /*inline*/
@@ -509,7 +512,7 @@ float FloatSwap( const float *f );
 	#define PLATFORM_STRING OS_STRING "-" ARCH_STRING "-debug"
 #endif
 #if defined(__linux__)&&!defined(__ANDROID__)
-	#define USE_AIO
+    //#define USE_AIO
 #endif
 #if defined(USE_AIO)
 	#include <aio.h>
