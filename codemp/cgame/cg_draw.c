@@ -2927,10 +2927,10 @@ static void CG_DrawMovementKeys( void ) {
 	Com_sprintf( str2, sizeof(str2), va( "^%cA ^%cS ^%cD", (cmd.rightmove < 0) ? COLOR_RED : COLOR_WHITE,
 		(cmd.forwardmove < 0) ? COLOR_RED : COLOR_WHITE, (cmd.rightmove > 0) ? COLOR_RED : COLOR_WHITE ) );
 
-	CG_Text_Paint( cg.moveKeysPos[0] - max( w1, w2 ) / 2.0f, cg.moveKeysPos[1], cg_drawMovementKeysScale.value, colorWhite,
-		str1, 0.0f, 0, ITEM_TEXTSTYLE_OUTLINED, fontIndex );
-	CG_Text_Paint( cg.moveKeysPos[0] - max( w1, w2 ) / 2.0f, cg.moveKeysPos[1] + height, cg_drawMovementKeysScale.value,
-		colorWhite, str2, 0.0f, 0, ITEM_TEXTSTYLE_OUTLINED, fontIndex );
+	CG_Text_Paint(cg.moveKeysPos[0] - Q_max(w1, w2 ) / 2.0f, cg.moveKeysPos[1], cg_drawMovementKeysScale.value, colorWhite,
+                  str1, 0.0f, 0, ITEM_TEXTSTYLE_OUTLINED, fontIndex );
+	CG_Text_Paint(cg.moveKeysPos[0] - Q_max(w1, w2 ) / 2.0f, cg.moveKeysPos[1] + height, cg_drawMovementKeysScale.value,
+                  colorWhite, str2, 0.0f, 0, ITEM_TEXTSTYLE_OUTLINED, fontIndex );
 }
 
 void CG_DrawPlayerLabels(void) {

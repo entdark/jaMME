@@ -1516,7 +1516,7 @@ int FS_Write( const void *buffer, int len, fileHandle_t h ) {
 		pendingBuffer_t *pb = &fsh[h].pendingBuffer;
 		int remainingLen = len;
 		while ( remainingLen > 0 ) {
-			int copyLen = min( remainingLen, (int) ( pb->bufferLen - pb->bufferOffset ) );
+			int copyLen = Q_min(remainingLen, (int) (pb->bufferLen - pb->bufferOffset ) );
 			memcpy( &pb->buffer[pb->bufferOffset], buf, copyLen );
 			pb->bufferOffset += copyLen;
 			buf += copyLen;

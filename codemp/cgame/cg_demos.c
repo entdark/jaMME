@@ -364,7 +364,7 @@ void demoProcessSnapShots( qboolean hadSkip ) {
 	// see what the latest snapshot the client system has is
 	trap_GetCurrentSnapshotNumber( &cg.latestSnapshotNum, &cg.latestSnapshotTime );
 	if (hadSkip || !cg.snap) {
-		cgs.processedSnapshotNum = max(cg.latestSnapshotNum - 3, -1);
+		cgs.processedSnapshotNum = Q_max(cg.latestSnapshotNum - 3, -1);
 		if (cg.nextSnap)
 			cgs.serverCommandSequence = cg.nextSnap->serverCommandSequence;
 		else if (cg.snap)

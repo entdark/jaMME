@@ -10,7 +10,7 @@
 #define PRODUCT_NAME			"jampconfig"
 
 #ifndef MACOS_X
-#define CLIENT_WINDOW_TITLE "Jedi Knight®: Jedi Academy (MP)" // for q3e minimizer
+#define CLIENT_WINDOW_TITLE "Jedi Knightï¿½: Jedi Academy (MP)" // for q3e minimizer
 #else
 #define CLIENT_WINDOW_TITLE "Jedi Knight: Jedi Academy (MP)" // for q3e minimizer
 #endif
@@ -531,11 +531,11 @@ typedef union {
 	unsigned int ui;
 } floatint_t;
 
-#ifndef min
-	#define min(x,y) ((x)<(y)?(x):(y))
+#ifndef Q_min
+	#define Q_min(x,y) ((x)<(y)?(x):(y))
 #endif
-#ifndef max
-	#define max(x,y) ((x)>(y)?(x):(y))
+#ifndef Q_max
+	#define Q_max(x,y) ((x)>(y)?(x):(y))
 #endif
 
 #if defined (_MSC_VER) && (_MSC_VER >= 1600)

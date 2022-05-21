@@ -143,7 +143,7 @@ static void R_MME_CreateBlur( qboolean stereo ) {
 		height = glConfig.vidHeight;
 		side = 0;
 	} else {
-		side = height = width = min( glConfig.vidHeight, glConfig.vidWidth );
+		side = height = width = Q_min(glConfig.vidHeight, glConfig.vidWidth );
 		if ( abs( mme_saveCubemap->integer ) == 2 ) {
 			width *= 6;
 		} else {
