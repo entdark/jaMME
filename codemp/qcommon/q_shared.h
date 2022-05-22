@@ -511,9 +511,6 @@ float FloatSwap( const float *f );
 #else
 	#define PLATFORM_STRING OS_STRING "-" ARCH_STRING "-debug"
 #endif
-#if defined(__linux__)&&!defined(__ANDROID__)
-    //#define USE_AIO
-#endif
 #if defined(USE_AIO)
 	#include <aio.h>
 	#include <signal.h>

@@ -17,6 +17,11 @@ option(BuildRenderer "Whether to create projects for the MP default renderer (rd
 option(BuildGame "Whether to create projects for the MP server-side gamecode (jampgamex86.dll)" ON)
 option(BuildCGame "Whether to create projects for the MP clientside gamecode (cgamex86.dll)" ON)
 option(BuildUI "Whether to create projects for the MP UI code (uix86.dll)" ON)
+option(BuildCurl "Whether to generate cURL" ON)
+
+if((UNIX) AND (NOT (APPLE)))
+	option(BuildAIO "Generate AIO" OFF)
+endif()
 
 # Customizable libraries
 if(WIN32)
@@ -159,6 +164,10 @@ endif()
 
 set(SharedDefines ${SharedDefines} "_JK2MP" "_JK2")
 
+if (BuildAIO)
+	set(SharedDefines ${SharedDefines} "USE_AIO")
+endif()
+
 if (NOT CMAKE_BUILD_TYPE)
 	message("No build type selected, default to RELEASE")
 	set(CMAKE_BUILD_TYPE "RELEASE")
@@ -196,5 +205,3 @@ if((MSVC) AND (NOT (MSVC_VERSION LESS 1900)))
 		include_external_msproject(android "${CMAKE_SOURCE_DIR}/android/Mono/android.csproj")
 	endif()
 endif()
-
-option(BuildCurl "Generate CURL")

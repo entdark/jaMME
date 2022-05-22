@@ -350,7 +350,8 @@ if(BuildEngine)
 	if(BuildCurl)
 		set(MPEngineDefines ${MPSharedDefines} "USE_CURL" "USE_CURL" "CURL_STATICLIB" "_WINSOCK_H")
 	endif(BuildCurl)
-	#    Dependencies
+
+#    Dependencies
 	
 	#library stuff
 	if(WIN32)
