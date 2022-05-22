@@ -10,7 +10,7 @@
 #define PRODUCT_NAME			"jampconfig"
 
 #ifndef MACOS_X
-#define CLIENT_WINDOW_TITLE "Jedi Knight�: Jedi Academy (MP)" // for q3e minimizer
+#define CLIENT_WINDOW_TITLE "Jedi Knight®: Jedi Academy (MP)" // for q3e minimizer
 #else
 #define CLIENT_WINDOW_TITLE "Jedi Knight: Jedi Academy (MP)" // for q3e minimizer
 #endif
