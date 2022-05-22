@@ -11,7 +11,7 @@
 
 #include "RM_Headers.h"
 
-#ifndef max
+#ifndef Q_max
 	#define max(a,b)    (((a) > (b)) ? (a) : (b))
 #endif
 
@@ -110,7 +110,7 @@ void CRMPathManager::CreateLocation ( const char* name, const int min_depth, int
 
 	CRMLoc* pLoc= new CRMLoc(name, min_depth, max_depth, min_paths, max_paths); 
 	mLocations.push_back(pLoc); 
-	mMaxDepth =  max(mMaxDepth, max_depth);
+	mMaxDepth =  Q_max(mMaxDepth, max_depth);
 }
 
 void CRMPathManager::ClearCells(int x_nodes, int y_nodes)

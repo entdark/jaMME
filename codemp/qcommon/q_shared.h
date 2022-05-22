@@ -10,7 +10,7 @@
 #define PRODUCT_NAME			"jampconfig"
 
 #ifndef MACOS_X
-#define CLIENT_WINDOW_TITLE "Jedi Knight®: Jedi Academy (MP)" // for q3e minimizer
+#define CLIENT_WINDOW_TITLE "Jedi KnightÂ®: Jedi Academy (MP)" // for q3e minimizer
 #else
 #define CLIENT_WINDOW_TITLE "Jedi Knight: Jedi Academy (MP)" // for q3e minimizer
 #endif
@@ -327,10 +327,13 @@ float FloatSwap( const float *f );
 
 #ifdef __linux__
 
-	#include <sys/mman.h>
+    #ifdef __cplusplus
+        #include <cstddef>
+    #endif
+    #include <sys/mman.h>
 	#include <unistd.h>
 
-	// bk001205 - from Makefile
+// bk001205 - from Makefile
 	#define stricmp strcasecmp
 
 	#define ID_INLINE /*inline*/
@@ -508,9 +511,6 @@ float FloatSwap( const float *f );
 #else
 	#define PLATFORM_STRING OS_STRING "-" ARCH_STRING "-debug"
 #endif
-#if defined(__linux__)&&!defined(__ANDROID__)
-	#define USE_AIO
-#endif
 #if defined(USE_AIO)
 	#include <aio.h>
 	#include <signal.h>
@@ -531,11 +531,11 @@ typedef union {
 	unsigned int ui;
 } floatint_t;
 
-#ifndef min
-	#define min(x,y) ((x)<(y)?(x):(y))
+#ifndef Q_min
+	#define Q_min(x,y) ((x)<(y)?(x):(y))
 #endif
-#ifndef max
-	#define max(x,y) ((x)>(y)?(x):(y))
+#ifndef Q_max
+	#define Q_max(x,y) ((x)>(y)?(x):(y))
 #endif
 
 #if defined (_MSC_VER) && (_MSC_VER >= 1600)

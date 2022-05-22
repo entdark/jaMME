@@ -347,9 +347,11 @@ if(BuildEngine)
 	set(MPEngineLibraries ${MPEngineAndDedLibraries})
 	set(MPEngineIncludeDirectories ${MPEngineAndDedIncludeDirectories})
 	set(MPEngineFiles ${MPEngineAndDedFiles})
-	set(MPEngineDefines ${MPSharedDefines} "USE_CURL" "USE_CURL" "CURL_STATICLIB" "_WINSOCK_H")
-	
-	#    Dependencies
+	if(BuildCurl)
+		set(MPEngineDefines ${MPSharedDefines} "USE_CURL" "USE_CURL" "CURL_STATICLIB" "_WINSOCK_H")
+	endif(BuildCurl)
+
+#    Dependencies
 	
 	#library stuff
 	if(WIN32)
@@ -546,5 +548,7 @@ if(BuildEngine)
 	set_target_properties(${jaMMEEngine} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPEngineDefines};${ReleaseDefines}")
 	set_target_properties(${jaMMEEngine} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPEngineDefines};${DebugDefines}")
 	set_target_properties(${jaMMEEngine} PROPERTIES INCLUDE_DIRECTORIES "${MPEngineIncludeDirectories}")
+
+
 	target_link_libraries(${jaMMEEngine} ${MPEngineLibraries})
 endif(BuildEngine)

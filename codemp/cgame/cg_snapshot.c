@@ -110,7 +110,7 @@ void CG_AddToHistory( int serverTime, entityState_t *state, centity_t *cent ) {
 			// determine correct lerp time for new snap
 			if (tstate->isTeleport) {
 				// if frame is a teleport, reset as best we can
-				tstate->time = max(prev->time, tstate->serverTime);
+				tstate->time = Q_max(prev->time, tstate->serverTime);
 				if ( prev->serverTime > tstate->serverTime ) {
 					tstate->time = tstate->serverTime;
 				}
@@ -121,7 +121,7 @@ void CG_AddToHistory( int serverTime, entityState_t *state, centity_t *cent ) {
 				int bestNewTime = state->pos.trTime - prev->es.pos.trTime + prev->time;
 				int deltaTime = tstate->serverTime - prev->serverTime;
 				// allow  to drift ahead or behind by 1 frame only
-				int newTime = min( tstate->serverTime + deltaTime, max( prev->serverTime, bestNewTime ) );
+				int newTime = Q_min(tstate->serverTime + deltaTime, Q_max(prev->serverTime, bestNewTime ) );
 				tstate->time = newTime;
 		
 #ifdef _DEBUG
@@ -175,7 +175,7 @@ void CG_UpdateTps( snapshot_t *snap, qboolean isTeleport ) {
 		// determine correct lerp time for new snap
 		if ( isTeleport ) {
 			// if frame is a teleport, reset as best we can
-			tps->time = max( lasttps->time, tps->serverTime );
+			tps->time = Q_max(lasttps->time, tps->serverTime );
 			if ( lasttps->serverTime > tps->serverTime ) {
 				tps->time = tps->serverTime;
 			}
@@ -187,7 +187,7 @@ void CG_UpdateTps( snapshot_t *snap, qboolean isTeleport ) {
 			int bestNewTime = tps->ps.commandTime - lasttps->ps.commandTime + lasttps->time;
 			int deltaTime = tps->serverTime - lasttps->serverTime;
 			// allow  to drift ahead or behind by 1 frame only
-			int newTime = min( tps->serverTime + deltaTime, max( lasttps->serverTime, bestNewTime ) );
+			int newTime = Q_min(tps->serverTime + deltaTime, Q_max(lasttps->serverTime, bestNewTime ) );
 			if ( lasttps->serverTime != 0 ) {
 				tps->time = newTime;
 			}
