@@ -23,7 +23,7 @@ features and some new ones.
   Contributors: ent, Scooper, redsaurus, teh, loda, Alpha/Avygeil
   Version: 1.10
   Date: 10.08.2016
-  Revision: b2ffad1
+  Revision: commit-hash
 
   Installation: extract the archive to "GameData" folder.
 
