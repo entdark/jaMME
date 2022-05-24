@@ -29,6 +29,7 @@ Jedi Academy Movie Maker's Edition (jaMME) is an engine modification of Jedi Aca
 * Scooper
 * redsaurus
 * teh
+* tayst
 
 # Installation #
 Extract the archive to "GameData" folder.
@@ -50,3 +51,4 @@ Extract the archive to "GameData" folder.
 * Grant R. Griffin and his "FIR filter algorithms for use in C"
 * OpenJK contributors and their OpenJK project
 * redsaurus for Mac support
+* tayst and his CI+CD
