@@ -661,5 +661,5 @@ void trap_MME_SetUIEditingField(qboolean v) {
 	Q_syscall(UI_MME_EDITINGFIELD, v);
 }
 void trap_MME_RequestFeatures( void ) {
-	return Q_syscall( UI_MME_REQUESTFEATURES );
+	Q_syscall( UI_MME_REQUESTFEATURES );
 }

@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 3.0.2)
 # For checks in subdirectories
 set(InjaMME TRUE)
 
-if(APPLE)
-	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.6" CACHE STRING "Minimum OS X deployment version")
-endif()
-
 # Project name
 set(ProjectName "jaMME" CACHE STRING "Project Name")
 project(${ProjectName})

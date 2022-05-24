@@ -22,8 +22,8 @@ features and some new ones.
   Author: ent
   Contributors: ent, Scooper, redsaurus, teh, loda, Alpha/Avygeil
   Version: 1.10
-!  Date: 10.08.2016
-!  Filesize: 7.42 MB
+  Date: 10.08.2016
+  Revision: commit-hash
 
   Installation: extract the archive to "GameData" folder.
 
@@ -42,4 +42,4 @@ features and some new ones.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Copyrights: ©2013-2016 ent
+  Copyrights: Â©2013-2016 ent

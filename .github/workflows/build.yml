@@ -1,0 +1,216 @@
+name: build
+
+on:
+  # Run on pushes to tags, the "master" branch, and PR's
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+      - '*.txt'
+      - '.gitignore'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '*.txt'
+      - '.gitignore'
+  workflow_dispatch:
+
+jobs:
+  windows:
+    name: ${{ matrix.build_type }} Windows ${{ matrix.arch }}
+    runs-on: windows-2019
+    strategy:
+      matrix:
+        build_type: [Release]
+        arch: [ x86 ]
+        include:
+          - arch: x86
+            platform: Win32
+            pkg_suffix: x86
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -A ${{ matrix.platform }} -T v141_xp
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: cmake --build . --config ${{ matrix.build_type }}
+
+      - name: Install
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: cmake --install . --config ${{ matrix.build_type }}
+
+      - name: Update readme
+        working-directory: ${{runner.workspace}}/jaMME/build/mme
+        shell: bash
+        run: |
+          sed -i "s/Date: .*..*..*/Date: $(date +"%d.%m.%Y")/" readme.txt
+          sed -i "s/Revision: .*/Revision: "$(git rev-parse --short HEAD)"/" readme.txt        
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: windows-${{ matrix.arch }}
+          path: ${{runner.workspace}}/jaMME/build/
+          if-no-files-found: error
+
+  ubuntu:
+    name: ${{ matrix.config }} Ubuntu ${{ matrix.arch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86, x86_64]
+        cc: [gcc]
+        cxx: [g++]
+        config: [Release]
+        include:
+          - config: Release
+            rule: install
+          - arch: x86
+            use_sdl: true
+          - arch: x86_64
+            use_sdl: true
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create Build Environment
+        run: |
+          if [ ${{ matrix.arch }} == "x86" ]; then
+            sudo dpkg --add-architecture i386
+            sudo apt-get -qq update
+            sudo apt-get -y install gcc-multilib g++-multilib ninja-build
+            sudo apt-get -y install --allow-downgrades libpcre2-8-0=10.34-7 libglib2.0-dev:i386 libjpeg-dev:i386 libpng-dev:i386 libsdl2-dev:i386 libcurl4-openssl-dev:i386 libmad0-dev:i386
+          else
+            sudo apt-get -qq update
+            sudo apt-get install libjpeg-dev libpng-dev zlib1g-dev libsdl2-dev libmad0-dev
+          fi
+          cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: |
+          if [ ${{ matrix.arch }} == "x86" ]; then
+          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBuildAIO=OFF -DBuildCurl=OFF -DCMAKE_INSTALL_PREFIX=${{runner.workspace}}/install -DCMAKE_TOOLCHAIN_FILE=CMakeModules/Toolchains/linux-i686.cmake
+          else
+          cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DBuildAIO=OFF -DBuildCurl=OFF -DCMAKE_INSTALL_PREFIX=${{runner.workspace}}/install
+          fi
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: cmake --build .
+
+      - name: Install
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: cmake --install .
+
+      - name: Update readme
+        working-directory: ${{runner.workspace}}/jaMME/build/mme
+        shell: bash
+        run: |
+          sed -i "s/Date: .*..*..*/Date: $(date +"%d.%m.%Y")/" readme.txt
+          sed -i "s/Revision: .*/Revision: "$(git rev-parse --short HEAD)"/" readme.txt        
+
+      - uses: actions/upload-artifact@v2
+        if: matrix.cc == 'gcc' && matrix.config == 'Release'
+        with:
+          name: linux-${{ matrix.arch }}
+          path: ${{runner.workspace}}/jaMME/build/
+          if-no-files-found: error
+
+  macos:
+    name: ${{ matrix.config }} macOS ${{ matrix.arch }}
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64]
+        cc: [clang]
+        cxx: [clang++]
+        config: [Release]
+        include:
+          - config: Release
+            rule: install
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Create Build Environment
+        run: |
+          brew install zlib libjpeg libpng sdl2
+          cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{runner.workspace}}/install
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: cmake --build .
+
+      - name: Install
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: cmake --install .
+
+      - name: Update readme
+        working-directory: ${{runner.workspace}}/jaMME/build/mme
+        shell: bash
+        run: |
+          sed -i.bak "s/Date: .*..*..*/Date: $(date +"%d.%m.%Y")/" readme.txt
+          sed -i.bak "s/Revision: .*/Revision: "$(git rev-parse --short HEAD)"/" readme.txt          
+          rm readme.txt.bak
+
+      - uses: actions/upload-artifact@v2
+        if: matrix.cc == 'clang' && matrix.config == 'Release'
+        with:
+          name: macos-${{ matrix.arch }}
+          path: ${{runner.workspace}}/jaMME/build/
+          if-no-files-found: error
+
+  create-release:
+    if: github.event_name == 'workflow_dispatch'
+    needs: [windows, ubuntu, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Create binary archives
+        run: |
+          7z a -r jamme-linux-x86.zip         ./linux-x86/*
+          7z a -r jamme-linux-x86_64.zip      ./linux-x86_64/*
+          7z a -r jamme-windows-x86.zip       ./windows-x86/*
+          7z a -r jamme-macos-x86_64.zip      ./macos-x86_64/*
+
+      - name: Create latest build
+        uses: ec-/action-automatic-releases@test
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic_release_tag: "latest"
+          prerelease: false
+          title: Latest Build
+          files: |
+            *.zip
