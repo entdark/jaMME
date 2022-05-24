@@ -395,6 +395,7 @@ static void InitOpenGL( void )
 
 	if ( glConfig.vidWidth == 0 )
 	{
+		glConfig.displayScale = 1.0f;
 		GLimp_Init();
 		// print info the first time only
 		GL_SetDefaultState();

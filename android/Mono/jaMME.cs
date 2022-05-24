@@ -315,12 +315,13 @@ namespace android {
 				jaMME.jaMMEHandle
 			);
 		}
-		public static void setScreenSize(int width, int height) {
+		public static void setScreenSize(int width, int height, float scale) {
 			Java_com_jamme_jaMME_setScreenSize(
 				JNIEnv.Handle,
 				jaMME.jaMMEHandle,
 				width,
-				height
+				height,
+				scale
 			);
 		}
 		public static int frame() {
@@ -433,7 +434,7 @@ namespace android {
 
 		[DllImport("jamme")] public extern static int Java_com_jamme_jaMME_init(IntPtr env, IntPtr jniClass, IntPtr act, IntPtr args, IntPtr game_path, IntPtr lib_path, IntPtr app_path, IntPtr abi, IntPtr abi_alt);
 		[DllImport("jamme")] public extern static void Java_com_jamme_jaMME_shutDown(IntPtr env, IntPtr jniClass);
-		[DllImport("jamme")] public extern static void Java_com_jamme_jaMME_setScreenSize(IntPtr env, IntPtr jniClass, int width, int height);
+		[DllImport("jamme")] public extern static void Java_com_jamme_jaMME_setScreenSize(IntPtr env, IntPtr jniClass, int width, int height, float scale);
 		[DllImport("jamme")] public extern static int Java_com_jamme_jaMME_frame(IntPtr env, IntPtr jniClass);
 		[DllImport("jamme")] public extern static IntPtr Java_com_jamme_jaMME_getLoadingMsg(IntPtr env, IntPtr jniClass);
 		[DllImport("jamme")] public extern static void Java_com_jamme_jaMME_keypress(IntPtr env, IntPtr jniClass, int down, int qkey, int unicode);
@@ -1296,10 +1297,10 @@ namespace android {
 			public void OnSurfaceCreated(IGL10 gl, Javax.Microedition.Khronos.Egl.EGLConfig config) {
 				Log.Debug(LOG, "OnSurfaceCreated");
 			}
-			private void initRenderer(int width, int height) {
+			private void initRenderer(int width, int height, float scale) {
 				this.jamme.saveLog();
 				Log.Info(LOG, "screen size: " + width + "x"+ height);
-				jaMME.setScreenSize(width, height);
+				jaMME.setScreenSize(width, height, scale);
 				Log.Info(LOG, "Init start");
 				//TODO: filter out fs_basepath from gameArgs 
 				string[] args_array = this.jamme.createArgs("+set fs_basepath \""+this.jamme.gamePath+"\" "+this.jamme.gameArgs);
@@ -1326,7 +1327,7 @@ namespace android {
 				if (!inited) {
 					jaMME.nativeInit();
 					inited = true;
-					initRenderer(this.jamme.surfaceWidth, this.jamme.surfaceHeight);
+					initRenderer(this.jamme.surfaceWidth, this.jamme.surfaceHeight, this.jamme.density);
 				}
 				jaMME.GameRunning = false;
 				this.jamme.flags = frame();

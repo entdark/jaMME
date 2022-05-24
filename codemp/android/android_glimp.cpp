@@ -222,7 +222,7 @@ GLimp_SetMode
 static rserr_t GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 {
 
-	SDL_GetAndroidScreenSize(&glConfig.vidWidth,&glConfig.vidHeight);
+	SDL_GetAndroidScreenSize(&glConfig.vidWidth,&glConfig.vidHeight,&glConfig.displayScale);
 
 	glConfig.colorBits = 16;
 	glConfig.depthBits = 16;

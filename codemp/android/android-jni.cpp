@@ -28,6 +28,7 @@ extern "C" {
 
 int android_screen_width;
 int android_screen_height;
+float android_screen_scale;
 
 #define KEY_SHOW_WEAPONS 0x1000
 #define KEY_SHOOT        0x1001
@@ -798,10 +799,11 @@ JAVA_FUNC(getNotificationMsg)(JNIEnv *env, jobject obj) {
 	return message;
 }
 void EXPORT_ME
-JAVA_FUNC(setScreenSize)(JNIEnv* env, jobject thiz, jint width, jint height) {
+JAVA_FUNC(setScreenSize)(JNIEnv* env, jobject thiz, jint width, jint height, jfloat scale) {
 	android_screen_width = width;
 	android_screen_height = height;
-	SDL_SetAndroidScreenSize(android_screen_width, android_screen_height);
+	android_screen_scale = scale;
+	SDL_SetAndroidScreenSize(android_screen_width, android_screen_height, android_screen_scale);
 }
 }
 static JNIEnv *my_getJNIEnv() {

@@ -16,6 +16,8 @@ int			chat_playerNum;
 
 keyGlobals_t	kg;										
 
+extern console_t con;
+
 // do NOT blithely change any of the key names (3rd field) here, since they have to match the key binds
 //	in the CFG files, they're also prepended with "KEYNAME_" when looking up StringEd references
 //
@@ -434,7 +436,7 @@ void Field_VariableSizeDraw( field_t *edit, int x, int y, int width, int size, q
 		i = drawLen - ( Q_PrintStrlen( str, cls.cTable) );
 
 		if ( size == SMALLCHAR_WIDTH ) {
-			SCR_DrawSmallChar( x + ( edit->cursor - prestep - i ) * size, y, cursorChar );
+			SCR_DrawSmallChar( x + ( edit->cursor - prestep - i ) * con.charWidth, y, cursorChar );
 		} else {
 			str[0] = cursorChar;
 			str[1] = 0;

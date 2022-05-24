@@ -377,6 +377,7 @@ typedef struct {
 
 	int						vidWidth, vidHeight;
 
+	float					displayScale;
 	int						displayFrequency;
 
 	// synonymous with "does rendering consume the entire screen?", therefore
