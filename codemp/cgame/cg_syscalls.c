@@ -272,7 +272,7 @@ void trap_AS_AddPrecacheEntry( const char *name )
 
 int trap_S_AddLocalSet( const char *name, vec3_t listener_origin, vec3_t origin, int entID, int time )
 {
-	if (CG_MultiSpecActive()) return;
+	if (CG_MultiSpecActive()) return time;
 	return Q_syscall(CG_S_ADDLOCALSET, name, listener_origin, origin, entID, time);
 }
 
