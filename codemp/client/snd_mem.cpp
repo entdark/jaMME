@@ -12,7 +12,7 @@
 #include "snd_local.h"
 
 #define HAVE_LIBMAD
-#ifndef __ANDROID__
+#ifndef __linux__
 #define HAVE_LIBOGG
 #define HAVE_LIBFLAC
 #endif
