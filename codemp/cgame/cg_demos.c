@@ -1463,6 +1463,8 @@ void CG_DemoEntityEvent( const centity_t* cent ) {
 	qboolean found = qfalse, splash = qfalse;
 	int target = cent->currentState.otherEntityNum;
 	int attacker = cent->currentState.otherEntityNum2;
+	if ( cg.demoPlayback != 2 )
+		return;
 	if ( !demo.find.conditionTarget( target ) || !demo.find.conditionAttacker( attacker ) )
 		return;
 	switch ( cent->currentState.event ) {
