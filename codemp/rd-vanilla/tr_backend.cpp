@@ -1657,9 +1657,9 @@ const void *RB_RotatePic2RatioFix( const void *data ) {
 	const rotatePicRatioFixCommand_t *cmd;
 	cmd = (const rotatePicRatioFixCommand_t *)data;
 	if (cmd->ratio <= 0.0f)
-        ratioFix = 1.0f;
+    	ratioFix = 1.0f;
 	else
-        ratioFix = cmd->ratio;
+    	ratioFix = cmd->ratio;
 	return (const void *)(cmd + 1);
 }
 
