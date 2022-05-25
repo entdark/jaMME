@@ -25,7 +25,83 @@ void CG_TargetCommand_f( void ) {
 	trap_SendConsoleCommand( va( "gc %i %i", targetNum, atoi( test ) ) );
 }
 
+typedef struct bitInfo_S {
+    const char	*string;
+} bitInfo_T;
 
+static bitInfo_T strafeTweaks[] = {
+        {"Original style"},//0
+        {"Updated style"},//1
+        {"Cgaz style"},//2
+        {"Warsow style"},//3
+        {"Sound"},//4
+        {"W"},//5
+        {"WA"},//6
+        {"WD"},//7
+        {"A"},//8
+        {"D"},//9
+        {"Rear"},//10
+        {"Center"},//11
+        {"Accel bar"},//12
+        {"Weze style"},//13
+        {"Line Crosshair"},//14
+        {"S"},//15
+        {"SA"},//16
+        {"SD"},//17
+        {"Small Lines"},//18
+        {"Invert"}//19
+};
+static const int MAX_STRAFEHELPER_TWEAKS = ARRAY_LEN( strafeTweaks );
+
+extern void CG_ClearThirdPersonDamp(void);
+void CG_StrafeHelper_f( void ) {
+    if ( trap_Argc() == 1 ) {
+        int i = 0;
+        for ( i = 0; i < MAX_STRAFEHELPER_TWEAKS; i++ ) {
+            if ( (cg_strafeHelper.integer & (1 << i)) ) {
+                Com_Printf( "%2d [X] %s\n", i, strafeTweaks[i].string );
+            }
+            else {
+                Com_Printf( "%2d [ ] %s\n", i, strafeTweaks[i].string );
+            }
+        }
+        return;
+    }
+    else {
+        char arg[8] = { 0 };
+        int index;
+        const uint32_t mask = (1 << MAX_STRAFEHELPER_TWEAKS) - 1;
+
+        trap_Argv( 1, arg, sizeof(arg) );
+        index = atoi( arg );
+
+        if ( index < 0 || index >= MAX_STRAFEHELPER_TWEAKS ) {
+            Com_Printf( "strafeHelper: Invalid range: %i [0, %i]\n", index, MAX_STRAFEHELPER_TWEAKS - 1 );
+            return;
+        }
+
+        if ((index == 0 || index == 1 || index == 2 || index == 3 || index == 13)) { //Radio button these options
+            //Toggle index, and make sure everything else in this group (0,1,2,3,13) is turned off
+            int groupMask = (1 << 0) + (1 << 1) + (1 << 2) + (1 << 3) + (1 << 13);
+            int value = cg_strafeHelper.integer;
+
+            groupMask &= ~(1 << index); //Remove index from groupmask
+            value &= ~(groupMask); //Turn groupmask off
+            value ^= (1 << index); //Toggle index item
+
+            trap_Cvar_Set("cg_strafeHelper", va("%i", value));
+        }
+        else {
+            trap_Cvar_Set("cg_strafeHelper", va("%i", (1 << index) ^ (cg_strafeHelper.integer & mask)));
+        }
+        trap_Cvar_Update( &cg_strafeHelper );
+
+        Com_Printf( "%s %s^7\n", strafeTweaks[index].string, ((cg_strafeHelper.integer & (1 << index))
+                                                              ? "^2Enabled" : "^1Disabled") );
+    }
+
+    CG_ClearThirdPersonDamp();
+}
 
 /*
 =================
@@ -518,6 +594,7 @@ static consoleCommand_t	commands[] = {
 	{ "sm_stats", CG_EnhancedStatistics_f },
 	{ "clientOverride", CG_ClientOverride_f },
 	{ "multispec" , CG_MultiSpec_f },
+    { "strafeHelper", CG_StrafeHelper_f },
 #ifdef __ANDROID__
 	{ "targetPrev", CG_TargetPrev_f },
 	{ "targetNext", CG_TargetNext_f },

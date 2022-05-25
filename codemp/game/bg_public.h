@@ -397,6 +397,33 @@ extern int forceMasteryPoints[NUM_FORCE_MASTERY_LEVELS];
 
 extern int bgForcePowerCost[NUM_FORCE_POWERS][NUM_FORCE_POWER_LEVELS];
 
+#define _SPPHYSICS 1
+#define _COOP 1
+typedef enum //movementstyle enum
+{
+    MV_SIEGE,
+    MV_JKA,
+    MV_QW,
+    MV_CPM,
+    MV_Q3,
+    MV_PJK,
+    MV_WSW,
+    MV_RJQ3,
+    MV_RJCPM,
+    MV_SWOOP,
+    MV_JETPACK,
+    MV_SPEED,
+#if _SPPHYSICS
+    MV_SP,
+#endif
+    MV_SLICK,
+    MV_BOTCPM,
+#if _COOP
+    MV_COOP_JKA,
+#endif
+    MV_NUMSTYLES,
+} movementStyle_e;
+
 // pmove->pm_flags
 #define	PMF_DUCKED			1
 #define	PMF_JUMP_HELD		2

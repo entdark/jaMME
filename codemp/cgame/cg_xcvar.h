@@ -237,4 +237,18 @@ XCVAR_DEF( cg_drawPlayerNamesScale,				"0.5",					NULL,					CVAR_ARCHIVE )
 //tell the server we are newmod
 //XCVAR_DEF( nm_ver,								"1.6.0",				NULL,					CVAR_USERINFO )
 XCVAR_DEF( nm_flags,							"u",					NULL,					CVAR_USERINFO )
+//Strafehelper
+XCVAR_DEF( cg_crosshairColor,	                "0 0 0 255",	        CG_CrosshairColorChange, CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelper,						"3008",                 CG_ClearThirdPersonDamp, CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelper_FPS,					"0",	                NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelperOffset,				"75",	                NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelperLineWidth,			"1",	                NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelperPrecision,			"256",	                NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelperCutoff,				"0",	                NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelperActiveColor,	        "0 255 0 200",	        CG_StrafeHelperActiveColorChange, CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelperInactiveAlpha,		"200",	                NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( ui_sha_r,						    "0",				    CVU_StrafeHelper,		CVAR_ARCHIVE|CVAR_INTERNAL )
+XCVAR_DEF( ui_sha_g,						    "255",				    CVU_StrafeHelper,		CVAR_ARCHIVE|CVAR_INTERNAL )
+XCVAR_DEF( ui_sha_b,						    "0",				    CVU_StrafeHelper,		CVAR_ARCHIVE|CVAR_INTERNAL )
+XCVAR_DEF( ui_sha_a,						    "200",				    CVU_StrafeHelper,		CVAR_ARCHIVE|CVAR_INTERNAL )
 #undef XCVAR_DEF

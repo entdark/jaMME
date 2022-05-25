@@ -1131,6 +1131,11 @@ Ghoul2 Insert End
 	int					tip;
 	
 	int					rainTime, rainNumber;
+
+    //Strafehelper
+    float				currentSpeed;
+    vec4_t				strafeHelperActiveColor;
+    vec4_t				crosshairColor;
 } cg_t;
 
 #define MAX_TICS	14

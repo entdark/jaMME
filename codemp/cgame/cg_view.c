@@ -227,6 +227,23 @@ static void CG_StepOffset( void ) {
 
 static vec3_t	cameramins = { -CAMERA_SIZE, -CAMERA_SIZE, -CAMERA_SIZE };
 static vec3_t	cameramaxs = { CAMERA_SIZE, CAMERA_SIZE, CAMERA_SIZE };
+
+typedef struct dampPos_s {
+    vec3_t	ideal;		// ideal location
+    vec3_t	prevIdeal;
+    vec3_t	damp;		// position = ideal + damp
+} dampPos_t;
+
+static struct {
+    dampPos_t	target;
+    dampPos_t	loc;
+    vec3_t		fwd;
+    vec3_t		focus;
+    float		lastYaw;
+    int			lastTime;
+    float		lastTimeFrac;
+} cam;
+
 vec3_t	camerafwd, cameraup;
 
 vec3_t	cameraFocusAngles,			cameraFocusLoc;
@@ -418,6 +435,28 @@ static void CG_ResetThirdPersonViewDamp(void)
 	cameraLastFrame = cg.time;
 	cameraLastYaw = cameraFocusAngles[YAW];
 	cameraStiffFactor = 0.0f;
+}
+
+void CG_ClearThirdPersonDamp(void)
+{//workaround for camera jerk when clearing camera damp vectors, should probably be refactored into, if not fixed in the actual ThirdPersonDamp code
+    vec3_t oldLoc, oldTarget;
+    if (!cg.snap)
+        return;
+
+    if (cl_paused.integer)
+        return;
+
+    VectorCopy(cam.loc.ideal, oldLoc);
+    VectorCopy(cam.target.ideal, oldTarget);
+
+    CG_ResetThirdPersonViewDamp();
+
+    VectorCopy(oldLoc, cam.loc.ideal);
+    VectorCopy(oldTarget, cam.target.ideal);
+    VectorCopy(oldLoc, cam.loc.prevIdeal);
+    VectorCopy(oldTarget, cam.target.prevIdeal);
+
+    cam.lastTime = cg.predictedPlayerState.commandTime;
 }
 
 // This is called every frame.
