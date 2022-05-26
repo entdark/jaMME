@@ -12,7 +12,7 @@
 #include "snd_local.h"
 
 #define HAVE_LIBMAD
-#ifndef __linux__
+#ifdef WIN32
 #define HAVE_LIBOGG
 #define HAVE_LIBFLAC
 #endif
