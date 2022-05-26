@@ -589,7 +589,7 @@ Used to load a development dll instead of a virtual machine
 extern char		*FS_BuildOSPath( const char *base, const char *game, const char *qpath );
 
 /*void * QDECL Sys_LoadGameDll( const char *name, intptr_t (QDECL **entryPoint)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) ) {*/
-void * QDECL Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) ) {
+void * QDECL Sys_LoadLegacyGameDll( const char *name, entryPoint_t *vmMain, intptr_t (QDECL *systemcalls)(intptr_t, ...) ) {
 	HINSTANCE	libHandle;
 	void	(QDECL *dllEntry)( intptr_t (QDECL *syscallptr)(intptr_t, ...) );
 	char	*basepath;
@@ -635,7 +635,7 @@ void * QDECL Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(
 	}
 
 	dllEntry = ( void (QDECL *)( intptr_t (QDECL *)( intptr_t, ... ) ) )GetProcAddress( libHandle, "dllEntry" ); 
-	*vmMain = (intptr_t (QDECL *)(int,...))GetProcAddress( libHandle, "vmMain" );
+	*vmMain = (entryPoint_t)GetProcAddress( libHandle, "vmMain" );
 	if ( !*vmMain || !dllEntry ) {
 		FreeLibrary( libHandle );
 		return NULL;
