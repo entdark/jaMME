@@ -870,8 +870,7 @@ void CG_LoadCISounds(clientInfo_t *ci, qboolean modelloaded) {
 			break;
 		}
 
-		Com_sprintf(soundName, sizeof(soundName), "%s", s+1);
-		COM_StripExtension(soundName, soundName, sizeof( soundName ) );
+		COM_StripExtension(s+1, soundName, sizeof( soundName ) );
 		//strip the extension because we might want .mp3's
 
 		ci->sounds[i] = 0;
@@ -911,8 +910,7 @@ void CG_LoadCISounds(clientInfo_t *ci, qboolean modelloaded) {
 				break;
 			}
 
-			Com_sprintf(soundName, sizeof(soundName), "%s", s+1);
-			COM_StripExtension(soundName, soundName, sizeof( soundName ) );
+			COM_StripExtension(s+1, soundName, sizeof( soundName ) );
 			//strip the extension because we might want .mp3's
 
 			ci->siegeSounds[i] = 0;
@@ -957,8 +955,7 @@ void CG_LoadCISounds(clientInfo_t *ci, qboolean modelloaded) {
 				break;
 			}
 
-			Com_sprintf(soundName, sizeof(soundName), "%s", s+1);
-			COM_StripExtension(soundName, soundName, sizeof( soundName ) );
+			COM_StripExtension(s+1, soundName, sizeof( soundName ) );
 			//strip the extension because we might want .mp3's
 
 			ci->duelSounds[i] = 0;

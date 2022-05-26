@@ -402,11 +402,10 @@ int Q3_PlaySound( int taskID, int entID, const char *name, const char *channel )
 	int				soundHandle;
 	qboolean		bBroadcast;
 
-	Q_strncpyz( finalName, name, MAX_QPATH );
-	Q_strupr(finalName);
 	//G_AddSexToMunroString( finalName, qtrue );
 
-	COM_StripExtension( (const char *)finalName, finalName, sizeof( finalName ) );
+	COM_StripExtension( name, finalName, sizeof( finalName ) );
+    Q_strupr(finalName);
 
 	soundHandle = G_SoundIndex( (char *) finalName );
 	bBroadcast = qfalse;

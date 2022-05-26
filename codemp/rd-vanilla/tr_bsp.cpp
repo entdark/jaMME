@@ -2039,8 +2039,7 @@ void RE_LoadWorldMap_Actual( const char *name, world_t &worldData, int index )
 	memset( &worldData, 0, sizeof( worldData ) );
 	Q_strncpyz( worldData.name, name, sizeof( worldData.name ) );
 
-	Q_strncpyz( worldData.baseName, COM_SkipPath( worldData.name ), sizeof( worldData.name ) );
-	COM_StripExtension( worldData.baseName, worldData.baseName, sizeof( worldData.baseName ) );
+	COM_StripExtension( COM_SkipPath( worldData.name ), worldData.baseName, sizeof( worldData.baseName ) );
 
 	startMarker = (byte *)Hunk_Alloc(0, h_low);
 	c_gridVerts = 0;
