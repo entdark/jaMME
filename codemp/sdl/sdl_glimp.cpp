@@ -14,6 +14,7 @@ static float displayAspect;
 cvar_t *r_allowSoftwareGL; // Don't abort out if a hardware visual can't be obtained
 cvar_t *r_allowResize; // make window resizable
 cvar_t *r_sdlDriver;
+cvar_t *r_sdlHighDpi;
 
 typedef enum
 {
@@ -231,6 +232,37 @@ static void GLimp_DetectAvailableModes(void)
 	}
 }
 
+static float GLimp_GetDisplayScale(int display)
+{
+    float scale = 1.0f;
+
+#if SDL_VERSION_ATLEAST(2, 0, 4)
+    const char *driver = SDL_GetCurrentVideoDriver();
+
+    if (!strcmp(driver, "windows")) {
+        float ddpi;
+
+        // on windows driver dpi is always 96 * desktop scaling
+        if (!SDL_GetDisplayDPI(display, &ddpi, NULL, NULL)) {
+            scale = ddpi / 96.0f;
+        }
+    } else if (!strcmp(driver, "x11")) {
+        float ddpi;
+
+        // this is a hack: some environments return real display DPI,
+        // others synthetic, based on desktop scaling. Not sure if 96
+        // is universal synthetic 1:1 neither. x11 has no fractional
+        // scaling so round to integer.
+        if (!SDL_GetDisplayDPI(display, &ddpi, NULL, NULL)) {
+            scale = roundf(ddpi / 96.0f);
+        }
+
+    }
+#endif
+
+    return scale;
+}
+
 /*
 ===============
 GLimp_SetMode
@@ -248,12 +280,16 @@ static rserr_t GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 	SDL_DisplayMode desktopMode;
 	int display = 0;
 	int x = 0, y = 0;
+    int width, height;
 
 	Com_Printf( "Initializing OpenGL display\n");
 
 	if ( r_allowResize->integer && !fullscreen )
 		flags |= SDL_WINDOW_RESIZABLE;
-
+    
+    if ( r_sdlHighDpi->integer )
+        flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+    
 	/*icon = SDL_CreateRGBSurfaceFrom(
 			(void *)CLIENT_WINDOW_ICON.pixel_data,
 			CLIENT_WINDOW_ICON.width,
@@ -269,7 +305,13 @@ static rserr_t GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 
 	// If a window exists, note its display index
 	if( screen != NULL )
-		display = SDL_GetWindowDisplayIndex( screen );
+    {
+        display = SDL_GetWindowDisplayIndex( screen );
+        SDL_GetWindowPosition( screen, &x, &y );
+        ri.Printf( PRINT_DEVELOPER, "Existing window at %dx%d before being destroyed\n", x, y );
+        SDL_DestroyWindow( screen );
+        screen = NULL;
+    }
 
 	if( SDL_GetDesktopDisplayMode( display, &desktopMode ) == 0 )
 	{
@@ -291,30 +333,30 @@ static rserr_t GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 		// use desktop video resolution
 		if( desktopMode.h > 0 )
 		{
-			glConfig.vidWidth = desktopMode.w;
-			glConfig.vidHeight = desktopMode.h;
+            width = desktopMode.w;
+            height = desktopMode.h;
 		}
 		else
 		{
-			glConfig.vidWidth = 640;
-			glConfig.vidHeight = 480;
+            width = 640;
+            height = 480;
 			Com_Printf( "Cannot determine display resolution, assuming 640x480\n" );
 		}
 
-		//glConfig.windowAspect = (float)glConfig.vidWidth / (float)glConfig.vidHeight;
+		//glConfig.windowAspect = (float)width / (float)height;
 	}
-	else if ( !R_GetModeInfo( &glConfig.vidWidth, &glConfig.vidHeight, /*&glConfig.windowAspect,*/ mode ) )
+	else if ( !R_GetModeInfo( &width, &height, /*&glConfig.windowAspect,*/ mode ) )
 	{
 		Com_Printf( " invalid mode\n" );
 		return RSERR_INVALID_MODE;
 	}
-	Com_Printf( " %d %d\n", glConfig.vidWidth, glConfig.vidHeight);
+	Com_Printf( " %d %d\n", width, height);
 
 	// Center window
 	if( r_centerWindow->integer && !fullscreen )
 	{
-		x = ( desktopMode.w / 2 ) - ( glConfig.vidWidth / 2 );
-		y = ( desktopMode.h / 2 ) - ( glConfig.vidHeight / 2 );
+		x = ( desktopMode.w / 2 ) - ( width / 2 );
+		y = ( desktopMode.h / 2 ) - ( height / 2 );
 	}
 
 	// Destroy existing state if it exists
@@ -322,14 +364,6 @@ static rserr_t GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 	{
 		SDL_GL_DeleteContext( opengl_context );
 		opengl_context = NULL;
-	}
-
-	if( screen != NULL )
-	{
-		SDL_GetWindowPosition( screen, &x, &y );
-		ri.Printf( PRINT_DEVELOPER, "Existing window at %dx%d before being destroyed\n", x, y );
-		SDL_DestroyWindow( screen );
-		screen = NULL;
 	}
 
 	if( fullscreen )
@@ -455,7 +489,7 @@ static rserr_t GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 			SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
 
 		if( ( screen = SDL_CreateWindow( CLIENT_WINDOW_TITLE, x, y,
-				glConfig.vidWidth, glConfig.vidHeight, flags ) ) == 0 )
+                                        width, height, flags ) ) == 0 )
 		{
 			ri.Printf( PRINT_DEVELOPER, "SDL_CreateWindow failed: %s\n", SDL_GetError( ) );
 			continue;
@@ -472,8 +506,8 @@ static rserr_t GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 				default: ri.Printf( PRINT_DEVELOPER, "testColorBits is %d, can't fullscreen\n", testColorBits ); continue;
 			}
 
-			mode.w = glConfig.vidWidth;
-			mode.h = glConfig.vidHeight;
+			mode.w = width;
+			mode.h = height;
 			mode.refresh_rate = glConfig.displayFrequency = ri.Cvar_VariableIntegerValue( "r_displayRefresh" );
 			mode.driverdata = NULL;
 
@@ -509,7 +543,13 @@ static rserr_t GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 				glConfig.colorBits, glConfig.depthBits, glConfig.stencilBits );
 		break;
 	}
-
+    
+    SDL_GL_GetDrawableSize( screen, &glConfig.vidWidth, &glConfig.vidHeight );
+    Com_Printf( "...renderer size: %d %d\n", glConfig.vidWidth, glConfig.vidHeight );
+    
+    glConfig.displayScale = GLimp_GetDisplayScale(display);
+    glConfig.displayScale *= glConfig.vidHeight / height;
+    
 	/*SDL_FreeSurface( icon );*/
 
 	GLimp_DetectAvailableModes();
@@ -1398,7 +1438,8 @@ void 		GLimp_Init( void )
 	ri.Cvar_Get( "r_restartOnResize", "1", CVAR_ARCHIVE );
 	ri.Cvar_Get( "r_resizeDelay", "1000", CVAR_ARCHIVE );
 	r_allowSoftwareGL = ri.Cvar_Get( "r_allowSoftwareGL", "0", CVAR_LATCH );
-	r_sdlDriver = ri.Cvar_Get( "r_sdlDriver", "", CVAR_ROM );
+	r_sdlDriver = ri.Cvar_Get( "r_sdlDriver", "", CVAR_ROM | CVAR_LATCH );
+    r_sdlHighDpi = ri.Cvar_Get( "r_sdlHighDpi", "0", CVAR_ARCHIVE );
 	r_allowResize = ri.Cvar_Get( "r_allowResize", "0", CVAR_ARCHIVE );
 
 	/*	if( Cvar_VariableIntegerValue( "com_abnormalExit" ) )
