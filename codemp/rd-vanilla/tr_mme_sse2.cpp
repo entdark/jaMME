@@ -3,7 +3,7 @@
 #include "tr_local.h"
 #include "tr_mme.h"
 
-#if !defined (HAVE_GLES) || defined (X86_OR_64)
+#if (!defined (HAVE_GLES) || defined (X86_OR_64)) && !defined (__arm64__)
 #include <emmintrin.h>
 
 void MME_AccumClearSSE( void* Q_RESTRICT w, const void* Q_RESTRICT r, short int mul, int count ) {

@@ -4,7 +4,7 @@
 #include "tr_local.h"
 #include "../client/snd_public.h"
 
-#if !defined (HAVE_GLES) || defined (X86_OR_64)
+#if (!defined (HAVE_GLES) || defined (X86_OR_64)) && !defined (__arm64__)
 #include <mmintrin.h>
 #endif
 

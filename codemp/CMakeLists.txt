@@ -399,6 +399,11 @@ if(BuildEngine)
 		find_package(SDL2 REQUIRED)
 		set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} ${SDL2_INCLUDE_DIR})
 		set(MPEngineLibraries ${MPEngineLibraries} ${SDL2_LIBRARY})
+
+		# OpenGL
+		find_package(OpenGL REQUIRED)
+		set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} ${OPENGL_INCLUDE_DIR})
+		set(MPEngineLibraries ${MPEngineLibraries} ${OPENGL_LIBRARIES})
 	endif(NOT WIN32)
 
 	set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} ${MPDir}/libs/win32/include)
