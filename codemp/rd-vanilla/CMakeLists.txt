@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
 # Make sure the user is not executing this script directly
 if(NOT InjaMME)
@@ -146,7 +146,6 @@ else(WIN32)
 		install(TARGETS ${jaMMERenderer} LIBRARY DESTINATION "${jaMMEInstallDir}")
 	endif(MakeApplicationBundles AND BuildMPEngine)
 endif(WIN32)
-set_target_properties(${jaMMERenderer} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${SharedDefines};${ReleaseDefines}")
-set_target_properties(${jaMMERenderer} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${SharedDefines};${DebugDefines}")
+set_target_properties(${jaMMERenderer} PROPERTIES COMPILE_DEFINITIONS "${SharedDefines}")
 set_target_properties(${jaMMERenderer} PROPERTIES INCLUDE_DIRECTORIES "${MPVanillaRendererIncludeDirectories}")
 target_link_libraries(${jaMMERenderer} ${MPVanillaRendererLibraries})

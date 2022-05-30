@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
 # Make sure the user is not executing this script directly
 if(NOT InjaMME)
@@ -75,8 +75,7 @@ if(WIN32)
 else(WIN32)
 	install(TARGETS ${jaMMEUI} LIBRARY DESTINATION "${jaMMEInstallDir}/mme")
 endif(WIN32)
-set_target_properties(${jaMMEUI} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPUIDefines};${ReleaseDefines}")
-set_target_properties(${jaMMEUI} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPUIDefines};${DebugDefines}")
+set_target_properties(${jaMMEUI} PROPERTIES COMPILE_DEFINITIONS "${MPUIDefines}")
 set_target_properties(${jaMMEUI} PROPERTIES INCLUDE_DIRECTORIES "${MPUIIncludeDirectories}")
 # no libraries used
 if(MPUILibraries)

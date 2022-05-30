@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
 # Make sure the user is not executing this script directly
 if(NOT InjaMME)
@@ -555,10 +555,8 @@ if(BuildEngine)
 	else(MakeApplicationBundles)
 		install(TARGETS ${jaMMEEngine} RUNTIME DESTINATION "${jaMMEInstallDir}")
 	endif(MakeApplicationBundles)
-	set_target_properties(${jaMMEEngine} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPEngineDefines};${ReleaseDefines}")
-	set_target_properties(${jaMMEEngine} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPEngineDefines};${DebugDefines}")
+	set_target_properties(${jaMMEEngine} PROPERTIES COMPILE_DEFINITIONS "${MPEngineDefines}")
 	set_target_properties(${jaMMEEngine} PROPERTIES INCLUDE_DIRECTORIES "${MPEngineIncludeDirectories}")
-
 
 	target_link_libraries(${jaMMEEngine} ${MPEngineLibraries})
 endif(BuildEngine)
