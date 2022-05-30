@@ -551,7 +551,13 @@ if(BuildEngine)
 		endif(MakeApplicationBundles)
 	endif(WIN32)
 	if(MakeApplicationBundles)
-		install(TARGETS ${jaMMEEngine} BUNDLE DESTINATION "${jaMMEInstallDir}")
+		install(TARGETS ${jaMMEEngine}
+			BUNDLE
+			DESTINATION ${jaMMEInstallDir})
+		install(CODE "
+			include(BundleUtilities)
+			fixup_bundle(\"${CMAKE_BINARY_DIR}/${jaMMEEngine}.app\" \"\" \"\")
+			")
 	else(MakeApplicationBundles)
 		install(TARGETS ${jaMMEEngine} RUNTIME DESTINATION "${jaMMEInstallDir}")
 	endif(MakeApplicationBundles)
