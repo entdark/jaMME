@@ -60,10 +60,16 @@ jobs:
           sed -i "s/Date: .*..*..*/Date: $(date +"%d.%m.%Y")/" readme.txt
           sed -i "s/Revision: .*/Revision: "$(git rev-parse --short HEAD)"/" readme.txt        
 
+      - name: Remove unnecessary files
+        working-directory: ${{runner.workspace}}/jaMME/build
+        shell: bash
+        run: |
+          rm start_jaMME.command
+
       - uses: actions/upload-artifact@v2
         with:
           name: windows-${{ matrix.arch }}
-          path: ${{runner.workspace}}/jaMME/build/
+          path: ${{runner.workspace}}/jaMME/build/*
           if-no-files-found: error
 
   ubuntu:
@@ -75,7 +81,6 @@ jobs:
         arch: [x86, x86_64]
         cc: [gcc]
         cxx: [g++]
-        config: [Release]
         include:
           - config: Release
             rule: install
@@ -127,11 +132,20 @@ jobs:
           sed -i "s/Date: .*..*..*/Date: $(date +"%d.%m.%Y")/" readme.txt
           sed -i "s/Revision: .*/Revision: "$(git rev-parse --short HEAD)"/" readme.txt        
 
+      - name: Create binary archive
+        working-directory: ${{runner.workspace}}/jaMME/build
+        shell: bash
+        run: |
+          chmod +x jamme
+          rm start_jaMME.command
+          rm start_jaMME.cmd
+          tar -cvf linux-${{ matrix.arch }}.tar      ./*
+
       - uses: actions/upload-artifact@v2
         if: matrix.cc == 'gcc' && matrix.config == 'Release'
         with:
           name: linux-${{ matrix.arch }}
-          path: ${{runner.workspace}}/jaMME/build/
+          path: ${{runner.workspace}}/jaMME/build/linux-${{ matrix.arch }}.tar
           if-no-files-found: error
 
   macos:
@@ -143,7 +157,6 @@ jobs:
         arch: [x86_64]
         cc: [clang]
         cxx: [clang++]
-        config: [Release]
         include:
           - config: Release
             rule: install
@@ -179,38 +192,48 @@ jobs:
           sed -i.bak "s/Revision: .*/Revision: "$(git rev-parse --short HEAD)"/" readme.txt          
           rm readme.txt.bak
 
+      - name: Create binary archive
+        working-directory: ${{runner.workspace}}/jaMME/build
+        shell: bash
+        run: |
+          chmod +x jamme.app/Contents/MacOS/jamme
+          chmod +x start_jaMME.command
+          rm start_jaMME.cmd
+          tar -cvf macos-${{ matrix.arch }}.tar      ./*
+
       - uses: actions/upload-artifact@v2
         if: matrix.cc == 'clang' && matrix.config == 'Release'
         with:
           name: macos-${{ matrix.arch }}
-          path: ${{runner.workspace}}/jaMME/build/
+          path: ${{runner.workspace}}/jaMME/build/macos-${{ matrix.arch }}.tar
           if-no-files-found: error
 
-  create-release:
-    if: github.event_name == 'workflow_dispatch'
-    needs: [windows, ubuntu, macos]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v2
-
-      - name: Create binary archives
-        run: |
-          7z a -r jamme-linux-x86.zip         ./linux-x86/*
-          7z a -r jamme-linux-x86_64.zip      ./linux-x86_64/*
-          7z a -r jamme-windows-x86.zip       ./windows-x86/*
-          7z a -r jamme-macos-x86_64.zip      ./macos-x86_64/*
-
-      - name: Create latest build
-        uses: ec-/action-automatic-releases@test
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          automatic_release_tag: "latest"
-          prerelease: false
-          title: Latest Build
-          files: |
-            *.zip
+## Leave it for future, maybe
+#  create-release:
+#    if: github.event_name == 'workflow_dispatch'
+#    needs: [windows, ubuntu, macos]
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v2
+#        with:
+#          submodules: recursive
+#
+#      - name: Download Artifacts
+#        uses: actions/download-artifact@v2
+#
+#      - name: Create binary archives
+#        run: |
+#          7z a -r jamme-linux-x86.zip         ./linux-x86/*
+#          7z a -r jamme-linux-x86_64.zip      ./linux-x86_64/*
+#          7z a -r jamme-windows-x86.zip       ./windows-x86/*
+#          7z a -r jamme-macos-x86_64.zip      ./macos-x86_64/*
+#
+#      - name: Create latest build
+#        uses: ec-/action-automatic-releases@test
+#        with:
+#          repo_token: ${{ secrets.GITHUB_TOKEN }}
+#          automatic_release_tag: "latest"
+#          prerelease: false
+#          title: Latest Build
+#          files: |
+#            *.zip
