@@ -65,7 +65,6 @@ jobs:
         shell: bash
         run: |
           rm start_jaMME.command
-          7z a -r jamme-windows-${{ matrix.arch }}.zip       ./*
 
       - uses: actions/upload-artifact@v2
         with:
@@ -221,6 +220,13 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v2
 
+      - name: Create binary archives
+        run: |
+          7z a -r jamme-linux-x86.zip         ./linux-x86/jamme-linux-x86.tar
+          7z a -r jamme-linux-x86_64.zip      ./linux-x86_64/jamme-linux-x86_64.tar
+          7z a -r jamme-windows-x86.zip       ./windows-x86/*
+          7z a -r jamme-macos-x86_64.zip      ./macos-x86_64/jamme-macos-x86_64.tar
+
       - name: Create latest build
         uses: ec-/action-automatic-releases@test
         with:
@@ -230,4 +236,3 @@ jobs:
           title: Latest Build
           files: |
             *.zip
-            *.tar
