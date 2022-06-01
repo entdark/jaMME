@@ -298,7 +298,7 @@ void demoConvert( const char *oldName, const char *newBaseName, qboolean smoothe
 	fileHandle_t	newHandle = 0;
 	int				temp;
 	int				oldSize;
-	int				msgSequence;
+	int				msgSequence = 0;
 	msg_t			oldMsg;
 	byte			oldData[ MAX_MSGLEN ];
 	int				oldTime, nextTime, fullTime;
