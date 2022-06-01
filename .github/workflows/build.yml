@@ -60,16 +60,17 @@ jobs:
           sed -i "s/Date: .*..*..*/Date: $(date +"%d.%m.%Y")/" readme.txt
           sed -i "s/Revision: .*/Revision: "$(git rev-parse --short HEAD)"/" readme.txt        
 
-      - name: Remove unnecessary files
+      - name: Create binary archive
         working-directory: ${{runner.workspace}}/jaMME/build
         shell: bash
         run: |
           rm start_jaMME.command
+          7z a -r jamme-windows-${{ matrix.arch }}.zip       ./*
 
       - uses: actions/upload-artifact@v2
         with:
-          name: windows-${{ matrix.arch }}
-          path: ${{runner.workspace}}/jaMME/build/*
+          name: jamme-windows-${{ matrix.arch }}
+          path: ${{runner.workspace}}/jaMME/build/jamme-windows-${{ matrix.arch }}.zip
           if-no-files-found: error
 
   ubuntu:
@@ -139,13 +140,13 @@ jobs:
           chmod +x jamme
           rm start_jaMME.command
           rm start_jaMME.cmd
-          tar -cvf linux-${{ matrix.arch }}.tar      ./*
+          tar -cvf jamme-linux-${{ matrix.arch }}.tar      ./*
 
       - uses: actions/upload-artifact@v2
         if: matrix.cc == 'gcc' && matrix.config == 'Release'
         with:
-          name: linux-${{ matrix.arch }}
-          path: ${{runner.workspace}}/jaMME/build/linux-${{ matrix.arch }}.tar
+          name: jamme-linux-${{ matrix.arch }}
+          path: ${{runner.workspace}}/jaMME/build/jamme-linux-${{ matrix.arch }}.tar
           if-no-files-found: error
 
   macos:
@@ -199,13 +200,13 @@ jobs:
           chmod +x jamme.app/Contents/MacOS/jamme
           chmod +x start_jaMME.command
           rm start_jaMME.cmd
-          tar -cvf macos-${{ matrix.arch }}.tar      ./*
+          tar -cvf jamme-macos-${{ matrix.arch }}.tar      ./*
 
       - uses: actions/upload-artifact@v2
         if: matrix.cc == 'clang' && matrix.config == 'Release'
         with:
-          name: macos-${{ matrix.arch }}
-          path: ${{runner.workspace}}/jaMME/build/macos-${{ matrix.arch }}.tar
+          name: jamme-macos-${{ matrix.arch }}
+          path: ${{runner.workspace}}/jaMME/build/jamme-macos-${{ matrix.arch }}.tar
           if-no-files-found: error
 
   create-release:
@@ -229,3 +230,4 @@ jobs:
           title: Latest Build
           files: |
             *.zip
+            *.tar
