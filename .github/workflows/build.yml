@@ -69,7 +69,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: jamme-windows-${{ matrix.arch }}
-          path: ${{runner.workspace}}/jaMME/build/jamme-windows-${{ matrix.arch }}.zip
+          path: ${{runner.workspace}}/jaMME/build/*
           if-no-files-found: error
 
   ubuntu:
