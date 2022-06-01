@@ -208,32 +208,24 @@ jobs:
           path: ${{runner.workspace}}/jaMME/build/macos-${{ matrix.arch }}.tar
           if-no-files-found: error
 
-## Leave it for future, maybe
-#  create-release:
-#    if: github.event_name == 'workflow_dispatch'
-#    needs: [windows, ubuntu, macos]
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v2
-#        with:
-#          submodules: recursive
-#
-#      - name: Download Artifacts
-#        uses: actions/download-artifact@v2
-#
-#      - name: Create binary archives
-#        run: |
-#          7z a -r jamme-linux-x86.zip         ./linux-x86/*
-#          7z a -r jamme-linux-x86_64.zip      ./linux-x86_64/*
-#          7z a -r jamme-windows-x86.zip       ./windows-x86/*
-#          7z a -r jamme-macos-x86_64.zip      ./macos-x86_64/*
-#
-#      - name: Create latest build
-#        uses: ec-/action-automatic-releases@test
-#        with:
-#          repo_token: ${{ secrets.GITHUB_TOKEN }}
-#          automatic_release_tag: "latest"
-#          prerelease: false
-#          title: Latest Build
-#          files: |
-#            *.zip
+  create-release:
+    if: github.event_name == 'workflow_dispatch'
+    needs: [windows, ubuntu, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+
+      - name: Create latest build
+        uses: ec-/action-automatic-releases@test
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          automatic_release_tag: "latest"
+          prerelease: false
+          title: Latest Build
+          files: |
+            *.zip
