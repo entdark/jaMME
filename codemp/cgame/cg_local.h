@@ -1136,6 +1136,7 @@ Ghoul2 Insert End
     float				currentSpeed;
     vec4_t				strafeHelperActiveColor;
     vec4_t				crosshairColor;
+    float				predictedTimeFrac;	// frameInterpolation * (next->commandTime - prev->commandTime)
 } cg_t;
 
 #define MAX_TICS	14
