@@ -8805,6 +8805,12 @@ void CG_DrawActive( stereoFrame_t stereoView, qboolean draw2D ) {
 	doFX = qfalse;
 }
 
+static void CG_StrafeHelperSound(float difference) {
+	//Com_Printf("Difference: %f\n", difference);
+	if (difference > -40.0f && difference < 10.0f) //Under aiming by a bit, but still good?
+		trap_S_StartLocalSound( cgs.media.hitSound, CHAN_LOCAL_SOUND ); 
+}
+
 void Dzikie_CG_DrawLine(float x1, float y1, float x2, float y2, float size, vec4_t color, float alpha, float ycutoff)
 {
     float stepx, stepy, length = sqrt ((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
@@ -8828,6 +8834,86 @@ void Dzikie_CG_DrawLine(float x1, float y1, float x2, float y2, float size, vec4
         x1 += stepx;
         y1 += stepy;
     }
+}
+
+void Dzikie_CG_DrawSpeed(int moveDir) {
+	float length;
+	float diff;
+	float midx;
+	float midy;
+	vec3_t velocity_copy;
+	vec3_t viewangle_copy;
+//	vec3_t velocity_normal;
+	vec3_t velocity_angle;
+	float g_speed;
+	float accel;
+	float optiangle;
+	usercmd_t cmd = { 0 };
+
+	if (cg.clientNum == cg.predictedPlayerState.clientNum && !cg.demoPlayback) {
+		trap_GetUserCmd( trap_GetCurrentCmdNumber(), &cmd );
+	}
+	else if (cg.snap) {
+		moveDir = cg.snap->ps.movementDir;
+		switch ( moveDir ) {
+			case 0: // W
+				cmd.forwardmove = 127; break;
+			case 1: // WA
+				cmd.forwardmove = 127; cmd.rightmove = -127; break;
+			case 2: // A
+				cmd.rightmove = -127;	break;
+			case 3: // AS
+				cmd.rightmove = -127;	cmd.forwardmove = -127; break;
+			case 4: // S
+				cmd.forwardmove = -127; break;
+			case 5: // SD
+				cmd.forwardmove = -127; cmd.rightmove = 127; break;
+			case 6: // D
+				cmd.rightmove = 127; break;
+			case 7: // DW
+				cmd.rightmove = 127; cmd.forwardmove = 127;	break;
+			default:
+				break;
+		}
+	}
+	else {
+		return; //No cg.snap causes this to return.
+	}
+
+	midx=SCREEN_WIDTH/2;
+	midy=SCREEN_HEIGHT/2;
+	VectorCopy(cg.predictedPlayerState.velocity,velocity_copy);
+	velocity_copy[2]=0;
+	VectorCopy(cg.refdef.viewangles, viewangle_copy);
+	viewangle_copy[PITCH]=0;
+	length=VectorNormalize(velocity_copy);
+	g_speed=cg.predictedPlayerState.speed;
+	accel = g_speed;
+	accel*=8.0f;
+	accel/=1000;
+	optiangle=(g_speed-accel)/length;
+	if ((optiangle<=1) && (optiangle>=-1))
+		optiangle=acos(optiangle);
+	else
+		optiangle=0;
+	length/=5;
+	//length = VectorLength(cg.predictedPlayerState.velocity)/5;
+	if (length>(SCREEN_HEIGHT/2))
+		length=(float)(SCREEN_HEIGHT/2);
+	vectoangles(velocity_copy,velocity_angle);
+	diff=AngleSubtract(viewangle_copy[YAW],velocity_angle[YAW]);
+	diff=diff/180*M_PI;
+
+	//Com_Printf("Diff is %.3f\n", diff);
+
+//	str = va( "%f %f %f", g_speed, accel, optiangle);
+//	w = CG_Text_Width_Ext( str, 0.25f, 0, &cgs.media.limboFont1 );
+//	CG_Text_Paint_Ext( (float)(SCREEN_WIDTH/2), (float)(SCREEN_HEIGHT/2), 0.25f, 0.25f, colorWhite, str, 0, 0, ITEM_TEXTSTYLE_SHADOWED, &cgs.media.limboFont1 );
+	Dzikie_CG_DrawLine (midx, midy, midx+length*sin(diff), midy-length*cos(diff), 1, colorRed, 0.75f, 0);
+	Dzikie_CG_DrawLine (midx,midy,midx+cmd.rightmove,midy-cmd.forwardmove,1,colorCyan,0.75f,0);
+	Dzikie_CG_DrawLine (midx,midy,midx+length/2*sin(diff+optiangle),midy-length/2*cos(diff+optiangle),1,colorRed,0.75f,0);
+	Dzikie_CG_DrawLine (midx,midy,midx+length/2*sin(diff-optiangle),midy-length/2*cos(diff-optiangle),1,colorRed,0.75f,0);
+
 }
 
 static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int moveDir) { //moveDir is 1-7 for wasd combinations, and 8 for the centerline in cpm style, 9 and 10 for backwards a/d lines
@@ -8888,7 +8974,7 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
     line[1] = delta[1] + start[1];
     line[2] = start[2];
 
-    if ( !CG_WorldCoordToScreenCoord(line, &x, &y))
+    if ( !CG_WorldCoordToScreenCoordFloat(line, &x, &y))
         return;
 
     if (cg_strafeHelper.integer & SHELPER_NEWBARS) {
@@ -8937,7 +9023,7 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
         if (cutoff < LINE_HEIGHT + 20)
             cutoff = LINE_HEIGHT + 20;
 
-        if (CG_WorldCoordToScreenCoord(start, &startx, &starty))
+        if (CG_WorldCoordToScreenCoordFloat(start, &startx, &starty))
             Dzikie_CG_DrawLine(startx, starty, x, y, lineWidth, color, color[3], cutoff);
         //CG_DottedLineSegment( startx, starty, x, y, 1, distance, color, color[3], cutoff ); //240 is center, so 220 - 260 is symetrical on crosshair.
     }
@@ -8950,7 +9036,25 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
 }
 
 qboolean CG_InRollAnim( centity_t *cent );
-int PM_GetMovePhysics();
+ID_INLINE int PM_GetMovePhysics(void)
+{
+	if (cg.japro.detected) {
+		if (!pm)
+			return MV_JKA;
+
+		if (pm->ps->m_iVehicleNum)
+			return MV_SWOOP;
+
+		if (pm->ps->stats[STAT_MOVEMENTSTYLE] >= MV_COOP_JKA)
+			return (pm->ps->stats[STAT_MOVEMENTSTYLE] - (MV_COOP_JKA - 1));
+
+		return pm->ps->stats[STAT_MOVEMENTSTYLE];
+	}
+	else if (cgs.gametype == GT_SIEGE) {
+		return MV_SIEGE;
+	}
+	return MV_JKA;
+}
 
 static void CG_StrafeHelper(centity_t *cent)
 {

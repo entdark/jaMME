@@ -1338,6 +1338,20 @@ static void CG_RegisterSounds( void ) {
 	cgs.media.fallSound = trap_S_RegisterSound( "sound/player/fallsplat.wav");
 
 	cgs.media.crackleSound = trap_S_RegisterSound( "sound/effects/energy_crackle.wav" );
+
+//JAPRO - Clientside - Hitsounds Start
+	cgs.media.hitSound			= trap_S_RegisterSound( "sound/effects/hitsound.wav" ); 
+	cgs.media.hitSound2			= trap_S_RegisterSound( "sound/effects/hitsound2.wav" );
+	cgs.media.hitSound3			= trap_S_RegisterSound( "sound/effects/hitsound3.wav" );
+	cgs.media.hitSound4			= trap_S_RegisterSound( "sound/effects/hitsound4.wav" );
+	cgs.media.hitTeamSound		= trap_S_RegisterSound( "sound/effects/hitsoundteam.wav" );
+
+/*	cgs.media.gibSound			= trap_S_RegisterSound( "sound/player/gibsplt1.wav" );
+	cgs.media.gibBounce1Sound	= trap_S_RegisterSound( "sound/player/gibimp1.wav" );
+	cgs.media.gibBounce2Sound	= trap_S_RegisterSound( "sound/player/gibimp2.wav" );
+	cgs.media.gibBounce3Sound	= trap_S_RegisterSound( "sound/player/gibimp3.wav" );*/
+//JAPRO - Clientside - Hitsounds End
+
 #ifdef JK2AWARDS
 	cgs.media.firstImpressiveSound = trap_S_RegisterSound( "sound/chars/protocol/misc/first_impressive.wav" );
 	cgs.media.impressiveSound = trap_S_RegisterSound( "sound/chars/protocol/misc/impressive.wav" );

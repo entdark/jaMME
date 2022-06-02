@@ -1119,6 +1119,9 @@ Ghoul2 Insert End
 	struct {
 		qboolean		detected;
 	} rpmod;
+	struct {
+		qboolean		detected;
+	} japro;
 	
 	int					chargeTime;
 	qboolean			charging;
@@ -1434,6 +1437,14 @@ typedef struct {
 	sfxHandle_t threeFragSound;
 	sfxHandle_t twoFragSound;
 	sfxHandle_t oneFragSound;
+
+//JAPRO - Clientside - Hitsounds Start
+	sfxHandle_t hitSound; 
+	sfxHandle_t hitSound2; 
+	sfxHandle_t hitSound3; 
+	sfxHandle_t hitSound4; 
+	sfxHandle_t hitTeamSound; 
+//JAPRO - Clientside - Hitsounds End
 
 #ifdef JK2AWARDS
 	sfxHandle_t firstImpressiveSound;
