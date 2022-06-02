@@ -378,6 +378,9 @@ typedef struct {
 	int 	linewidth;		// characters across screen
 	int		totallines;		// total lines in console scrollback
 
+	int		charWidth;		// Scaled console character width
+	int		charHeight;		// Scaled console character height
+
 	float	xadjust;		// for wide aspect screens
 	float	yadjust;		// for wide aspect screens
 

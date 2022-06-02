@@ -13,6 +13,7 @@ int g_console_field_width = 78;
 
 console_t con;
 
+cvar_t *con_scale;
 cvar_t *con_conspeed;
 cvar_t *con_notifytime;
 cvar_t *con_timestamps;
@@ -245,17 +246,13 @@ void Con_CheckResize (void)
 	int		i, j, width, oldwidth, oldtotallines, numlines, numchars;
 	MAC_STATIC int	tbuf[CON_TEXTSIZE];
 
-//	width = (SCREEN_WIDTH / SMALLCHAR_WIDTH) - 2;
-	width = (cls.glconfig.vidWidth / SMALLCHAR_WIDTH) - 2;
 
-	if (width == con.linewidth)
-		return;
-
-
-	if (width < 1)			// video hasn't been initialized yet
+	if (cls.glconfig.vidWidth <= 0)			// video hasn't been initialized yet
 	{
 		con.xadjust = 1;
 		con.yadjust = 1;
+		con.charWidth = SMALLCHAR_WIDTH;
+		con.charHeight = SMALLCHAR_HEIGHT;
 		width = DEFAULT_CONSOLE_WIDTH;
 		con.linewidth = width;
 		con.totallines = CON_TEXTSIZE / con.linewidth;
@@ -264,6 +261,29 @@ void Con_CheckResize (void)
 	}
 	else
 	{
+		float	scale = cls.glconfig.displayScale;
+		scale *= (con_scale && con_scale->value > 0.0f) ? con_scale->value : 1.0f;
+		int		charWidth = scale * SMALLCHAR_WIDTH;
+
+		if (charWidth < 1) {
+			charWidth = 1;
+			scale = 1.0f / SMALLCHAR_WIDTH;
+		}
+
+		width = (cls.glconfig.vidWidth / charWidth) - 2;
+
+		if (width < DEFAULT_CONSOLE_WIDTH) {
+			width = DEFAULT_CONSOLE_WIDTH;
+			charWidth = cls.glconfig.vidWidth / (DEFAULT_CONSOLE_WIDTH+2);
+			scale = (float)charWidth / SMALLCHAR_WIDTH;
+		}
+
+		con.charWidth = charWidth;
+		con.charHeight = SMALLCHAR_HEIGHT * scale;
+
+		if (width == con.linewidth)
+			return;
+
 		// on wide screens, we will center the text
 		con.xadjust = 640.0f / cls.glconfig.vidWidth;
 		con.yadjust = 480.0f / cls.glconfig.vidHeight;
@@ -312,6 +332,8 @@ Con_Init
 */
 void Con_Init(void) {
 	int i;
+	con_scale = Cvar_Get("con_scale", "1", CVAR_ARCHIVE);
+	Cvar_CheckRange( con_scale, 0.01f, 100.0f, qfalse );
 	con_notifytime = Cvar_Get("con_notifytime", "3", 0);
 	con_timestamps = Cvar_Get("con_timestamps", "0", CVAR_ARCHIVE);
 	con_conspeed = Cvar_Get("scr_conspeed", "3", 0);
@@ -531,14 +553,14 @@ void Con_DrawInput (void) {
 		return;
 	}
 
-	y = con.vislines - ( SMALLCHAR_HEIGHT * (re.Language_IsAsian() ? 1.5 : 2) );
+	y = con.vislines - ( con.charHeight * (re.Language_IsAsian() ? 1.5 : 2) );
 
 	re.SetColor( con.color );
 
-	SCR_DrawSmallChar( (int)(con.xadjust + 1 * SMALLCHAR_WIDTH), y, ']' );
+	SCR_DrawSmallChar( (int)(con.xadjust + 1 * con.charWidth), y, ']' );
 
-	Field_Draw( &kg.g_consoleField, (int)(con.xadjust + 2 * SMALLCHAR_WIDTH), y,
-				SCREEN_WIDTH - 3 * SMALLCHAR_WIDTH, qtrue, qfalse );
+	Field_Draw( &kg.g_consoleField, (int)(con.xadjust + 2 * con.charWidth), y,
+				SCREEN_WIDTH - 3 * con.charWidth, qtrue, qfalse );
 }
 
 float chatColour[4] = {1.0f,1.0f,1.0f,1.0f};
@@ -612,7 +634,7 @@ void Con_DrawNotify (void) {
 			//
 			// and print...
 			//
-			re.Font_DrawString(cl_conXOffset->integer + con.xadjust*(con.xadjust + (1*SMALLCHAR_WIDTH/*aesthetics*/)), con.yadjust*(v), sTemp, g_color_table[currentColor], iFontIndex, -1, fFontScale);
+			re.Font_DrawString(cl_conXOffset->integer + con.xadjust*(con.xadjust + (1*con.charWidth/*aesthetics*/)), con.yadjust*(v), sTemp, g_color_table[currentColor], iFontIndex, -1, fFontScale);
 
 			v +=  iPixelHeightToAdvance;
 		}
@@ -640,15 +662,15 @@ void Con_DrawNotify (void) {
 				if (!cl_conXOffset) {
 					cl_conXOffset = Cvar_Get ("cl_conXOffset", "0", 0);
 				}
-				SCR_DrawSmallChar((int)(cl_conXOffset->integer + con.xadjust + (x+1)*SMALLCHAR_WIDTH), v, text[x] & 0xff);
+				SCR_DrawSmallChar((int)(cl_conXOffset->integer + con.xadjust + (x+1)*con.charWidth), v, text[x] & 0xff);
 			}
 #ifdef CON_FILTER
 			if (filterLine) {
-				v += SMALLCHAR_HEIGHT;
+				v += con.charHeight;
 				i--;
 			}
 #else
-			v += SMALLCHAR_HEIGHT;
+			v += con.charHeight;
 #endif
 			filterLine = qfalse;
 		}
@@ -723,7 +745,7 @@ void Con_DrawFilter(const float x, const float y, const byte filter) {
 		}
 	}
 	Q_strcat(drawFilter, sizeof(drawFilter), S_COLOR_WHITE")");
-	SCR_DrawSmallStringExt(x - (Q_PrintStrlen(drawFilter) + 1) * SMALLCHAR_WIDTH,
+	SCR_DrawSmallStringExt(x - (Q_PrintStrlen(drawFilter) + 1) * con.charWidth,
 		y, drawFilter, g_color_table[ColorIndex(COLOR_WHITE)], qfalse, qfalse);
 }
 
@@ -777,19 +799,19 @@ void Con_DrawSolidConsole( float frac ) {
 		/* Hackish use of color table */
 		re.SetColor( conColourTable[y&15] );
 		y++;
-		SCR_DrawSmallChar( cls.glconfig.vidWidth - ( i - x ) * SMALLCHAR_WIDTH, 
-			(lines-(SMALLCHAR_HEIGHT+SMALLCHAR_HEIGHT/2)), version[x] );
+		SCR_DrawSmallChar( cls.glconfig.vidWidth - ( i - x ) * con.charWidth,
+			(lines-(con.charHeight+con.charHeight/2)), version[x] );
 	}
 #ifdef CON_FILTER
-	Con_DrawFilter(cls.glconfig.vidWidth - (i) * SMALLCHAR_WIDTH,
-		(lines-(SMALLCHAR_HEIGHT+SMALLCHAR_HEIGHT/2)), filter);
+	Con_DrawFilter(cls.glconfig.vidWidth - (i) * con.charWidth,
+		(lines-(con.charHeight+con.charHeight/2)), filter);
 #endif
 
 	// draw the text
 	con.vislines = lines;
-	rows = (lines-SMALLCHAR_WIDTH)/SMALLCHAR_WIDTH;		// rows of text to draw
+	rows = (lines-con.charWidth)/con.charWidth;		// rows of text to draw
 
-	y = lines - (SMALLCHAR_HEIGHT*3);
+	y = lines - (con.charHeight*3);
 
 	// draw from the bottom up
 	if (con.display != con.current)
@@ -797,8 +819,8 @@ void Con_DrawSolidConsole( float frac ) {
 	// draw arrows to show the buffer is backscrolled
 		re.SetColor( g_color_table[ColorIndex(COLOR_RED)] );
 		for (x=0 ; x<con.linewidth ; x+=4)
-			SCR_DrawSmallChar( (int) (con.xadjust + (x+1)*SMALLCHAR_WIDTH), y, '^' );
-		y -= SMALLCHAR_HEIGHT;
+			SCR_DrawSmallChar( (int) (con.xadjust + (x+1)*con.charWidth), y, '^' );
+		y -= con.charHeight;
 		rows--;
 	}
 	
@@ -815,7 +837,7 @@ void Con_DrawSolidConsole( float frac ) {
 
 	static int iFontIndexForAsian = 0;
 	const float fFontScaleForAsian = 0.75f*con.yadjust;
-	int iPixelHeightToAdvance = SMALLCHAR_HEIGHT;
+	int iPixelHeightToAdvance = con.charHeight;
 	if (re.Language_IsAsian())
 	{
 		if (!iFontIndexForAsian) 
@@ -856,7 +878,7 @@ void Con_DrawSolidConsole( float frac ) {
 			//
 			// and print...
 			//
-			re.Font_DrawString(con.xadjust*(con.xadjust + (1*SMALLCHAR_WIDTH/*(aesthetics)*/)), con.yadjust*(y), sTemp, g_color_table[currentColor], iFontIndexForAsian, -1, fFontScaleForAsian);
+			re.Font_DrawString(con.xadjust*(con.xadjust + (1*con.charWidth/*(aesthetics)*/)), con.yadjust*(y), sTemp, g_color_table[currentColor], iFontIndexForAsian, -1, fFontScaleForAsian);
 		}
 		else
 		{		
@@ -882,9 +904,9 @@ void Con_DrawSolidConsole( float frac ) {
 					re.SetColor( setColor );
 				}
 #ifdef CON_FILTER
-				SCR_DrawSmallChar(  (int) (con.xadjust + (x)*SMALLCHAR_WIDTH), y, text[x] & 0xff );
+				SCR_DrawSmallChar(  (int) (con.xadjust + (x)*con.charWidth), y, text[x] & 0xff );
 #else
-				SCR_DrawSmallChar(  (int) (con.xadjust + (x+1)*SMALLCHAR_WIDTH), y, text[x] & 0xff );
+				SCR_DrawSmallChar(  (int) (con.xadjust + (x+1)*con.charWidth), y, text[x] & 0xff );
 #endif
 			}
 		}

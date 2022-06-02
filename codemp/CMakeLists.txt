@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
 # Make sure the user is not executing this script directly
 if(NOT InjaMME)
@@ -399,6 +399,11 @@ if(BuildEngine)
 		find_package(SDL2 REQUIRED)
 		set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} ${SDL2_INCLUDE_DIR})
 		set(MPEngineLibraries ${MPEngineLibraries} ${SDL2_LIBRARY})
+
+		# OpenGL
+		find_package(OpenGL REQUIRED)
+		set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} ${OPENGL_INCLUDE_DIR})
+		set(MPEngineLibraries ${MPEngineLibraries} ${OPENGL_LIBRARIES})
 	endif(NOT WIN32)
 
 	set(MPEngineIncludeDirectories ${MPEngineIncludeDirectories} ${MPDir}/libs/win32/include)
@@ -546,14 +551,18 @@ if(BuildEngine)
 		endif(MakeApplicationBundles)
 	endif(WIN32)
 	if(MakeApplicationBundles)
-		install(TARGETS ${jaMMEEngine} BUNDLE DESTINATION "${jaMMEInstallDir}")
+		install(TARGETS ${jaMMEEngine}
+			BUNDLE
+			DESTINATION ${jaMMEInstallDir})
+		install(CODE "
+			include(BundleUtilities)
+			fixup_bundle(\"${CMAKE_BINARY_DIR}/${jaMMEEngine}.app\" \"\" \"\")
+			")
 	else(MakeApplicationBundles)
 		install(TARGETS ${jaMMEEngine} RUNTIME DESTINATION "${jaMMEInstallDir}")
 	endif(MakeApplicationBundles)
-	set_target_properties(${jaMMEEngine} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPEngineDefines};${ReleaseDefines}")
-	set_target_properties(${jaMMEEngine} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPEngineDefines};${DebugDefines}")
+	set_target_properties(${jaMMEEngine} PROPERTIES COMPILE_DEFINITIONS "${MPEngineDefines}")
 	set_target_properties(${jaMMEEngine} PROPERTIES INCLUDE_DIRECTORIES "${MPEngineIncludeDirectories}")
-
 
 	target_link_libraries(${jaMMEEngine} ${MPEngineLibraries})
 endif(BuildEngine)

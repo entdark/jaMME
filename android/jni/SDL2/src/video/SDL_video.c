@@ -206,17 +206,19 @@ ShouldUseTextureFramebuffer()
 }
 
 static int android_width,android_height;
-int  SDL_SetAndroidScreenSize(int width, int height)
+static float android_scale;
+int  SDL_SetAndroidScreenSize(int width, int height, float scale)
 {
 	android_width = width;
 	android_height = height;
+    android_scale = scale;
 }
 
-int  SDL_GetAndroidScreenSize(int *width, int * height)
+int  SDL_GetAndroidScreenSize(int *width, int *height, float *scale)
 {
 	*width = android_width;
 	*height = android_height;
-
+    *scale = android_scale;
 }
 
 

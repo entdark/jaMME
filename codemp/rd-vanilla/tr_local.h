@@ -19,8 +19,11 @@
 #endif
 #else
 	#include "../sdl/sdl_qgl.h"
+
+#ifndef __arm64__
 	#include <mmintrin.h>
 	#include <emmintrin.h>
+#endif
 #endif
 
 #include "../ghoul2/ghoul2_shared.h" //rwwRMG - added

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
 # Make sure the user is not executing this script directly
 if(NOT InjaMME)
@@ -146,8 +146,7 @@ if(WIN32)
 else(WIN32)
 	install(TARGETS ${jaMMECGame} LIBRARY DESTINATION "${jaMMEInstallDir}/mme")
 endif(WIN32)
-set_target_properties(${jaMMECGame} PROPERTIES COMPILE_DEFINITIONS_RELEASE "${MPCGameDefines};${ReleaseDefines}")
-set_target_properties(${jaMMECGame} PROPERTIES COMPILE_DEFINITIONS_DEBUG "${MPCGameDefines};${DebugDefines}")
+set_target_properties(${jaMMECGame} PROPERTIES COMPILE_DEFINITIONS "${MPCGameDefines}")
 set_target_properties(${jaMMECGame} PROPERTIES INCLUDE_DIRECTORIES "${MPCGameIncludeDirectories}")
 # no libraries used
 if(MPCGameLibraries)

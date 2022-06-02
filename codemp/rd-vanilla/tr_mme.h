@@ -4,7 +4,7 @@
 #include "tr_local.h"
 #include "../client/snd_public.h"
 
-#if !defined (HAVE_GLES) || defined (X86_OR_64)
+#if (!defined (HAVE_GLES) || defined (X86_OR_64)) && !defined (__arm64__)
 #include <mmintrin.h>
 #endif
 
@@ -17,7 +17,30 @@
 
 #define BLURMAX 256
 
-#define PIPE_COMMAND_BASE(s, e)	"ffmpeg -f avi -i - -threads 0 " s " -c:a aac -c:v libx264 -preset ultrafast -y -pix_fmt yuv420p -crf 19 %o." e " 2> ffmpeglog.txt"
+#define PIPE_COMMAND_Q "\""
+#ifndef MACOS_X
+#define PIPE_COMMAND_ABSOLUTE_PATH ""
+#define PIPE_COMMAND_ABSOLUTE_PATH_Q ""
+#define PIPE_COMMAND_ABSOLUTE_PATH_E ""
+#else
+#define PIPE_COMMAND_ABSOLUTE_PATH "%a"
+#define PIPE_COMMAND_ABSOLUTE_PATH_Q "\"%a"
+#define PIPE_COMMAND_ABSOLUTE_PATH_E PIPE_COMMAND_Q
+#endif
+#define PIPE_COMMAND_BASE(s, e)	PIPE_COMMAND_ABSOLUTE_PATH_Q "ffmpeg"	\
+								PIPE_COMMAND_ABSOLUTE_PATH_E			\
+								" -f avi -i - -threads 0 "				\
+								s										\
+								" -c:a aac -c:v libx264 -preset ultrafast -y -pix_fmt yuv420p -crf 19 "	\
+								PIPE_COMMAND_Q \
+								PIPE_COMMAND_ABSOLUTE_PATH "%o."		\
+								e										\
+								PIPE_COMMAND_Q							\
+								" 2> "									\
+								PIPE_COMMAND_ABSOLUTE_PATH_Q			\
+								"ffmpeglog.txt"							\
+								PIPE_COMMAND_ABSOLUTE_PATH_E
+
 #define PIPE_COMMAND_DEFAULT	PIPE_COMMAND_BASE("", "mkv")
 #define PIPE_COMMAND_STEREO		PIPE_COMMAND_BASE("-metadata:s:v stereo_mode=top_bottom", "mkv")
 #define PIPE_COMMAND_VR180		PIPE_COMMAND_BASE("-vf v360=c1x6:he:in_forder=frblud:in_stereo=tb:out_stereo=sbs -metadata:s:v stereo_mode=left_right", "mkv")

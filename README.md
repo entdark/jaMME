@@ -1,6 +1,6 @@
 Jedi Academy Movie Maker's Edition
 ==================================
-[![build](https://github.com/entdark/jaMME/actions/workflows/build.yml/badge.svg?branch=continuous-integration)](https://github.com/taysta/jaMME/actions/workflows/build.yml)
+[![build](https://github.com/entdark/jaMME/actions/workflows/build.yml/badge.svg)](https://github.com/entdark/jaMME/actions/workflows/build.yml)
 
 Jedi Academy Movie Maker's Edition (jaMME) is an engine modification of Jedi Academy for moviemaking. It's a port of q3mme with most of its features and some new ones. The modification is based on very early (May 2013th) version of OpenJK. Original source code belongs to Raven Software.
 
@@ -29,6 +29,7 @@ Jedi Academy Movie Maker's Edition (jaMME) is an engine modification of Jedi Aca
 * Scooper
 * redsaurus
 * teh
+* tayst
 
 # Installation #
 Extract the archive to "GameData" folder.
@@ -50,3 +51,4 @@ Extract the archive to "GameData" folder.
 * Grant R. Griffin and his "FIR filter algorithms for use in C"
 * OpenJK contributors and their OpenJK project
 * redsaurus for Mac support
+* tayst and his CI+CD

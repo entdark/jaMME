@@ -317,9 +317,9 @@ extern DECLSPEC int SDLCALL SDL_GetDesktopDisplayMode(int displayIndex, SDL_Disp
  */
 extern DECLSPEC int SDLCALL SDL_GetCurrentDisplayMode(int displayIndex, SDL_DisplayMode * mode);
 
-extern DECLSPEC int SDLCALL SDL_SetAndroidScreenSize(int width, int height);
+extern DECLSPEC int SDLCALL SDL_SetAndroidScreenSize(int width, int height, float scale);
 
-extern DECLSPEC int SDLCALL SDL_GetAndroidScreenSize(int *width, int * height);
+extern DECLSPEC int SDLCALL SDL_GetAndroidScreenSize(int *width, int *height, float *scale);
 
 
 /**

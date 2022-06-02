@@ -12,7 +12,7 @@
 #include "snd_local.h"
 
 #define HAVE_LIBMAD
-#ifndef __linux__
+#ifdef WIN32
 #define HAVE_LIBOGG
 #define HAVE_LIBFLAC
 #endif
@@ -33,6 +33,7 @@ const char *ext[] = {
 
 extern	cvar_t* s_language;
 qboolean S_FileExists(char *fileName) {
+    char fileNameCopy[MAX_QPATH];
 	char *voice = strstr(fileName,"chars");
 	fileHandle_t f;
 	int i;
@@ -50,9 +51,9 @@ qboolean S_FileExists(char *fileName) {
 tryDefaultLanguage:
 	i = 0;
 	while (ext[i]) {
-		COM_StripExtension(fileName, fileName, MAX_QPATH);
-		COM_DefaultExtension(fileName, MAX_QPATH, ext[i]);
-		FS_FOpenFileRead(fileName, &f, qtrue);
+        COM_StripExtension(fileName, fileNameCopy, MAX_QPATH);
+		COM_DefaultExtension(fileNameCopy, MAX_QPATH, ext[i]);
+		FS_FOpenFileRead(fileNameCopy, &f, qtrue);
 		if (f)
 			break;
 		i++;
@@ -63,6 +64,7 @@ tryDefaultLanguage:
 		voice = NULL;
 		goto tryDefaultLanguage;
 	}
+    Q_strncpyz(fileName, fileNameCopy, sizeof(fileNameCopy));
 	if (!f)
 		return qfalse;
 	FS_FCloseFile(f);

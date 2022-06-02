@@ -4,7 +4,7 @@
 
 static char *workAlloc = 0;
 static char *workAlign = 0;
-static int workSize, workUsed;
+static size_t workSize, workUsed;
 static qboolean allocFailed = qfalse;
 
 typedef struct {
@@ -103,7 +103,7 @@ static void R_MME_MakeCubeData( cubeData_t *cubeData, int size ) {
 		cubeData->data = (workAlign + workUsed);
 		workUsed += size;
 		if ( workUsed > workSize ) {
-			ri.Error( ERR_FATAL, "Failed to allocate %d bytes from the mme_workMegs buffer\n", workUsed );
+			ri.Error( ERR_FATAL, "Failed to allocate %zu bytes from the mme_workMegs buffer\n", workUsed );
 		}
 	}
 }
@@ -119,14 +119,14 @@ static void R_MME_MakeBlurBlock( mmeBlurBlock_t *block, int size, mmeBlurControl
 		block->accum = (workAlign + workUsed);
 		workUsed += (size << 2);
 		if ( workUsed > workSize ) {
-			ri.Error( ERR_FATAL, "Failed to allocate %d bytes from the mme_workMegs buffer\n", workUsed );
+			ri.Error( ERR_FATAL, "Failed to allocate %zu bytes from the mme_workMegs buffer\n", workUsed );
 		}
 	} 
 	if ( control->overlapFrames ) {
 		block->overlap = (workAlign + workUsed);
 		workUsed += control->overlapFrames * size;
 		if ( workUsed > workSize ) {
-			ri.Error( ERR_FATAL, "Failed to allocate %d bytes from the mme_workMegs buffer\n", workUsed );
+			ri.Error( ERR_FATAL, "Failed to allocate %zu bytes from the mme_workMegs buffer\n", workUsed );
 		}
 	}
 }
@@ -885,7 +885,7 @@ void R_MME_Init(void) {
 		workSize *= 1024 * 1024;
 		workAlloc = (char *)calloc( workSize + 16, 1 );
 		if (!workAlloc) {
-			ri.Printf(PRINT_ALL, "Failed to allocate %d bytes for mme work buffer\n", workSize );
+			ri.Printf(PRINT_ALL, "Failed to allocate %zu bytes for mme work buffer\n", workSize );
 			allocFailed = qtrue;
 			return;
 		}

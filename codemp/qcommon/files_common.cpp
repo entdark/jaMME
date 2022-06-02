@@ -13,6 +13,10 @@
 
 #include "platform.h"
 
+#ifndef WIN32
+#include <signal.h>
+#endif
+
 /*
 =============================================================================
 
@@ -526,7 +530,9 @@ void FS_InitFilesystem( void ) {
 
 	Q_strncpyz(lastValidBase, fs_basepath->string, sizeof(lastValidBase));
 	Q_strncpyz(lastValidGame, fs_gamedirvar->string, sizeof(lastValidGame));
-
+#ifndef WIN32
+    signal(SIGPIPE, SIG_IGN);
+#endif
   // bk001208 - SafeMode see below, FIXME?
 }
 

@@ -257,6 +257,8 @@ VIRTUAL MACHINE
 ==============================================================
 */
 
+typedef intptr_t (QDECL *entryPoint_t) (int, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t, intptr_t);
+
 typedef enum vmSlots_e {
 	VM_GAME=0,
 	VM_CGAME,
@@ -275,7 +277,7 @@ typedef struct vm_s {
 
 	// legacy stuff
 	struct {
-		intptr_t	(QDECL *main)( int callNum, ... );		// module vmMain
+		entryPoint_t main;		// module vmMain
 		intptr_t	(QDECL *syscall)( intptr_t *parms );	// engine syscall handler
 	} legacy;
 } vm_t;
@@ -1023,7 +1025,7 @@ void	Sys_Init (void);
 
 // general development dll loading for virtual machine testing
 void	* QDECL Sys_LoadDll(const char *name, qboolean useSystemLib);
-void	* QDECL Sys_LoadLegacyGameDll( const char *name, intptr_t (QDECL **vmMain)(int, ...), intptr_t (QDECL *systemcalls)(intptr_t, ...) );
+void	* QDECL Sys_LoadLegacyGameDll( const char *name, entryPoint_t *vmMain, intptr_t (QDECL *systemcalls)(intptr_t, ...) );
 void	* QDECL Sys_LoadGameDll( const char *name, void *(QDECL **moduleAPI)(int, ...) );
 void	Sys_UnloadDll( void *dllHandle );
 

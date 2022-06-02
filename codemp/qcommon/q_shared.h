@@ -228,18 +228,21 @@ float FloatSwap( const float *f );
 	#undef Q_RESTRICT
 	#define Q_RESTRICT __restrict__
 
-    #define OS_STRING "MacOSX"
+    #define OS_STRING "macOS"
 
 	#ifdef __ppc__
-		#define CPUSTRING "MacOSX-ppc"
+		#define CPUSTRING "macOS-ppc"
 	#elif defined __i386__
-		#define CPUSTRING "MacOSX-i386"
+		#define CPUSTRING "macOS-i386"
+	#elif defined __arm64__
+		#define CPUSTRING "macOS-arm64"
 	#else
-		#define CPUSTRING "MacOSX-other"
+		#define CPUSTRING "macOS-other"
 	#endif
 
 	#define	PATH_SEP	'/'
-
+#if defined __arm64__
+#else
 	#define __rlwimi(out, in, shift, maskBegin, maskEnd) asm("rlwimi %0,%1,%2,%3,%4" : "=r" (out) : "r" (in), "i" (shift), "i" (maskBegin), "i" (maskEnd))
 	#define __dcbt(addr, offset) asm("dcbt %0,%1" : : "b" (addr), "r" (offset))
 
@@ -263,6 +266,7 @@ float FloatSwap( const float *f );
 		asm("fctiw %0,%1" : "=r" (fi) : "f" (f));
 		return fi;
 	}
+#endif
 
     #if defined(__i386__)
         #define ARCH_STRING "x86"
@@ -273,6 +277,8 @@ float FloatSwap( const float *f );
         #define ARCH_STRING "ppc64"
     #elif defined(__powerpc__)
         #define ARCH_STRING "ppc"
+    #elif defined(__arm64__)
+        #define ARCH_STRING "arm64"
     #endif
 
     #define DLL_EXT ".dylib"
