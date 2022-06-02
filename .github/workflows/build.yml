@@ -69,7 +69,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: jamme-windows-${{ matrix.arch }}
-          path: ${{runner.workspace}}/jaMME/build/*
+          path: ${{runner.workspace}}/jaMME/build/
           if-no-files-found: error
 
   ubuntu:
@@ -219,13 +219,16 @@ jobs:
 
       - name: Download Artifacts
         uses: actions/download-artifact@v2
+    
+      - name: Display structure of downloaded files
+        run: ls -R
 
       - name: Create binary archives
         run: |
-          7z a -r jamme-linux-x86.zip         ./linux-x86/jamme-linux-x86.tar
-          7z a -r jamme-linux-x86_64.zip      ./linux-x86_64/jamme-linux-x86_64.tar
-          7z a -r jamme-windows-x86.zip       ./windows-x86/*
-          7z a -r jamme-macos-x86_64.zip      ./macos-x86_64/jamme-macos-x86_64.tar
+          7z a -r jamme-linux-x86.zip         ./jamme-linux-x86/*
+          7z a -r jamme-linux-x86_64.zip      ./jamme-linux-x86_64/*
+          7z a -r jamme-windows-x86.zip       ./jamme-windows-x86/*
+          7z a -r jamme-macos-x86_64.zip      ./jamme-macos-x86_64/*
 
       - name: Create latest build
         uses: ec-/action-automatic-releases@test
