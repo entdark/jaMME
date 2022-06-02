@@ -65,6 +65,7 @@ jobs:
         shell: bash
         run: |
           rm start_jaMME.command
+          rm start_jaMME.sh
 
       - uses: actions/upload-artifact@v2
         with:
@@ -137,6 +138,7 @@ jobs:
         shell: bash
         run: |
           chmod +x jamme
+          chmod +x start_jaMME.sh
           rm start_jaMME.command
           rm start_jaMME.cmd
           tar -cvf jamme-linux-${{ matrix.arch }}.tar      ./*
@@ -199,6 +201,7 @@ jobs:
           chmod +x jamme.app/Contents/MacOS/jamme
           chmod +x start_jaMME.command
           rm start_jaMME.cmd
+          rm start_jaMME.sh
           tar -cvf jamme-macos-${{ matrix.arch }}.tar      ./*
 
       - uses: actions/upload-artifact@v2
