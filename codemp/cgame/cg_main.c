@@ -729,9 +729,14 @@ static void CG_StrafeHelperActiveColorChange(void) {
 }
 
 static void CG_SetMovementKeysPos( void ) {
-	if ( sscanf( cg_drawMovementKeysPos.string, "%f %f", &cg.moveKeysPos[0], &cg.moveKeysPos[1] ) != 2 ) {
-		cg.moveKeysPos[0] = (SCREEN_WIDTH / 2);
-		cg.moveKeysPos[1] = (SCREEN_HEIGHT / 2);
+	if ( sscanf( cg_movementKeysPos.string, "%f %f", &cg.moveKeysPos[0], &cg.moveKeysPos[1] ) != 2 ) {
+        if(cg_movementKeys.integer == 4) {
+            cg.moveKeysPos[0] = (SCREEN_WIDTH / 2);
+            cg.moveKeysPos[1] = (SCREEN_HEIGHT / 2);
+        } else if (cg_movementKeys.integer){
+            cg.moveKeysPos[0] = 465;
+            cg.moveKeysPos[1] = 432;
+        }
 	}
 }
 

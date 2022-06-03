@@ -2930,7 +2930,7 @@ static void CG_DrawMovementKeys( void ) {
 	float w1 = 0.0f, w2 = 0.0f, height = 0.0f;
 	int fontIndex = FONT_MEDIUM;
 
-	if ( !cg_drawMovementKeys.integer || !cg.snap ) //RAZTODO: works with demo playback??
+	if ( cg_movementKeys.integer != 4 || !cg.snap ) //RAZTODO: works with demo playback??
 		return;
 
 	if ( cg.clientNum == cg.predictedPlayerState.clientNum && !cg.demoPlayback )
@@ -2981,18 +2981,18 @@ static void CG_DrawMovementKeys( void ) {
 		}
 	}
 
-	w1 = CG_Text_Width( "v W ^", cg_drawMovementKeysScale.value, fontIndex );
-	w2 = CG_Text_Width( "A S D", cg_drawMovementKeysScale.value, fontIndex );
-	height = CG_Text_Height( "A S D v W ^", cg_drawMovementKeysScale.value, fontIndex );
+	w1 = CG_Text_Width( "v W ^", cg_movementKeysSize.value, fontIndex );
+	w2 = CG_Text_Width( "A S D", cg_movementKeysSize.value, fontIndex );
+	height = CG_Text_Height( "A S D v W ^", cg_movementKeysSize.value, fontIndex );
 
 	Com_sprintf( str1, sizeof(str1), va( "^%cv ^%cW ^%c^", (cmd.upmove < 0) ? COLOR_RED : COLOR_WHITE,
 		(cmd.forwardmove > 0) ? COLOR_RED : COLOR_WHITE, (cmd.upmove > 0) ? COLOR_RED : COLOR_WHITE ) );
 	Com_sprintf( str2, sizeof(str2), va( "^%cA ^%cS ^%cD", (cmd.rightmove < 0) ? COLOR_RED : COLOR_WHITE,
 		(cmd.forwardmove < 0) ? COLOR_RED : COLOR_WHITE, (cmd.rightmove > 0) ? COLOR_RED : COLOR_WHITE ) );
 
-	CG_Text_Paint(cg.moveKeysPos[0] - Q_max(w1, w2 ) / 2.0f, cg.moveKeysPos[1], cg_drawMovementKeysScale.value, colorWhite,
+	CG_Text_Paint(cg.moveKeysPos[0] - Q_max(w1, w2 ) / 2.0f, cg.moveKeysPos[1], cg_movementKeysSize.value, colorWhite,
                   str1, 0.0f, 0, ITEM_TEXTSTYLE_OUTLINED, fontIndex );
-	CG_Text_Paint(cg.moveKeysPos[0] - Q_max(w1, w2 ) / 2.0f, cg.moveKeysPos[1] + height, cg_drawMovementKeysScale.value,
+	CG_Text_Paint(cg.moveKeysPos[0] - Q_max(w1, w2 ) / 2.0f, cg.moveKeysPos[1] + height, cg_movementKeysSize.value,
                   colorWhite, str2, 0.0f, 0, ITEM_TEXTSTYLE_OUTLINED, fontIndex );
 }
 
@@ -9279,7 +9279,7 @@ static void CG_MovementKeys(centity_t *cent)
     int moveDir;
     float w, h, x, y, xOffset, yOffset;
 
-    if (!cg.snap)
+    if (!cg.snap || cg_movementKeys.integer == 4)
         return;
 
     ps = &cg.predictedPlayerState; //&cg.snap->ps;
@@ -9358,8 +9358,8 @@ static void CG_MovementKeys(centity_t *cent)
     }else{
         w = (16*cg_movementKeysSize.value)*cgs.widthRatioCoef;
         h = 16*cg_movementKeysSize.value;
-        x = SCREEN_WIDTH - (SCREEN_WIDTH - cg_movementKeysX.integer) * cgs.widthRatioCoef;
-        y = cg_movementKeysY.integer;
+        x = SCREEN_WIDTH - (SCREEN_WIDTH - cg.moveKeysPos[0]) * cgs.widthRatioCoef;
+        y = cg.moveKeysPos[1];
     }
 
     if(cg_movementKeys.integer > 1){
