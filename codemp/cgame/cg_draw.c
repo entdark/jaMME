@@ -16,6 +16,7 @@ static void CG_DrawSiegeDeathTimer( int timeRemaining );
 void CG_DrawDuelistHealth ( float x, float y, float w, float h, int duelist );
 void CG_DrawHealthBar(centity_t *cent, float chX, float chY, float chW, float chH);
 //Strafehelper
+static void CG_CalculateSpeed(centity_t *cent);
 static void CG_StrafeHelper( centity_t *cent );
 
 #define SHELPER_SUPEROLDSTYLE	(1<<0)
@@ -1255,6 +1256,9 @@ void CG_DrawHUD(centity_t	*cent)
 	int score;
 	clientInfo_t *ci = &cgs.clientinfo[cent->currentState.number];
 	qboolean hasForce = cg.enhanced.detected && (cg.enhanced.flags & BASE_ENHANCED_TEAMOVERLAY_FORCE);
+
+	if (cg_strafeHelper.integer)
+		CG_CalculateSpeed(cent);
 
 	if (!cg.playerPredicted) {
 		if (cg.snap->ps.persistant[PERS_TEAM] != TEAM_RED && cg.snap->ps.persistant[PERS_TEAM] != TEAM_BLUE) {
@@ -8803,6 +8807,19 @@ void CG_DrawActive( stereoFrame_t stereoView, qboolean draw2D ) {
 	CG_MultiSpecMain();
 
 	doFX = qfalse;
+}
+
+static void CG_CalculateSpeed(centity_t *cent) {
+	if (cg.predictedPlayerState.m_iVehicleNum) {
+		centity_t *vehCent = &cg_entities[cg.predictedPlayerState.m_iVehicleNum];
+
+		const vec_t * const velocity = (cent->currentState.clientNum == cg.clientNum ? vehCent->playerState->velocity : vehCent->currentState.pos.trDelta);
+		cg.currentSpeed = sqrtf(velocity[0] * velocity[0] + velocity[1] * velocity[1]); // is this right?
+	}
+	else {
+		const vec_t * const velocity = (cent->currentState.clientNum == cg.clientNum ? cg.predictedPlayerState.velocity : cent->currentState.pos.trDelta);
+		cg.currentSpeed = sqrtf(velocity[0] * velocity[0] + velocity[1] * velocity[1]); // is this right?
+	}
 }
 
 static void CG_StrafeHelperSound(float difference) {
