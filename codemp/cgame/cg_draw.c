@@ -1269,6 +1269,35 @@ void CG_DrawHUD(centity_t	*cent)
 		}
 	}
 
+    //Strafehelper Start
+    if (cg_strafeHelper.integer)
+        CG_StrafeHelper(cent);
+    if (cg.playerPredicted && (cg_strafeHelper.integer & SHELPER_CROSSHAIR)) {
+        vec4_t hcolor;
+        float lineWidth;
+
+        if (!cg.crosshairColor[0] && !cg.crosshairColor[1] && !cg.crosshairColor[2]) { //default to white
+            hcolor[0] = 1.0f;
+            hcolor[1] = 1.0f;
+            hcolor[2] = 1.0f;
+            hcolor[3] = 1.0f;
+        } else {
+            hcolor[0] = cg.crosshairColor[0];
+            hcolor[1] = cg.crosshairColor[1];
+            hcolor[2] = cg.crosshairColor[2];
+            hcolor[3] = cg.crosshairColor[3];
+        }
+
+        lineWidth = cg_strafeHelperLineWidth.value;
+        if (lineWidth < 0.25f)
+            lineWidth = 0.25f;
+        else if (lineWidth > 5)
+            lineWidth = 5;
+
+        Dzikie_CG_DrawLine(SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 5, SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 5,
+                            lineWidth * cgs.widthRatioCoef, hcolor, hcolor[3], 0); //640x480, 320x240
+    }
+
 	if (cg_hudFiles.integer)
 	{
 		int x = 0;
@@ -1277,35 +1306,6 @@ void CG_DrawHUD(centity_t	*cent)
 		int weapX = x;
 		int health;
 		int armor;
-
-        //Strafehelper Start
-        if (cg_strafeHelper.integer)
-            CG_StrafeHelper(cent);
-        if (cg_strafeHelper.integer & SHELPER_CROSSHAIR) {
-            vec4_t hcolor;
-            float lineWidth;
-
-            if (!cg.crosshairColor[0] && !cg.crosshairColor[1] && !cg.crosshairColor[2]) { //default to white
-                hcolor[0] = 1.0f;
-                hcolor[1] = 1.0f;
-                hcolor[2] = 1.0f;
-                hcolor[3] = 1.0f;
-            } else {
-                hcolor[0] = cg.crosshairColor[0];
-                hcolor[1] = cg.crosshairColor[1];
-                hcolor[2] = cg.crosshairColor[2];
-                hcolor[3] = cg.crosshairColor[3];
-            }
-
-            lineWidth = cg_strafeHelperLineWidth.value;
-            if (lineWidth < 0.25f)
-                lineWidth = 0.25f;
-            else if (lineWidth > 5)
-                lineWidth = 5;
-
-            Dzikie_CG_DrawLine(SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 5, SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 5,
-                               lineWidth * cgs.widthRatioCoef, hcolor, hcolor[3], 0); //640x480, 320x240
-        }
 
 		if (cg.predictedPlayerState.pm_type != PM_SPECTATOR)
 		{
@@ -5458,14 +5458,10 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 	float		chX, chY;
 
     if (worldPoint)
-    {
         VectorCopy( worldPoint, cg_crosshairPos );
-    }
 
-    if (cg_strafeHelper.integer & SHELPER_CROSSHAIR)
-    {
+    if (cg.playerPredicted && (cg_strafeHelper.integer & SHELPER_CROSSHAIR))
         return;
-    }
 
 	if (!cg_drawCrosshair.integer)
 		return;
@@ -8934,7 +8930,7 @@ void Dzikie_CG_DrawSpeed(int moveDir) {
 }
 
 static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int moveDir) { //moveDir is 1-7 for wasd combinations, and 8 for the centerline in cpm style, 9 and 10 for backwards a/d lines
-    vec3_t start, angs, forward, delta, line;
+    vec3_t start, angs, forward, delta, line, origin, angles;
     float x, y, startx, starty, lineWidth;
     int sensitivity = cg_strafeHelperPrecision.integer;
     static const int LINE_HEIGHT = 230; //240 is midpoint, so it should be a little higher so crosshair is always on it.
@@ -8977,10 +8973,18 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
         color[3] = cg_strafeHelperInactiveAlpha.value / 255.0f;
     }
 
+	if (cg.playerPredicted) {
+		VectorCopy(cg.predictedPlayerState.origin, origin);
+		VectorCopy(cg.predictedPlayerState.viewangles, angles);
+	} else {
+		VectorCopy(cg.playerCent->lerpOrigin, origin);
+		VectorCopy(cg.playerCent->lerpAngles, angles);
+	}
+
     if (!(cg_strafeHelper.integer & SHELPER_SUPEROLDSTYLE) && !cg.renderingThirdPerson)
         VectorCopy(cg.refdef.vieworg, start);
     else
-        VectorCopy(cg.predictedPlayerState.origin, start); //This created problems for some peoplem, use refdef instead? (avygeil fix)
+        VectorCopy(origin, start); //This created problems for some peoplem, use refdef instead? (avygeil fix)
 
     VectorCopy(velocity, angs);
     angs[YAW] += diff;
@@ -9004,7 +9008,7 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
     }
     if (cg_strafeHelper.integer & SHELPER_OLDBARS && active && moveDir != 0) { //Not sure how to deal with multiple lines for W only so just fuck it for now..
         //Proper way is to tell which line we are closest to aiming at and display the shit for that...
-        CG_FillRect(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, (-4.444 * AngleSubtract(cg.predictedPlayerState.viewangles[YAW], angs[YAW])), 12, colorTable[CT_RED]);
+        CG_FillRect(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, (-4.444 * AngleSubtract(angles[YAW], angs[YAW])), 12, colorTable[CT_RED]);
     }
     if (cg_strafeHelper.integer & SHELPER_OLDSTYLE) {
         int cutoff = SCREEN_HEIGHT - cg_strafeHelperCutoff.integer; //Should be between 480 and LINE_HEIGHT
@@ -9048,7 +9052,7 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
         Dzikie_CG_DrawSpeed(moveDir);
     }
     if (cg_strafeHelper.integer & SHELPER_SOUND && active && moveDir != 8) { //Dont do this shit for the center line since its not really a strafe
-        CG_StrafeHelperSound(100 * AngleSubtract(cg.predictedPlayerState.viewangles[YAW], angs[YAW]));
+        CG_StrafeHelperSound(100 * AngleSubtract(angles[YAW], angs[YAW]));
     }
 }
 
@@ -9075,7 +9079,7 @@ ID_INLINE int PM_GetMovePhysics(void)
 
 static void CG_StrafeHelper(centity_t *cent)
 {
-    vec_t * velocity = (cent->currentState.clientNum == cg.clientNum ? cg.predictedPlayerState.velocity : cent->currentState.pos.trDelta);
+    vec_t * velocity = (cg.playerPredicted ? cg.predictedPlayerState.velocity : cent->currentState.pos.trDelta);
     static vec3_t velocityAngle;
     const float currentSpeed = cg.currentSpeed;
     float pmAccel = 10.0f, pmAirAccel = 1.0f, pmFriction = 6.0f, frametime, optimalDeltaAngle, baseSpeed = cg.predictedPlayerState.speed;
@@ -9084,10 +9088,13 @@ static void CG_StrafeHelper(centity_t *cent)
     qboolean onGround;
     usercmd_t cmd = { 0 };
 
+	if (!cg.playerPredicted)
+		return;
+
     if (moveStyle == 0)
         return;
 
-    if (cg.clientNum == cg.predictedPlayerState.clientNum && !cg.demoPlayback) {
+    if (cg.playerPredicted && !cg.demoPlayback) {
         trap_GetUserCmd( trap_GetCurrentCmdNumber(), &cmd );
     }
     else if (cg.snap) {
