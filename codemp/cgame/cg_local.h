@@ -1235,6 +1235,32 @@ typedef struct {
 	qhandle_t	wireframeAutomapFrame_top;
 	qhandle_t	wireframeAutomapFrame_bottom;
 
+    //JAPRO - Clientside - Movement keys - Start
+    qhandle_t	keyCrouchOffShader;
+    qhandle_t	keyCrouchOnShader;
+    qhandle_t	keyJumpOffShader;
+    qhandle_t	keyJumpOnShader;
+    qhandle_t	keyBackOffShader;
+    qhandle_t	keyBackOnShader;
+    qhandle_t	keyForwardOffShader;
+    qhandle_t	keyForwardOnShader;
+    qhandle_t	keyLeftOffShader;
+    qhandle_t	keyLeftOnShader;
+    qhandle_t	keyRightOffShader;
+    qhandle_t	keyRightOnShader;
+    qhandle_t   keyAttackOn;
+    qhandle_t   keyAttackOff;
+    qhandle_t   keyAltOn;
+    qhandle_t   keyAltOff;
+    qhandle_t	keyCrouchOnShader2;
+    qhandle_t	keyJumpOnShader2;
+    qhandle_t	keyBackOnShader2;
+    qhandle_t	keyForwardOnShader2;
+    qhandle_t	keyLeftOnShader2;
+    qhandle_t	keyRightOnShader2;
+    qhandle_t   keyAttackOn2;
+    qhandle_t   keyAltOn2;
+
 //Chunks
 	qhandle_t	chunkModels[NUM_CHUNK_TYPES][4];
 	sfxHandle_t	chunkSound;

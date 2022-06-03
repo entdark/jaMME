@@ -18,6 +18,8 @@ void CG_DrawHealthBar(centity_t *cent, float chX, float chY, float chW, float ch
 //Strafehelper
 static void CG_CalculateSpeed(centity_t *cent);
 static void CG_StrafeHelper( centity_t *cent );
+static void CG_MovementKeys(centity_t *cent);
+
 
 #define SHELPER_SUPEROLDSTYLE	(1<<0)
 #define SHELPER_OLDSTYLE		(1<<1)
@@ -1268,6 +1270,10 @@ void CG_DrawHUD(centity_t	*cent)
 			return;
 		}
 	}
+
+    //JAPRO - Clientside - Movement Keys Start
+    if (cg_movementKeys.integer)
+        CG_MovementKeys(cent);
 
     //Strafehelper Start
     if (cg_strafeHelper.integer)
@@ -9252,3 +9258,165 @@ static void CG_StrafeHelper(centity_t *cent)
     }
 }
 
+//JAPRO - Clientside - Ground Distance function for use in jump detection for movement keys - Start
+float PM_GroundDistance2(void)
+{
+    trace_t tr;
+    vec3_t down;
+
+    VectorCopy(cg.predictedPlayerState.origin, down);
+    down[2] -= 4096;
+    CG_Trace(&tr, cg.predictedPlayerState.origin, NULL, NULL, down, cg.predictedPlayerState.clientNum, MASK_SOLID);
+    VectorSubtract(cg.predictedPlayerState.origin, tr.endpos, down);
+
+    return VectorLength(down) - 24.0f;
+}
+//JAPRO - Clientside - Ground Distance function for use in jump detection for movement keys - End
+
+qboolean CG_InRollAnim( centity_t *cent );
+static void CG_MovementKeys(centity_t *cent)
+{
+    usercmd_t cmd = { 0 };
+    playerState_t *ps = NULL;
+    int moveDir;
+    float w, h, x, y, xOffset, yOffset;
+
+    if (!cg.snap)
+        return;
+
+    ps = &cg.predictedPlayerState; //&cg.snap->ps;
+    moveDir = ps->movementDir;
+
+    if (cg.clientNum == cg.predictedPlayerState.clientNum && !cg.demoPlayback) {
+        trap_GetUserCmd( trap_GetCurrentCmdNumber(), &cmd );
+    }
+    else
+    {
+        float xyspeed = sqrtf( ps->velocity[0] * ps->velocity[0] + ps->velocity[1] * ps->velocity[1] );
+        float zspeed = ps->velocity[2];
+        static float lastZSpeed = 0.0f;
+
+        if ((PM_GroundDistance2() > 1 && zspeed > 8 && zspeed > lastZSpeed && !cg.snap->ps.fd.forceGripCripple) || (cg.snap->ps.pm_flags & PMF_JUMP_HELD))
+            cmd.upmove = 1;
+        else if ( (ps->pm_flags & PMF_DUCKED) || CG_InRollAnim(cent) )
+            cmd.upmove = -1;
+
+        if ( xyspeed < 9 )
+            moveDir = -1;
+
+        lastZSpeed = zspeed;
+
+
+        if ((cent->currentState.eFlags & EF_FIRING) && !(cent->currentState.eFlags & EF_ALT_FIRING)) {
+            cmd.buttons |= BUTTON_ATTACK;
+            cmd.buttons &= ~BUTTON_ALT_ATTACK;
+        } else if (cent->currentState.eFlags & EF_ALT_FIRING) {
+            cmd.buttons |= BUTTON_ALT_ATTACK;
+            cmd.buttons &= ~BUTTON_ATTACK;
+        }
+
+
+        switch ( moveDir )
+        {
+            case 0: // W
+                cmd.forwardmove = 1;
+                break;
+            case 1: // WA
+                cmd.forwardmove = 1;
+                cmd.rightmove = -1;
+                break;
+            case 2: // A
+                cmd.rightmove = -1;
+                break;
+            case 3: // AS
+                cmd.rightmove = -1;
+                cmd.forwardmove = -1;
+                break;
+            case 4: // S
+                cmd.forwardmove = -1;
+                break;
+            case 5: // SD
+                cmd.forwardmove = -1;
+                cmd.rightmove = 1;
+                break;
+            case 6: // D
+                cmd.rightmove = 1;
+                break;
+            case 7: // DW
+                cmd.rightmove = 1;
+                cmd.forwardmove = 1;
+                break;
+            default:
+                break;
+        }
+    }
+
+    if(cg_movementKeys.integer == 2)
+    {
+        w = (8*cg_movementKeysSize.value)*cgs.widthRatioCoef;
+        h = 8*cg_movementKeysSize.value;
+        x = SCREEN_WIDTH / 2 - w*1.5;
+        y = SCREEN_HEIGHT / 2 - h*1.5;
+    }else{
+        w = (16*cg_movementKeysSize.value)*cgs.widthRatioCoef;
+        h = 16*cg_movementKeysSize.value;
+        x = SCREEN_WIDTH - (SCREEN_WIDTH - cg_movementKeysX.integer) * cgs.widthRatioCoef;
+        y = cg_movementKeysY.integer;
+    }
+
+    if(cg_movementKeys.integer > 1){
+        if (cmd.upmove < 0)
+            CG_DrawPic( w*2 + x, y, w, h, cgs.media.keyCrouchOnShader2 );
+        if (cmd.upmove > 0)
+            CG_DrawPic( x, y, w, h, cgs.media.keyJumpOnShader2 );
+        if (cmd.forwardmove < 0)
+            CG_DrawPic(w + x, h * 2 + y, w, h, cgs.media.keyBackOnShader2);
+        if (cmd.forwardmove > 0)
+            CG_DrawPic( w + x, y, w, h, cgs.media.keyForwardOnShader2 );
+        if (cmd.rightmove < 0)
+            CG_DrawPic( x, h + y, w, h, cgs.media.keyLeftOnShader2 );
+        if (cmd.rightmove > 0)
+            CG_DrawPic( w*2 + x, h + y, w, h, cgs.media.keyRightOnShader2 );
+        if (cmd.buttons & BUTTON_ATTACK)
+            CG_DrawPic(x, 2 * h + y, w, h, cgs.media.keyAttackOn2);
+        if (cmd.buttons & BUTTON_ALT_ATTACK)
+            CG_DrawPic(w * 2 + x, 2 * h + y, w, h, cgs.media.keyAltOn2);
+
+    }
+    else if(cg_movementKeys.integer == 1){
+        if (cmd.upmove < 0)
+            CG_DrawPic( w*2 + x, y, w, h, cgs.media.keyCrouchOnShader );
+        else
+            CG_DrawPic( w*2 + x, y, w, h, cgs.media.keyCrouchOffShader );
+        if (cmd.upmove > 0)
+            CG_DrawPic( x, y, w, h, cgs.media.keyJumpOnShader );
+        else
+            CG_DrawPic( x, y, w, h, cgs.media.keyJumpOffShader );
+        if (cmd.forwardmove < 0)
+            CG_DrawPic(w + x, h + y, w, h, cgs.media.keyBackOnShader);
+        else
+            CG_DrawPic(w + x, h + y, w, h, cgs.media.keyBackOffShader);
+        if (cmd.forwardmove > 0)
+            CG_DrawPic( w + x, y, w, h, cgs.media.keyForwardOnShader );
+        else
+            CG_DrawPic( w + x, y, w, h, cgs.media.keyForwardOffShader );
+        if (cmd.rightmove < 0)
+            CG_DrawPic( x, h + y, w, h, cgs.media.keyLeftOnShader );
+        else
+            CG_DrawPic( x, h + y, w, h, cgs.media.keyLeftOffShader );
+        if (cmd.rightmove > 0)
+            CG_DrawPic( w*2 + x, h + y, w, h, cgs.media.keyRightOnShader );
+        else
+            CG_DrawPic( w*2 + x, h + y, w, h, cgs.media.keyRightOffShader );
+        if (cmd.buttons & BUTTON_ATTACK)
+            CG_DrawPic(w * 3 + x, y, w, h, cgs.media.keyAttackOn);
+        else
+            CG_DrawPic(w * 3 + x, y, w, h, cgs.media.keyAttackOff);
+
+        if (cmd.buttons & BUTTON_ALT_ATTACK)
+            CG_DrawPic(w * 3 + x, h + y, w, h, cgs.media.keyAltOn);
+        else
+            CG_DrawPic(w * 3 + x, h + y, w, h, cgs.media.keyAltOff);
+    }
+
+}

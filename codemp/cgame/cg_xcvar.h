@@ -251,4 +251,10 @@ XCVAR_DEF( ui_sha_r,						    "0",				    CVU_StrafeHelper,		CVAR_ARCHIVE|CVAR_I
 XCVAR_DEF( ui_sha_g,						    "255",				    CVU_StrafeHelper,		CVAR_ARCHIVE|CVAR_INTERNAL )
 XCVAR_DEF( ui_sha_b,						    "0",				    CVU_StrafeHelper,		CVAR_ARCHIVE|CVAR_INTERNAL )
 XCVAR_DEF( ui_sha_a,						    "200",				    CVU_StrafeHelper,		CVAR_ARCHIVE|CVAR_INTERNAL )
+XCVAR_DEF( cg_movementKeys,	                    "0",	                NULL,                   CVAR_ARCHIVE )
+XCVAR_DEF( cg_movementKeys,			            "0",	                NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_movementKeysX,		            "465",	                NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_movementKeysY,		            "432",	                NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_movementKeysSize,		            "1.0",	                NULL,					CVAR_ARCHIVE )
+
 #undef XCVAR_DEF

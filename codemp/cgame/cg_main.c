@@ -1955,6 +1955,38 @@ Ghoul2 Insert End
 	cgs.media.viewPainShader_Shields			= trap_R_RegisterShader( "gfx/mp/dmgshader_shields" );
 	cgs.media.viewPainShader_ShieldsAndHealth	= trap_R_RegisterShader( "gfx/mp/dmgshader_shieldsandhealth" );
 
+    //jaPRO mod assets - start
+    //Movement Keys - Start
+    cgs.media.keyCrouchOffShader	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/crouch_off" );
+    cgs.media.keyCrouchOnShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/crouch_on" );
+    cgs.media.keyJumpOffShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/jump_off" );
+    cgs.media.keyJumpOnShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/jump_on" );
+    cgs.media.keyBackOffShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/back_off" );
+    cgs.media.keyBackOnShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/back_on" );
+    cgs.media.keyForwardOffShader	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/forward_off" );
+    cgs.media.keyForwardOnShader	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/forward_on" );
+    cgs.media.keyLeftOffShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/left_off" );
+    cgs.media.keyLeftOnShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/left_on" );
+    cgs.media.keyRightOffShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/right_off" );
+    cgs.media.keyRightOnShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/right_on" );
+    cgs.media.keyAttackOn	    	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/attack_on" );
+    cgs.media.keyAttackOff		    = trap_R_RegisterShaderNoMip ( "gfx/hud/keys/attack_off" );
+    cgs.media.keyAltOn	    	    = trap_R_RegisterShaderNoMip ( "gfx/hud/keys/alt_on" );
+    cgs.media.keyAltOff		        = trap_R_RegisterShaderNoMip ( "gfx/hud/keys/alt_off" );
+
+
+    //Movement Keys 2
+    cgs.media.keyCrouchOnShader2	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/crouch_on2" );
+    cgs.media.keyJumpOnShader2		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/jump_on2" );
+    cgs.media.keyBackOnShader2		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/back_on2" );
+    cgs.media.keyForwardOnShader2	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/forward_on2" );
+    cgs.media.keyLeftOnShader2		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/left_on2" );
+    cgs.media.keyRightOnShader2		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/right_on2" );
+    cgs.media.keyAttackOn2	    	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/attack_on2" );
+    cgs.media.keyAltOn2	    	    = trap_R_RegisterShaderNoMip ( "gfx/hud/keys/alt_on2" );
+
+    //Movement Keys - End
+
 	// register the inline models
 	breakPoint = cgs.numInlineModels = trap_CM_NumInlineModels();
 	for ( i = 1 ; i < cgs.numInlineModels ; i++ ) {
