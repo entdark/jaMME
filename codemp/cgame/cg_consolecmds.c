@@ -103,6 +103,84 @@ void CG_StrafeHelper_f( void ) {
     CG_ClearThirdPersonDamp();
 }
 
+static bitInfo_T speedometerSettings[] = { // MAX_WEAPON_TWEAKS tweaks (24)
+        { "Enable speedometer" },//0
+        { "Pre-speed display" },//1
+        { "Jump height display" },//2
+        { "Jump distance display" },//3
+        { "Vertical speed indicator" },//4
+        { "Yaw speed indicator" },//5
+        { "Accel meter" },//6
+        { "Speed graph" },//7
+        { "Display speed in kilometers instead of units" },//8
+        { "Display speed in imperial miles instead of units" },//9
+        { "Pre-speed jumps array" },//10
+        { "Disable speedometer colors"},//11
+        { "Array Colors 1" },//12
+        { "Array Colors 2" }//13
+};
+static const int MAX_SPEEDOMETER_SETTINGS = ARRAY_LEN(speedometerSettings);
+
+void CG_SpeedometerSettings_f(void)
+{
+    if (trap_Argc() == 1) {
+        int i = 0, display = 0;
+
+        for (i = 0; i < MAX_SPEEDOMETER_SETTINGS; i++) {
+            if (cg_speedometer.integer & (1 << i)) {
+                Com_Printf("%2d [X] %s\n", display, speedometerSettings[i].string);
+            }
+            else {
+                Com_Printf("%2d [ ] %s\n", display, speedometerSettings[i].string);
+            }
+            display++;
+        }
+        return;
+    }
+    else {
+        char arg[8] = { 0 };
+        int index;
+        const uint32_t mask = (1 << MAX_SPEEDOMETER_SETTINGS) - 1;
+
+        trap_Argv(1, arg, sizeof(arg));
+        index = atoi(arg);
+
+        if (index < 0 || index >= MAX_SPEEDOMETER_SETTINGS) {
+            Com_Printf("style: Invalid range: %i [0, %i]\n", index, MAX_SPEEDOMETER_SETTINGS - 1);
+            return;
+        }
+
+        if (index == 8 || index == 9) { //Radio button these options
+            //Toggle index, and make sure everything else in this group (8,9) is turned off
+            int groupMask = (1 << 8) + (1 << 9);
+            int value = cg_speedometer.integer;
+
+            groupMask &= ~(1 << index); //Remove index from groupmask
+            value &= ~(groupMask); //Turn groupmask off
+            value ^= (1 << index); //Toggle index item
+
+            trap_Cvar_Set("cg_speedometer", va("%i", value));
+        } else if (index == 12 || index == 13){ //Radio button these options
+            //Toggle index, and make sure everything else in this group (8,9) is turned off
+            int groupMask = (1 << 12) + (1 << 13);
+            int value = cg_speedometer.integer;
+
+            groupMask &= ~(1 << index); //Remove index from groupmask
+            value &= ~(groupMask); //Turn groupmask off
+            value ^= (1 << index); //Toggle index item
+
+            trap_Cvar_Set("cg_speedometer", va("%i", value));
+        }
+        else {
+            trap_Cvar_Set("cg_speedometer", va("%i", (1 << index) ^ (cg_speedometer.integer & mask)));
+        }
+        trap_Cvar_Update(&cg_speedometer);
+
+        Com_Printf("%s %s^7\n", speedometerSettings[index].string, ((cg_speedometer.integer & (1 << index))
+                                                                    ? "^2Enabled" : "^1Disabled"));
+    }
+}
+
 /*
 =================
 CG_SizeUp_f
@@ -595,6 +673,7 @@ static consoleCommand_t	commands[] = {
 	{ "clientOverride", CG_ClientOverride_f },
 	{ "multispec" , CG_MultiSpec_f },
     { "strafeHelper", CG_StrafeHelper_f },
+    { "speedometer", CG_SpeedometerSettings_f},
 #ifdef __ANDROID__
 	{ "targetPrev", CG_TargetPrev_f },
 	{ "targetNext", CG_TargetNext_f },

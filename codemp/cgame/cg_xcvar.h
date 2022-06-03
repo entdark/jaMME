@@ -251,5 +251,15 @@ XCVAR_DEF( ui_sha_r,						    "0",				    CVU_StrafeHelper,		CVAR_ARCHIVE|CVAR_I
 XCVAR_DEF( ui_sha_g,						    "255",				    CVU_StrafeHelper,		CVAR_ARCHIVE|CVAR_INTERNAL )
 XCVAR_DEF( ui_sha_b,						    "0",				    CVU_StrafeHelper,		CVAR_ARCHIVE|CVAR_INTERNAL )
 XCVAR_DEF( ui_sha_a,						    "200",				    CVU_StrafeHelper,		CVAR_ARCHIVE|CVAR_INTERNAL )
-
+XCVAR_DEF( cg_raceTimer,			"2",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_raceTimerSize,		"0.75",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_raceTimerX,			"5",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_raceTimerY,			"280",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_speedometer,			"0",	NULL,					CVAR_ARCHIVE ) //bitvalue
+XCVAR_DEF( cg_speedometerX,			"132",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_speedometerY,			"459",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_speedometerJumpsX,	"185",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_speedometerJumpsY,	"300",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_speedometerJumps,		 "10",	NULL,					CVAR_ARCHIVE )
+XCVAR_DEF( cg_speedometerSize,		"0.75",	NULL,					CVAR_ARCHIVE )
 #undef XCVAR_DEF

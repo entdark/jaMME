@@ -19,7 +19,15 @@ void CG_DrawHealthBar(centity_t *cent, float chX, float chY, float chW, float ch
 static void CG_CalculateSpeed(centity_t *cent);
 static void CG_StrafeHelper( centity_t *cent );
 static void CG_MovementKeys(centity_t *cent);
-
+static void CG_JumpDistance( void );
+static void CG_DrawVerticalSpeed(void);
+static void CG_DrawYawSpeed(void);
+static void CG_Speedometer(void);
+static void CG_DrawAccelMeter(void);
+static void CG_JumpHeight(centity_t *cent);
+static void CG_RaceTimer(void);
+static void CG_AddSpeed(void);
+static void CG_DrawSpeedGraph(rectDef_t* rect, const vec4_t foreColor, vec4_t backColor);
 
 #define SHELPER_SUPEROLDSTYLE	(1<<0)
 #define SHELPER_OLDSTYLE		(1<<1)
@@ -41,6 +49,21 @@ static void CG_MovementKeys(centity_t *cent);
 #define SHELPER_SD				(1<<17)
 #define SHELPER_TINY		    (1<<18)
 #define SHELPER_INVERT			(1<<19)
+
+#define SPEEDOMETER_ENABLE			(1<<0)
+#define SPEEDOMETER_GROUNDSPEED		(1<<1)
+#define SPEEDOMETER_JUMPHEIGHT		(1<<2)
+#define SPEEDOMETER_JUMPDISTANCE	(1<<3)
+#define SPEEDOMETER_VERTICALSPEED	(1<<4)
+#define SPEEDOMETER_YAWSPEED		(1<<5)
+#define SPEEDOMETER_ACCELMETER		(1<<6)
+#define SPEEDOMETER_SPEEDGRAPH		(1<<7)
+#define SPEEDOMETER_KPH				(1<<8)
+#define SPEEDOMETER_MPH				(1<<9)
+#define SPEEDOMETER_JUMPS			(1<<10)
+#define SPEEDOMETER_COLORS          (1<<11)
+#define SPEEDOMETER_JUMPSCOLORS1    (1<<12)
+#define SPEEDOMETER_JUMPSCOLORS2    (1<<13)
 
 // used for scoreboard
 extern displayContextDef_t cgDC;
@@ -1247,6 +1270,7 @@ void CG_DrawForcePower( menuDef_t *menuHUD )
 CG_DrawHUD
 ================
 */
+float speedometerXPos, jumpsXPos;
 void Dzikie_CG_DrawLine (float x1, float y1, float x2, float y2, float size, vec4_t color, float alpha, float ycutoff);
 void CG_DrawHUD(centity_t	*cent)
 {
@@ -1259,8 +1283,8 @@ void CG_DrawHUD(centity_t	*cent)
 	clientInfo_t *ci = &cgs.clientinfo[cent->currentState.number];
 	qboolean hasForce = cg.enhanced.detected && (cg.enhanced.flags & BASE_ENHANCED_TEAMOVERLAY_FORCE);
 
-	if (cg_strafeHelper.integer)
-		CG_CalculateSpeed(cent);
+    if ((cg_speedometer.integer & SPEEDOMETER_ENABLE) || cg_strafeHelper.integer || cg_raceTimer.integer > 1)
+        CG_CalculateSpeed(cent);
 
 	if (!cg.playerPredicted) {
 		if (cg.snap->ps.persistant[PERS_TEAM] != TEAM_RED && cg.snap->ps.persistant[PERS_TEAM] != TEAM_BLUE) {
@@ -1274,6 +1298,33 @@ void CG_DrawHUD(centity_t	*cent)
     //JAPRO - Clientside - Movement Keys Start
     if (cg_movementKeys.integer)
         CG_MovementKeys(cent);
+
+    //JAPRO - Clientside - Speedometer Start
+    speedometerXPos = cg_speedometerX.integer;
+    jumpsXPos = cg_speedometerJumpsX.integer;
+    if (cgs.newHud) {
+        switch (cg_hudFiles.integer)
+        {
+            case 0: speedometerXPos -= 8; break;
+            case 1: speedometerXPos -= 56; break;
+            case 2: speedometerXPos -= 42; break;
+            default: break;
+        }
+    }
+
+    if (cg_speedometer.integer & SPEEDOMETER_ENABLE) {
+        CG_Speedometer();
+        if (cg_speedometer.integer & SPEEDOMETER_ACCELMETER || cg_strafeHelper.integer & SHELPER_ACCELMETER)
+            CG_DrawAccelMeter();
+        if (cg_speedometer.integer & SPEEDOMETER_JUMPHEIGHT)
+            CG_JumpHeight(cent);
+        if (cg_speedometer.integer & SPEEDOMETER_JUMPDISTANCE)
+            CG_JumpDistance();
+        if (cg_speedometer.integer & SPEEDOMETER_VERTICALSPEED)
+            CG_DrawVerticalSpeed();
+        if (cg_speedometer.integer & SPEEDOMETER_YAWSPEED)
+            CG_DrawYawSpeed();
+    }
 
     //Strafehelper Start
     if (cg_strafeHelper.integer)
@@ -1302,6 +1353,21 @@ void CG_DrawHUD(centity_t	*cent)
 
         Dzikie_CG_DrawLine(SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 5, SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 5,
                             lineWidth * cgs.widthRatioCoef, hcolor, hcolor[3], 0); //640x480, 320x240
+    }
+
+    if (cg_raceTimer.integer && cg.japro.detected)
+        CG_RaceTimer();
+
+    if (cg_speedometer.integer & SPEEDOMETER_SPEEDGRAPH) {
+        rectDef_t speedgraphRect;
+        vec4_t foreColor = {0.0f, 0.8f, 1.0f, 0.8f};
+        vec4_t backColor = {0.0f, 0.8f, 1.0f, 0.0f};
+        speedgraphRect.x = (320.0f - (150.0f / 2.0f));
+        speedgraphRect.y = SCREEN_HEIGHT - 22 - 2;
+        speedgraphRect.w = 150.0f;
+        speedgraphRect.h = 22.0f;
+        CG_AddSpeed();
+        CG_DrawSpeedGraph(&speedgraphRect, foreColor, backColor);
     }
 
 	if (cg_hudFiles.integer)
@@ -4418,7 +4484,6 @@ static void CG_DrawReward( void ) {
 	trap_R_SetColor( NULL );
 }
 #endif
-
 
 /*
 ===============================================================================
@@ -9256,6 +9321,81 @@ static void CG_StrafeHelper(centity_t *cent)
     }
 }
 
+#define PERCENT_SAMPLES 16
+static void CG_DrawAccelMeter(void)
+{
+    float baseSpeed = cg.predictedPlayerState.speed;
+    const float optimalAccel = baseSpeed * ((float)cg.frametime / 1000.0f);
+    const float potentialSpeed = sqrtf(cg.previousSpeed * cg.previousSpeed - optimalAccel * optimalAccel + 2 * (250 * optimalAccel));
+    float actualAccel, total, percentAccel, x;
+    const float accel = cg.currentSpeed - cg.previousSpeed;
+    static int i; //, previous, t;
+//	unsigned short frameTime;
+    static float previousTimes[PERCENT_SAMPLES];
+    static unsigned short index;
+
+    x = speedometerXPos;
+
+    if (cg_speedometer.integer & SPEEDOMETER_ENABLE) {
+        if (cg_speedometer.integer & SPEEDOMETER_GROUNDSPEED)
+            x -= 104;
+        else
+            x -= 52;
+    }
+
+    CG_DrawRect((x - 0.75f)*cgs.widthRatioCoef,
+                cg_speedometerY.value - 11.0f,
+                38.0f * cgs.widthRatioCoef,
+                13.75f,
+                0.5f,
+                colorTable[CT_BLACK]);
+
+    actualAccel = accel;
+    if (actualAccel < 0)
+        actualAccel = 0.001f;
+    else if (actualAccel >(potentialSpeed - cg.currentSpeed)) //idk how
+        actualAccel = (potentialSpeed - cg.currentSpeed) * 0.99f;
+
+    //Com_Printf("Actual Accel this frame is %.3f, last speed was %.3f, current speed is %.3f, potential speed was %.3f, coef is %.3f\n", accel, cg.previousSpeed, cg.currentSpeed, potentialSpeed, actualAccel/(potentialSpeed - currentSpeed));
+
+//	t = trap->Milliseconds();
+//	frameTime = t - previous;
+//	previous = t;
+    //if (t - lastupdate > 20)	//don't sample faster than this
+    {
+//		lastupdate = t;
+        previousTimes[index % PERCENT_SAMPLES] = actualAccel / (potentialSpeed - cg.currentSpeed);
+        index++;
+    }
+
+    total = 0;
+    for (i = 0; i < PERCENT_SAMPLES; i++) {
+        total += previousTimes[i];
+    }
+    if (!total) {
+        total = 1;
+    }
+    percentAccel = total / (float)PERCENT_SAMPLES;
+
+    //if (cg_draw2D.integer == 2)
+    //percentAccel = actualAccel / (potentialSpeed - cg.currentSpeed);
+
+    //if ( percentAccel ) {
+    if (percentAccel && cg.currentSpeed) {
+        CG_FillRect((x + 0.25f) * cgs.widthRatioCoef,
+                    cg_speedometerY.value - 9.9f,
+                    36 * percentAccel * cgs.widthRatioCoef,
+                    12,
+                    colorTable[CT_RED]);
+    }
+
+    //Com_sprintf(accelPercentStr, sizeof(accelPercentStr), "%.2f%%", percentAccel); //how to average this
+    //CG_Text_Paint(cg_speedometerX.integer, cg_speedometerY.integer -12, cg_speedometerSize.value, colorWhite, accelPercentStr, 0.0f, 0, ITEM_ALIGN_RIGHT|ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
+
+    cg.previousSpeed = cg.currentSpeed;
+
+}
+
 //JAPRO - Clientside - Ground Distance function for use in jump detection for movement keys - Start
 float PM_GroundDistance2(void)
 {
@@ -9416,5 +9556,465 @@ static void CG_MovementKeys(centity_t *cent)
         else
             CG_DrawPic(w * 3 + x, h + y, w, h, cgs.media.keyAltOff);
     }
-
 }
+
+static void CG_JumpHeight(centity_t *cent)
+{
+    const vec_t* const velocity = (cent->currentState.clientNum == cg.clientNum ? cg.predictedPlayerState.velocity : cent->currentState.pos.trDelta);
+    char jumpHeightStr[32] = {0};
+
+    if (cg.predictedPlayerState.fd.forceJumpZStart == -65536) //Coming back from a tele or w/e
+        return;
+
+    if (cg.predictedPlayerState.fd.forceJumpZStart && (cg.lastZSpeed > 0) && (velocity[2] <= 0)) {//If we were going up, and we are now going down, print our height.
+        cg.lastJumpHeight = cg.predictedPlayerState.origin[2] - cg.predictedPlayerState.fd.forceJumpZStart;
+        cg.lastJumpHeightTime = cg.time;
+    }
+
+    if ((cg.lastJumpHeightTime > cg.time - 1500) && (cg.lastJumpHeight > 0.0f)) {
+        Com_sprintf(jumpHeightStr, sizeof(jumpHeightStr), "%.1f", cg.lastJumpHeight);
+        CG_Text_Paint(speedometerXPos * cgs.widthRatioCoef, cg_speedometerY.integer, cg_speedometerSize.value, colorTable[CT_WHITE], jumpHeightStr, 0.0f, 0, ITEM_ALIGN_RIGHT|ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
+    }
+
+    speedometerXPos += 42;
+
+    cg.lastZSpeed = velocity[2];
+}
+
+static void CG_JumpDistance( void )
+{
+    char jumpDistanceStr[64] = {0};
+
+    if (!cg.snap)
+        return;
+
+    if (cg.predictedPlayerState.groundEntityNum == ENTITYNUM_WORLD) {
+
+        if (!cg.wasOnGround) {//We were just in the air, but now we arnt
+            vec3_t distance;
+
+            VectorSubtract(cg.predictedPlayerState.origin, cg.lastGroundPosition, distance);
+            cg.lastJumpDistance = sqrtf(distance[0] * distance[0] + distance[1] * distance[1]); // is this right?
+            cg.lastJumpDistanceTime = cg.time;
+        }
+
+        VectorCopy(cg.predictedPlayerState.origin, cg.lastGroundPosition);
+        cg.wasOnGround = qtrue;
+    }
+    else {
+        cg.wasOnGround = qfalse;
+    }
+
+    if ((cg.lastJumpDistanceTime > cg.time - 1500) && (cg.lastJumpDistance > 0.0f)) {
+        Com_sprintf(jumpDistanceStr, sizeof(jumpDistanceStr), "%.1f", cg.lastJumpDistance);
+        CG_Text_Paint(speedometerXPos * cgs.widthRatioCoef, cg_speedometerY.integer, cg_speedometerSize.value, colorTable[CT_WHITE], jumpDistanceStr, 0.0f, 0, ITEM_ALIGN_RIGHT|ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
+    }
+
+    speedometerXPos += 52;
+}
+
+#define YAW_FRAMES    16
+static void CG_DrawYawSpeed( void ) {
+    static unsigned short previousYaws[YAW_FRAMES];
+    static unsigned short index;
+    static int    lastupdate; //previous, lastupdate;
+    int        t, i, yaw, total;
+//    unsigned short frameTime;
+//    const int        xOffset = 0;
+
+    const float diff = AngleSubtract(cg.predictedPlayerState.viewangles[YAW], cg.lastYawSpeed);
+    float yawspeed = diff / (cg.frametime * 0.001f);
+    if (yawspeed < 0)
+        yawspeed = -yawspeed;
+
+    t = trap_Milliseconds();
+//    frameTime = t - previous;
+//    previous = t;
+    if (t - lastupdate > 20)    //don't sample faster than this
+    {
+        lastupdate = t;
+        previousYaws[index % YAW_FRAMES] = yawspeed;
+        index++;
+    }
+
+    total = 0;
+    for (i = 0; i < YAW_FRAMES; i++) {
+        total += previousYaws[i];
+    }
+    if (!total) {
+        total = 1;
+    }
+    yaw = total / (float)YAW_FRAMES;
+
+    if (yaw) {
+        char yawStr[64] = { 0 };
+        if (yawspeed > 320)
+            Com_sprintf(yawStr, sizeof(yawStr), "^1%03i", (int)(yaw + 0.5f)); //added 8 whitespaces idk how much to add - fixme
+        else if (yawspeed > 265)
+            Com_sprintf(yawStr, sizeof(yawStr), "^3%03i", (int)(yaw + 0.5f)); //added 8 whitespaces idk how much to add - fixme
+        else
+            Com_sprintf(yawStr, sizeof(yawStr), "%03i", (int)(yaw + 0.5f)); //added 8 whitespaces idk how much to add - fixme
+        CG_Text_Paint(speedometerXPos * cgs.widthRatioCoef, cg_speedometerY.integer, cg_speedometerSize.value, colorTable[CT_WHITE], yawStr, 0.0f, 0, ITEM_ALIGN_RIGHT | ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
+    }
+
+    cg.lastYawSpeed = cg.predictedPlayerState.viewangles[YAW];
+
+    speedometerXPos += 16;
+}
+
+static void CG_DrawVerticalSpeed(void) {
+    char speedStr5[64] = { 0 };
+    float vertspeed = cg.predictedPlayerState.velocity[2];
+
+    if (vertspeed < 0)
+        vertspeed = -vertspeed;
+
+    if (vertspeed) {
+        Com_sprintf(speedStr5, sizeof(speedStr5), "%.0f", vertspeed);
+        CG_Text_Paint(speedometerXPos * cgs.widthRatioCoef, cg_speedometerY.integer, cg_speedometerSize.value, colorWhite, speedStr5, 0.0f, 0, ITEM_ALIGN_RIGHT | ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
+    }
+
+    speedometerXPos += 42;
+}
+
+#define STAT_RACEMODE 11
+static void CG_RaceTimer(void)
+{
+    if (!cg.predictedPlayerState.stats[STAT_RACEMODE] || !cg.predictedPlayerState.duelTime) {
+        cg.startSpeed = 0;
+        cg.displacement = 0;
+        cg.maxSpeed = 0;
+        cg.displacementSamples = 0;
+        return;
+    }
+
+    {
+        char timerStr[48] = { 0 };
+
+        const int time = (cg.time - cg.predictedPlayerState.duelTime);
+        const int minutes = (time / 1000) / 60;
+        const int seconds = (time / 1000) % 60;
+        const int milliseconds = (time % 1000);
+
+        if (time < cg.lastRaceTime) {
+            cg.startSpeed = 0;
+            cg.displacement = 0;
+            cg.maxSpeed = 0;
+            cg.displacementSamples = 0;
+        }
+
+        if (cg_raceTimer.integer > 1) {
+            if (time > 0) {
+                if (!cg.startSpeed)
+                    cg.startSpeed = (int)(cg.currentSpeed + 0.5f);
+                if (cg.currentSpeed > cg.maxSpeed)
+                    cg.maxSpeed = (int)(cg.currentSpeed + 0.5f);
+                cg.displacement += cg.currentSpeed;
+                cg.displacementSamples++;
+            }
+        }
+
+        cg.lastRaceTime = time;
+        if (cg_raceTimer.integer != 0) {
+            if (cg_raceTimer.integer < 3)
+                Com_sprintf(timerStr, sizeof(timerStr), "%i:%02i.%i\n", minutes, seconds, milliseconds / 100);
+            else
+                Com_sprintf(timerStr, sizeof(timerStr), "%i:%02i.%03i\n", minutes, seconds, milliseconds);
+
+            if (cg_raceTimer.integer > 1) {
+                if (cg.displacementSamples)
+                    Q_strcat(timerStr, sizeof(timerStr), va("Max: %i\nAvg: %i", (int) (cg.maxSpeed + 0.5f),
+                                                            cg.displacement / cg.displacementSamples));
+                if (time < 3000)
+                    Q_strcat(timerStr, sizeof(timerStr), va("\nStart: %i", cg.startSpeed));
+
+            }
+
+            CG_Text_Paint(cg_raceTimerX.integer, cg_raceTimerY.integer, cg_raceTimerSize.value, colorTable[CT_WHITE],
+                          timerStr, 0.0f, 0, ITEM_ALIGN_RIGHT | ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
+        }
+    }
+}
+
+
+#define SPEEDOMETER_NUM_SAMPLES 500
+float speedSamples[SPEEDOMETER_NUM_SAMPLES];
+// array indices
+int oldestSpeedSample = 0;
+int maxSpeedSample = 0;
+
+/*
+===================
+CG_AddSpeed
+append a speed to the sample history
+===================
+*/
+void CG_AddSpeed(void)
+{
+    float speed;
+    vec3_t vel;
+
+    VectorCopy(cg.snap->ps.velocity, vel);
+
+    /*if (cg_drawSpeed.integer & SPEEDOMETER_IGNORE_Z)
+        vel[2] = 0;*/
+
+    speed = VectorLength(vel);
+
+    if (speed > speedSamples[maxSpeedSample])
+    {
+        maxSpeedSample = oldestSpeedSample;
+        speedSamples[oldestSpeedSample++] = speed;
+        oldestSpeedSample %= SPEEDOMETER_NUM_SAMPLES;
+        return;
+    }
+
+    speedSamples[oldestSpeedSample] = speed;
+    if (maxSpeedSample == oldestSpeedSample++)
+    {
+        // if old max was overwritten find a new one
+        int i;
+        for (maxSpeedSample = 0, i = 1; i < SPEEDOMETER_NUM_SAMPLES; i++)
+        {
+            if (speedSamples[i] > speedSamples[maxSpeedSample])
+                maxSpeedSample = i;
+        }
+    }
+
+    oldestSpeedSample %= SPEEDOMETER_NUM_SAMPLES;
+}
+
+#define SPEEDOMETER_MIN_RANGE 900
+#define SPEED_MED 1000.f
+#define SPEED_FAST 1600.f
+#define Vector4Copy( a, b )				((b)[0]=(a)[0],(b)[1]=(a)[1],(b)[2]=(a)[2],(b)[3]=(a)[3])
+#define VectorLerp( f, s, e, r ) ((r)[0]=(s)[0]+(f)*((e)[0]-(s)[0]),\
+  (r)[1]=(s)[1]+(f)*((e)[1]-(s)[1]),\
+  (r)[2]=(s)[2]+(f)*((e)[2]-(s)[2]))
+/*
+===================
+CG_DrawSpeedGraph
+===================
+*/
+static void CG_DrawSpeedGraph(rectDef_t* rect, const vec4_t foreColor,
+                              vec4_t backColor)
+{
+    int i;
+    float val, max, top;
+    // colour of graph is interpolated between these values
+    const vec3_t slow = { 0.0f, 0.0f, 1.0f };
+    const vec3_t medium = { 0.0f, 1.0f, 0.0f };
+    const vec3_t fast = { 1.0f, 0.0f, 0.0f };
+    vec4_t color;
+
+    max = speedSamples[maxSpeedSample];
+    if (max < SPEEDOMETER_MIN_RANGE)
+        max = SPEEDOMETER_MIN_RANGE;
+
+    trap_R_SetColor(backColor);
+    CG_DrawPic(rect->x, rect->y, rect->w, rect->h, cgs.media.whiteShader);
+
+    Vector4Copy(foreColor, color);
+
+    for (i = 1; i < SPEEDOMETER_NUM_SAMPLES; i++)
+    {
+        val = speedSamples[(oldestSpeedSample + i) % SPEEDOMETER_NUM_SAMPLES];
+        if (val < SPEED_MED)
+            VectorLerp(val / SPEED_MED, slow, medium, color);
+        else if (val < SPEED_FAST)
+            VectorLerp((val - SPEED_MED) / (SPEED_FAST - SPEED_MED),
+                       medium, fast, color);
+        else
+            VectorCopy(fast, color);
+        trap_R_SetColor(color);
+        top = rect->y + (1 - val / max) * rect->h;
+        CG_DrawPic(rect->x + ((float)i / (float)SPEEDOMETER_NUM_SAMPLES) * rect->w, top,
+                   rect->w / (float)SPEEDOMETER_NUM_SAMPLES, val * rect->h / max,
+                   cgs.media.whiteShader);
+    }
+    trap_R_SetColor(NULL);
+}
+
+static float firstSpeed;
+#define ACCEL_SAMPLES 32
+static void CG_Speedometer(void)
+{
+    const char *accelStr, *accelStr2, *accelStr3;
+    char speedStr[32] = {0}, speedStr2[32] = {0}, speedStr3[32] = {0};
+    vec4_t colorSpeed = {1, 1, 1, 1};
+    const float currentSpeed = cg.currentSpeed;
+    static float lastSpeed = 0, previousAccels[ACCEL_SAMPLES];
+    const float accel = currentSpeed - lastSpeed;
+    float total, avgAccel, groundSpeedColor, groundSpeedsColor, currentSpeedColor;
+    int t, i;
+//		unsigned short frameTime;
+    static unsigned short index;
+    static int lastupdate, jumpsCounter = 0;//	previous, lastupdate, jumpsCounter = 0;
+    static qboolean clearOnNextJump = qfalse;
+//        float newXPos;
+
+    lastSpeed = currentSpeed;
+
+    if (currentSpeed > 250 && !(cg_speedometer.integer & SPEEDOMETER_COLORS))
+    {
+        currentSpeedColor = 1 / ((currentSpeed/250)*(currentSpeed/250));
+        colorSpeed[1] = currentSpeedColor;
+        colorSpeed[2] = currentSpeedColor;
+    }
+
+    t = trap_Milliseconds();
+//		frameTime = t - previous;
+//		previous = t;
+    if (t - lastupdate > 5)	//don't sample faster than this
+    {
+        lastupdate = t;
+        previousAccels[index % ACCEL_SAMPLES] = accel;
+        index++;
+    }
+
+    total = 0;
+    for ( i = 0 ; i < ACCEL_SAMPLES ; i++ ) {
+        total += previousAccels[i];
+    }
+    if ( !total ) {
+        total = 1;
+    }
+    avgAccel = total / (float)ACCEL_SAMPLES - 0.0625f;//fucking why does it offset by this number
+
+    if (avgAccel > 0.0f)
+    {
+        accelStr = "^2\xb5:";
+        accelStr2 = "^2k:";
+        accelStr3 = "^2m: ";
+    }
+    else if (avgAccel < 0.0f)
+    {
+        accelStr = "^1\xb5:";
+        accelStr2 = "^1k:";
+        accelStr3 = "^1m: ";
+    }
+    else
+    {
+        accelStr = "^7\xb5:";
+        accelStr2 = "^7k:";
+        accelStr3 = "^7m: ";
+    }
+
+    if (!(cg_speedometer.integer & SPEEDOMETER_KPH) && !(cg_speedometer.integer & SPEEDOMETER_MPH))
+    {
+        Com_sprintf(speedStr, sizeof(speedStr), "   %.0f", floorf(currentSpeed + 0.5f));
+        CG_Text_Paint(speedometerXPos*cgs.widthRatioCoef, cg_speedometerY.integer, cg_speedometerSize.value, colorWhite, accelStr, 0.0f, 0, ITEM_ALIGN_RIGHT|ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
+        CG_Text_Paint(speedometerXPos  * cgs.widthRatioCoef, cg_speedometerY.value, cg_speedometerSize.value, colorSpeed, speedStr, 0.0f, 0, ITEM_ALIGN_LEFT|ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
+    }
+    else if (cg_speedometer.integer & SPEEDOMETER_KPH)
+    {
+        Com_sprintf(speedStr2, sizeof(speedStr2), "   %.1f", currentSpeed * 0.05);
+        CG_Text_Paint(speedometerXPos*cgs.widthRatioCoef, cg_speedometerY.value, cg_speedometerSize.value, colorWhite, accelStr2, 0.0f, 0, ITEM_ALIGN_RIGHT|ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
+        CG_Text_Paint(speedometerXPos*cgs.widthRatioCoef, cg_speedometerY.value, cg_speedometerSize.value, colorSpeed, speedStr2, 0.0f, 0, ITEM_ALIGN_RIGHT|ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
+    }
+    else if (cg_speedometer.integer & SPEEDOMETER_MPH)
+    {
+        Com_sprintf(speedStr3, sizeof(speedStr3), "   %.1f", currentSpeed * 0.03106855);
+        CG_Text_Paint(speedometerXPos*cgs.widthRatioCoef, cg_speedometerY.value, cg_speedometerSize.value, colorWhite, accelStr3, 0.0f, 0, ITEM_ALIGN_RIGHT|ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
+        CG_Text_Paint(speedometerXPos*cgs.widthRatioCoef, cg_speedometerY.value, cg_speedometerSize.value, colorSpeed, speedStr3, 0.0f, 0, ITEM_ALIGN_RIGHT|ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
+    }
+    speedometerXPos += 52;
+
+    if (cg_speedometer.integer & SPEEDOMETER_GROUNDSPEED || (cg_speedometer.integer && (cg_speedometer.integer & SPEEDOMETER_JUMPS))) {
+        char speedStr4[32] = {0};
+        char speedsStr4[32] = {0};
+
+        vec4_t colorGroundSpeed = {1, 1, 1, 1};
+        vec4_t colorGroundSpeeds = {1, 1, 1, 1};
+
+        if (cg.predictedPlayerState.groundEntityNum != ENTITYNUM_NONE || cg.predictedPlayerState.velocity[2] < 0) { //On ground or Moving down
+            cg.firstTimeInAir = qfalse;
+        }
+        else if (!cg.firstTimeInAir) { //Moving up for first time
+            cg.firstTimeInAir = qtrue;
+            cg.lastGroundSpeed = currentSpeed;
+            cg.lastGroundTime = cg.time;
+            if (cg_speedometer.integer & SPEEDOMETER_JUMPS) {
+
+                if (clearOnNextJump == qtrue) {
+                    Com_Memset(&cg.lastGroundSpeeds, 0, sizeof(cg.lastGroundSpeeds));
+                    jumpsCounter = 0;
+                    clearOnNextJump = qfalse;
+                }
+                cg.lastGroundSpeeds[++jumpsCounter] = cg.lastGroundSpeed; //add last ground speed to the array
+            }
+        }
+        if (cg_speedometer.integer & SPEEDOMETER_JUMPS) {
+            if ((cg.predictedPlayerState.groundEntityNum != ENTITYNUM_NONE &&
+                 cg.predictedPlayerState.pm_time <= 0 && cg.currentSpeed < 250) || cg.currentSpeed == 0) {
+                clearOnNextJump = qtrue;
+            }
+            if (cg_speedometerJumps.value &&
+                (jumpsCounter < cg_speedometerJumps.integer)) { //if we are in the first n jumps
+                for (i = 0; i <= cg_speedometerJumps.integer; i++) { //print the jumps
+                    groundSpeedsColor = 1 / ((cg.lastGroundSpeeds[i] / 250) * (cg.lastGroundSpeeds[i] / 250));
+                    Com_sprintf(speedsStr4, sizeof(speedsStr4), "%.0f", cg.lastGroundSpeeds[i]); //create the string
+                    if (cg_speedometer.integer & SPEEDOMETER_JUMPSCOLORS1) { //color the string
+                        colorGroundSpeeds[1] = groundSpeedsColor;
+                        colorGroundSpeeds[2] = groundSpeedsColor;
+                    } else if (cg_speedometer.integer & SPEEDOMETER_JUMPSCOLORS2) {
+                        if ((jumpsCounter > 0 && (cg.lastGroundSpeeds[i] > cg.lastGroundSpeeds[i - 1])) ||
+                            (i == 0 && (cg.lastGroundSpeeds[0] > firstSpeed))) {
+                            colorGroundSpeeds[0] = groundSpeedsColor;
+                            colorGroundSpeeds[1] = 1;
+                            colorGroundSpeeds[2] = groundSpeedsColor;
+                        } else {
+                            colorGroundSpeeds[0] = 1;
+                            colorGroundSpeeds[1] = groundSpeedsColor;
+                            colorGroundSpeeds[2] = groundSpeedsColor;
+                        }
+                    }
+                    if (strcmp(speedsStr4, "0") != 0) {
+                        CG_Text_Paint((jumpsXPos * cgs.widthRatioCoef), cg_speedometerJumpsY.value,
+                                      cg_speedometerSize.value, colorGroundSpeeds, speedsStr4, 0.0f, 0,
+                                      ITEM_ALIGN_RIGHT | ITEM_TEXTSTYLE_OUTLINED, FONT_NONE); //print the jump
+                        jumpsXPos += 52; //shift x
+                    }
+                }
+            } else if (cg_speedometerJumps.value &&
+                       jumpsCounter == cg_speedometerJumps.integer) { //we out of the first n jumps
+                firstSpeed = cg.lastGroundSpeeds[0];
+                for (i = 0; i <= cg_speedometerJumps.integer; i++) { //shuffle jumps array down
+                    cg.lastGroundSpeeds[i] = cg.lastGroundSpeeds[i + 1];
+                }
+                jumpsCounter--;  //reduce jump counter
+            }
+        }
+
+        groundSpeedColor = 1 / ((cg.lastGroundSpeed / 250) * (cg.lastGroundSpeed / 250));
+        if (cg.lastGroundSpeed > 250 && !(cg_speedometer.integer & SPEEDOMETER_COLORS)) {
+            colorGroundSpeed[0] = 1;
+            colorGroundSpeed[1] = groundSpeedColor;
+            colorGroundSpeed[2] = groundSpeedColor;
+        }
+
+        if ((cg.lastGroundTime > cg.time - 1500) && (cg_speedometer.integer & SPEEDOMETER_GROUNDSPEED)) {
+            if (cg.lastGroundSpeed) {
+                Com_sprintf(speedStr4, sizeof(speedStr4), "%.0f", cg.lastGroundSpeed);
+                CG_Text_Paint(speedometerXPos * cgs.widthRatioCoef, cg_speedometerY.value, cg_speedometerSize.value, colorGroundSpeed, speedStr4, 0.0f, 0, ITEM_ALIGN_LEFT|ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
+            }
+        }
+        speedometerXPos += 52;
+    }
+
+    //Speedsounds
+    for (i = 0; i<MAX_CLIENT_SPEEDPOINTS; i++) { //Add a speedpoint to the first available slot
+        if (!cg.clientSpeedpoints[i].isSet)
+            break;
+        if ((int)(currentSpeed + 0.5f) >= cg.clientSpeedpoints[i].speed) {
+            if (!cg.clientSpeedpoints[i].reached) {
+                trap_S_StartLocalSound(cgs.media.hitSound2, CHAN_LOCAL_SOUND);
+                cg.clientSpeedpoints[i].reached = qtrue;
+            }
+        }
+        else {
+            cg.clientSpeedpoints[i].reached = qfalse;
+        }
+    }
+}
+

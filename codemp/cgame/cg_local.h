@@ -801,6 +801,20 @@ typedef struct chatBoxItem_s
 	int		lines;
 } chatBoxItem_t;
 
+#define	MAX_CLIENT_SPEEDPOINTS		32
+typedef struct clientSpeedpoint_s
+{
+	int		speed;
+	qboolean isSet;
+	qboolean reached;
+} clientSpeedpoint_t;
+
+#define	MAX_CLIENT_CHECKPOINTS		32
+typedef struct clientCheckpoint_s {
+	int		x1, y1, z1, x2, y2, z2;
+	qboolean isSet;
+} clientCheckpoint_t;
+
 typedef struct {
 	int			clientFrame;		// incremented each frame
 
@@ -1136,7 +1150,31 @@ Ghoul2 Insert End
 	int					rainTime, rainNumber;
 
     //Strafehelper
-    float				currentSpeed;
+	clientCheckpoint_t	clientCheckpoints[MAX_CLIENT_CHECKPOINTS];//japro checkpoints
+	clientSpeedpoint_t	clientSpeedpoints[MAX_CLIENT_SPEEDPOINTS];//japro speedpoints
+	int					lastCheckPointPrintTime;
+	int					timerStartTime;
+	int					lastGroundTime;//japro
+	qboolean			firstTimeInAir;
+	float				lastGroundSpeed;
+	float               lastGroundSpeeds[512];
+	float				lastZSpeed;
+	int					lastJumpHeightTime;//japro
+	float				lastJumpHeight;
+	int					lastStartTime;//japro
+	float				lastYawSpeed;
+	qboolean			recording;
+	unsigned int		displacement;
+	unsigned int		displacementSamples;
+	int					maxSpeed;
+	int					lastRaceTime;
+	float				currentSpeed;
+	int					startSpeed;
+	float				previousSpeed;
+	float				lastJumpDistance;
+	int					lastJumpDistanceTime;
+	qboolean			wasOnGround;
+	vec3_t				lastGroundPosition;
     vec4_t				strafeHelperActiveColor;
     vec4_t				crosshairColor;
     float				predictedTimeFrac;	// frameInterpolation * (next->commandTime - prev->commandTime)
