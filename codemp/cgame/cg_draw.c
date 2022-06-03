@@ -9056,25 +9056,19 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
     }
 }
 
-qboolean CG_InRollAnim( centity_t *cent );
-ID_INLINE int PM_GetMovePhysics(void)
-{
-	if (cg.japro.detected) {
-		if (!pm)
-			return MV_JKA;
-
-		if (pm->ps->m_iVehicleNum)
-			return MV_SWOOP;
-
-		if (pm->ps->stats[STAT_MOVEMENTSTYLE] >= MV_COOP_JKA)
-			return (pm->ps->stats[STAT_MOVEMENTSTYLE] - (MV_COOP_JKA - 1));
-
-		return pm->ps->stats[STAT_MOVEMENTSTYLE];
-	}
-	else if (cgs.gametype == GT_SIEGE) {
-		return MV_SIEGE;
-	}
-	return MV_JKA;
+int PM_GetMovePhysics(void){
+#if _GAME
+        return 1;
+#else
+        if (!cg.japro.detected)
+            return 1;
+        if (pm && pm->ps)
+            return pm->ps->stats[13];
+        else if (cg.snap)
+            return cg.snap->ps.stats[13];
+        else
+            return 1;
+#endif
 }
 
 static void CG_StrafeHelper(centity_t *cent)
