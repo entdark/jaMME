@@ -9057,9 +9057,7 @@ static void DrawStrafeLine(vec3_t velocity, float diff, qboolean active, int mov
 }
 
 int PM_GetMovePhysics(void){
-#if _GAME
-        return 1;
-#else
+	if (cg.japro.detected) {
         if (!cg.japro.detected)
             return 1;
         if (pm && pm->ps)
@@ -9068,7 +9066,7 @@ int PM_GetMovePhysics(void){
             return cg.snap->ps.stats[13];
         else
             return 1;
-#endif
+    }
 }
 
 static void CG_StrafeHelper(centity_t *cent)
