@@ -9144,6 +9144,7 @@ static void CG_StrafeHelper(centity_t *cent)
 {
     vec_t * velocity = (cg.playerPredicted ? cg.predictedPlayerState.velocity : cent->currentState.pos.trDelta);
     static vec3_t velocityAngle;
+	static float oldFrameTime = 0.0f;
     const float currentSpeed = cg.currentSpeed;
     float pmAccel = 10.0f, pmAirAccel = 1.0f, pmFriction = 6.0f, frametime, optimalDeltaAngle, baseSpeed = cg.predictedPlayerState.speed;
     const int moveStyle = PM_GetMovePhysics();
@@ -9241,10 +9242,11 @@ static void CG_StrafeHelper(centity_t *cent)
     }
 
     if (cg_strafeHelper_FPS.value < 1)
-        frametime = ((float)cg.frametime * 0.001f);
+        frametime = cg.frametime ? ((float)cg.frametime * 0.001f) : oldFrameTime;
     else if (cg_strafeHelper_FPS.value > 1000) // invalid
         frametime = 1;
     else frametime = 1 / cg_strafeHelper_FPS.value;
+	oldFrameTime = frametime;
 
     if (onGround)//On ground
         optimalDeltaAngle = acos((double) ((baseSpeed - (pmAccel*baseSpeed*frametime)) / (currentSpeed*(1-pmFriction*(frametime))))) * (180.0f/M_PI) - 45.0f;
