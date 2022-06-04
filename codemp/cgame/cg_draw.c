@@ -9704,7 +9704,7 @@ static void CG_RaceTimer(void)
             cg.startSpeed = 0;
             cg.displacement = 0;
             cg.maxSpeed = 0;
-            cg.displacementSamples = 0;
+            cg.displacementSamples = 1;
         }
 
         if (cg_raceTimer.integer > 1) {
@@ -9713,8 +9713,10 @@ static void CG_RaceTimer(void)
                     cg.startSpeed = (int)(cg.currentSpeed + 0.5f);
                 if (cg.currentSpeed > cg.maxSpeed)
                     cg.maxSpeed = (int)(cg.currentSpeed + 0.5f);
-                cg.displacement += cg.currentSpeed;
-                cg.displacementSamples++;
+				if (cg.time > cg.oldTime) {
+					cg.displacement += cg.currentSpeed;
+					cg.displacementSamples++;
+				}
             }
         }
 
