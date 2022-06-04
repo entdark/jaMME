@@ -1295,80 +1295,82 @@ void CG_DrawHUD(centity_t	*cent)
 		}
 	}
 
-    //JAPRO - Clientside - Movement Keys Start
-    if (cg_movementKeys.integer)
-        CG_MovementKeys(cent);
+	if (cg.playerPredicted) {
+		//JAPRO - Clientside - Movement Keys Start
+		if (cg_movementKeys.integer)
+			CG_MovementKeys(cent);
 
-    //JAPRO - Clientside - Speedometer Start
-    speedometerXPos = cg_speedometerX.integer;
-    jumpsXPos = cg_speedometerJumpsX.integer;
-    if (cgs.newHud) {
-        switch (cg_hudFiles.integer)
-        {
-            case 0: speedometerXPos -= 8; break;
-            case 1: speedometerXPos -= 56; break;
-            case 2: speedometerXPos -= 42; break;
-            default: break;
-        }
-    }
+		//JAPRO - Clientside - Speedometer Start
+		speedometerXPos = cg_speedometerX.integer;
+		jumpsXPos = cg_speedometerJumpsX.integer;
+		if (cgs.newHud) {
+			switch (cg_hudFiles.integer)
+			{
+				case 0: speedometerXPos -= 8; break;
+				case 1: speedometerXPos -= 56; break;
+				case 2: speedometerXPos -= 42; break;
+				default: break;
+			}
+		}
 
-    if (cg_speedometer.integer & SPEEDOMETER_ENABLE) {
-        CG_Speedometer();
-        if (cg_speedometer.integer & SPEEDOMETER_ACCELMETER || cg_strafeHelper.integer & SHELPER_ACCELMETER)
-            CG_DrawAccelMeter();
-        if (cg_speedometer.integer & SPEEDOMETER_JUMPHEIGHT)
-            CG_JumpHeight(cent);
-        if (cg_speedometer.integer & SPEEDOMETER_JUMPDISTANCE)
-            CG_JumpDistance();
-        if (cg_speedometer.integer & SPEEDOMETER_VERTICALSPEED)
-            CG_DrawVerticalSpeed();
-        if (cg_speedometer.integer & SPEEDOMETER_YAWSPEED)
-            CG_DrawYawSpeed();
-    }
+		if (cg_speedometer.integer & SPEEDOMETER_ENABLE) {
+			CG_Speedometer();
+			if (cg_speedometer.integer & SPEEDOMETER_ACCELMETER || cg_strafeHelper.integer & SHELPER_ACCELMETER)
+				CG_DrawAccelMeter();
+			if (cg_speedometer.integer & SPEEDOMETER_JUMPHEIGHT)
+				CG_JumpHeight(cent);
+			if (cg_speedometer.integer & SPEEDOMETER_JUMPDISTANCE)
+				CG_JumpDistance();
+			if (cg_speedometer.integer & SPEEDOMETER_VERTICALSPEED)
+				CG_DrawVerticalSpeed();
+			if (cg_speedometer.integer & SPEEDOMETER_YAWSPEED)
+				CG_DrawYawSpeed();
+		}
 
-    //Strafehelper Start
-    if (cg_strafeHelper.integer)
-        CG_StrafeHelper(cent);
-    if (cg.playerPredicted && (cg_strafeHelper.integer & SHELPER_CROSSHAIR)) {
-        vec4_t hcolor;
-        float lineWidth;
+		//Strafehelper Start
+		if (cg_strafeHelper.integer)
+			CG_StrafeHelper(cent);
+		if (cg_strafeHelper.integer & SHELPER_CROSSHAIR) {
+			vec4_t hcolor;
+			float lineWidth;
 
-        if (!cg.crosshairColor[0] && !cg.crosshairColor[1] && !cg.crosshairColor[2]) { //default to white
-            hcolor[0] = 1.0f;
-            hcolor[1] = 1.0f;
-            hcolor[2] = 1.0f;
-            hcolor[3] = 1.0f;
-        } else {
-            hcolor[0] = cg.crosshairColor[0];
-            hcolor[1] = cg.crosshairColor[1];
-            hcolor[2] = cg.crosshairColor[2];
-            hcolor[3] = cg.crosshairColor[3];
-        }
+			if (!cg.crosshairColor[0] && !cg.crosshairColor[1] && !cg.crosshairColor[2]) { //default to white
+				hcolor[0] = 1.0f;
+				hcolor[1] = 1.0f;
+				hcolor[2] = 1.0f;
+				hcolor[3] = 1.0f;
+			} else {
+				hcolor[0] = cg.crosshairColor[0];
+				hcolor[1] = cg.crosshairColor[1];
+				hcolor[2] = cg.crosshairColor[2];
+				hcolor[3] = cg.crosshairColor[3];
+			}
 
-        lineWidth = cg_strafeHelperLineWidth.value;
-        if (lineWidth < 0.25f)
-            lineWidth = 0.25f;
-        else if (lineWidth > 5)
-            lineWidth = 5;
+			lineWidth = cg_strafeHelperLineWidth.value;
+			if (lineWidth < 0.25f)
+				lineWidth = 0.25f;
+			else if (lineWidth > 5)
+				lineWidth = 5;
 
-        Dzikie_CG_DrawLine(SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 5, SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 5,
-                            lineWidth * cgs.widthRatioCoef, hcolor, hcolor[3], 0); //640x480, 320x240
-    }
+			Dzikie_CG_DrawLine(SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) - 5, SCREEN_WIDTH / 2, (SCREEN_HEIGHT / 2) + 5,
+								lineWidth * cgs.widthRatioCoef, hcolor, hcolor[3], 0); //640x480, 320x240
+		}
 
-    if (cg_raceTimer.integer && cg.japro.detected)
-        CG_RaceTimer();
+		if (cg_raceTimer.integer && cg.japro.detected)
+			CG_RaceTimer();
 
-    if (cg_speedometer.integer & SPEEDOMETER_SPEEDGRAPH) {
-        rectDef_t speedgraphRect;
-        vec4_t foreColor = {0.0f, 0.8f, 1.0f, 0.8f};
-        vec4_t backColor = {0.0f, 0.8f, 1.0f, 0.0f};
-        speedgraphRect.x = (320.0f - (150.0f / 2.0f));
-        speedgraphRect.y = SCREEN_HEIGHT - 22 - 2;
-        speedgraphRect.w = 150.0f;
-        speedgraphRect.h = 22.0f;
-        CG_AddSpeed();
-        CG_DrawSpeedGraph(&speedgraphRect, foreColor, backColor);
-    }
+		if (cg_speedometer.integer & SPEEDOMETER_SPEEDGRAPH) {
+			rectDef_t speedgraphRect;
+			vec4_t foreColor = {0.0f, 0.8f, 1.0f, 0.8f};
+			vec4_t backColor = {0.0f, 0.8f, 1.0f, 0.0f};
+			speedgraphRect.x = (320.0f - (150.0f / 2.0f));
+			speedgraphRect.y = SCREEN_HEIGHT - 22 - 2;
+			speedgraphRect.w = 150.0f;
+			speedgraphRect.h = 22.0f;
+			CG_AddSpeed();
+			CG_DrawSpeedGraph(&speedgraphRect, foreColor, backColor);
+		}
+	}
 
 	if (cg_hudFiles.integer)
 	{
