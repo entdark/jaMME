@@ -217,7 +217,7 @@ XCVAR_DEF( cg_japlusFix,						"1",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_UAGColours,						"1",					CG_SetExtendedColours,	CVAR_ARCHIVE )
 //from ja++ for all
 XCVAR_DEF( cg_movementKeys,					    "0",					CG_SetMovementKeysPos,	CVAR_ARCHIVE )
-XCVAR_DEF( cg_movementKeysPos,				    "320 240",				CG_SetMovementKeysPos,	CVAR_ARCHIVE )
+XCVAR_DEF( cg_movementKeysPos,				    "0",					CG_SetMovementKeysPos,	CVAR_ARCHIVE )
 XCVAR_DEF( cg_movementKeysSize,			        "1.0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_newFX,							"0",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_saberBladeCoreMulti,				"1",					NULL,					CVAR_ARCHIVE )
