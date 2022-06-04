@@ -1866,7 +1866,7 @@ int CG_CalcViewValues( void ) {
 			{ //the action cam
 				if (!CG_ThirdPersonActionCam())
 				{ //couldn't do it for whatever reason, resort back to third person then
-					if (cg_thirdPerson.integer >= 2)
+					if (cg_thirdPerson.integer >= 2 || (cg_strafeHelper.integer & 0x200f))
 						CG_OffsetThirdPersonViewQ3();
 					else
 						CG_OffsetThirdPersonView();
@@ -1874,7 +1874,7 @@ int CG_CalcViewValues( void ) {
 			}
 			else
 			{
-				if (cg_thirdPerson.integer >= 2)
+				if (cg_thirdPerson.integer >= 2 || (cg_strafeHelper.integer & 0x200f))
 					CG_OffsetThirdPersonViewQ3();
 				else
 					CG_OffsetThirdPersonView();
