@@ -260,7 +260,11 @@ cut
     cut it, cut the currently playing demo with the set range		(bound to /)
     cut start/end, current time will be set as start/end of cutting	(bound to [ and ])
 
+speedometer
+    speedometer, use no arguments to show options, and uses values to toggle options
 
+strafehelper
+    strafehelper, use no arguments to show options, and uses values to toggle options
 
 JAMME CLIENT (ENGINE)
 
