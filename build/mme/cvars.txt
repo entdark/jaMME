@@ -95,7 +95,7 @@ cg_trueMelee            [0, 1] Use a realistic view for melee in first person
 cg_trueEyePosition      [-4..4] Offset your eye position by back-to-forward axis to avoid camera clipping in trueview
 cg_trueFOV              [40..180] Set field of view for trueview
 cg_movementKeys         [0, 1, 2, 3, 4] Show movement keys on screen
-			            0 = disabled, 1 = basic images, 2 = alternate images over center of screen, 3 = alternate images, 4 = text
+                        0 = disabled, 1 = basic images, 2 = alternate images over center of screen, 3 = alternate images, 4 = text
 cg_movementKeysPos      [?.? ?.?] Set desired horizontal and vertical position of the movement keys (cg_drawMovementKeys 1)
 cg_movementKeysSize     [0.0..?.?] Set scale for the movement keys images
 
