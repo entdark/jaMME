@@ -94,29 +94,29 @@ cg_trueSaber            [0, 1] Use a realistic view for saber in first person
 cg_trueMelee            [0, 1] Use a realistic view for melee in first person
 cg_trueEyePosition      [-4..4] Offset your eye position by back-to-forward axis to avoid camera clipping in trueview
 cg_trueFOV              [40..180] Set field of view for trueview
-cg_movementKeys     	[0, 1, 2, 3, 4] Show movement keys on screen
+cg_movementKeys         [0, 1, 2, 3, 4] Show movement keys on screen
 			            0 = disabled, 1 = basic images, 2 = alternate images over center of screen, 3 = alternate images, 4 = text
-cg_movementKeysPos  	[?.? ?.?] Set desired horizontal and vertical position of the movement keys (cg_drawMovementKeys 1)
-cg_movementKeysSize 	[0.0..?.?] Set scale for the movement keys images
+cg_movementKeysPos      [?.? ?.?] Set desired horizontal and vertical position of the movement keys (cg_drawMovementKeys 1)
+cg_movementKeysSize     [0.0..?.?] Set scale for the movement keys images
 
 STRAFEHELPER / JAPRO
-cg_crosshairColor		[? ? ? ?] Set the crosshair rgba (0 - 255)
-cg_strafeHelper			[bit-field] Configure with /strafehelper command
-cg_strafeHelperActiveColor	[? ? ? ?] Set the strafehelper active line rgba (0 - 255)
-cg_strafeHelperInactiveAlpha	[0..255] Set the opacity of the inactive lines
-cg_strafeHelperCutoff		[0..240] Set the height of the strafehelper lines
-cg_raceTimer			[0, 1, 2, 3] Enable the japro race timer
+cg_crosshairColor               [? ? ? ?] Set the crosshair rgba (0 - 255)
+cg_strafeHelper	                [bit-field] Configure with /strafehelper command
+cg_strafeHelperActiveColor      [? ? ? ?] Set the strafehelper active line rgba (0 - 255)
+cg_strafeHelperInactiveAlpha    [0..255] Set the opacity of the inactive lines
+cg_strafeHelperCutoff           [0..240] Set the height of the strafehelper lines
+cg_raceTimer                    [0, 1, 2, 3] Enable the japro race timer
                                 0 = disabled, 1 = race timer, 2 = race timer with average and max speed, 3 = race timer with ms, average speed, and max speed
-cg_raceTimerSize		[0.0..?.?] Scale the japro race timer
-cg_raceTimerX			[0.0..?.?] Position the japro race timer
-cg_raceTimerY			[0.0..?.?] Position the japro race timer
-cg_speedometer			[bit-field] Configure with /speedometer command
-cg_speedometerX			[0.0..?.?] Position the speedometer
-cg_speedometerY			[0.0..?.?] Position the speedometer
-cg_speedometerSize		[0.0..?.?] Size of the speedometer text
-cg_speedometerJumps		[0..?] Number of jumps to display for /speedometer 10 (jumps array)
-cg_speedometerJumpsX		[0.0..?.?] Position the speedometer jumps array
-cg_speedometerJumpsY		[0.0..?.?] Position the speedometer jumps array
+cg_raceTimerSize                [0.0..?.?] Scale the japro race timer
+cg_raceTimerX                   [0.0..?.?] Position the japro race timer
+cg_raceTimerY                   [0.0..?.?] Position the japro race timer
+cg_speedometer                  [bit-field] Configure with /speedometer command
+cg_speedometerX                 [0.0..?.?] Position the speedometer
+cg_speedometerY                 [0.0..?.?] Position the speedometer
+cg_speedometerSize              [0.0..?.?] Size of the speedometer text
+cg_speedometerJumps             [0..?] Number of jumps to display for /speedometer 10 (jumps array)
+cg_speedometerJumpsX            [0.0..?.?] Position the speedometer jumps array
+cg_speedometerJumpsY            [0.0..?.?] Position the speedometer jumps array
 
 JA+ & JA++; FOR DEMOS THAT HAVE BEEN RECORDED ON JA+ SERVERS
 cg_grappleFix           [0..9] Fix for demos that have been recorded with ja+ or other client:
