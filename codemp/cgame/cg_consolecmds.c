@@ -29,7 +29,7 @@ typedef struct bitInfo_S {
     const char	*string;
 } bitInfo_T;
 
-static bitInfo_T strafeTweaks[] = {
+static bitInfo_T strafeTweaks[SHELPER_MAX] = {
         {"Original style"},//0
         {"Updated style"},//1
         {"Cgaz style"},//2
@@ -51,13 +51,11 @@ static bitInfo_T strafeTweaks[] = {
         {"Small Lines"},//18
         {"Invert"}//19
 };
-static const int MAX_STRAFEHELPER_TWEAKS = ARRAY_LEN( strafeTweaks );
 
-extern void CG_ClearThirdPersonDamp(void);
 void CG_StrafeHelper_f( void ) {
     if ( trap_Argc() == 1 ) {
         int i = 0;
-        for ( i = 0; i < MAX_STRAFEHELPER_TWEAKS; i++ ) {
+        for ( i = 0; i < SHELPER_MAX; i++ ) {
             if ( (cg_strafeHelper.integer & (1 << i)) ) {
                 Com_Printf( "%2d [X] %s\n", i, strafeTweaks[i].string );
             }
@@ -70,19 +68,19 @@ void CG_StrafeHelper_f( void ) {
     else {
         char arg[8] = { 0 };
         int index;
-        const uint32_t mask = (1 << MAX_STRAFEHELPER_TWEAKS) - 1;
+        const uint32_t mask = SHELPER_MASK;
 
         trap_Argv( 1, arg, sizeof(arg) );
         index = atoi( arg );
 
-        if ( index < 0 || index >= MAX_STRAFEHELPER_TWEAKS ) {
-            Com_Printf( "strafeHelper: Invalid range: %i [0, %i]\n", index, MAX_STRAFEHELPER_TWEAKS - 1 );
+        if ( index < 0 || index >= SHELPER_MAX ) {
+            Com_Printf( "strafeHelper: Invalid range: %i [0, %i]\n", index, SHELPER_MAX - 1 );
             return;
         }
 
         if ((index == 0 || index == 1 || index == 2 || index == 3 || index == 13)) { //Radio button these options
             //Toggle index, and make sure everything else in this group (0,1,2,3,13) is turned off
-            int groupMask = (1 << 0) + (1 << 1) + (1 << 2) + (1 << 3) + (1 << 13);
+            int groupMask = SHELPER_STYLE_MASK;
             int value = cg_strafeHelper.integer;
 
             groupMask &= ~(1 << index); //Remove index from groupmask
@@ -99,11 +97,9 @@ void CG_StrafeHelper_f( void ) {
         Com_Printf( "%s %s^7\n", strafeTweaks[index].string, ((cg_strafeHelper.integer & (1 << index))
                                                               ? "^2Enabled" : "^1Disabled") );
     }
-
-    CG_ClearThirdPersonDamp();
 }
 
-static bitInfo_T speedometerSettings[] = { // MAX_WEAPON_TWEAKS tweaks (24)
+static bitInfo_T speedometerSettings[SPEEDOMETER_MAX] = { // MAX_WEAPON_TWEAKS tweaks (24)
         { "Enable speedometer" },//0
         { "Pre-speed display" },//1
         { "Jump height display" },//2
@@ -119,14 +115,13 @@ static bitInfo_T speedometerSettings[] = { // MAX_WEAPON_TWEAKS tweaks (24)
         { "Array Colors 1" },//12
         { "Array Colors 2" }//13
 };
-static const int MAX_SPEEDOMETER_SETTINGS = ARRAY_LEN(speedometerSettings);
 
 void CG_SpeedometerSettings_f(void)
 {
     if (trap_Argc() == 1) {
         int i = 0, display = 0;
 
-        for (i = 0; i < MAX_SPEEDOMETER_SETTINGS; i++) {
+        for (i = 0; i < SPEEDOMETER_MAX; i++) {
             if (cg_speedometer.integer & (1 << i)) {
                 Com_Printf("%2d [X] %s\n", display, speedometerSettings[i].string);
             }
@@ -140,19 +135,19 @@ void CG_SpeedometerSettings_f(void)
     else {
         char arg[8] = { 0 };
         int index;
-        const uint32_t mask = (1 << MAX_SPEEDOMETER_SETTINGS) - 1;
+        const uint32_t mask = SPEEDOMETER_MASK;
 
         trap_Argv(1, arg, sizeof(arg));
         index = atoi(arg);
 
-        if (index < 0 || index >= MAX_SPEEDOMETER_SETTINGS) {
-            Com_Printf("style: Invalid range: %i [0, %i]\n", index, MAX_SPEEDOMETER_SETTINGS - 1);
+        if (index < 0 || index >= SPEEDOMETER_MAX) {
+            Com_Printf("style: Invalid range: %i [0, %i]\n", index, SPEEDOMETER_MAX - 1);
             return;
         }
 
         if (index == 8 || index == 9) { //Radio button these options
             //Toggle index, and make sure everything else in this group (8,9) is turned off
-            int groupMask = (1 << 8) + (1 << 9);
+            int groupMask = SPEEDOMETER_UNITS_MASK;
             int value = cg_speedometer.integer;
 
             groupMask &= ~(1 << index); //Remove index from groupmask
@@ -162,7 +157,7 @@ void CG_SpeedometerSettings_f(void)
             trap_Cvar_Set("cg_speedometer", va("%i", value));
         } else if (index == 12 || index == 13){ //Radio button these options
             //Toggle index, and make sure everything else in this group (8,9) is turned off
-            int groupMask = (1 << 12) + (1 << 13);
+            int groupMask = SPEEDOMETER_JUMPSCOLORS_MASK;
             int value = cg_speedometer.integer;
 
             groupMask &= ~(1 << index); //Remove index from groupmask

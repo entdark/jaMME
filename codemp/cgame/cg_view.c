@@ -227,23 +227,6 @@ static void CG_StepOffset( void ) {
 
 static vec3_t	cameramins = { -CAMERA_SIZE, -CAMERA_SIZE, -CAMERA_SIZE };
 static vec3_t	cameramaxs = { CAMERA_SIZE, CAMERA_SIZE, CAMERA_SIZE };
-
-typedef struct dampPos_s {
-    vec3_t	ideal;		// ideal location
-    vec3_t	prevIdeal;
-    vec3_t	damp;		// position = ideal + damp
-} dampPos_t;
-
-static struct {
-    dampPos_t	target;
-    dampPos_t	loc;
-    vec3_t		fwd;
-    vec3_t		focus;
-    float		lastYaw;
-    int			lastTime;
-    float		lastTimeFrac;
-} cam;
-
 vec3_t	camerafwd, cameraup;
 
 vec3_t	cameraFocusAngles,			cameraFocusLoc;
@@ -435,28 +418,6 @@ static void CG_ResetThirdPersonViewDamp(void)
 	cameraLastFrame = cg.time;
 	cameraLastYaw = cameraFocusAngles[YAW];
 	cameraStiffFactor = 0.0f;
-}
-
-void CG_ClearThirdPersonDamp(void)
-{//workaround for camera jerk when clearing camera damp vectors, should probably be refactored into, if not fixed in the actual ThirdPersonDamp code
-    vec3_t oldLoc, oldTarget;
-    if (!cg.snap)
-        return;
-
-    if (cl_paused.integer)
-        return;
-
-    VectorCopy(cam.loc.ideal, oldLoc);
-    VectorCopy(cam.target.ideal, oldTarget);
-
-    CG_ResetThirdPersonViewDamp();
-
-    VectorCopy(oldLoc, cam.loc.ideal);
-    VectorCopy(oldTarget, cam.target.ideal);
-    VectorCopy(oldLoc, cam.loc.prevIdeal);
-    VectorCopy(oldTarget, cam.target.prevIdeal);
-
-    cam.lastTime = cg.predictedPlayerState.commandTime;
 }
 
 // This is called every frame.
@@ -1857,6 +1818,7 @@ int CG_CalcViewValues( void ) {
 			CG_OffsetFighterView();
 		}
 		else if ( cg.renderingThirdPerson ) {
+			qboolean strafeHelper = cg.playerPredicted && (cg_strafeHelper.integer & SHELPER_STYLE_MASK);
 			if (CG_MultiSpecActive()) {
 				CG_OffsetThirdPersonViewQ3();
 			} else
@@ -1866,7 +1828,7 @@ int CG_CalcViewValues( void ) {
 			{ //the action cam
 				if (!CG_ThirdPersonActionCam())
 				{ //couldn't do it for whatever reason, resort back to third person then
-					if (cg_thirdPerson.integer >= 2 || (cg_strafeHelper.integer & 0x200f))
+					if (cg_thirdPerson.integer >= 2 || strafeHelper)
 						CG_OffsetThirdPersonViewQ3();
 					else
 						CG_OffsetThirdPersonView();
@@ -1874,7 +1836,7 @@ int CG_CalcViewValues( void ) {
 			}
 			else
 			{
-				if (cg_thirdPerson.integer >= 2 || (cg_strafeHelper.integer & 0x200f))
+				if (cg_thirdPerson.integer >= 2 || strafeHelper)
 					CG_OffsetThirdPersonViewQ3();
 				else
 					CG_OffsetThirdPersonView();

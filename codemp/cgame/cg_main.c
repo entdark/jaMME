@@ -668,7 +668,6 @@ void CG_SetExtendedColours(void) {
 		cg.uag.newColors = qfalse;
 	trap_MME_ExtendedColors(CG_SwitchColorTable());
 }
-extern void CG_ClearThirdPersonDamp(void);
 
 //Strafehelper colors
 static void CG_CrosshairColorChange(void) {

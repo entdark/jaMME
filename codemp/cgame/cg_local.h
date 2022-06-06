@@ -1029,7 +1029,7 @@ typedef struct {
 	int			bobcyclePrev;
 	int			bobCycle[MAX_CLIENTS];
 	float		xyspeed;
-	int     nextOrbitTime;
+	int			nextOrbitTime;
 
 	//qboolean cameraMode;		// if rendering from a loaded camera
 	int			loadLCARSStage;
@@ -1149,7 +1149,7 @@ Ghoul2 Insert End
 	
 	int					rainTime, rainNumber;
 
-    //Strafehelper
+	//Strafehelper
 	clientCheckpoint_t	clientCheckpoints[MAX_CLIENT_CHECKPOINTS];//japro checkpoints
 	clientSpeedpoint_t	clientSpeedpoints[MAX_CLIENT_SPEEDPOINTS];//japro speedpoints
 	int					lastCheckPointPrintTime;
@@ -1157,7 +1157,7 @@ Ghoul2 Insert End
 	int					lastGroundTime;//japro
 	qboolean			firstTimeInAir;
 	float				lastGroundSpeed;
-	float               lastGroundSpeeds[512];
+	float				lastGroundSpeeds[512];
 	float				lastZSpeed;
 	int					lastJumpHeightTime;//japro
 	float				lastJumpHeight;
@@ -1175,9 +1175,9 @@ Ghoul2 Insert End
 	int					lastJumpDistanceTime;
 	qboolean			wasOnGround;
 	vec3_t				lastGroundPosition;
-    vec4_t				strafeHelperActiveColor;
-    vec4_t				crosshairColor;
-    float				predictedTimeFrac;	// frameInterpolation * (next->commandTime - prev->commandTime)
+	vec4_t				strafeHelperActiveColor;
+	vec4_t				crosshairColor;
+	float				predictedTimeFrac;	// frameInterpolation * (next->commandTime - prev->commandTime)
 } cg_t;
 
 #define MAX_TICS	14
@@ -1273,31 +1273,31 @@ typedef struct {
 	qhandle_t	wireframeAutomapFrame_top;
 	qhandle_t	wireframeAutomapFrame_bottom;
 
-    //JAPRO - Clientside - Movement keys - Start
-    qhandle_t	keyCrouchOffShader;
-    qhandle_t	keyCrouchOnShader;
-    qhandle_t	keyJumpOffShader;
-    qhandle_t	keyJumpOnShader;
-    qhandle_t	keyBackOffShader;
-    qhandle_t	keyBackOnShader;
-    qhandle_t	keyForwardOffShader;
-    qhandle_t	keyForwardOnShader;
-    qhandle_t	keyLeftOffShader;
-    qhandle_t	keyLeftOnShader;
-    qhandle_t	keyRightOffShader;
-    qhandle_t	keyRightOnShader;
-    qhandle_t   keyAttackOn;
-    qhandle_t   keyAttackOff;
-    qhandle_t   keyAltOn;
-    qhandle_t   keyAltOff;
-    qhandle_t	keyCrouchOnShader2;
-    qhandle_t	keyJumpOnShader2;
-    qhandle_t	keyBackOnShader2;
-    qhandle_t	keyForwardOnShader2;
-    qhandle_t	keyLeftOnShader2;
-    qhandle_t	keyRightOnShader2;
-    qhandle_t   keyAttackOn2;
-    qhandle_t   keyAltOn2;
+	//JAPRO - Clientside - Movement keys - Start
+	qhandle_t	keyCrouchOffShader;
+	qhandle_t	keyCrouchOnShader;
+	qhandle_t	keyJumpOffShader;
+	qhandle_t	keyJumpOnShader;
+	qhandle_t	keyBackOffShader;
+	qhandle_t	keyBackOnShader;
+	qhandle_t	keyForwardOffShader;
+	qhandle_t	keyForwardOnShader;
+	qhandle_t	keyLeftOffShader;
+	qhandle_t	keyLeftOnShader;
+	qhandle_t	keyRightOffShader;
+	qhandle_t	keyRightOnShader;
+	qhandle_t	keyAttackOn;
+	qhandle_t	keyAttackOff;
+	qhandle_t	keyAltOn;
+	qhandle_t	keyAltOff;
+	qhandle_t	keyCrouchOnShader2;
+	qhandle_t	keyJumpOnShader2;
+	qhandle_t	keyBackOnShader2;
+	qhandle_t	keyForwardOnShader2;
+	qhandle_t	keyLeftOnShader2;
+	qhandle_t	keyRightOnShader2;
+	qhandle_t	keyAttackOn2;
+	qhandle_t	keyAltOn2;
 
 //Chunks
 	qhandle_t	chunkModels[NUM_CHUNK_TYPES][4];
@@ -2759,29 +2759,72 @@ void CG_RailTrail( clientInfo_t *ci, vec3_t start, vec3_t end );
 #define movMaskItems		0x008
 #define movMaskFlags		0x010
 
-#define	SDISABLE_JUMP			0x000001
-#define	SDISABLE_ROLL			0x000002
-#define	SDISABLE_SABER			0x000004
-#define	SDISABLE_FORCELOOPING	0x000008	//absorb, rage, speed, protect, seeing
-#define	SDISABLE_FORCE			0x000010
-#define	SDISABLE_WEAPONS		0x000020	//no ammo, switch, charge
-#define	SDISABLE_REWARD			0x000040
-#define	SDISABLE_ANNOUNCER		0x000080
-#define	SDISABLE_STEP			0x000100
-#define	SDISABLE_CHAT			0x000200
-#define	SDISABLE_VOICE			0x000400
-#define	SDISABLE_AMBIENT		0x000800
-#define	SDISABLE_TAUNT			0x001000
-#define	SDISABLE_WATER			0x002000	//come in/out water
-#define	SDISABLE_ITEM			0x004000
-#define	SDISABLE_ZOOM			0x008000	//disruptor, binocular
-#define	SDISABLE_TELESPAWN		0x010000	//teleport, spawn
-#define	SDISABLE_FALL			0x020000
-#define	SDISABLE_ENTITIES		0x040000
-#define	SDISABLE_PAIN			0x080000	//pain, death
-#define	SDISABLE_LOOPING		0x100000	//all looping sounds; prolly :s
-#define	SDISABLE_JETPACK		0x200000
+#define SDISABLE_JUMP			0x000001
+#define SDISABLE_ROLL			0x000002
+#define SDISABLE_SABER			0x000004
+#define SDISABLE_FORCELOOPING	0x000008	//absorb, rage, speed, protect, seeing
+#define SDISABLE_FORCE			0x000010
+#define SDISABLE_WEAPONS		0x000020	//no ammo, switch, charge
+#define SDISABLE_REWARD			0x000040
+#define SDISABLE_ANNOUNCER		0x000080
+#define SDISABLE_STEP			0x000100
+#define SDISABLE_CHAT			0x000200
+#define SDISABLE_VOICE			0x000400
+#define SDISABLE_AMBIENT		0x000800
+#define SDISABLE_TAUNT			0x001000
+#define SDISABLE_WATER			0x002000	//come in/out water
+#define SDISABLE_ITEM			0x004000
+#define SDISABLE_ZOOM			0x008000	//disruptor, binocular
+#define SDISABLE_TELESPAWN		0x010000	//teleport, spawn
+#define SDISABLE_FALL			0x020000
+#define SDISABLE_ENTITIES		0x040000
+#define SDISABLE_PAIN			0x080000	//pain, death
+#define SDISABLE_LOOPING		0x100000	//all looping sounds; prolly :s
+#define SDISABLE_JETPACK		0x200000
 
 #define BASE_ENHANCED_ALL_REWARDS		0x01
 #define BASE_ENHANCED_UNLAGGED			0x02
 #define BASE_ENHANCED_TEAMOVERLAY_FORCE	0x04
+
+#define SHELPER_SUPEROLDSTYLE	(1<<0)
+#define SHELPER_OLDSTYLE		(1<<1)
+#define SHELPER_NEWBARS			(1<<2)
+#define SHELPER_OLDBARS			(1<<3)
+#define SHELPER_SOUND			(1<<4)
+#define SHELPER_W				(1<<5)
+#define SHELPER_WA				(1<<6)
+#define SHELPER_WD				(1<<7)
+#define SHELPER_A				(1<<8)
+#define SHELPER_D				(1<<9)
+#define SHELPER_REAR			(1<<10)
+#define SHELPER_CENTER			(1<<11)
+#define SHELPER_ACCELMETER		(1<<12)
+#define SHELPER_WEZE			(1<<13)
+#define SHELPER_CROSSHAIR		(1<<14)
+#define SHELPER_S				(1<<15)
+#define SHELPER_SA				(1<<16)
+#define SHELPER_SD				(1<<17)
+#define SHELPER_TINY			(1<<18)
+#define SHELPER_INVERT			(1<<19)
+#define SHELPER_STYLE_MASK		(SHELPER_SUPEROLDSTYLE|SHELPER_OLDSTYLE|SHELPER_NEWBARS|SHELPER_OLDBARS|SHELPER_WEZE)
+#define SHELPER_MAX				20
+#define SHELPER_MASK			((1<<SHELPER_MAX)-1)
+
+#define SPEEDOMETER_ENABLE				(1<<0)
+#define SPEEDOMETER_GROUNDSPEED			(1<<1)
+#define SPEEDOMETER_JUMPHEIGHT			(1<<2)
+#define SPEEDOMETER_JUMPDISTANCE		(1<<3)
+#define SPEEDOMETER_VERTICALSPEED		(1<<4)
+#define SPEEDOMETER_YAWSPEED			(1<<5)
+#define SPEEDOMETER_ACCELMETER			(1<<6)
+#define SPEEDOMETER_SPEEDGRAPH			(1<<7)
+#define SPEEDOMETER_KPH					(1<<8)
+#define SPEEDOMETER_MPH					(1<<9)
+#define SPEEDOMETER_JUMPS				(1<<10)
+#define SPEEDOMETER_COLORS				(1<<11)
+#define SPEEDOMETER_JUMPSCOLORS1		(1<<12)
+#define SPEEDOMETER_JUMPSCOLORS2		(1<<13)
+#define SPEEDOMETER_UNITS_MASK			(SPEEDOMETER_KPH|SPEEDOMETER_MPH)
+#define SPEEDOMETER_JUMPSCOLORS_MASK	(SPEEDOMETER_JUMPSCOLORS1|SPEEDOMETER_JUMPSCOLORS2)
+#define SPEEDOMETER_MAX					14
+#define SPEEDOMETER_MASK				((1<<SPEEDOMETER_MAX)-1)

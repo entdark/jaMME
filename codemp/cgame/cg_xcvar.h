@@ -239,7 +239,7 @@ XCVAR_DEF( cg_drawPlayerNamesScale,				"0.5",					NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( nm_flags,							"u",					NULL,					CVAR_USERINFO )
 //Strafehelper
 XCVAR_DEF( cg_crosshairColor,	                "0 0 0 255",	        CG_CrosshairColorChange, CVAR_ARCHIVE )
-XCVAR_DEF( cg_strafeHelper,						"3008",                 CG_ClearThirdPersonDamp, CVAR_ARCHIVE )
+XCVAR_DEF( cg_strafeHelper,						"3008",                 NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_strafeHelper_FPS,					"0",	                NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_strafeHelperOffset,				"75",	                NULL,					CVAR_ARCHIVE )
 XCVAR_DEF( cg_strafeHelperLineWidth,			"1",	                NULL,					CVAR_ARCHIVE )
