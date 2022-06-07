@@ -1327,9 +1327,9 @@ void CG_DrawHUD(centity_t	*cent)
 			rectDef_t speedgraphRect;
 			vec4_t foreColor = {0.0f, 0.8f, 1.0f, 0.8f};
 			vec4_t backColor = {0.0f, 0.8f, 1.0f, 0.0f};
-			speedgraphRect.x = (320.0f - (150.0f / 2.0f));
+			speedgraphRect.x = ((SCREEN_WIDTH*0.5f) - ((150.0f*cgs.widthRatioCoef)*0.5f));
 			speedgraphRect.y = SCREEN_HEIGHT - 22 - 2;
-			speedgraphRect.w = 150.0f;
+			speedgraphRect.w = 150.0f*cgs.widthRatioCoef;
 			speedgraphRect.h = 22.0f;
 			CG_AddSpeed();
 			CG_DrawSpeedGraph(&speedgraphRect, foreColor, backColor);
