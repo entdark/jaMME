@@ -9724,6 +9724,9 @@ void CG_AddSpeed(void)
 	float speed;
 	vec3_t vel;
 
+	if (cg.time <= cg.oldTime)
+		return;
+
 	VectorCopy(cg.snap->ps.velocity, vel);
 
 	/*if (cg_drawSpeed.integer & SPEEDOMETER_IGNORE_Z)
