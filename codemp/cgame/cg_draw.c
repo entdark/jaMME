@@ -23,6 +23,7 @@ static void CG_JumpDistance( void );
 static void CG_DrawVerticalSpeed(void);
 static void CG_DrawYawSpeed(void);
 static void CG_Speedometer(void);
+static void CG_DrawSpeedometer(void);
 static void CG_DrawAccelMeter(void);
 static void CG_JumpHeight(centity_t *cent);
 static void CG_RaceTimer(void);
@@ -1247,7 +1248,7 @@ void CG_DrawHUD(centity_t	*cent)
 	clientInfo_t *ci = &cgs.clientinfo[cent->currentState.number];
 	qboolean hasForce = cg.enhanced.detected && (cg.enhanced.flags & BASE_ENHANCED_TEAMOVERLAY_FORCE);
 
-	if ((cg_speedometer.integer & SPEEDOMETER_ENABLE) || cg_strafeHelper.integer || cg_raceTimer.integer > 1)
+	if ((cg_speedometer.integer & SPEEDOMETER_ENABLE) || cg_strafeHelper.integer || (cg_raceTimer.integer > 1 && cg.japro.detected))
 		CG_CalculateSpeed(cent);
 
 	if (!cg.playerPredicted) {
@@ -1265,31 +1266,7 @@ void CG_DrawHUD(centity_t	*cent)
 			CG_MovementKeys(cent);
 
 		//JAPRO - Clientside - Speedometer Start
-		speedometerXPos = cg_speedometerX.integer;
-		jumpsXPos = cg_speedometerJumpsX.integer;
-		if (cgs.newHud) {
-			switch (cg_hudFiles.integer)
-			{
-				case 0: speedometerXPos -= 8; break;
-				case 1: speedometerXPos -= 56; break;
-				case 2: speedometerXPos -= 42; break;
-				default: break;
-			}
-		}
-
-		if (cg_speedometer.integer & SPEEDOMETER_ENABLE) {
-			CG_Speedometer();
-			if (cg_speedometer.integer & SPEEDOMETER_ACCELMETER || cg_strafeHelper.integer & SHELPER_ACCELMETER)
-				CG_DrawAccelMeter();
-			if (cg_speedometer.integer & SPEEDOMETER_JUMPHEIGHT)
-				CG_JumpHeight(cent);
-			if (cg_speedometer.integer & SPEEDOMETER_JUMPDISTANCE)
-				CG_JumpDistance();
-			if (cg_speedometer.integer & SPEEDOMETER_VERTICALSPEED)
-				CG_DrawVerticalSpeed();
-			if (cg_speedometer.integer & SPEEDOMETER_YAWSPEED)
-				CG_DrawYawSpeed();
-		}
+		CG_DrawSpeedometer();
 
 		//Strafehelper Start
 		if (cg_strafeHelper.integer)
@@ -1322,18 +1299,6 @@ void CG_DrawHUD(centity_t	*cent)
 
 		if (cg_raceTimer.integer && cg.japro.detected)
 			CG_RaceTimer();
-
-		if (cg_speedometer.integer & SPEEDOMETER_SPEEDGRAPH) {
-			rectDef_t speedgraphRect;
-			vec4_t foreColor = {0.0f, 0.8f, 1.0f, 0.8f};
-			vec4_t backColor = {0.0f, 0.8f, 1.0f, 0.0f};
-			speedgraphRect.x = ((SCREEN_WIDTH*0.5f) - ((150.0f*cgs.widthRatioCoef)*0.5f));
-			speedgraphRect.y = SCREEN_HEIGHT - 22 - 2;
-			speedgraphRect.w = 150.0f*cgs.widthRatioCoef;
-			speedgraphRect.h = 22.0f;
-			CG_AddSpeed();
-			CG_DrawSpeedGraph(&speedgraphRect, foreColor, backColor);
-		}
 	}
 
 	if (cg_hudFiles.integer)
@@ -8465,8 +8430,10 @@ void CG_Draw2D (void) {
 			if (cg_drawStatus.integer)
 				CG_DrawFlagStatus();
 			CG_SaberClashFlare();
-			if (cg_drawStatus.integer)
+			if (cg_drawStatus.integer) {
 				CG_DrawHUD(cg.playerCent);
+				CG_DrawSpeedometer();
+			}
 			CG_DrawPickupItem();
 		}
 		CG_UpdateFallVector();
@@ -9531,6 +9498,9 @@ static void CG_JumpHeight(centity_t *cent)
 	const vec_t* const velocity = (cent->currentState.clientNum == cg.clientNum ? cg.predictedPlayerState.velocity : cent->currentState.pos.trDelta);
 	char jumpHeightStr[32] = {0};
 
+	if (!cg.playerPredicted)
+		return;
+
 	if (cg.predictedPlayerState.fd.forceJumpZStart == -65536) //Coming back from a tele or w/e
 		return;
 
@@ -9556,17 +9526,17 @@ static void CG_JumpDistance( void )
 	if (!cg.snap)
 		return;
 
-	if (cg.predictedPlayerState.groundEntityNum == ENTITYNUM_WORLD) {
+	if (cg.playerCent->currentState.groundEntityNum == ENTITYNUM_WORLD) {
 
 		if (!cg.wasOnGround) {//We were just in the air, but now we arnt
 			vec3_t distance;
 
-			VectorSubtract(cg.predictedPlayerState.origin, cg.lastGroundPosition, distance);
+			VectorSubtract(cg.playerCent->lerpOrigin, cg.lastGroundPosition, distance);
 			cg.lastJumpDistance = sqrtf(distance[0] * distance[0] + distance[1] * distance[1]); // is this right?
 			cg.lastJumpDistanceTime = cg.time;
 		}
 
-		VectorCopy(cg.predictedPlayerState.origin, cg.lastGroundPosition);
+		VectorCopy(cg.playerCent->lerpOrigin, cg.lastGroundPosition);
 		cg.wasOnGround = qtrue;
 	}
 	else {
@@ -9590,7 +9560,7 @@ static void CG_DrawYawSpeed( void ) {
 //	unsigned short frameTime;
 //	const int		xOffset = 0;
 
-	const float diff = AngleSubtract(cg.predictedPlayerState.viewangles[YAW], cg.lastYawSpeed);
+	const float diff = AngleSubtract(cg.playerCent->lerpAngles[YAW], cg.lastYawSpeed);
 	float yawspeed = diff / (cg.frametime * 0.001f);
 	if (yawspeed < 0)
 		yawspeed = -yawspeed;
@@ -9625,14 +9595,14 @@ static void CG_DrawYawSpeed( void ) {
 		CG_Text_Paint(speedometerXPos * cgs.widthRatioCoef, cg_speedometerY.integer, cg_speedometerSize.value, colorTable[CT_WHITE], yawStr, 0.0f, 0, ITEM_ALIGN_RIGHT | ITEM_TEXTSTYLE_OUTLINED, FONT_NONE);
 	}
 
-	cg.lastYawSpeed = cg.predictedPlayerState.viewangles[YAW];
+	cg.lastYawSpeed = cg.playerCent->lerpAngles[YAW];
 
 	speedometerXPos += 16;
 }
 
 static void CG_DrawVerticalSpeed(void) {
 	char speedStr5[64] = { 0 };
-	float vertspeed = cg.predictedPlayerState.velocity[2];
+	float vertspeed = cg.playerCent->currentState.pos.trDelta[2];
 
 	if (vertspeed < 0)
 		vertspeed = -vertspeed;
@@ -9727,7 +9697,10 @@ void CG_AddSpeed(void)
 	if (cg.time <= cg.oldTime)
 		return;
 
-	VectorCopy(cg.snap->ps.velocity, vel);
+	if (cg.playerPredicted)
+		VectorCopy(cg.snap->ps.velocity, vel);
+	else
+		VectorCopy(cg.playerCent->currentState.pos.trDelta, vel);
 
 	/*if (cg_drawSpeed.integer & SPEEDOMETER_IGNORE_Z)
 		vel[2] = 0;*/
@@ -9810,6 +9783,47 @@ static void CG_DrawSpeedGraph(rectDef_t* rect, const vec4_t foreColor,
 
 static float firstSpeed;
 #define ACCEL_SAMPLES 32
+static void CG_DrawSpeedometer(void) {
+	if ((cg_speedometer.integer & SPEEDOMETER_ENABLE) == 0)
+		return;
+
+	speedometerXPos = cg_speedometerX.integer;
+	jumpsXPos = cg_speedometerJumpsX.integer;
+	if (cgs.newHud) {
+		switch (cg_hudFiles.integer)
+		{
+		case 0: speedometerXPos -= 8; break;
+		case 1: speedometerXPos -= 56; break;
+		case 2: speedometerXPos -= 42; break;
+		default: break;
+		}
+	}
+
+	CG_Speedometer();
+	if (cg_speedometer.integer & SPEEDOMETER_ACCELMETER || cg_strafeHelper.integer & SHELPER_ACCELMETER)
+		CG_DrawAccelMeter();
+	if (cg_speedometer.integer & SPEEDOMETER_JUMPHEIGHT)
+		CG_JumpHeight(cg.playerCent);
+	if (cg_speedometer.integer & SPEEDOMETER_JUMPDISTANCE)
+		CG_JumpDistance();
+	if (cg_speedometer.integer & SPEEDOMETER_VERTICALSPEED)
+		CG_DrawVerticalSpeed();
+	if (cg_speedometer.integer & SPEEDOMETER_YAWSPEED)
+		CG_DrawYawSpeed();
+
+	if (cg_speedometer.integer & SPEEDOMETER_SPEEDGRAPH) {
+		rectDef_t speedgraphRect;
+		vec4_t foreColor = { 0.0f, 0.8f, 1.0f, 0.8f };
+		vec4_t backColor = { 0.0f, 0.8f, 1.0f, 0.0f };
+		speedgraphRect.x = ((SCREEN_WIDTH*0.5f) - ((150.0f*cgs.widthRatioCoef)*0.5f));
+		speedgraphRect.y = SCREEN_HEIGHT - 22 - 2;
+		speedgraphRect.w = 150.0f*cgs.widthRatioCoef;
+		speedgraphRect.h = 22.0f;
+		CG_AddSpeed();
+		CG_DrawSpeedGraph(&speedgraphRect, foreColor, backColor);
+	}
+}
+
 static void CG_Speedometer(void)
 {
 	const char *accelStr, *accelStr2, *accelStr3;
@@ -9825,6 +9839,13 @@ static void CG_Speedometer(void)
 	static int lastupdate, jumpsCounter = 0;//	previous, lastupdate, jumpsCounter = 0;
 	static qboolean clearOnNextJump = qfalse;
 //		float newXPos;
+	int groundEntityNum = cg.playerCent->currentState.groundEntityNum;
+	vec3_t vel;
+
+	if (cg.playerPredicted)
+		VectorCopy(cg.snap->ps.velocity, vel);
+	else
+		VectorCopy(cg.playerCent->currentState.pos.trDelta, vel);
 
 	lastSpeed = currentSpeed;
 
@@ -9900,7 +9921,7 @@ static void CG_Speedometer(void)
 		vec4_t colorGroundSpeed = {1, 1, 1, 1};
 		vec4_t colorGroundSpeeds = {1, 1, 1, 1};
 
-		if (cg.predictedPlayerState.groundEntityNum != ENTITYNUM_NONE || cg.predictedPlayerState.velocity[2] < 0) { //On ground or Moving down
+		if (groundEntityNum != ENTITYNUM_NONE || vel[2] < 0) { //On ground or Moving down
 			cg.firstTimeInAir = qfalse;
 		}
 		else if (!cg.firstTimeInAir) { //Moving up for first time
@@ -9918,8 +9939,8 @@ static void CG_Speedometer(void)
 			}
 		}
 		if (cg_speedometer.integer & SPEEDOMETER_JUMPS) {
-			if ((cg.predictedPlayerState.groundEntityNum != ENTITYNUM_NONE &&
-				 cg.predictedPlayerState.pm_time <= 0 && cg.currentSpeed < 250) || cg.currentSpeed == 0) {
+			if ((groundEntityNum != ENTITYNUM_NONE/* &&
+				 cg.predictedPlayerState.pm_time <= 0*/ && cg.currentSpeed < 250) || cg.currentSpeed == 0) {
 				clearOnNextJump = qtrue;
 			}
 			if (cg_speedometerJumps.value &&
