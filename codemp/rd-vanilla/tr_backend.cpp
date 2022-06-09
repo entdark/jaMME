@@ -2148,6 +2148,7 @@ const void	*RB_SwapBuffers( const void *data ) {
 			return (const void *)NULL;
 		}
 	}
+	tr.capturingMultiPass = qfalse;
 	// we measure overdraw by reading back the stencil buffer and
 	// counting up the number of increments that have happened
 #ifndef HAVE_GLES

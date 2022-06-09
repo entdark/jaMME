@@ -646,6 +646,95 @@ void R_MME_JitterTable(float *jitarr, int num) {
 	
 }
 
+qboolean R_MME_JitterTableMask(float *jitarr, int num, char *name) {
+	int		width, height;
+	byte	*pic;
+	GLenum	format;
+
+	if(num==0)
+		return qfalse;
+	if(num>256)
+		return qfalse;
+	if(!name || !name[0])
+		return qfalse;
+
+	R_LoadImage(name, &pic, &width, &height, &format);
+	if (pic) {
+		int pixelCount = width * height;
+		float *mask = (float *)ri.Hunk_AllocateTempMemory((width + 1) * (height + 1) * sizeof(float));// The two +1 additions are bc of the Floyd Steinberg Dithering, it needs some extra.
+		double totalValue = 0.0;
+		int addedSamples = 0;
+		int longerSide = max(width, height);
+		float pixelSideSize = 1.0f / (float)longerSide;
+		float sign = 1.0f;
+		double multiplier;
+		int i, x, y;
+
+		// Convert image to monochrome float mask. We just take the red channel and ignore the others, who cares, the mask can't have colors anyway.
+		for (i = 0; i < pixelCount; i++) {
+			mask[i] = pic[i * 4];
+			totalValue += (double)mask[i];
+		}
+		if (!totalValue)
+			goto skip;
+
+		// Make it so that the added up value of each pixel together equals the needed count of entries in jitter table.
+		// Basically, this mask will be a map saying how many samples should be taken at each point of the image.
+		multiplier = num / totalValue;
+		for (i = 0; i < pixelCount; i++) {
+			mask[i] *= multiplier;
+		}
+
+		// Now apply a nice little Floyd-Steinberg dithering because we will have nonsensical stuff like
+		// pixels saying that 0.3 samples must be taken at them. The dithering will make it so that every pixel has an integer value
+		// and the total added up value stays consistent.
+		// Dithering algorithm based on pseudo code from https://en.wikipedia.org/wiki/Floyd%E2%80%93Steinberg_dithering
+		for (y = 0; y < height; y++) {
+			for (x = 0; x < width; x++) {
+				float oldPixel = mask[y * width + x];
+				float newPixel = roundf(oldPixel);
+				float quantError = oldPixel - newPixel;
+				int samplesHere = newPixel+0.5f;
+				mask[y * width + x] = newPixel;
+
+				// Add samples
+				while (samplesHere-- > 0 && addedSamples < num) {
+					float xRand = random() - 0.5f;
+					float yRand = random() - 0.5f;
+					jitarr[addedSamples * 2] = sign*((float)x / (float)longerSide -0.5f+ xRand* pixelSideSize);
+					jitarr[addedSamples * 2+1] = sign*((float)y / (float)longerSide -0.5f + yRand * pixelSideSize);
+					addedSamples++;
+				}
+
+				// Distribute error
+				mask[y * width + x+1] += quantError * 7.0f / 16.0f;
+				mask[(y+1) * width + x -1] += quantError * 3.0f / 16.0f;
+				mask[(y+1) * width + x] += quantError * 5.0f / 16.0f;
+				mask[(y+1) * width + x+1] += quantError * 1.0f / 16.0f;
+			}
+		}
+skip:
+		ri.Hunk_FreeTempMemory(mask);
+		Z_Free(pic);
+
+		if (addedSamples <= 0)
+			return qfalse;
+
+		// May happen.
+		while (addedSamples < num) {
+			// Just duplicate some random one.
+			int sourceSample = rand() % addedSamples;
+			jitarr[addedSamples * 2] = jitarr[sourceSample * 2];
+			jitarr[addedSamples * 2+1] = jitarr[sourceSample * 2+1];
+			addedSamples++;
+		}
+
+		// Done.
+		return qtrue;
+	}
+	return qfalse;
+}
+
 #define FOCUS_CENTRE 128.0f //if focus is 128 or less than it starts blurring far obejcts very slowly
 
 float R_MME_FocusScale(float focus) {

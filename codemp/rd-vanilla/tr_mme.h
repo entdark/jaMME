@@ -111,6 +111,7 @@ void R_MME_BlurOverlapAdd( mmeBlurBlock_t *block, int index );
 void R_MME_BlurAccumShift( mmeBlurBlock_t *block  );
 void blurCreate( mmeBlurControl_t* control, const char* type, int frames );
 void R_MME_JitterTable(float *jitarr, int num);
+qboolean R_MME_JitterTableMask(float *jitarr, int num, char *name);
 
 float R_MME_FocusScale(float focus);
 void R_MME_ClampDof(float *focus, float *radius);

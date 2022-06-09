@@ -71,6 +71,7 @@ cvar_t	*mme_blurStrength;
 
 cvar_t	*mme_dofFrames;
 cvar_t	*mme_dofRadius;
+cvar_t	*mme_dofMask;
 
 cvar_t	*mme_cpuSSE2;
 cvar_t	*mme_pbo;
@@ -156,7 +157,7 @@ static void R_MME_CreateBlur( qboolean stereo ) {
 	blurTotal = mme_blurFrames->integer + mme_blurOverlap->integer ;
 	passTotal = mme_dofFrames->integer;
 
-	if ( (mme_saveCubemap->modified || mme_blurType->modified || passTotal != passControl->totalFrames ||  blurTotal != blurControl->totalFrames || pixelCount != mainData.pixelCount || blurControl->overlapFrames != mme_blurOverlap->integer) && !allocFailed ) {
+	if ( (mme_dofMask->modified || mme_saveCubemap->modified || mme_blurType->modified || passTotal != passControl->totalFrames ||  blurTotal != blurControl->totalFrames || pixelCount != mainData.pixelCount || blurControl->overlapFrames != mme_blurOverlap->integer) && !allocFailed ) {
 		if (!stereo)
 			workUsed = 0;
 		
@@ -181,7 +182,8 @@ static void R_MME_CreateBlur( qboolean stereo ) {
 		passControl->overlapFrames = 0;
 		passControl->overlapIndex = 0;
 		R_MME_MakeBlurBlock( &w->passData.dof, glPixelCount * 3, passControl );
-		R_MME_JitterTable( w->passData.jitter[0], passTotal );
+		if ( !R_MME_JitterTableMask( w->passData.jitter[0], passTotal, mme_dofMask->string ) )
+			R_MME_JitterTable( w->passData.jitter[0], passTotal );
 
 		R_MME_MakeCubeData( &w->cubeData, pixelCount * 3 );
 		w->cubeData.side = side;
@@ -210,6 +212,7 @@ static void R_MME_CheckCvars( void ) {
 	R_MME_CreateBlur( qfalse );
 	R_MME_CreateBlur( qtrue );
 
+	mme_dofMask->modified = qfalse;
 	mme_saveCubemap->modified = qfalse;
 	mme_blurOverlap->modified = qfalse;
 	mme_blurType->modified = qfalse;
@@ -852,6 +855,7 @@ void R_MME_Init(void) {
 
 	mme_dofFrames = ri.Cvar_Get ( "mme_dofFrames", "0", CVAR_ARCHIVE );
 	mme_dofRadius = ri.Cvar_Get ( "mme_dofRadius", "2", CVAR_ARCHIVE );
+	mme_dofMask = ri.Cvar_Get ( "mme_dofMask", "", CVAR_ARCHIVE );
 
 	mme_cpuSSE2 = ri.Cvar_Get ( "mme_cpuSSE2", "1", CVAR_ARCHIVE );
 	mme_pbo = ri.Cvar_Get ( "mme_pbo", "1", CVAR_ARCHIVE );
