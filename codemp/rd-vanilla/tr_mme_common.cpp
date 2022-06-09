@@ -49,7 +49,7 @@ void R_MME_GetShot( void* output, mmeShotType_t type, qboolean square ) {
 	}
 	ri.Hunk_FreeTempMemory(outBuf);
 #else
-	if (square || !mme_pbo->integer || r_stereoSeparation->value != 0) {
+	if (square || !mme_pbo->integer || r_stereoSeparation->value != 0 || mme_dofFrames->integer) {
 		qglReadPixels( x, y, width, height, format, GL_UNSIGNED_BYTE, output );
 	} else {
 		static int index = 0;
