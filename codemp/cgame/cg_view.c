@@ -1818,6 +1818,7 @@ int CG_CalcViewValues( void ) {
 			CG_OffsetFighterView();
 		}
 		else if ( cg.renderingThirdPerson ) {
+			qboolean strafeHelper = cg.playerPredicted && (cg_strafeHelper.integer & SHELPER_STYLE_MASK);
 			if (CG_MultiSpecActive()) {
 				CG_OffsetThirdPersonViewQ3();
 			} else
@@ -1827,7 +1828,7 @@ int CG_CalcViewValues( void ) {
 			{ //the action cam
 				if (!CG_ThirdPersonActionCam())
 				{ //couldn't do it for whatever reason, resort back to third person then
-					if (cg_thirdPerson.integer >= 2)
+					if (cg_thirdPerson.integer >= 2 || strafeHelper)
 						CG_OffsetThirdPersonViewQ3();
 					else
 						CG_OffsetThirdPersonView();
@@ -1835,7 +1836,7 @@ int CG_CalcViewValues( void ) {
 			}
 			else
 			{
-				if (cg_thirdPerson.integer >= 2)
+				if (cg_thirdPerson.integer >= 2 || strafeHelper)
 					CG_OffsetThirdPersonViewQ3();
 				else
 					CG_OffsetThirdPersonView();

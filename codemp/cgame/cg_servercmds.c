@@ -245,6 +245,9 @@ void CG_ParseServerinfo( void ) {
 		cg.japlus.SSF = JAPLUS_SERVER_FLAGS;
 		cg.uag.detected = qtrue;
 		CG_Printf("^5X^2Jedi ^5Academy");
+	} else if (!Q_stricmpn(gamename, "japro", 5)) {
+		cg.japro.detected = qtrue;
+		CG_Printf("jaPRO");
 	} else if (!Q_stricmpn(gamename, "base_enhanced", 13)) {
 		//having gameversion in the server info?
 		char *version = Info_ValueForKey(info, "gameversion");

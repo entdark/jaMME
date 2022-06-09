@@ -669,10 +669,73 @@ void CG_SetExtendedColours(void) {
 	trap_MME_ExtendedColors(CG_SwitchColorTable());
 }
 
+//Strafehelper colors
+static void CG_CrosshairColorChange(void) {
+    int i;
+    if (sscanf(cg_crosshairColor.string, "%f %f %f %f", &cg.crosshairColor[0], &cg.crosshairColor[1], &cg.crosshairColor[2], &cg.crosshairColor[3]) != 4) {
+        cg.crosshairColor[0] = 0;
+        cg.crosshairColor[1] = 0;
+        cg.crosshairColor[2] = 0;
+        cg.crosshairColor[3] = 255;
+    }
+
+    for (i = 0; i < 4; i++) {
+        if (cg.crosshairColor[i] < 1)
+            cg.crosshairColor[i] = 0;
+        else if (cg.crosshairColor[i] > 255)
+            cg.crosshairColor[i] = 255;
+    }
+
+    cg.crosshairColor[0] /= 255.0f;
+    cg.crosshairColor[1] /= 255.0f;
+    cg.crosshairColor[2] /= 255.0f;
+    cg.crosshairColor[3] /= 255.0f;
+
+    //Com_Printf("New color is %f, %f, %f, %f\n", cg.crosshairColor[0], cg.crosshairColor[1], cg.crosshairColor[2], cg.crosshairColor[3]);
+}
+
+static void CVU_StrafeHelper (void) {
+    trap_Cvar_Set( "cg_strafeHelperActiveColor", va("%i %i %i %i", ui_sha_r.integer, ui_sha_g.integer, ui_sha_b.integer, ui_sha_a.integer) );
+}
+
+static void CG_StrafeHelperActiveColorChange(void) {
+    int i;
+    if (sscanf(cg_strafeHelperActiveColor.string, "%f %f %f %f", &cg.strafeHelperActiveColor[0], &cg.strafeHelperActiveColor[1], &cg.strafeHelperActiveColor[2], &cg.strafeHelperActiveColor[3]) != 4) {
+        cg.strafeHelperActiveColor[0] = 0;
+        cg.strafeHelperActiveColor[1] = 255;
+        cg.strafeHelperActiveColor[2] = 0;
+        cg.strafeHelperActiveColor[3] = 100;
+    }
+
+    for (i = 0; i < 4; i++) {
+        if (cg.strafeHelperActiveColor[i] < 0)
+            cg.strafeHelperActiveColor[i] = 0;
+        else if (cg.strafeHelperActiveColor[i] > 255)
+            cg.strafeHelperActiveColor[i] = 255;
+    }
+
+    trap_Cvar_Set("ui_sha_r", va("%f", cg.strafeHelperActiveColor[0]));
+    trap_Cvar_Set("ui_sha_g", va("%f", cg.strafeHelperActiveColor[1]));
+    trap_Cvar_Set("ui_sha_b", va("%f", cg.strafeHelperActiveColor[2]));
+    trap_Cvar_Set("ui_sha_a", va("%f", cg.strafeHelperActiveColor[3]));
+
+    cg.strafeHelperActiveColor[0] /= 255.0f;
+    cg.strafeHelperActiveColor[1] /= 255.0f;
+    cg.strafeHelperActiveColor[2] /= 255.0f;
+    cg.strafeHelperActiveColor[3] /= 255.0f;
+
+    //Com_Printf("New color is %f, %f, %f, %f\n", cg.strafeHelperActiveColor[0], cg.strafeHelperActiveColor[1], cg.strafeHelperActiveColor[2], cg.strafeHelperActiveColor[3]);
+}
+
 static void CG_SetMovementKeysPos( void ) {
-	if ( sscanf( cg_drawMovementKeysPos.string, "%f %f", &cg.moveKeysPos[0], &cg.moveKeysPos[1] ) != 2 ) {
-		cg.moveKeysPos[0] = (SCREEN_WIDTH / 2);
-		cg.moveKeysPos[1] = (SCREEN_HEIGHT / 2);
+	if ( sscanf( cg_movementKeysPos.string, "%f %f", &cg.moveKeysPos[0], &cg.moveKeysPos[1] ) != 2 ) {
+        if(cg_movementKeys.integer == 4) {
+            cg.moveKeysPos[0] = (SCREEN_WIDTH / 2);
+            cg.moveKeysPos[1] = (SCREEN_HEIGHT / 2);
+        } else if (cg_movementKeys.integer){
+            cg.moveKeysPos[0] = 465;
+            cg.moveKeysPos[1] = 432;
+        }
 	}
 }
 
@@ -1279,6 +1342,20 @@ static void CG_RegisterSounds( void ) {
 	cgs.media.fallSound = trap_S_RegisterSound( "sound/player/fallsplat.wav");
 
 	cgs.media.crackleSound = trap_S_RegisterSound( "sound/effects/energy_crackle.wav" );
+
+//JAPRO - Clientside - Hitsounds Start
+	cgs.media.hitSound			= trap_S_RegisterSound( "sound/effects/hitsound.wav" ); 
+	cgs.media.hitSound2			= trap_S_RegisterSound( "sound/effects/hitsound2.wav" );
+	cgs.media.hitSound3			= trap_S_RegisterSound( "sound/effects/hitsound3.wav" );
+	cgs.media.hitSound4			= trap_S_RegisterSound( "sound/effects/hitsound4.wav" );
+	cgs.media.hitTeamSound		= trap_S_RegisterSound( "sound/effects/hitsoundteam.wav" );
+
+/*	cgs.media.gibSound			= trap_S_RegisterSound( "sound/player/gibsplt1.wav" );
+	cgs.media.gibBounce1Sound	= trap_S_RegisterSound( "sound/player/gibimp1.wav" );
+	cgs.media.gibBounce2Sound	= trap_S_RegisterSound( "sound/player/gibimp2.wav" );
+	cgs.media.gibBounce3Sound	= trap_S_RegisterSound( "sound/player/gibimp3.wav" );*/
+//JAPRO - Clientside - Hitsounds End
+
 #ifdef JK2AWARDS
 	cgs.media.firstImpressiveSound = trap_S_RegisterSound( "sound/chars/protocol/misc/first_impressive.wav" );
 	cgs.media.impressiveSound = trap_S_RegisterSound( "sound/chars/protocol/misc/impressive.wav" );
@@ -1881,6 +1958,38 @@ Ghoul2 Insert End
 	cgs.media.viewPainShader					= trap_R_RegisterShader( "gfx/misc/borgeyeflare" );
 	cgs.media.viewPainShader_Shields			= trap_R_RegisterShader( "gfx/mp/dmgshader_shields" );
 	cgs.media.viewPainShader_ShieldsAndHealth	= trap_R_RegisterShader( "gfx/mp/dmgshader_shieldsandhealth" );
+
+    //jaPRO mod assets - start
+    //Movement Keys - Start
+    cgs.media.keyCrouchOffShader	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/crouch_off" );
+    cgs.media.keyCrouchOnShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/crouch_on" );
+    cgs.media.keyJumpOffShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/jump_off" );
+    cgs.media.keyJumpOnShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/jump_on" );
+    cgs.media.keyBackOffShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/back_off" );
+    cgs.media.keyBackOnShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/back_on" );
+    cgs.media.keyForwardOffShader	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/forward_off" );
+    cgs.media.keyForwardOnShader	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/forward_on" );
+    cgs.media.keyLeftOffShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/left_off" );
+    cgs.media.keyLeftOnShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/left_on" );
+    cgs.media.keyRightOffShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/right_off" );
+    cgs.media.keyRightOnShader		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/right_on" );
+    cgs.media.keyAttackOn	    	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/attack_on" );
+    cgs.media.keyAttackOff		    = trap_R_RegisterShaderNoMip ( "gfx/hud/keys/attack_off" );
+    cgs.media.keyAltOn	    	    = trap_R_RegisterShaderNoMip ( "gfx/hud/keys/alt_on" );
+    cgs.media.keyAltOff		        = trap_R_RegisterShaderNoMip ( "gfx/hud/keys/alt_off" );
+
+
+    //Movement Keys 2
+    cgs.media.keyCrouchOnShader2	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/crouch_on2" );
+    cgs.media.keyJumpOnShader2		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/jump_on2" );
+    cgs.media.keyBackOnShader2		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/back_on2" );
+    cgs.media.keyForwardOnShader2	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/forward_on2" );
+    cgs.media.keyLeftOnShader2		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/left_on2" );
+    cgs.media.keyRightOnShader2		= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/right_on2" );
+    cgs.media.keyAttackOn2	    	= trap_R_RegisterShaderNoMip ( "gfx/hud/keys/attack_on2" );
+    cgs.media.keyAltOn2	    	    = trap_R_RegisterShaderNoMip ( "gfx/hud/keys/alt_on2" );
+
+    //Movement Keys - End
 
 	// register the inline models
 	breakPoint = cgs.numInlineModels = trap_CM_NumInlineModels();

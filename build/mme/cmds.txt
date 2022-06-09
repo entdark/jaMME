@@ -260,6 +260,46 @@ cut
     cut it, cut the currently playing demo with the set range		(bound to /)
     cut start/end, current time will be set as start/end of cutting	(bound to [ and ])
 
+speedometer
+    speedometer, use no arguments to show current settings, and uses values to toggle options
+        speedometer 0, enable speedometer
+        speedometer 1, pre-speed display
+        speedometer 2, jump height display
+        speedometer 3, jump distance display
+        speedometer 4, vertical speed indicator
+        speedometer 5, yaw speed indicator
+        speedometer 6, accel meter
+        speedometer 7, speed graph
+        speedometer 8, display speed in kilometers instead of units
+        speedometer 9, display speed in imperial miles instead of units
+        speedometer 10, pre-speed jumps array
+        speedometer 11, disable speedometer colors
+        speedometer 12, array colors 1
+        speedometer 13, array colors 2
+
+strafehelper
+    strafehelper, use no arguments to show current settings, and uses values to toggle options
+        strafehelper 0, original style
+        strafehelper 1, updated style
+        strafehelper 2, cgaz style
+        strafehelper 3, warsow style
+        strafehelper 4, sound
+        strafehelper 5, w key-press lines
+        strafehelper 6, wa key-press lines
+        strafehelper 7, wd key-press lines
+        strafehelper 8, a key-press lines
+        strafehelper 9, d key-press lines
+        strafehelper 10, rear lines
+        strafehelper 11, center line (air control movement physics only)
+        strafehelper 12, accel bar
+        strafehelper 13, weze style
+        strafehelper 14, line crosshair
+        strafehelper 15, s key-press lines
+        strafehelper 16, sa key-press lines
+        strafehelper 17, sd key-press lines
+        strafehelper 18, small lines
+        strafehelper 19, inverted lines
+
 
 
 JAMME CLIENT (ENGINE)
