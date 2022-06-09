@@ -7069,7 +7069,10 @@ CG_DrawFollow
 */
 static qboolean CG_DrawFollow(void) {
 	char *s;
-	if (!(cg.snap->ps.pm_flags & PMF_FOLLOW) && !cg.demoPlayback) {
+	if (!mov_drawFollow.integer) {
+		return qfalse;
+	}
+	if (!(cg.snap->ps.pm_flags & PMF_FOLLOW) && mov_drawFollow.integer != 2) {
 		return qfalse;
 	}
 //	s = "following";
