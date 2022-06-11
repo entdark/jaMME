@@ -11,7 +11,8 @@ Jedi Academy Movie Maker's Edition (jaMME) is an engine modification of Jedi Aca
 * time speed animation
 * capturing motion blur
 * capturing output in stereo 3D
-* different output types: jpg, tga, png, avi
+* capturing output for Virtual Reality
+* different output types: mp4, avi, png, jpg, tga
 * playing music on background to synchronize it with editing
 * saving depth of field mask
 * overriding players information: name, saber colours, hilts, team, model
@@ -22,7 +23,7 @@ Jedi Academy Movie Maker's Edition (jaMME) is an engine modification of Jedi Aca
 * capturing in any resolution
 * off-screen capturing
 * capturing a list of demos
-* supporting mods: base (basejka, base_enhanced), ja+ (ja++), lugormod, makermod, MBII
+* supporting mods: base (basejka, base_enhanced), ja+ (ja++), lugormod, makermod, PRMod
 
 # Contributors #
 * ent
@@ -51,4 +52,5 @@ Extract the archive to "GameData" folder.
 * Grant R. Griffin and his "FIR filter algorithms for use in C"
 * OpenJK contributors and their OpenJK project
 * redsaurus for Mac support
+* Beloko Games and some of their codes for Android support
 * tayst and his CI+CD
