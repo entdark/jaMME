@@ -20,9 +20,9 @@ features and some new ones.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
   Author: ent
-  Contributors: ent, Scooper, redsaurus, teh, loda, Alpha/Avygeil
-  Version: 1.10
-  Date: 10.08.2016
+  Contributors: ent, Scooper, redsaurus, teh, loda, Alpha/Avygeil, tayst
+  Version: 1.11
+  Date: 10.06.2022
   Revision: commit-hash
 
   Installation: extract the archive to "GameData" folder.
@@ -39,7 +39,8 @@ features and some new ones.
     - OpenJK contributors and their OpenJK project
     - redsaurus for Mac support
     - Beloko Games and some of their codes for Android support
+    - tayst and his CI+CD
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Copyrights: ©2013-2016 ent
+  Copyrights: ©2013-2022 ent
