@@ -127,15 +127,15 @@ namespace android {
 					using (var dirsDialog = dialogBuilder.Create()) {
 						Button b = dirsDialog.GetButton((int)DialogButtonType.Negative);
 						if (b != null) {
-							b.Background = m_context.Resources.GetDrawable(Resource.Drawable.jamme_btn, m_context.Theme);
+							b.Background = m_context.Resources.GetDrawable(Resource.Drawable.jamme_btn);
 						}
 						b = dirsDialog.GetButton((int)DialogButtonType.Neutral);
 						if (b != null) {
-							b.Background = m_context.Resources.GetDrawable(Resource.Drawable.jamme_btn, m_context.Theme);
+							b.Background = m_context.Resources.GetDrawable(Resource.Drawable.jamme_btn);
 						}
 						b = dirsDialog.GetButton((int)DialogButtonType.Positive);
 						if (b != null) {
-							b.Background = m_context.Resources.GetDrawable(Resource.Drawable.jamme_btn, m_context.Theme);
+							b.Background = m_context.Resources.GetDrawable(Resource.Drawable.jamme_btn);
 						}
 						dirsDialog.KeyPress += (sender, ev) => {
 							if (ev.KeyCode == Keycode.Back && ev.Event.Action == KeyEventActions.Down) {
