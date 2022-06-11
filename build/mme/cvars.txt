@@ -44,14 +44,21 @@ mov_musicFile           [text] Play MP3 or WAV file from either "mme" or "base" 
                         filename or subfolder/subfolder/filename
 mov_musicStart          [-?..?] Offset music start time in seconds
 mov_ratioFix            [0, 1] Use ratio fix for non-4:3 resolutions; disable if it makes custom HUD look wrong
-mov_smoothQuat          [0, 1..?.?] Use smooth interpolation with acceleration effect:
-                        0 = disabled, linear velocity, >=1 = enabled, factor of precision (higher - smoother, fps can start dropping over 100)
+mov_smoothQuat          [0, 1.0..?.?] Use smooth interpolation with acceleration effect:
+                        0 = disabled, linear velocity, >=1.0 = enabled, factor of precision (higher - smoother, fps can start dropping over 100)
+mov_smoothCamPos        [0, 1.0..?.?] Smoothing camera position movement factor for slowly moving camera:
+                        0 = no smoothing, >=1.0 = x times smoothing factor
+mov_view6DoFRotation    [0, 1] Control view rotation with 6 degrees of freedom rather than Euler angles - WYSIWYG
 mov_absorbVisibility    [0, 1] Make absorb effect always visible if it's enabled on other clients
 mov_absorbColour        [0..9, a..t, xHEXCOL] Set a colour for absorb shield
 mov_protectColour       [0..9, a..t, xHEXCOL] Set a colour for protect shield
 mov_rageColour          [0..9, a..t, xHEXCOL] Set a colour for rage shield
 mov_spLightning         [0, 1] Use force lightning looping sound from SP
 mov_headTurn            [0, 1] Let the players' heads turn toward other players
+mov_notify              [text] Set notification conditions in format mov_notify "condition condition":
+                        text = textual message will appear in tray area or notification centre,
+                        flash = window icon will flash in task bar, console = notification will appear in the console,
+                        captureStart = notify about capture start, captureEnd = notify about capture end, find = notify about successful find command result
 
 fx_Vibrate              [-1, 0..?.?] Set power of camera shake: -1 = no shake, 0 = default shake, >0 = mme style shake
 fx_vfps                 [1..1000] Fix for effects that could disappear or effects that look too bright
@@ -78,6 +85,7 @@ cg_commandSmooth        [0, 1, 2] Set clients' movements smoothing:
                         0 = disabled, 1 = enabled for the predicted client only, 2 = enabled for all clients
 cg_drawSpeed            [0, 1, 2, 3, 4] Show speedometer:
                         0 = disabled, 1 = regular speedometer, >1 = enhanced speedometer
+cg_relativeZoomSensitivity [0.0..?.?] Set mouse sensitivity when zoomed
 
 NEW FROM JA++ (WORKS FOR ALL)
 cg_newFX                [0, bit-field: 1..16] Use new effects:
@@ -100,6 +108,8 @@ cg_movementKeysPos      [?.? ?.?] Set desired horizontal and vertical position o
 cg_movementKeysSize     [0.0..?.?] Set scale for the movement keys images
 
 STRAFEHELPER / JAPRO
+cg_drawPlayerNames              [0, 1] Show player names above player models
+cg_drawPlayerNamesScale         [0.0..?.?] Set the crosshair rgba (0 - 255)
 cg_crosshairColor               [? ? ? ?] Set the crosshair rgba (0 - 255)
 cg_strafeHelper	                [bit-field] Configure with /strafehelper command
 cg_strafeHelperActiveColor      [? ? ? ?] Set the strafehelper active line rgba (0 - 255)
@@ -144,6 +154,7 @@ mme_demoAutoQuit        [0, 1] Quit the playing demo when it gets to its end
 mme_demoRemove          [0, 1] Remove .mme demo after disconnecting to menu or quitting the mod
 mme_demoPrecache        [0, 1] Precache models, skins and sounds that are used in a demo that user is going to watch to avoid lags during demo playback
                         (not recomended to people with little amount of RAM)
+mme_demoEscapeQuit      [0, 1] Set Escape button to quit the demo
 
 com_affinity            [bit-field: 1..32 in HEX] Set cores that the game will use (the game works very smoothly with 1 core)
 
@@ -200,7 +211,15 @@ cl_autoDemoFormat       [text, %format] Set the autorecording demo name with cer
 
 cl_dlURL                [text] Set a download URL where to automatically download maps from (cl_allowDownload 0, yes, has to be "0")
 
+cl_notify               [text] Set notification conditions in format cl_notify "condition condition":
+                        text = textual message will appear in tray area or notification centre,
+                        flash = window icon will flash in task bar, console = notification will appear in the console,
+                        vote = notify about a called vote, pm = notify about a private message in chat, connect = notify about someone connected,
+                        restart = notify about map restart, round = notify about round end, players=[N] = notify when given amount (N) of players connected,
+                        any other word will be treated as a keyword to be notified with when it appears in chat
+
 con_timestamps          [0, 1] Hide/show timestamps in the console
+con_scale               [0.01..100.0] Set console scale
 
 
 
@@ -233,7 +252,7 @@ mme_dofRadius           [0.0..?.?] Set view offset for every dof frame (power of
 
 mme_renderWidth         [0, 1..?] Width of resolution that game will capture frames with in demoList feature
 mme_renderHeight        [0, 1..?] Height of resolution that game will capture frames with in demoList feature
-mme_workMegs            [1..512] Set megabytes that will be allocated for capturing output
+mme_workMegs            [1..2048] Set megabytes that will be allocated for capturing output
 mme_depthFocus          [0..?] Focus position from your current camera postion to given focus number (mme_saveDepth 1)
 mme_depthRange          [0..?] Range from focus position to your camera direction and reversely from your camera direction (mme_saveDepth 1)
 
@@ -242,11 +261,17 @@ mme_saveShot            [0, 1, 2] Save output:
                         0 = don't save regular output, 1 = merge blur frames (if have) and save, 2 = save every blur frame (if have) as a single frame
 mme_saveDepth           [0, 1, 2] Save depth of field mask outputs:
                         0 = don't save dof output, 1 = merge dof blur frames (if have) and save, 2 = save every dof blur frame (if have) as a single frame
+mme_saveCubemap         [-2, -1, 0, 1, 2] Save cubemap output:
+                        0 = don't save cubemap output, 1 = save fast cubemap 1x6 (vertical), 2 = save human-pleasing cubemap 6x1 (horizontal),
+                        -1 = same as 1 but view angles are not locked, -2 = same as 2 but view angles are not locked
 
 mme_cpuSSE2             [0, 1] Use SSE2 instruction to make motion blur (faster way, may crash on old CPUs)
 mme_pbo                 [0, 1] Use PBO instruction to increase capture speed in times (r_stereoSeparation 0.0)
 mme_pipeCommand         [text, %format] Set the command that opens its stdin for reading from the game raw input and set the supported output with the given format:
-                        %o = output name, %f = fps (from capture command), %w = game width, %h = game height
+                        %o = output name, %a - absolute path to the game, %f = fps (from capture command), %w = game width, %h = game height, %% = %
+                        auto = automatically choose the best pipe command for current settings: default, stereo, VR180, VR360
+mme_combineStereoShots  [0, 1, 2] Combine 2 stereo shots into 1 (r_stereoSeparation not 0.0):
+                        0 = save stereo shots separately, 1 = combine stereo shots fast and save (top-bottom), 2 = combine stereo shots human-pleasing and save (side-by-side)
 
 r_zproj                 [0..?.?] Stereo focus position
 r_stereoSeparation      [-?.?..?.?] Camera stereo offset by horizontal left-to-right axis by stereo focus position;
