@@ -59,6 +59,7 @@ mov_notify              [text] Set notification conditions in format mov_notify 
                         text = textual message will appear in tray area or notification centre,
                         flash = window icon will flash in task bar, console = notification will appear in the console,
                         captureStart = notify about capture start, captureEnd = notify about capture end, find = notify about successful find command result
+mov_drawFollow          [0, 1, 2] Show following messages on the top: 0 = disabled, 1 = show only when spectacting, 2 = show always
 
 fx_Vibrate              [-1, 0..?.?] Set power of camera shake: -1 = no shake, 0 = default shake, >0 = mme style shake
 fx_vfps                 [1..1000] Fix for effects that could disappear or effects that look too bright
