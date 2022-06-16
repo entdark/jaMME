@@ -30,6 +30,7 @@ Jedi Academy Movie Maker's Edition (jaMME) is an engine modification of Jedi Aca
 * Scooper
 * redsaurus
 * teh
+* Alpha/Avygeil
 * tayst
 
 # Installation #
