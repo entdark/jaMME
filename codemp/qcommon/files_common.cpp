@@ -282,8 +282,12 @@ Fix things up differently for win/unix/mac
 ====================
 */
 void FS_ReplaceSeparators( char *path ) {
-	char	*s;
+	char	*s, *uriSep;
 	qboolean lastCharWasSep = qfalse;
+    
+    uriSep = strstr(path, "://");
+    if (uriSep)
+        path = uriSep + 3;
 
 	for ( s = path ; *s ; s++ ) {
 		if ( *s == '/' || *s == '\\' ) {
