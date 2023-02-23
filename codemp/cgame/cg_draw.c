@@ -4766,10 +4766,11 @@ qboolean BG_IsWhiteSpace( char c )
 static void CG_DrawCenterString( void ) {
 	char	*start;
 	int		l, len;
-	int		x, y, w;
-	int h;
+	float	x, y;
+	int		w, h;
 	float	*color;
-	const float scale = 1.0; //0.5
+	const float scale = Q_max(cg_centerScale.value, 0.0f);
+	const float lineSpace = 6 * scale;
 
 	if ( !cg.centerPrintTime ) {
 		return;
@@ -4795,7 +4796,8 @@ static void CG_DrawCenterString( void ) {
 		if(strncmp(cg.centerPrint,sKilledStr,strlen(sKilledStr))!=0)return;
 	}
 
-	y = cg.centerPrintY - cg.centerPrintLines * BIGCHAR_HEIGHT / 2;
+	y = cg.centerPrintY - cg.centerPrintLines * BIGCHAR_HEIGHT / 2 + CG_Text_Height(0, 1.0f, FONT_MEDIUM);
+	y += (cg.centerPrintLines*CG_Text_Height(0, (1.0f-scale)*0.5f, FONT_MEDIUM) - (cg.centerPrintLines-1*lineSpace));
 
 	while ( 1 ) {
 		if (cg.centerPrintLines > 1) {
@@ -4834,8 +4836,8 @@ static void CG_DrawCenterString( void ) {
 			w = CG_Text_Width(linebuffer, scale, FONT_MEDIUM);
 			h = CG_Text_Height(linebuffer, scale, FONT_MEDIUM);
 			x = (SCREEN_WIDTH - w) / 2;
-			CG_Text_Paint(x, y + h, scale, color, linebuffer, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM);
-			y += h + 6;
+			CG_Text_Paint(x, y, scale, color, linebuffer, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM);
+			y += h + lineSpace;
 
 			//[BugFix19]
 			//this method of advancing to new line from the start of the array was causing long lines without
@@ -4869,8 +4871,8 @@ static void CG_DrawCenterString( void ) {
 			w = CG_Text_Width(linebuffer, scale, FONT_MEDIUM);
 			h = CG_Text_Height(linebuffer, scale, FONT_MEDIUM);
 			x = (SCREEN_WIDTH - w) / 2;
-			CG_Text_Paint(x, y + h, scale, color, linebuffer, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM);
-			y += h + 6;
+			CG_Text_Paint(x, y, scale, color, linebuffer, 0, 0, ITEM_TEXTSTYLE_SHADOWEDMORE, FONT_MEDIUM);
+			y += h + lineSpace;
 
 			while ( *start && ( *start != '\n' ) ) {
 				start++;
