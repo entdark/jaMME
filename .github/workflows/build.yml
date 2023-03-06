@@ -143,7 +143,7 @@ jobs:
           chmod +x start_jaMME.sh
           rm start_jaMME.command
           rm start_jaMME.cmd
-          tar -cvf jamme-linux-${{ matrix.arch }}.tar      ./*
+          tar -czvf jamme-linux-${{ matrix.arch }}.tar      ./*
 
       - uses: actions/upload-artifact@v3
         if: matrix.cc == 'gcc' && matrix.config == 'Release'
@@ -204,7 +204,7 @@ jobs:
           chmod +x start_jaMME.command
           rm start_jaMME.cmd
           rm start_jaMME.sh
-          tar -cvf jamme-macos-${{ matrix.arch }}.tar      ./*
+          tar -czvf jamme-macos-${{ matrix.arch }}.tar      ./*
 
       - uses: actions/upload-artifact@v3
         if: matrix.cc == 'clang' && matrix.config == 'Release'
@@ -230,10 +230,10 @@ jobs:
 
       - name: Create binary archives
         run: |
-          7z a -r jamme-linux-x86.zip         ./jamme-linux-x86/*
-          7z a -r jamme-linux-x86_64.zip      ./jamme-linux-x86_64/*
-          7z a -r jamme-windows-x86.zip       ./jamme-windows-x86/*
-          7z a -r jamme-macos-x86_64.zip      ./jamme-macos-x86_64/*
+          7z a -r jamme-windows-x86.zip     ./jamme-windows-x86/*
+          mv ./jamme-linux-x86/*        ./jamme-linux-x86.tar.gz
+          mv ./jamme-linux-x86_64/*     ./jamme-linux-x86_64.tar.gz
+          mv ./jamme-macos-x86_64/*     ./jamme-macos-x86_64.tar.gz
 
       - name: Create latest build
         uses: marvinpinto/action-automatic-releases@latest
