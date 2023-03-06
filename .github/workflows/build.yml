@@ -30,10 +30,10 @@ jobs:
             pkg_suffix: x86
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v1.1
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{runner.workspace}}/build
@@ -67,7 +67,7 @@ jobs:
           rm start_jaMME.command
           rm start_jaMME.sh
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: jamme-windows-${{ matrix.arch }}
           path: ${{runner.workspace}}/jaMME/build/
@@ -91,7 +91,7 @@ jobs:
             use_sdl: true
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Create Build Environment
         run: |
@@ -145,7 +145,7 @@ jobs:
           rm start_jaMME.cmd
           tar -cvf jamme-linux-${{ matrix.arch }}.tar      ./*
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: matrix.cc == 'gcc' && matrix.config == 'Release'
         with:
           name: jamme-linux-${{ matrix.arch }}
@@ -166,7 +166,7 @@ jobs:
             rule: install
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Create Build Environment
         run: |
@@ -206,7 +206,7 @@ jobs:
           rm start_jaMME.sh
           tar -cvf jamme-macos-${{ matrix.arch }}.tar      ./*
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         if: matrix.cc == 'clang' && matrix.config == 'Release'
         with:
           name: jamme-macos-${{ matrix.arch }}
@@ -218,13 +218,13 @@ jobs:
     needs: [windows, ubuntu, macos]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
-    
+        uses: actions/download-artifact@v3
+
       - name: Display structure of downloaded files
         run: ls -R
 
@@ -236,7 +236,7 @@ jobs:
           7z a -r jamme-macos-x86_64.zip      ./jamme-macos-x86_64/*
 
       - name: Create latest build
-        uses: ec-/action-automatic-releases@test
+        uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           automatic_release_tag: "latest"
