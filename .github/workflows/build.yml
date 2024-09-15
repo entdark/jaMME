@@ -30,10 +30,10 @@ jobs:
             pkg_suffix: x86
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v2
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{runner.workspace}}/build
@@ -67,7 +67,7 @@ jobs:
           rm start_jaMME.command
           rm start_jaMME.sh
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: jamme-windows-${{ matrix.arch }}
           path: ${{runner.workspace}}/jaMME/build/
@@ -75,7 +75,7 @@ jobs:
 
   ubuntu:
     name: ${{ matrix.config }} Ubuntu ${{ matrix.arch }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -91,15 +91,16 @@ jobs:
             use_sdl: true
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Create Build Environment
         run: |
           if [ ${{ matrix.arch }} == "x86" ]; then
             sudo dpkg --add-architecture i386
             sudo apt-get -qq update
-            sudo apt-get -y install gcc-multilib g++-multilib ninja-build
-            sudo apt-get -y install --allow-downgrades libpcre2-8-0=10.34-7 libglib2.0-dev:i386 libjpeg-dev:i386 libpng-dev:i386 libsdl2-dev:i386 libcurl4-openssl-dev:i386 libmad0-dev:i386
+            sudo apt-get -y install aptitude
+            sudo apt-get -y install --allow-downgrades libpcre2-8-0=10.34-7 gcc-multilib g++-multilib ninja-build libjpeg-dev:i386 libpng-dev:i386 libcurl4-openssl-dev:i386 libmad0-dev:i386
+            sudo aptitude -y install libglib2.0-dev:i386 libsdl2-dev:i386
           else
             sudo apt-get -qq update
             sudo apt-get install libjpeg-dev libpng-dev zlib1g-dev libsdl2-dev libmad0-dev
@@ -143,7 +144,7 @@ jobs:
           rm start_jaMME.cmd
           tar -cvf jamme-linux-${{ matrix.arch }}.tar      ./*
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: matrix.cc == 'gcc' && matrix.config == 'Release'
         with:
           name: jamme-linux-${{ matrix.arch }}
@@ -152,7 +153,7 @@ jobs:
 
   macos:
     name: ${{ matrix.config }} macOS ${{ matrix.arch }}
-    runs-on: macos-latest
+    runs-on: macos-13
     strategy:
       fail-fast: false
       matrix:
@@ -164,11 +165,11 @@ jobs:
             rule: install
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Create Build Environment
         run: |
-          brew install zlib libjpeg libpng sdl2
+          brew install zlib libjpeg sdl2
           cmake -E make_directory ${{runner.workspace}}/build
 
       - name: Configure CMake
@@ -204,7 +205,7 @@ jobs:
           rm start_jaMME.sh
           tar -cvf jamme-macos-${{ matrix.arch }}.tar      ./*
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: matrix.cc == 'clang' && matrix.config == 'Release'
         with:
           name: jamme-macos-${{ matrix.arch }}
@@ -216,12 +217,12 @@ jobs:
     needs: [windows, ubuntu, macos]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4
     
       - name: Display structure of downloaded files
         run: ls -R
@@ -234,7 +235,7 @@ jobs:
           7z a -r jamme-macos-x86_64.zip      ./jamme-macos-x86_64/*
 
       - name: Create latest build
-        uses: ec-/action-automatic-releases@test
+        uses: crowbarmaster/GH-Automatic-Releases@latest
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           automatic_release_tag: "latest"
