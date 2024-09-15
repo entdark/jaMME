@@ -142,13 +142,13 @@ jobs:
           chmod +x start_jaMME.sh
           rm start_jaMME.command
           rm start_jaMME.cmd
-          tar -cvf jamme-linux-${{ matrix.arch }}.tar      ./*
+          tar -czvf jamme-linux-${{ matrix.arch }}.tar.gz      ./*
 
       - uses: actions/upload-artifact@v4
         if: matrix.cc == 'gcc' && matrix.config == 'Release'
         with:
           name: jamme-linux-${{ matrix.arch }}
-          path: ${{runner.workspace}}/jaMME/build/jamme-linux-${{ matrix.arch }}.tar
+          path: ${{runner.workspace}}/jaMME/build/jamme-linux-${{ matrix.arch }}.tar.gz
           if-no-files-found: error
 
   macos:
@@ -203,13 +203,13 @@ jobs:
           chmod +x start_jaMME.command
           rm start_jaMME.cmd
           rm start_jaMME.sh
-          tar -cvf jamme-macos-${{ matrix.arch }}.tar      ./*
+          tar -czvf jamme-macos-${{ matrix.arch }}.tar.gz      ./*
 
       - uses: actions/upload-artifact@v4
         if: matrix.cc == 'clang' && matrix.config == 'Release'
         with:
           name: jamme-macos-${{ matrix.arch }}
-          path: ${{runner.workspace}}/jaMME/build/jamme-macos-${{ matrix.arch }}.tar
+          path: ${{runner.workspace}}/jaMME/build/jamme-macos-${{ matrix.arch }}.tar.gz
           if-no-files-found: error
 
   macos-arm64:
@@ -264,13 +264,13 @@ jobs:
           chmod +x start_jaMME.command
           rm start_jaMME.cmd
           rm start_jaMME.sh
-          tar -cvf jamme-macos-${{ matrix.arch }}.tar      ./*
+          tar -czvf jamme-macos-${{ matrix.arch }}.tar.gz      ./*
 
       - uses: actions/upload-artifact@v4
         if: matrix.cc == 'clang' && matrix.config == 'Release'
         with:
           name: jamme-macos-${{ matrix.arch }}
-          path: ${{runner.workspace}}/jaMME/build/jamme-macos-${{ matrix.arch }}.tar
+          path: ${{runner.workspace}}/jaMME/build/jamme-macos-${{ matrix.arch }}.tar.gz
           if-no-files-found: error
 
   create-release:
@@ -291,10 +291,10 @@ jobs:
       - name: Create binary archives
         run: |
           7z a -r jamme-linux-x86.zip         ./jamme-linux-x86/*
-          7z a -r jamme-linux-x86_64.zip      ./jamme-linux-x86_64/*
-          7z a -r jamme-windows-x86.zip       ./jamme-windows-x86/*
-          7z a -r jamme-macos-x86_64.zip      ./jamme-macos-x86_64/*
-          7z a -r jamme-macos-arm64.zip       ./jamme-macos-arm64/*
+          mv ./jamme-linux-x86/*              ./jamme-linux-x86.tar.gz
+          mv ./jamme-linux-x86_64/*           ./jamme-linux-x86_64.tar.gz
+          mv ./jamme-macos-x86_64/*           ./jamme-macos-x86_64.tar.gz
+          mv ./jamme-macos-arm64/*            ./jamme-macos-arm64.tar.gz
 
       - name: Create latest build
         uses: crowbarmaster/GH-Automatic-Releases@latest
@@ -305,3 +305,4 @@ jobs:
           title: Latest Build
           files: |
             *.zip
+            *.tar.gz
