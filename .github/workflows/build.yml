@@ -30,10 +30,10 @@ jobs:
             pkg_suffix: x86
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.0.2
+        uses: microsoft/setup-msbuild@v2
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{runner.workspace}}/build
@@ -67,7 +67,7 @@ jobs:
           rm start_jaMME.command
           rm start_jaMME.sh
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: jamme-windows-${{ matrix.arch }}
           path: ${{runner.workspace}}/jaMME/build/
@@ -75,7 +75,7 @@ jobs:
 
   ubuntu:
     name: ${{ matrix.config }} Ubuntu ${{ matrix.arch }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -91,15 +91,16 @@ jobs:
             use_sdl: true
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Create Build Environment
         run: |
           if [ ${{ matrix.arch }} == "x86" ]; then
             sudo dpkg --add-architecture i386
             sudo apt-get -qq update
-            sudo apt-get -y install gcc-multilib g++-multilib ninja-build
-            sudo apt-get -y install --allow-downgrades libpcre2-8-0=10.34-7 libglib2.0-dev:i386 libjpeg-dev:i386 libpng-dev:i386 libsdl2-dev:i386 libcurl4-openssl-dev:i386 libmad0-dev:i386
+            sudo apt-get -y install aptitude
+            sudo apt-get -y install --allow-downgrades libpcre2-8-0=10.34-7 gcc-multilib g++-multilib ninja-build libjpeg-dev:i386 libpng-dev:i386 libcurl4-openssl-dev:i386 libmad0-dev:i386
+            sudo aptitude -y install libglib2.0-dev:i386 libsdl2-dev:i386
           else
             sudo apt-get -qq update
             sudo apt-get install libjpeg-dev libpng-dev zlib1g-dev libsdl2-dev libmad0-dev
@@ -141,18 +142,18 @@ jobs:
           chmod +x start_jaMME.sh
           rm start_jaMME.command
           rm start_jaMME.cmd
-          tar -cvf jamme-linux-${{ matrix.arch }}.tar      ./*
+          tar -czvf jamme-linux-${{ matrix.arch }}.tar.gz      ./*
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: matrix.cc == 'gcc' && matrix.config == 'Release'
         with:
           name: jamme-linux-${{ matrix.arch }}
-          path: ${{runner.workspace}}/jaMME/build/jamme-linux-${{ matrix.arch }}.tar
+          path: ${{runner.workspace}}/jaMME/build/jamme-linux-${{ matrix.arch }}.tar.gz
           if-no-files-found: error
 
   macos:
     name: ${{ matrix.config }} macOS ${{ matrix.arch }}
-    runs-on: macos-latest
+    runs-on: macos-13
     strategy:
       fail-fast: false
       matrix:
@@ -164,11 +165,11 @@ jobs:
             rule: install
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Create Build Environment
         run: |
-          brew install zlib libjpeg libpng sdl2
+          brew install zlib libjpeg sdl2
           cmake -E make_directory ${{runner.workspace}}/build
 
       - name: Configure CMake
@@ -202,26 +203,87 @@ jobs:
           chmod +x start_jaMME.command
           rm start_jaMME.cmd
           rm start_jaMME.sh
-          tar -cvf jamme-macos-${{ matrix.arch }}.tar      ./*
+          tar -czvf jamme-macos-${{ matrix.arch }}.tar.gz      ./*
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: matrix.cc == 'clang' && matrix.config == 'Release'
         with:
           name: jamme-macos-${{ matrix.arch }}
-          path: ${{runner.workspace}}/jaMME/build/jamme-macos-${{ matrix.arch }}.tar
+          path: ${{runner.workspace}}/jaMME/build/jamme-macos-${{ matrix.arch }}.tar.gz
+          if-no-files-found: error
+
+  macos-arm64:
+    name: ${{ matrix.config }} macOS ${{ matrix.arch }}
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [arm64]
+        cc: [clang]
+        cxx: [clang++]
+        include:
+          - config: Release
+            rule: install
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create Build Environment
+        run: |
+          brew install zlib libjpeg sdl2
+          cmake -E make_directory ${{runner.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{runner.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_SYSTEM_PROCESSOR=arm64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${{runner.workspace}}/install
+
+      - name: Build
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: cmake --build .
+
+      - name: Install
+        working-directory: ${{runner.workspace}}/build
+        shell: bash
+        run: cmake --install .
+
+      - name: Update readme
+        working-directory: ${{runner.workspace}}/jaMME/build/mme
+        shell: bash
+        run: |
+          sed -i.bak "s/Date: .*..*..*/Date: $(date +"%d.%m.%Y")/" readme.txt
+          sed -i.bak "s/Revision: .*/Revision: "$(git rev-parse --short HEAD)"/" readme.txt          
+          rm readme.txt.bak
+
+      - name: Create binary archive
+        working-directory: ${{runner.workspace}}/jaMME/build
+        shell: bash
+        run: |
+          chmod +x jamme.app/Contents/MacOS/jamme
+          chmod +x start_jaMME.command
+          rm start_jaMME.cmd
+          rm start_jaMME.sh
+          tar -czvf jamme-macos-${{ matrix.arch }}.tar.gz      ./*
+
+      - uses: actions/upload-artifact@v4
+        if: matrix.cc == 'clang' && matrix.config == 'Release'
+        with:
+          name: jamme-macos-${{ matrix.arch }}
+          path: ${{runner.workspace}}/jaMME/build/jamme-macos-${{ matrix.arch }}.tar.gz
           if-no-files-found: error
 
   create-release:
     if: github.ref == 'refs/heads/master' && github.event_name == 'push' || github.event_name == 'workflow_dispatch'
-    needs: [windows, ubuntu, macos]
+    needs: [windows, ubuntu, macos, macos-arm64]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v4.1.7
+        uses: actions/download-artifact@v4
     
       - name: Display structure of downloaded files
         run: ls -R
@@ -229,12 +291,13 @@ jobs:
       - name: Create binary archives
         run: |
           7z a -r jamme-linux-x86.zip         ./jamme-linux-x86/*
-          7z a -r jamme-linux-x86_64.zip      ./jamme-linux-x86_64/*
-          7z a -r jamme-windows-x86.zip       ./jamme-windows-x86/*
-          7z a -r jamme-macos-x86_64.zip      ./jamme-macos-x86_64/*
+          mv ./jamme-linux-x86/*              ./jamme-linux-x86.tar.gz
+          mv ./jamme-linux-x86_64/*           ./jamme-linux-x86_64.tar.gz
+          mv ./jamme-macos-x86_64/*           ./jamme-macos-x86_64.tar.gz
+          mv ./jamme-macos-arm64/*            ./jamme-macos-arm64.tar.gz
 
       - name: Create latest build
-        uses: ec-/action-automatic-releases@test
+        uses: crowbarmaster/GH-Automatic-Releases@latest
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           automatic_release_tag: "latest"
@@ -242,3 +305,4 @@ jobs:
           title: Latest Build
           files: |
             *.zip
+            *.tar.gz
