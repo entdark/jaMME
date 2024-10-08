@@ -290,7 +290,7 @@ jobs:
 
       - name: Create binary archives
         run: |
-          7z a -r jamme-linux-x86.zip         ./jamme-linux-x86/*
+          7z a -r jamme-windows-x86.zip       ./jamme-windows-x86/*
           mv ./jamme-linux-x86/*              ./jamme-linux-x86.tar.gz
           mv ./jamme-linux-x86_64/*           ./jamme-linux-x86_64.tar.gz
           mv ./jamme-macos-x86_64/*           ./jamme-macos-x86_64.tar.gz
