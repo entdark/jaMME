@@ -419,6 +419,7 @@ void Field_VariableSizeDraw( field_t *edit, int x, int y, int width, int size, q
 	} else {
 		// draw big string with drop shadow
 		SCR_DrawStringExt2(x*cls.ratioFix, y, BIGCHAR_WIDTH*cls.ratioFix, BIGCHAR_HEIGHT, str, chatColour, qfalse, qfalse);
+		re.Font_DrawString(x*cls.ratioFix, y, str, chatColour, 0, -1, 1.0f);
 	}
 
 	// draw the cursor
@@ -441,6 +442,7 @@ void Field_VariableSizeDraw( field_t *edit, int x, int y, int width, int size, q
 			str[0] = cursorChar;
 			str[1] = 0;
 			SCR_DrawStringExt2((x+(edit->cursor-prestep-i)*size)*cls.ratioFix, y, BIGCHAR_WIDTH*cls.ratioFix, BIGCHAR_HEIGHT, str, chatColour, qfalse, qfalse);
+			re.Font_DrawString((x+(edit->cursor-prestep-i)*size)*cls.ratioFix, y, str, chatColour, 0, -1, 1.0f);
 		}
 	}
 }
@@ -600,7 +602,7 @@ void Field_CharEvent( field_t *edit, int ch ) {
 	// ignore any other non printable chars
 	//
 	if ( ch < 32 ) {
-		return;
+//		return;
 	}
 
 	if ( kg.key_overstrikeMode ) {	

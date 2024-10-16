@@ -27,4 +27,10 @@ qboolean Language_UsesSpaces(void);
 
 void RE_FontRatioFix(float ratio);
 
+/* Freetype */
+
+void R_InitFreeType(void);
+void R_DoneFreeType(void);
+int RE_RegisterFontFreeType(const char *fontName, int pointSize/*, fontInfo_t *font*/);
+
 // end

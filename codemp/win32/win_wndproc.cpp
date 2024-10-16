@@ -28,6 +28,8 @@ LONG WINAPI MainWndProc( HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam );
 
 static qboolean s_alttab_disabled;
 
+static WCHAR high_surrogate;
+
 static void WIN_DisableAltTab( void )
 {
 	if ( s_alttab_disabled )
@@ -618,12 +620,65 @@ LONG WINAPI MainWndProc (
 		if(((lParam >> 16) & 0xff) != CONSOLE_SCAN_CODE)
 		{
 			Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, wParam, 0, 0, NULL );
+			break;
 		}
+		break;
+		/* Characters outside Unicode Basic Multilingual Plane (BMP)
+         * are coded as so called "surrogate pair" in two separate UTF-16 character events.
+         * Cache high surrogate until next character event. */
+        if (IS_HIGH_SURROGATE(wParam)) {
+            high_surrogate = (WCHAR)wParam;
+        } else {
+			int i;
+            WCHAR utf16[3];
+
+            utf16[0] = high_surrogate ? high_surrogate : (WCHAR)wParam;
+            utf16[1] = high_surrogate ? (WCHAR)wParam : L'\0';
+            utf16[2] = L'\0';
+
+			char utf8[6] = { 0 };
+            int result = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, utf16, -1, utf8, sizeof(utf8), NULL, NULL);
+            for (i = 0; i < result && utf8[i]; i++) {
+				Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, utf8[i], 0, 0, NULL );
+            }
+
+            high_surrogate = L'\0';
+        }
+		return 0;
 		// Output any debug prints
 //		if(in_debug && in_debug->integer & 2)
 //		{
 //			Com_Printf("WM_CHAR: %x\n", wParam);
 //		}
+		break;
+
+	case WM_IME_CHAR:
+		if(((lParam >> 16) & 0xff) != CONSOLE_SCAN_CODE)
+		{
+			BYTE hb = (BYTE)(wParam >> 8);
+			BYTE lb = wParam;
+			if (hb) {
+				Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, hb, 0, 0, NULL );
+			}
+			Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, lb, 0, 0, NULL );
+			break;
+		}
+		break;
+	case WM_UNICHAR:
+		if (((lParam >> 16) & 0xff) != CONSOLE_SCAN_CODE) {
+			if (wParam == UNICODE_NOCHAR) {
+				return 1;
+			} else {
+				char text[6] = { 0 };
+				if (ConvertUTF32ToUTF8(wParam, text) != text) {
+					int i, len = strlen(text);
+					for (i = 0; i < len && text[i]; i++) {
+						Sys_QueEvent( g_wv.sysMsgTime, SE_CHAR, text[i], 0, 0, NULL );
+					}
+				}
+				return 0; //prevent sending WM_CHAR next
+			}
+		}
 		break;
 
 	case WM_POWERBROADCAST:

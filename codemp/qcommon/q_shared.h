@@ -3162,3 +3162,6 @@ extern int demo_protocols[];
 #define NOTIFICATION_TEXT		(1 << 1)
 #define NOTIFICATION_CONSOLE	(1 << 2)
 #define NOTIFICATION_FULL		(NOTIFICATION_FLASH | NOTIFICATION_TEXT | NOTIFICATION_CONSOLE)
+
+uint32_t ConvertUTF8ToUTF32(char *utf8CurrentChar, char **utf8NextChar);
+char *ConvertUTF32ToUTF8(uint32_t utf32Char, char *utf8Chars);

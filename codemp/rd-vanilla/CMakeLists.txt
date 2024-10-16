@@ -25,6 +25,7 @@ set(MPVanillaRendererFiles
 	"${MPDir}/rd-vanilla/tr_cmds.cpp"
 	"${MPDir}/rd-vanilla/tr_curve.cpp"
 	"${MPDir}/rd-vanilla/tr_font.cpp"
+	"${MPDir}/rd-vanilla/tr_font_freetype.cpp"
 	"${MPDir}/rd-vanilla/tr_framebuffer.cpp"
 	"${MPDir}/rd-vanilla/tr_ghoul2.cpp"
 	"${MPDir}/rd-vanilla/tr_image.cpp"
@@ -105,6 +106,15 @@ else(UseInternalZlib)
 	set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} ${ZLIB_LIBRARY})
 endif(UseInternalZlib)
 
+if(UseFreetype)
+	set(MPVanillaRendererDefines ${SharedDefines} "BUILD_FREETYPE")
+	if(WIN32)
+		set(MPVanillaRendererIncludeDirectories ${MPVanillaRendererIncludeDirectories} ${MPDir}/libs/win32/include)
+		set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} ${MPDir}/libs/win32/lib/freetype.lib)
+	# else TODO
+	endif(WIN32)
+endif(UseFreetype)
+
 if(NOT WIN32)
 	find_package(OpenGL REQUIRED)
 	set(MPVanillaRendererIncludeDirectories ${MPVanillaRendererIncludeDirectories} ${OPENGL_INCLUDE_DIR})
@@ -146,6 +156,7 @@ else(WIN32)
 		install(TARGETS ${jaMMERenderer} LIBRARY DESTINATION "${jaMMEInstallDir}")
 	endif(MakeApplicationBundles AND BuildMPEngine)
 endif(WIN32)
-set_target_properties(${jaMMERenderer} PROPERTIES COMPILE_DEFINITIONS "${SharedDefines}")
+
+set_target_properties(${jaMMERenderer} PROPERTIES COMPILE_DEFINITIONS "${MPVanillaRendererDefines}")
 set_target_properties(${jaMMERenderer} PROPERTIES INCLUDE_DIRECTORIES "${MPVanillaRendererIncludeDirectories}")
 target_link_libraries(${jaMMERenderer} ${MPVanillaRendererLibraries})

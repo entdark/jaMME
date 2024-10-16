@@ -3101,7 +3101,7 @@ Ghoul2 Insert End
 	//	if desired during parse.  Dunno how legal it is to store in these cgDC things, but it causes no harm
 	//	and even if/when they get overwritten they'll be legalised by the menu asset parser :-)
 //	CG_LoadFonts();
-	cgDC.Assets.qhSmallFont  = trap_R_RegisterFont("ocr_a");
+	cgDC.Assets.qhSmallFont  = trap_R_RegisterFont("seguiemj.ttf");
 	cgDC.Assets.qhMediumFont = trap_R_RegisterFont("ergoec");
 	cgDC.Assets.qhBigFont = cgDC.Assets.qhMediumFont;
 

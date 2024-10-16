@@ -2030,3 +2030,64 @@ void Info_SetValueForKey_Big( char *s, const char *key, const char *value ) {
 
 int demo_protocols[] =
 { 26, 25, 0 };
+
+/*
+===============
+Converts a UTF-8 character to UTF-32.
+===============
+*/
+uint32_t ConvertUTF8ToUTF32(char *utf8CurrentChar, char **utf8NextChar) {
+	uint32_t utf32 = 0;
+	char *c = utf8CurrentChar;
+	if((*c & 0x80) == 0) {
+		utf32 = *c++;
+	} else if((*c & 0xE0) == 0xC0) { // 110x xxxx
+		utf32 |= (*c++ & 0x1F) << 6;
+		utf32 |= (*c++ & 0x3F);
+	} else if((*c & 0xF0) == 0xE0) { // 1110 xxxx
+		utf32 |= (*c++ & 0x0F) << 12;
+		utf32 |= (*c++ & 0x3F) << 6;
+		utf32 |= (*c++ & 0x3F);
+	} else if((*c & 0xF8) == 0xF0) { // 1111 0xxx
+		utf32 |= (*c++ & 0x07) << 18;
+		utf32 |= (*c++ & 0x3F) << 12;
+		utf32 |= (*c++ & 0x3F) << 6;
+		utf32 |= (*c++ & 0x3F);
+	} else {
+		//entTODO: implement Com_DPrintf sub in every project
+//		Com_DPrintf("Unrecognised UTF-8 lead byte: 0x%x\n", (unsigned int)*c);
+		c++;
+	}
+	*utf8NextChar = c;
+	return utf32;
+}
+
+/*
+===============
+Converts a UTF-32 character to UTF-8 characters.
+based on SDL's implementation
+===============
+*/
+char *ConvertUTF32ToUTF8(uint32_t utf32Char, char *utf8Chars) {
+	uint8_t *p = (uint8_t *)utf8Chars;
+    if (utf32Char <= 0x7F) {
+        *p = (uint8_t)utf32Char;
+        ++utf8Chars;
+    } else if (utf32Char <= 0x7FF) {
+        p[0] = 0xC0 | (uint8_t)((utf32Char >> 6) & 0x1F);
+        p[1] = 0x80 | (uint8_t)(utf32Char & 0x3F);
+        utf8Chars += 2;
+    } else if (utf32Char <= 0xFFFF) {
+        p[0] = 0xE0 | (uint8_t)((utf32Char >> 12) & 0x0F);
+        p[1] = 0x80 | (uint8_t)((utf32Char >> 6) & 0x3F);
+        p[2] = 0x80 | (uint8_t)(utf32Char & 0x3F);
+        utf8Chars += 3;
+    } else {
+        p[0] = 0xF0 | (uint8_t)((utf32Char >> 18) & 0x07);
+        p[1] = 0x80 | (uint8_t)((utf32Char >> 12) & 0x3F);
+        p[2] = 0x80 | (uint8_t)((utf32Char >> 6) & 0x3F);
+        p[3] = 0x80 | (uint8_t)(utf32Char & 0x3F);
+        utf8Chars += 4;
+    }
+    return utf8Chars;
+}

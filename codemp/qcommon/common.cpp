@@ -2043,35 +2043,6 @@ uint8_t ConvertUTF32ToExpectedCharset(uint32_t utf32) {
 		default: return (uint8_t)utf32;
 	}
 }
-/*
-===============
-Converts a UTF-8 character to UTF-32.
-===============
-*/
-uint32_t ConvertUTF8ToUTF32(char *utf8CurrentChar, char **utf8NextChar) {
-	uint32_t utf32 = 0;
-	char *c = utf8CurrentChar;
-	if((*c & 0x80) == 0) {
-		utf32 = *c++;
-	} else if((*c & 0xE0) == 0xC0) { // 110x xxxx
-		utf32 |= (*c++ & 0x1F) << 6;
-		utf32 |= (*c++ & 0x3F);
-	} else if((*c & 0xF0) == 0xE0) { // 1110 xxxx
-		utf32 |= (*c++ & 0x0F) << 12;
-		utf32 |= (*c++ & 0x3F) << 6;
-		utf32 |= (*c++ & 0x3F);
-	} else if((*c & 0xF8) == 0xF0) { // 1111 0xxx
-		utf32 |= (*c++ & 0x07) << 18;
-		utf32 |= (*c++ & 0x3F) << 6;
-		utf32 |= (*c++ & 0x3F) << 6;
-		utf32 |= (*c++ & 0x3F);
-	} else {
-		Com_DPrintf("Unrecognised UTF-8 lead byte: 0x%x\n", (unsigned int)*c);
-		c++;
-	}
-	*utf8NextChar = c;
-	return utf32;
-}
 
 void Com_ShowNotification( const char *message, const int flags ) {
 	if ( !com_minimized->integer && !com_unfocused->integer )

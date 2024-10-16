@@ -423,15 +423,17 @@ Sys_GetClipboardData
 */
 char *Sys_GetClipboardData( void ) {
 	char *data = NULL;
-	char *cliptext;
+	WCHAR *cliptext;
 
 	if ( OpenClipboard( NULL ) != 0 ) {
 		HANDLE hClipboardData;
 
-		if ( ( hClipboardData = GetClipboardData( CF_TEXT ) ) != 0 ) {
-			if ( ( cliptext = (char *)GlobalLock( hClipboardData ) ) != 0 ) {
-				data = (char *)Z_Malloc( GlobalSize( hClipboardData ) + 1, TAG_CLIPBOARD);
-				Q_strncpyz( data, cliptext, GlobalSize( hClipboardData )+1 );
+		if ( ( hClipboardData = GetClipboardData( CF_UNICODETEXT ) ) != 0 ) {
+			if ( ( cliptext = (WCHAR *)GlobalLock( hClipboardData ) ) != 0 ) {
+				char utf8[6] = { 0 };
+				int result = WideCharToMultiByte(CP_UTF8, WC_ERR_INVALID_CHARS, cliptext, -1, utf8, sizeof(utf8), NULL, NULL);
+				data = (char *)Z_Malloc( result + 1, TAG_CLIPBOARD);
+				Q_strncpyz( data, utf8, result +1 );
 				GlobalUnlock( hClipboardData );
 				
 				strtok( data, "\n\r\b" );

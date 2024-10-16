@@ -261,13 +261,15 @@ void Con_CheckResize (void)
 	}
 	else
 	{
+		int smallchar_width = re.Font_StrLenPixels("T", 0, 1.0f);
+		int smallchar_height = re.Font_HeightPixels(0, 1.0f);
 		float	scale = cls.glconfig.displayScale;
 		scale *= (con_scale && con_scale->value > 0.0f) ? con_scale->value : 1.0f;
-		int		charWidth = scale * SMALLCHAR_WIDTH;
+		int		charWidth = scale * smallchar_width;
 
 		if (charWidth < 1) {
 			charWidth = 1;
-			scale = 1.0f / SMALLCHAR_WIDTH;
+			scale = 1.0f / smallchar_width;
 		}
 
 		width = (cls.glconfig.vidWidth / charWidth) - 2;
@@ -275,11 +277,11 @@ void Con_CheckResize (void)
 		if (width < DEFAULT_CONSOLE_WIDTH) {
 			width = DEFAULT_CONSOLE_WIDTH;
 			charWidth = cls.glconfig.vidWidth / (DEFAULT_CONSOLE_WIDTH+2);
-			scale = (float)charWidth / SMALLCHAR_WIDTH;
+			scale = (float)charWidth / smallchar_width;
 		}
 
 		con.charWidth = charWidth;
-		con.charHeight = SMALLCHAR_HEIGHT * scale;
+		con.charHeight = smallchar_height * scale;
 
 		if (width == con.linewidth)
 			return;
@@ -862,23 +864,33 @@ void Con_DrawSolidConsole( float frac ) {
 		//
 		// (ignore colours since we're going to print the whole thing as one string)
 		//
-		if (re.Language_IsAsian())
+		if (qtrue||re.Language_IsAsian())
 		{
 			// concat the text to be printed...
 			//
 			char sTemp[4096]={0};	// ott
+			vec4_t setColor;
 			for (x = 0 ; x < con.linewidth ; x++) 
 			{
-				if ( ( (text[x]>>8)&7 ) != currentColor ) {
+/*				if ( ( (text[x]>>8)&7 ) != currentColor ) {
 					currentColor = (text[x]>>8)&7;
 					strcat(sTemp,va("^%i", (text[x]>>8)&7) );
+				}*/
+				if ( ( text[x] & 0xffffff00 ) != currentColor ) {
+					currentColor = text[x] & 0xffffff00;
+					setColor[0] = ((currentColor >>  8) & 0xff) * (1 / 255.0f);
+					setColor[1] = ((currentColor >> 16) & 0xff) * (1 / 255.0f);
+					setColor[2] = ((currentColor >> 24) & 0xff) * (1 / 255.0f);
+					setColor[3] = 1.0f;
+					strcat(sTemp,va("^#%06x", currentColor >>  8) );
+//					re.SetColor( setColor );
 				}
 				strcat(sTemp,va("%c",text[x] & 0xFF));				
 			}
 			//
 			// and print...
 			//
-			re.Font_DrawString(con.xadjust*(con.xadjust + (1*con.charWidth/*(aesthetics)*/)), con.yadjust*(y), sTemp, g_color_table[currentColor], iFontIndexForAsian, -1, fFontScaleForAsian);
+			re.Font_DrawString(con.xadjust*(con.xadjust + (1*con.charWidth/*(aesthetics)*/)), con.yadjust*(y), sTemp, colorWhite, iFontIndexForAsian, -1, fFontScaleForAsian);
 		}
 		else
 		{		

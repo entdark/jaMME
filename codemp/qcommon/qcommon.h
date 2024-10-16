@@ -1160,4 +1160,3 @@ inline int Round(float value) {
 bool PD_Store ( const char *name, const void *data, size_t size );
 const void *PD_Load ( const char *name, size_t *size );
 uint8_t ConvertUTF32ToExpectedCharset(uint32_t utf32);
-uint32_t ConvertUTF8ToUTF32(char *utf8CurrentChar, char **utf8NextChar);

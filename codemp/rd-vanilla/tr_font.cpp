@@ -1325,10 +1325,11 @@ void RE_FontRatioFix(float ratio) {
 		fontRatioFix = ratio;
 }
 
+extern float FCG_Text_Width(char *text, float scale, int limit, const int handle);
 int RE_Font_StrLenPixels(const char *psText, const int iFontHandle, const float fScale) {			
 	float iMaxWidth = 0.0f, iThisWidth= 0.0f;
 	CFontInfo *curfont;
-
+	return FCG_Text_Width((char *)psText, fScale, 0, 2);
 	curfont = GetFont(iFontHandle);
 	if(!curfont) {
 		return(0);
@@ -1405,7 +1406,9 @@ int RE_Font_StrLenChars(const char *psText)
 	return iCharCount;
 }
 
-int RE_Font_HeightPixels(const int iFontHandle, const float fScale) {			
+extern float FCG_Text_Height(char *text, float scale, int limit, const int handle);
+int RE_Font_HeightPixels(const int iFontHandle, const float fScale) {	
+	return FCG_Text_Height("TEST", fScale, 0, 2);
 	CFontInfo *curfont;
 	curfont = GetFont(iFontHandle);
 	if (curfont) {
@@ -1417,6 +1420,7 @@ int RE_Font_HeightPixels(const int iFontHandle, const float fScale) {
 
 // iMaxPixelWidth is -1 for "all of string", else pixel display count...
 //
+extern void FCG_Text_Paint(float x, float y, float scale, vec4_t color, char *text, qboolean shadowed, const int handle);
 void RE_Font_DrawString(float ox, float oy, const char *psText, const float *rgba, const int iFontHandle, int iMaxPixelWidth, const float fScale)
 {
 	static qboolean gbInShadow = qfalse;	// MUST default to this
@@ -1425,6 +1429,9 @@ void RE_Font_DrawString(float ox, float oy, const char *psText, const float *rgb
 	qhandle_t			hShader;
 
 	assert (psText);
+//	(float)fScale *= 2.0f;
+	if (!gbInShadow)
+		FCG_Text_Paint(ox, oy, fScale, (float *)rgba, (char *)psText, (qboolean)(iFontHandle & STYLE_DROPSHADOW), 2);
 
 	if(iFontHandle & STYLE_BLINK)
 	{
@@ -1624,6 +1631,12 @@ int RE_RegisterFont(const char *psName)
 			pFont->m_iThisFont = iFontIndex;
 			return iFontIndex;
 		}
+		else if (RE_RegisterFontFreeType(psName, 20))
+		{
+			int iFontIndex = g_iCurrentFontIndex - 1;
+			g_mapFontIndexes[psName] = iFontIndex;
+			return iFontIndex;
+		}
 		else
 		{
 			g_mapFontIndexes[psName] = 0;	// missing/invalid
@@ -1637,6 +1650,8 @@ void R_InitFonts(void)
 {
 	g_iCurrentFontIndex = 1;			// entry 0 is reserved for "missing/invalid"
 	g_iNonScaledCharRange = INT_MAX;	// default all chars to have no special scaling (other than user supplied)
+	R_InitFreeType();
+	RE_RegisterFont("seguiemj.ttf");
 }
 
 /*
@@ -1657,6 +1672,8 @@ void R_FontList_f( void ) {
 				font->mPointSize, font->mHeight, font->mAscender, font->mDescender);
 		}
 	}
+	R_DoneFreeType();
+
 	Com_Printf ("------------------------------------\n");
 }
 
