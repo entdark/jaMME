@@ -238,6 +238,7 @@ movement on the server game.
 #ifndef UI_EXPORTS
 #ifndef QAGAME
 extern qboolean rpmodDetected;
+extern qboolean galaxyrpDetected;
 #endif
 #endif
 

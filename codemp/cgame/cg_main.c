@@ -648,7 +648,7 @@ static void CG_Set2DRatio(void) {
 
 colorTable_t CG_SwitchColorTable(void) {
 	colorTable_t cTable;
-	if (cg.rpmod.detected) {
+	if (cg.rpmod.detected || cg.galaxyrp.detected) {
 		cTable = CT_RPMOD;
 	} else if (cg.uag.newColors) {
 		cTable = CT_UAG;

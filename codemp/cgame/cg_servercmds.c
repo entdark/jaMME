@@ -281,6 +281,10 @@ void CG_ParseServerinfo( void ) {
 		cg.rpmod.detected = qtrue;
 		rpmodDetected = qtrue;
 		CG_Printf("RPMod");
+	} else if (!Q_stricmpn(gamename, "GalaxyRP Mod", 5)) {
+		cg.galaxyrp.detected = qtrue;
+		galaxyrpDetected = qtrue;
+		CG_Printf("GalaxyRP Mod");
 	} else if (!Q_stricmpn(gamename, "MakerMod", 8)) {
 		CG_Printf("MakerMod");
 	} else if (!Q_stricmpn(gamename, "Lugormod", 8)) {

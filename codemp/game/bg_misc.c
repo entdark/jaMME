@@ -18,6 +18,7 @@
 #ifndef QAGAME
 #include "../cgame/cg_local.h"
 qboolean rpmodDetected = qfalse;
+qboolean galaxyrpDetected = qfalse;
 #endif
 #endif
 

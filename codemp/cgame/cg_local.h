@@ -1135,6 +1135,9 @@ Ghoul2 Insert End
 	} rpmod;
 	struct {
 		qboolean		detected;
+	} galaxyrp;
+	struct {
+		qboolean		detected;
 	} japro;
 	
 	int					chargeTime;

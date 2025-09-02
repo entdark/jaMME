@@ -77,14 +77,19 @@ GetIDForString
 #include "../game/anims.h"
 extern stringID_table_t animTable[MAX_ANIMATIONS+1];
 extern stringID_table_t animTableRpmod[MAX_ANIMATIONS+1];
+extern stringID_table_t animTableGalaxyRP[MAX_ANIMATIONS+1];
 extern qboolean rpmodDetected;
+extern qboolean galaxyrpDetected;
 #endif
 int GetIDForString ( stringID_table_t *table, const char *string )
 {
 	int	index = 0;
 #ifdef CGAME
-	if (table == animTable && rpmodDetected) {
-		table = animTableRpmod;
+	if (table == animTable) {
+		if (rpmodDetected)
+			table = animTableRpmod;
+		else if (galaxyrpDetected)
+			table = animTableGalaxyRP;
 	}
 #endif
 	while ( ( table[index].name != NULL ) &&
